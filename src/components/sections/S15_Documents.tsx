@@ -2,24 +2,24 @@ import { FileText, CheckCircle2 } from 'lucide-react';
 import { Note } from './sectionUtils';
 
 const DOC_LIST = [
-  { key: 'photo',          label: 'Passport-size Photograph',        required: true,  hint: 'Recent, clear. JPEG/PNG, max 200KB.' },
+  { key: 'photo',          label: 'Passport-size Photograph',        required: true,  hint: 'Recent, clear. JPEG/PNG/PDF, max 200KB.' },
   { key: 'signature',      label: 'Signature',                        required: true,  hint: 'Scanned on white background.' },
-  { key: 'aadhar',         label: 'Aadhaar Card',                     required: true,  hint: 'Both sides, self-attested.' },
-  { key: 'pan',            label: 'PAN Card',                         required: false, hint: '' },
-  { key: 'ssc',            label: 'SSC / 10th Marksheet',             required: true,  hint: '' },
-  { key: 'hsc',            label: 'HSC / 12th Marksheet',             required: true,  hint: '' },
-  { key: 'ug',             label: 'UG Degree & All Marksheets',        required: true,  hint: 'All semester/year marksheets.' },
-  { key: 'pg',             label: 'PG Degree & All Marksheets',        required: false, hint: '' },
-  { key: 'phd',            label: 'Ph.D. Degree Certificate',          required: false, hint: 'Provisional acceptable.' },
-  { key: 'mphil',          label: 'M.Phil. Degree Certificate',        required: false, hint: '' },
-  { key: 'net',            label: 'NET / SET / JRF Certificate',       required: false, hint: 'If applicable.' },
-  { key: 'gate',           label: 'GATE Score Card',                   required: false, hint: 'If applicable.' },
-  { key: 'apptLetter',     label: 'Appointment Letter',                required: true,  hint: 'Current institution.' },
-  { key: 'experienceCert', label: 'Experience Certificates (Previous)',required: false, hint: 'All previous employers.' },
-  { key: 'casteCert',      label: 'Caste / Category Certificate',      required: false, hint: 'OBC / SC / ST / EWS if applicable.' },
-  { key: 'disabilityCert', label: 'Disability Certificate',            required: false, hint: 'If applicable.' },
-  { key: 'publications',   label: 'Publications List (PDF)',            required: false, hint: 'With DOI / links.' },
-  { key: 'noc',            label: 'No-Objection Certificate (NOC)',     required: false, hint: 'If applicable.' },
+  { key: 'aadhar',         label: 'Aadhaar Card',                     required: true,  hint: 'Both sides, self-attested. PDF format.' },
+  { key: 'pan',            label: 'PAN Card',                         required: false, hint: 'PDF format.' },
+  { key: 'ssc',            label: 'SSC / 10th Marksheet',             required: true,  hint: 'PDF format.' },
+  { key: 'hsc',            label: 'HSC / 12th Marksheet',             required: true,  hint: 'PDF format.' },
+  { key: 'ug',             label: 'UG Degree & All Marksheets',        required: true,  hint: 'All semester/year marksheets. PDF format.' },
+  { key: 'pg',             label: 'PG Degree & All Marksheets',        required: false, hint: 'PDF format.' },
+  { key: 'phd',            label: 'Ph.D. Degree Certificate',          required: false, hint: 'Provisional acceptable. PDF format.' },
+  { key: 'mphil',          label: 'M.Phil. Degree Certificate',        required: false, hint: 'PDF format.' },
+  { key: 'net',            label: 'NET / SET / JRF Certificate',       required: false, hint: 'If applicable. PDF format.' },
+  { key: 'gate',           label: 'GATE Score Card',                   required: false, hint: 'If applicable. PDF format.' },
+  { key: 'apptLetter',     label: 'Appointment Letter',                required: true,  hint: 'Current institution. PDF format.' },
+  { key: 'experienceCert', label: 'Experience Certificates (Previous)',required: false, hint: 'All previous employers. PDF format.' },
+  { key: 'casteCert',      label: 'Caste / Category Certificate',      required: false, hint: 'OBC / SC / ST / EWS if applicable. PDF format.' },
+  { key: 'disabilityCert', label: 'Disability Certificate',            required: false, hint: 'If applicable. PDF format.' },
+  { key: 'publications',   label: 'Publications List (PDF)',            required: false, hint: 'With DOI / links. PDF format.' },
+  { key: 'noc',            label: 'No-Objection Certificate (NOC)',     required: false, hint: 'If applicable. PDF format.' },
 ];
 
 export default function Documents({ data, onChange }: { data: any; onChange: (d: any) => void }) {
@@ -27,7 +27,7 @@ export default function Documents({ data, onChange }: { data: any; onChange: (d:
   return (
     <div>
       <Note>
-        File upload is coming soon. For now, paste a <strong>Google Drive / OneDrive / Dropbox</strong> shared link for each document. Set sharing to <em>"Anyone with the link can view"</em>.
+        Please upload your documents below. All files should be in <strong>PDF format</strong> (except for your photograph and signature, which can be images). Ensure the file size is optimized before uploading.
       </Note>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -40,19 +40,26 @@ export default function Documents({ data, onChange }: { data: any; onChange: (d:
                 {doc.required && <span style={{ color: 'var(--danger)', fontSize: '0.7rem', fontWeight: 700 }}>*</span>}
               </div>
               {doc.hint && <p className="form-hint" style={{ marginTop: 3 }}>{doc.hint}</p>}
+            </div>
+            
+            <div>
+              <input
+                type="file"
+                accept={doc.key === 'photo' || doc.key === 'signature' ? "image/*,.pdf" : ".pdf"}
+                className="form-input"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) s(doc.key, file.name);
+                }}
+                style={{ fontSize: '0.82rem', padding: '6px' }}
+              />
               {data[doc.key] && (
-                <div style={{ marginTop: 3, fontSize: '0.72rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <CheckCircle2 size={11} /> Link saved
+                <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <CheckCircle2 size={13} /> 
+                  <span style={{ fontWeight: 500, color: 'var(--primary-dark)' }}>{data[doc.key]}</span>
                 </div>
               )}
             </div>
-            <input
-              className="form-input"
-              placeholder="Paste Google Drive / OneDrive link..."
-              value={data[doc.key] || ''}
-              onChange={e => s(doc.key, e.target.value)}
-              style={{ fontSize: '0.82rem' }}
-            />
           </div>
         ))}
       </div>
