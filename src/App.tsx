@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import { EditProfileLayout, AdminProfileSection } from './pages/admin/AdminProfileManagement';
 import FacultyDashboard from './pages/faculty/FacultyDashboard';
 import ProfileSetup from './pages/faculty/ProfileSetup';
 import ProfileEdit from './pages/faculty/ProfileEdit';
@@ -33,6 +34,10 @@ function AppRoutes() {
 
       {/* Admin */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/edit-profile" element={<ProtectedRoute role="admin"><EditProfileLayout /></ProtectedRoute>}>
+        <Route index element={<Navigate to="/admin/edit-profile/personal-information" replace />} />
+        <Route path=":sectionId" element={<AdminProfileSection />} />
+      </Route>
 
       {/* Faculty */}
       <Route path="/faculty/setup" element={<ProtectedRoute role="faculty"><ProfileSetup /></ProtectedRoute>} />
