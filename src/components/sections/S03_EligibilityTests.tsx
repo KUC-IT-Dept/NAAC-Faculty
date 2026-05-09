@@ -1,26 +1,20 @@
 import { Plus, Trash2, Edit2, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, sel, Sub } from './sectionUtils';
+import { fg, inp } from './sectionUtils';
 
-const EMPTY = { 
-  examName: '', 
-  subject: '', 
-  year: '', 
-  certificateNo: '', 
-  state: '', 
-  score: '', 
-  fellowshipAgency: '' 
+const EMPTY = {
+  examName: '',
+  subject: '',
+  year: '',
+  certificateNo: '',
+  state: '',
+  score: '',
+  fellowshipAgency: ''
 };
 
 export default function EligibilityTests({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
-
-  const upd = (i: number, k: string, v: string) => { 
-    const a = [...data]; 
-    a[i] = { ...a[i], [k]: v }; 
-    onChange(a); 
-  };
 
   const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
     <select
@@ -43,7 +37,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
     if (editingIndex !== null) {
       let newData = [...data];
       newData[editingIndex] = { ...editingData };
-      
+
       // Sort the array by year descending (latest year at the top)
       newData.sort((a, b) => {
         const yearA = parseInt(a.year) || 0;
@@ -60,7 +54,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
   const cancelEdit = () => {
     const isCompletelyEmpty = Object.values(editingData).every(v => v === '');
     if (isCompletelyEmpty && editingIndex !== null) {
-       onChange(data.filter((_, j) => j !== editingIndex));
+      onChange(data.filter((_, j) => j !== editingIndex));
     }
     setEditingIndex(null);
     setEditingData(EMPTY);
@@ -91,7 +85,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
   return (
     <div>
       <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-        <button 
+        <button
           type="button"
           onClick={addNewTest}
           style={{
@@ -121,7 +115,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                   <CheckCircle size={20} color="#4f46e5" /> Edit Eligibility Test
                 </h3>
                 <div>
-                  <button 
+                  <button
                     type="button"
                     onClick={cancelEdit}
                     style={{
@@ -138,7 +132,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     type="button"
                     onClick={saveEdit}
                     style={{
@@ -158,10 +152,10 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
               </div>
 
               <div className="form-row form-row-2">
-                {fg('Exam Name *', <CustomSelect 
-                  value={editingData.examName} 
-                  onChange={(v: string) => updateEditingData('examName', v)} 
-                  options={['NET', 'SET / SLET', 'GATE', 'JRF', 'Any other competitive exam']} 
+                {fg('Exam Name *', <CustomSelect
+                  value={editingData.examName}
+                  onChange={(v: string) => updateEditingData('examName', v)}
+                  options={['NET', 'SET / SLET', 'GATE', 'JRF', 'Any other competitive exam']}
                 />)}
                 {fg('Year', inp(editingData.year, v => updateEditingData('year', v), 'e.g., 2022'))}
               </div>
@@ -174,10 +168,10 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                 {fg('Score (for GATE)', inp(editingData.score, v => updateEditingData('score', v)))}
               </div>
               <div className="form-row form-row-1">
-                {fg('Fellowship Agency (for JRF)', <CustomSelect 
-                  value={editingData.fellowshipAgency} 
-                  onChange={(v: string) => updateEditingData('fellowshipAgency', v)} 
-                  options={['UGC', 'CSIR', 'University', 'NBHM', 'DAE', 'Other']} 
+                {fg('Fellowship Agency (for JRF)', <CustomSelect
+                  value={editingData.fellowshipAgency}
+                  onChange={(v: string) => updateEditingData('fellowshipAgency', v)}
+                  options={['UGC', 'CSIR', 'University', 'NBHM', 'DAE', 'Other']}
                 />)}
               </div>
             </>
@@ -189,7 +183,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                   {e.year && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({e.year})</span>}
                 </h3>
                 <div>
-                  <button 
+                  <button
                     type="button"
                     onClick={() => startEdit(i)}
                     style={{
@@ -208,10 +202,10 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                   >
                     <Edit2 size={12} /> Edit
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => removeTest(i)}
-                    style={{ 
+                    style={{
                       marginLeft: '8px',
                       padding: '6px 12px',
                       fontSize: '13px',

@@ -1,13 +1,11 @@
-import { Plus, Trash2 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import { fg, inp, sel, ta, dateInp, Sub, Note } from './sectionUtils';
+import { useState, useEffect } from 'react';
+import { fg, inp, ta, dateInp, Sub } from './sectionUtils';
 
 export default function PersonalInfo({ data, onChange }: { data: any; onChange: (d: any) => void }) {
   const s = (k: string, v: string) => onChange({ ...data, [k]: v });
-  
+
   // Single edit state for entire form
   const [isEditing, setIsEditing] = useState(false);
-  const previousDataRef = useRef(data);
 
   // Auto-return to preview mode after save
   useEffect(() => {
@@ -21,17 +19,19 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     };
 
     // Listen for any click that might be a save button
-    const handleClick = (e) => {
-      const target = e.target;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
       if (target.tagName === 'BUTTON' || target.closest('button')) {
-        const button = target.tagName === 'BUTTON' ? target : target.closest('button');
+        const button = (target.tagName === 'BUTTON' ? target : target.closest('button')) as HTMLButtonElement | null;
+        if (!button) return;
         const buttonText = button.textContent?.toLowerCase() || '';
         const buttonTitle = button.title?.toLowerCase() || '';
-        
+
         // Check if this looks like a save button (but NOT the edit button)
-        if ((buttonText.includes('save') || buttonTitle.includes('save') || 
-            button.type === 'submit' || button.className.includes('save')) && 
-            !buttonText.includes('edit')) {
+        if ((buttonText.includes('save') || buttonTitle.includes('save') ||
+          button.type === 'submit' || button.className.includes('save')) &&
+          !buttonText.includes('edit')) {
           setTimeout(() => {
             setIsEditing(false);
           }, 1500); // Wait for save to complete
@@ -60,13 +60,13 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
       clearInterval(checkInterval);
     };
   }, [isEditing]);
-  
+
   // Custom select with add option
-  const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }) => {
+  const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: { value?: string; onChange: (v: string) => void; options: string[]; placeholder?: string }) => {
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [customValue, setCustomValue] = useState('');
 
-    const handleSelectChange = (newValue) => {
+    const handleSelectChange = (newValue: string) => {
       if (newValue === '__ADD_CUSTOM__') {
         setShowCustomInput(true);
       } else {
@@ -93,14 +93,14 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               placeholder="Enter custom value"
               autoFocus
             />
-            <button 
+            <button
               type="button"
               onClick={handleCustomAdd}
               style={{ padding: '0 8px', border: '1px solid #ccc', borderRadius: '4px' }}
             >
               Add
             </button>
-            <button 
+            <button
               type="button"
               onClick={() => setShowCustomInput(false)}
               style={{ padding: '0 8px', border: '1px solid #ccc', borderRadius: '4px' }}
@@ -109,22 +109,22 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
             </button>
           </div>
         ) : (
-          <select 
-            className="form-select" 
-            value={value || ''} 
+          <select
+            className="form-select"
+            value={value || ''}
             onChange={(e) => handleSelectChange(e.target.value)}
           >
             <option value="">{placeholder}</option>
-            {options.map(o => <option key={o} value={o}>{o}</option>)}
+            {options.map((o: string) => <option key={o} value={o}>{o}</option>)}
             <option value="__ADD_CUSTOM__">+ Add Custom Option</option>
           </select>
         )}
       </div>
     );
   };
-  
+
   // Preview display helper
-  const renderPreview = (label, value) => (
+  const renderPreview = (label: string, value?: string) => (
     <div style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
       <strong>{label}:</strong> {value || 'Not specified'}
     </div>
@@ -133,7 +133,7 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     <div>
       {!isEditing && (
         <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-          <button 
+          <button
             onClick={() => setIsEditing(true)}
             style={{
               padding: '8px 16px',

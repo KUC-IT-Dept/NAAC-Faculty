@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit3, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit3, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { fg, inp, sel } from './sectionUtils';
 
@@ -7,7 +7,7 @@ const EMPTY = { courseName: '', platform: '', duration: '', completionYear: '', 
 export default function OnlineCourses({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [expandedPreview, setExpandedPreview] = useState(true);
-  
+
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
 
   const handleAddNew = () => {
@@ -28,9 +28,9 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
             <Edit3 size={14} /> Edit
           </button>
         )}
-        <button 
-          type="button" 
-          className="btn btn-primary btn-sm" 
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
           onClick={handleAddNew}
           style={{ display: 'flex', alignItems: 'center', gap: 6 }}
         >
@@ -45,7 +45,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
             <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>No online courses added yet.</p>
           ) : (
             <div style={{ marginBottom: 20 }}>
-              <div 
+              <div
                 onClick={() => setExpandedPreview(!expandedPreview)}
                 style={{
                   padding: '12px 16px',
@@ -122,7 +122,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
               )}
             </div>
           )}
-          
+
 
         </div>
       )}
@@ -143,13 +143,13 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                 {fg('Certificate ID / Number', inp(c.certificateId, v => upd(i, 'certificateId', v)))}
                 <div className="form-group">
                   <label className="form-label">Upload Certificate</label>
-                  <input 
-                    type="file" 
-                    className="form-input" 
+                  <input
+                    type="file"
+                    className="form-input"
                     onChange={e => {
                       const file = e.target.files?.[0];
                       if (file) upd(i, 'certificateUrl', file.name);
-                    }} 
+                    }}
                     style={{ padding: '6px' }}
                   />
                   {c.certificateUrl && <div style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: 4 }}>Uploaded: {c.certificateUrl}</div>}
@@ -159,8 +159,8 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
           ))}
           {data.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn btn-ghost btn-sm"
                 onClick={() => setIsEditMode(false)}
               >

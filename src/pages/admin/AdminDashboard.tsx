@@ -3,7 +3,6 @@ import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 interface FacultyUser {
   _id: string;
@@ -28,7 +27,6 @@ export default function AdminDashboard() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ email: '', fullName: '' });
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
 
   const fetchData = async () => {
     try {
@@ -187,7 +185,7 @@ export default function AdminDashboard() {
               <h3>Add Faculty Account</h3>
               <button className="btn btn-ghost btn-sm" onClick={() => setShowModal(false)}><X size={18} /></button>
             </div>
-              <form onSubmit={handleCreate}>
+            <form onSubmit={handleCreate}>
               <div className="modal-body">
                 <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
                   <span>Faculty will receive a default password of <strong>password123</strong>. They'll be prompted to change it on first login.</span>

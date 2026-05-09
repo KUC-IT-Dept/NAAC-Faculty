@@ -1,6 +1,6 @@
 import { Plus, Trash2, Edit2, GraduationCap } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, sel, dateInp, Sub } from './sectionUtils';
+import { fg, inp } from './sectionUtils';
 
 const EMPTY = {
   degreeLevel: '',
@@ -18,12 +18,6 @@ const EMPTY = {
 export default function Qualifications({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
-
-  const upd = (i: number, k: string, v: string) => {
-    const a = [...data];
-    a[i] = { ...a[i], [k]: v };
-    onChange(a);
-  };
 
   const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
     <select

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, UserCircle, Eye, Settings } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, UserCircle, Eye } from 'lucide-react';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
