@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
@@ -21,24 +21,24 @@ import OnlineCourses       from '../../components/sections/S13_OnlineCourses';
 import InternationalExp    from '../../components/sections/S14_InternationalExperience';
 import Documents           from '../../components/sections/S15_Documents';
 
-const TABS = [
-  { id: 'personalInfo',           label: '01 · Personal Information' },
-  { id: 'qualifications',         label: '02 · Qualifications' },
-  { id: 'eligibilityTests',       label: '03 · Eligibility Tests' },
-  { id: 'employmentDetails',      label: '04 · Employment Details' },
-  { id: 'workExperience',         label: '05 · Work Experience' },
-  { id: 'publications',           label: '06 · Research & Publications' },
-  { id: 'awards',                 label: '07 · Awards & Honours' },
-  { id: 'projects',               label: '08 · Research Projects' },
-  { id: 'researchSupervision',    label: '09 · Research Supervision' },
-  { id: 'academicResponsibilities', label: '10 · Academic Responsibilities' },
-  { id: 'memberships',            label: '11 · Memberships' },
-  { id: 'fdpWorkshops',           label: '12 · FDP & Workshops' },
-  { id: 'onlineCourses',          label: '13 · Online Courses' },
-  { id: 'internationalExperience',label: '14 · International Experience' },
-  { id: 'documents',              label: '15 · Documents' },
-  { id: 'visibility',             label: '👁  Visibility' },
-];
+const SECTION_MAP: Record<string, { key: string, label: string }> = {
+  'personal-information': { key: 'personalInfo', label: 'Personal Information' },
+  'qualifications': { key: 'qualifications', label: 'Qualifications' },
+  'eligibility-tests': { key: 'eligibilityTests', label: 'Eligibility Tests' },
+  'employment-details': { key: 'employmentDetails', label: 'Employment Details' },
+  'work-experience': { key: 'workExperience', label: 'Work Experience' },
+  'research-publications': { key: 'publications', label: 'Research & Publications' },
+  'awards-honours': { key: 'awards', label: 'Awards & Honours' },
+  'research-projects': { key: 'projects', label: 'Research Projects' },
+  'research-supervision': { key: 'researchSupervision', label: 'Research Supervision' },
+  'academic-responsibilities': { key: 'academicResponsibilities', label: 'Academic Responsibilities' },
+  'memberships': { key: 'memberships', label: 'Memberships' },
+  'fdp-workshops': { key: 'fdpWorkshops', label: 'FDP & Workshops' },
+  'online-courses': { key: 'onlineCourses', label: 'Online Courses' },
+  'international-experience': { key: 'internationalExperience', label: 'International Experience' },
+  'documents': { key: 'documents', label: 'Documents' },
+  'visibility': { key: 'visibility', label: 'Visibility' },
+};
 
 const VIS_ITEMS = [
   { key: 'personalInfo',           label: 'Personal Information',       desc: 'Name, contact, address' },
@@ -68,8 +68,9 @@ const EMPTY: any = {
 };
 
 export default function ProfileEdit() {
-  const [sp] = useSearchParams();
-  const [tab, setTab] = useState(sp.get('tab') || 'personalInfo');
+  const { sectionId } = useParams();
+  const section = sectionId && SECTION_MAP[sectionId] ? SECTION_MAP[sectionId] : null;
+
   const [profile, setProfile] = useState<any>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -81,6 +82,12 @@ export default function ProfileEdit() {
       .catch(() => toast.error('Failed to load profile'))
       .finally(() => setLoading(false));
   }, []);
+
+  if (!section && !loading) {
+    return <Navigate to="/faculty/profile/edit/personal-information" replace />;
+  }
+
+  const tab = section?.key || 'personalInfo';
 
   const save = async () => {
     setSaving(true);
@@ -106,31 +113,12 @@ export default function ProfileEdit() {
   return (
     <AppLayout title="Edit Profile">
       <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
-
-        {/* Sidebar nav */}
-        <div className="card" style={{ width: 210, flexShrink: 0, padding: '6px 0', position: 'sticky', top: 'calc(var(--header-h) + 16px)' }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
-              display: 'block', width: '100%', padding: '8px 16px', textAlign: 'left',
-              background: tab === t.id ? 'rgba(28,53,87,0.07)' : 'none',
-              border: 'none',
-              borderRight: `3px solid ${tab === t.id ? 'var(--primary)' : 'transparent'}`,
-              color: tab === t.id ? 'var(--primary)' : 'var(--text-muted)',
-              fontFamily: 'var(--font-body)', fontSize: '0.78rem',
-              fontWeight: tab === t.id ? 600 : 400,
-              cursor: 'pointer', transition: 'all .15s', lineHeight: 1.4,
-            }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
         {/* Main form area */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="card">
             <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
               <div>
-                <h3 style={{ color: 'var(--primary-dark)' }}>{TABS.find(t => t.id === tab)?.label.replace(/^\d+ · /, '')}</h3>
+                <h3 style={{ color: 'var(--primary-dark)' }}>{section?.label}</h3>
                 <p className="text-xs text-muted" style={{ marginTop: 2 }}>Changes are saved per section.</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
