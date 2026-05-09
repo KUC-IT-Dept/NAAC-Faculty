@@ -22,7 +22,7 @@ export default function LoginPage() {
     setErr('');
     setLoading(true);
     try {
-      const { faculty } = await login(form.email, form.password);
+      await login(form.email, form.password);
       const u = JSON.parse(localStorage.getItem('iqac_user') || '{}');
       if (u.role === 'admin') {
         toast.success('Welcome back, Admin!');

@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -8,7 +9,7 @@ import ProfileSetup from './pages/faculty/ProfileSetup';
 import ProfileEdit from './pages/faculty/ProfileEdit';
 import PublicProfile from './pages/PublicProfile';
 
-function ProtectedRoute({ children, role }: { children: JSX.Element; role?: 'admin' | 'faculty' }) {
+function ProtectedRoute({ children, role }: { children: ReactElement; role?: 'admin' | 'faculty' }) {
   const { user, loading } = useAuth();
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
