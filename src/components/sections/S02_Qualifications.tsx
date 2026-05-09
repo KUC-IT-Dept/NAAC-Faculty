@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit2, GraduationCap } from 'lucide-react';
+import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { fg, inp, sel, dateInp, Sub } from './sectionUtils';
 
@@ -18,6 +18,14 @@ const EMPTY = {
 export default function Qualifications({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+
+  // Sort data by yearOfPassing descending (latest year at the top)
+  const sortedData = [...data].sort((a, b) => {
+    const yearA = parseInt(a.yearOfPassing) || 0;
+    const yearB = parseInt(b.yearOfPassing) || 0;
+    return yearB - yearA;
+  });
 
   const upd = (i: number, k: string, v: string) => {
     const a = [...data];
@@ -87,6 +95,18 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
     setEditingData((prev: any) => ({ ...prev, [key]: value }));
   };
 
+  const toggleCard = (index: number) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
   const renderPreview = (label: string, value: any) => (
     <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
       <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>{label}</span>
@@ -118,7 +138,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
         </button>
       </div>
 
-      {data.map((q, i) => (
+      {sortedData.map((q, i) => (
         <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
           {editingIndex === i ? (
             <>
@@ -196,11 +216,14 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             </>
           ) : (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
-                  {q.degreeName || q.degreeLevel || `Qualification ${i + 1}`}
-                  {q.yearOfPassing && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({q.yearOfPassing})</span>}
-                </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => toggleCard(i)}>
+                  <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
+                    {q.degreeName || q.degreeLevel || `Qualification ${i + 1}`}
+                    {q.yearOfPassing && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({q.yearOfPassing})</span>}
+                  </h3>
+                  {expandedCards.has(i) ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
+                </div>
                 <div>
                   <button
                     type="button"
@@ -244,18 +267,20 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {renderPreview('Degree Level', q.degreeLevel)}
-                {renderPreview('Degree / Qualification Name', q.degreeName)}
-                {renderPreview('Specialization / Subject', q.specialization)}
-                {renderPreview('Institution / University Name', q.institution)}
-                {renderPreview('Board / University', q.university)}
-                {renderPreview('Year of Passing', q.yearOfPassing)}
-                {renderPreview('Percentage / CGPA', q.percentageCGPA)}
-                {renderPreview('Division', q.division)}
-                {renderPreview('Mode', q.mode)}
-                {renderPreview('Country & State of Institution', q.countryAndState)}
-              </div>
+              {expandedCards.has(i) && (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {renderPreview('Degree Level', q.degreeLevel)}
+                  {renderPreview('Degree / Qualification Name', q.degreeName)}
+                  {renderPreview('Specialization / Subject', q.specialization)}
+                  {renderPreview('Institution / University Name', q.institution)}
+                  {renderPreview('Board / University', q.university)}
+                  {renderPreview('Year of Passing', q.yearOfPassing)}
+                  {renderPreview('Percentage / CGPA', q.percentageCGPA)}
+                  {renderPreview('Division', q.division)}
+                  {renderPreview('Mode', q.mode)}
+                  {renderPreview('Country & State of Institution', q.countryAndState)}
+                </div>
+              )}
             </>
           )}
         </div>

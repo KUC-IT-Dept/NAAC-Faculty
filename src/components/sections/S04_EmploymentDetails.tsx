@@ -1,6 +1,6 @@
 import { fg, inp, dateInp, Sub } from './sectionUtils';
 import { useState, useEffect } from 'react';
-import { Edit2, Save, X, Briefcase, Plus } from 'lucide-react';
+import { Edit2, Save, X, Briefcase, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 
 const EMPTY = { 
   employeeId: '', 
@@ -42,6 +42,7 @@ const CustomSelect = ({ value, onChange, options, placeholder = "— Select —"
 export default function EmploymentDetails({ data, onChange }: { data: any; onChange: (d: any) => void }) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingData, setEditingData] = useState<any>(EMPTY);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const s = (k: string, v: string) => onChange({ ...data, [k]: v });
 
@@ -68,6 +69,10 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
 
   const updateEditingData = (key: string, value: string) => {
     setEditingData((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  const toggleExpanded = () => {
+    setIsExpanded(prev => !prev);
   };
 
   const renderPreview = (label: string, value: any) => (
@@ -234,10 +239,13 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         </>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
-              <Briefcase size={22} color="#4f46e5" /> Current Employment Details
-            </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={toggleExpanded}>
+              <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
+                <Briefcase size={22} color="#4f46e5" /> Current Employment Details
+              </h3>
+              {isExpanded ? <ChevronUp size={18} color="#64748b" /> : <ChevronDown size={18} color="#64748b" />}
+            </div>
             <button 
               type="button"
               onClick={startEdit}
@@ -259,30 +267,32 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {renderPreview('Employee ID / Staff Code', data.employeeId)}
-            {renderPreview('Designation', data.designation)}
-            {renderPreview('Department', data.department)}
-            {renderPreview('College / Institution Name', data.institution)}
-            {renderPreview('University Affiliated to', data.affiliatedUniversity)}
-            {renderPreview('Type of Institution', data.typeOfInstitution)}
-            {renderPreview('Nature of Appointment', data.natureOfAppointment)}
-            {renderPreview('Date of Joining', data.dateOfJoining)}
-            {renderPreview('Date of Confirmation', data.dateOfConfirmation)}
-            {renderPreview('Pay Band / Pay Scale / CTC', data.payBand)}
-            {renderPreview('Bank Account Details', data.bankAccountDetails)}
-            {renderPreview('Provident Fund (PF) Number', data.pfNumber)}
-            {renderPreview('Service Book Number', data.serviceBookNumber)}
-            {renderPreview('Date of First promotion', data.dateOfFirstPromotion)}
-            {renderPreview('First promotion Nature of Appointment', data.natureOfAppointment1)}
-            {renderPreview('First promotion New Pay Band', data.newPayBand1)}
-            {renderPreview('Date of Second promotion', data.dateOfSecondPromotion)}
-            {renderPreview('Second promotion Nature of Appointment', data.natureOfAppointment2)}
-            {renderPreview('Second promotion New Pay Band', data.newPayBand2)}
-            {renderPreview('Date of Third promotion', data.dateOfThirdPromotion)}
-            {renderPreview('Third promotion Nature of Appointment', data.natureOfAppointment3)}
-            {renderPreview('Third promotion New Pay Band', data.newPayBand3)}
-          </div>
+          {isExpanded && (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {renderPreview('Employee ID / Staff Code', data.employeeId)}
+              {renderPreview('Designation', data.designation)}
+              {renderPreview('Department', data.department)}
+              {renderPreview('College / Institution Name', data.institution)}
+              {renderPreview('University Affiliated to', data.affiliatedUniversity)}
+              {renderPreview('Type of Institution', data.typeOfInstitution)}
+              {renderPreview('Nature of Appointment', data.natureOfAppointment)}
+              {renderPreview('Date of Joining', data.dateOfJoining)}
+              {renderPreview('Date of Confirmation', data.dateOfConfirmation)}
+              {renderPreview('Pay Band / Pay Scale / CTC', data.payBand)}
+              {renderPreview('Bank Account Details', data.bankAccountDetails)}
+              {renderPreview('Provident Fund (PF) Number', data.pfNumber)}
+              {renderPreview('Service Book Number', data.serviceBookNumber)}
+              {renderPreview('Date of First promotion', data.dateOfFirstPromotion)}
+              {renderPreview('First promotion Nature of Appointment', data.natureOfAppointment1)}
+              {renderPreview('First promotion New Pay Band', data.newPayBand1)}
+              {renderPreview('Date of Second promotion', data.dateOfSecondPromotion)}
+              {renderPreview('Second promotion Nature of Appointment', data.natureOfAppointment2)}
+              {renderPreview('Second promotion New Pay Band', data.newPayBand2)}
+              {renderPreview('Date of Third promotion', data.dateOfThirdPromotion)}
+              {renderPreview('Third promotion Nature of Appointment', data.natureOfAppointment3)}
+              {renderPreview('Third promotion New Pay Band', data.newPayBand3)}
+            </div>
+          )}
         </>
       )}
     </div>

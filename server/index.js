@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const facultyRoutes = require('./routes/faculty');
 const publicRoutes = require('./routes/public');
+const uploadRoutes = require('./routes/upload');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/faculty', facultyRoutes);
 app.use('/api/profile', publicRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// Serve static files (uploaded photos)
+app.use('/uploads', express.static('server/uploads'));
 
 // Health check
 app.get('/api/health', (req, res) => {
