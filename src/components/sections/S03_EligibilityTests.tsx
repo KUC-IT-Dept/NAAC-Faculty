@@ -1,8 +1,16 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { fg, inp, sel, Sub } from './sectionUtils';
 
-const EMPTY = { examName: '', subject: '', year: '', certificateNo: '', score: '', state: '', validity: '' };
+const EMPTY = { 
+  examName: '', 
+  subject: '', 
+  year: '', 
+  certificateNo: '', 
+  state: '', 
+  score: '', 
+  fellowshipAgency: '' 
+};
 
 export default function EligibilityTests({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -14,67 +22,17 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
     onChange(a); 
   };
 
-  // Custom select with add option
-  const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }) => {
-    const [showCustomInput, setShowCustomInput] = useState(false);
-    const [customValue, setCustomValue] = useState('');
-
-    const handleSelectChange = (newValue) => {
-      if (newValue === 'Other') {
-        setShowCustomInput(true);
-      } else {
-        onChange(newValue);
-      }
-    };
-
-    const handleCustomAdd = () => {
-      if (customValue.trim()) {
-        onChange(customValue.trim());
-        setCustomValue('');
-        setShowCustomInput(false);
-      }
-    };
-
-    return (
-      <div>
-        {showCustomInput ? (
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <input
-              className="form-input"
-              value={customValue}
-              onChange={(e) => setCustomValue(e.target.value)}
-              placeholder="Enter custom value"
-              autoFocus
-            />
-            <button 
-              type="button"
-              onClick={handleCustomAdd}
-              style={{ padding: '0 8px', border: '1px solid #ccc', borderRadius: '4px' }}
-            >
-              Add
-            </button>
-            <button 
-              type="button"
-              onClick={() => setShowCustomInput(false)}
-              style={{ padding: '0 8px', border: '1px solid #ccc', borderRadius: '4px' }}
-            >
-              X
-            </button>
-          </div>
-        ) : (
-          <select 
-            className="form-select" 
-            value={value || ''} 
-            onChange={(e) => handleSelectChange(e.target.value)}
-          >
-            <option value="">{placeholder}</option>
-            {options.map(o => <option key={o} value={o}>{o}</option>)}
-            <option value="Other">Other</option>
-          </select>
-        )}
-      </div>
-    );
-  };
+  const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
+    <select
+      className="form-select"
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#1e293b' }}
+    >
+      <option value="">{placeholder}</option>
+      {options.map((o: string) => <option key={o} value={o}>{o}</option>)}
+    </select>
+  );
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
@@ -83,8 +41,16 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
 
   const saveEdit = () => {
     if (editingIndex !== null) {
-      const newData = [...data];
+      let newData = [...data];
       newData[editingIndex] = { ...editingData };
+      
+      // Sort the array by year descending (latest year at the top)
+      newData.sort((a, b) => {
+        const yearA = parseInt(a.year) || 0;
+        const yearB = parseInt(b.year) || 0;
+        return yearB - yearA;
+      });
+
       onChange(newData);
       setEditingIndex(null);
       setEditingData(EMPTY);
@@ -92,12 +58,19 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
   };
 
   const cancelEdit = () => {
+    const isCompletelyEmpty = Object.values(editingData).every(v => v === '');
+    if (isCompletelyEmpty && editingIndex !== null) {
+       onChange(data.filter((_, j) => j !== editingIndex));
+    }
     setEditingIndex(null);
     setEditingData(EMPTY);
   };
 
   const addNewTest = () => {
-    onChange([{ ...EMPTY }, ...data]);
+    const newData = [{ ...EMPTY }, ...data];
+    onChange(newData);
+    setEditingIndex(0);
+    setEditingData({ ...EMPTY });
   };
 
   const removeTest = (index: number) => {
@@ -105,8 +78,15 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
   };
 
   const updateEditingData = (key: string, value: string) => {
-    setEditingData(prev => ({ ...prev, [key]: value }));
+    setEditingData((prev: any) => ({ ...prev, [key]: value }));
   };
+
+  const renderPreview = (label: string, value: any) => (
+    <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+      <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>{label}</span>
+      <span style={{ color: '#1f2937', fontSize: '14px', fontWeight: 500 }}>{value || '-'}</span>
+    </div>
+  );
 
   return (
     <div>
@@ -115,134 +95,150 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
           type="button"
           onClick={addNewTest}
           style={{
-            padding: '6px 12px',
+            padding: '8px 16px',
             fontSize: '14px',
             cursor: 'pointer',
-            backgroundColor: '#6c757d',
+            backgroundColor: '#4f46e5',
             color: 'white',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: '6px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontWeight: 600
           }}
         >
-          <Plus size={14} /> Add Test
+          <Plus size={16} /> Add Test
         </button>
       </div>
 
       {data.map((e, i) => (
-        <div key={i} className="list-item-card">
+        <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
           {editingIndex === i ? (
             <>
-              <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                <button 
-                  type="button"
-                  onClick={saveEdit}
-                  style={{
-                    padding: '6px 12px',
-                    marginRight: '8px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                  }}
-                >
-                  Save
-                </button>
-                <button 
-                  type="button"
-                  onClick={cancelEdit}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                  }}
-                >
-                  Cancel
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={20} color="#4f46e5" /> Edit Eligibility Test
+                </h3>
+                <div>
+                  <button 
+                    type="button"
+                    onClick={cancelEdit}
+                    style={{
+                      padding: '6px 16px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      backgroundColor: 'transparent',
+                      color: '#64748b',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      marginRight: '8px',
+                      fontWeight: 500
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={saveEdit}
+                    style={{
+                      padding: '6px 16px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      backgroundColor: '#4f46e5',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontWeight: 500
+                    }}
+                  >
+                    Save Test
+                  </button>
+                </div>
               </div>
 
-              <div className="form-row form-row-3">
+              <div className="form-row form-row-2">
                 {fg('Exam Name *', <CustomSelect 
                   value={editingData.examName} 
-                  onChange={v => updateEditingData('examName', v)} 
-                  options={['UGC-NET', 'UGC-JRF', 'SET / SLET', 'GATE', 'CSIR-NET', 'CSIR-JRF', 'Other']} 
+                  onChange={(v: string) => updateEditingData('examName', v)} 
+                  options={['NET', 'SET / SLET', 'GATE', 'JRF', 'Any other competitive exam']} 
                 />)}
-                {fg('Subject / Paper', inp(editingData.subject, v => updateEditingData('subject', v), 'Computer Science & Applications'))}
-                {fg('Year of Qualification', inp(editingData.year, v => updateEditingData('year', v), '2020'))}
+                {fg('Year', inp(editingData.year, v => updateEditingData('year', v), 'e.g., 2022'))}
               </div>
-              <div className="form-row form-row-4">
-                {fg('Certificate / Roll No.', inp(editingData.certificateNo, v => updateEditingData('certificateNo', v)))}
-                {fg('Score / Percentile', inp(editingData.score, v => updateEditingData('score', v)))}
-                {fg('State (for SET/SLET)', <CustomSelect 
-                  value={editingData.state} 
-                  onChange={v => updateEditingData('state', v)} 
-                  options={['Qualified', 'Not Qualified', 'Awaited']} 
-                />)}
-                {fg('Validity', <CustomSelect 
-                  value={editingData.validity} 
-                  onChange={v => updateEditingData('validity', v)} 
-                  options={['Lifetime', '2026']} 
+              <div className="form-row form-row-2">
+                {fg('Subject', inp(editingData.subject, v => updateEditingData('subject', v), 'e.g., Computer Science'))}
+                {fg('Certificate No.', inp(editingData.certificateNo, v => updateEditingData('certificateNo', v)))}
+              </div>
+              <div className="form-row form-row-2">
+                {fg('State (for SET / SLET)', inp(editingData.state, v => updateEditingData('state', v), 'e.g., Karnataka'))}
+                {fg('Score (for GATE)', inp(editingData.score, v => updateEditingData('score', v)))}
+              </div>
+              <div className="form-row form-row-1">
+                {fg('Fellowship Agency (for JRF)', <CustomSelect 
+                  value={editingData.fellowshipAgency} 
+                  onChange={(v: string) => updateEditingData('fellowshipAgency', v)} 
+                  options={['UGC', 'CSIR', 'University', 'NBHM', 'DAE', 'Other']} 
                 />)}
               </div>
             </>
           ) : (
             <>
-              <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                <button 
-                  type="button"
-                  onClick={() => startEdit(i)}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                  }}
-                >
-                  Edit
-                </button>
-                <button 
-                  type="button" 
-                  className="list-item-remove" 
-                  onClick={() => removeTest(i)}
-                  style={{ marginLeft: '8px' }}
-                >
-                  <Trash2 size={14} />
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
+                  {e.examName || `Eligibility Test ${i + 1}`}
+                  {e.year && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({e.year})</span>}
+                </h3>
+                <div>
+                  <button 
+                    type="button"
+                    onClick={() => startEdit(i)}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      backgroundColor: '#f1f5f9',
+                      color: '#475569',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Edit2 size={12} /> Edit
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => removeTest(i)}
+                    style={{ 
+                      marginLeft: '8px',
+                      padding: '6px 12px',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      backgroundColor: '#fff1f2',
+                      color: '#e11d48',
+                      border: '1px solid #fecdd3',
+                      borderRadius: '6px',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Trash2 size={12} /> Delete
+                  </button>
+                </div>
               </div>
 
-              <Sub>Eligibility Test {i + 1}</Sub>
-              <div className="form-row form-row-3" style={{ marginBottom: '16px' }}>
-                <div style={{ padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', height: '100%' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Exam Name:</strong> {e.examName || 'Not specified'}
-                </div>
-                <div style={{ padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', height: '100%' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Subject / Paper:</strong> {e.subject || 'Not specified'}
-                </div>
-                <div style={{ padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', height: '100%' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Year of Qualification:</strong> {e.year || 'Not specified'}
-                </div>
-              </div>
-              <div className="form-row form-row-4" style={{ marginBottom: '16px' }}>
-                <div style={{ padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', height: '100%' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Certificate / Roll No.:</strong> {e.certificateNo || 'Not specified'}
-                </div>
-                <div style={{ padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', height: '100%' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Score / Percentile:</strong> {e.score || 'Not specified'}
-                </div>
-                <div style={{ padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', height: '100%' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>State (for SET/SLET):</strong> {e.state || 'Not specified'}
-                </div>
-                <div style={{ padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', height: '100%' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Validity:</strong> {e.validity || 'Not specified'}
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {renderPreview('Exam Name', e.examName)}
+                {renderPreview('Year', e.year)}
+                {renderPreview('Subject', e.subject)}
+                {renderPreview('Certificate No.', e.certificateNo)}
+                {renderPreview('State (for SET / SLET)', e.state)}
+                {renderPreview('Score (for GATE)', e.score)}
+                {renderPreview('Fellowship Agency (for JRF)', e.fellowshipAgency)}
               </div>
             </>
           )}
