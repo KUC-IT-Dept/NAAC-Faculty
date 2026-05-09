@@ -1,9 +1,48 @@
 const express = require('express');
 const Faculty = require('../models/Faculty');
 const { auth, facultyOnly } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const router = express.Router();
 router.use(auth);
+
+// Configure multer for file uploads
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  fileFilter: (req, file, cb) => {
+    // Allow common document and image formats
+    const allowedMimes = [
+      'application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain', 'application/zip'
+    ];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'), false);
+    }
+  }
+});
 
 function calcCompletion(f) {
   let score = 0;
@@ -63,6 +102,20 @@ router.patch('/me/visibility', facultyOnly, async (req, res) => {
     await faculty.save();
     res.json({ message: 'Visibility updated', visibility: faculty.visibility });
   } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
+});
+
+// POST /api/faculty/upload
+router.post('/upload', facultyOnly, upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ url, filename: req.file.originalname, size: req.file.size });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Upload failed' });
+  }
 });
 
 module.exports = router;
