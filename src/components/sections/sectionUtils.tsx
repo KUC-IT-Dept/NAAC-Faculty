@@ -29,6 +29,20 @@ export const sel = (v: string, fn: (s: string) => void, opts: string[]) => (
   </select>
 );
 
+/** Year dropdown */
+export const yearSel = (v: string, fn: (s: string) => void, startYear = 1970, endYear = new Date().getFullYear() + 10) => {
+  const years = [];
+  for (let y = endYear; y >= startYear; y--) {
+    years.push(y.toString());
+  }
+  return (
+    <select className="form-select" value={v || ''} onChange={e => fn(e.target.value)}>
+      <option value="">— Year —</option>
+      {years.map(y => <option key={y} value={y}>{y}</option>)}
+    </select>
+  );
+};
+
 /** Dropdown with custom addition */
 export const DropdownWithCustom = ({ v, fn, opts, ph = 'Select or type custom...' }: { v: string, fn: (s: string) => void, opts: string[], ph?: string }) => {
   const [isCustom, setIsCustom] = useState(v && !opts.includes(v));
@@ -124,5 +138,12 @@ export const Sub = ({ children }: { children: ReactNode }) => (
 export const Note = ({ children }: { children: ReactNode }) => (
   <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
     <span>{children}</span>
+  </div>
+);
+
+/** Preview Box helper for theme consistency */
+export const pv = (label: string, value: any) => (
+  <div style={{ padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', height: '100%' }}>
+    <strong style={{ display: 'block', marginBottom: '4px' }}>{label}:</strong> {value || 'Not specified'}
   </div>
 );
