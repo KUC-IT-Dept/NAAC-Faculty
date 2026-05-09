@@ -490,6 +490,10 @@ a:hover {
   gap: 14px;
 }
 
+.form-row-1 {
+  grid-template-columns: 1fr;
+}
+
 .form-row-2 {
   grid-template-columns: 1fr 1fr;
 }
@@ -502,11 +506,17 @@ a:hover {
   grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
+.form-row-5 {
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+
 @media(max-width:768px) {
 
+  .form-row-1,
   .form-row-2,
   .form-row-3,
-  .form-row-4 {
+  .form-row-4,
+  .form-row-5 {
     grid-template-columns: 1fr;
   }
 }
@@ -1166,4 +1176,203 @@ tbody tr:last-child td {
   background: #eff6ff;
   border: 1px solid #93c5fd;
   color: #1e3a6e;
+}
+
+/* ── Section Edit/Preview Enhancements ───────────────────────── */
+.section-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--card);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.item-card.is-editing {
+  background: var(--bg);
+  padding-right: 48px;
+}
+
+.item-card.is-preview {
+  border-left: 4px solid var(--primary);
+}
+
+.item-card.is-preview:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--primary-light);
+}
+
+.item-remove-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(185, 28, 28, 0.1);
+  color: var(--danger);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.item-remove-btn:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.preview-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.preview-main {
+  flex: 1;
+}
+
+.preview-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 4px;
+}
+
+.preview-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-desc {
+  font-size: 0.82rem;
+  color: var(--text);
+  background: rgba(0,0,0,0.03);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.preview-meta {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.preview-file-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(28, 53, 87, 0.08);
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.preview-file-link:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--bg);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+/* ── File Upload Components ──────────────────────────────────── */
+.file-upload-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 7px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.file-upload-trigger:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(28, 53, 87, 0.04);
+}
+
+.file-preview-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  width: 100%;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: none;
+  background: rgba(0,0,0,0.05);
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.badge-secondary {
+  background: #e2e8f0;
+  color: #475569;
 }
