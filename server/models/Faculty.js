@@ -74,6 +74,10 @@ const publicationSchema = new mongoose.Schema({
   venue: { type: String, default: '' }, // for conference
   conferenceDates: { type: String, default: '' }, // for conference
   documentUrl: { type: String, default: '' }, // proof document
+  editors: { type: String, default: '' }, // for book chapters
+  bookType: { type: String, default: '' }, // Authored / Edited / Co-authored
+  organizedBy: { type: String, default: '' }, // for conference
+  publishedInProceedings: { type: String, default: '' }, // Yes / No
 }, { _id: false });
 
 // Section 8: Research Projects
@@ -113,10 +117,13 @@ const adminRespSchema = new mongoose.Schema({
 // Section 12: FDP / Workshops
 const fdpSchema = new mongoose.Schema({
   programTitle: { type: String, default: '' },
-  type: { type: String, default: '' }, // FDP / Workshop / Seminar / Conference
-  duration: { type: String, default: '' },
+  type: { type: String, default: '' },
   organizingInstitution: { type: String, default: '' },
-  role: { type: String, default: '' }, // Attended / Resource Person / Organizer
+  duration: { type: String, default: '' },
+  mode: { type: String, default: '' },
+  certificate: { type: String, default: '' },
+  year: { type: String, default: '' },
+  documentUrl: { type: String, default: '' },
 }, { _id: false });
 
 // Section 13: Memberships
