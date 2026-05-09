@@ -71,7 +71,9 @@ const publicationSchema = new mongoose.Schema({
   doi: { type: String, default: '' },
   level: { type: String, default: '' }, // National / International
   presentationType: { type: String, default: '' }, // Oral / Poster (for conference)
-  venueDates: { type: String, default: '' }, // for conference
+  venue: { type: String, default: '' }, // for conference
+  conferenceDates: { type: String, default: '' }, // for conference
+  documentUrl: { type: String, default: '' }, // proof document
 }, { _id: false });
 
 // Section 8: Research Projects

@@ -105,7 +105,7 @@ export const FileInp = ({ v, fn, label = 'Upload Document' }: { v: string, fn: (
         <span className="text-xs truncate" style={{ maxWidth: 150 }}>{v.split('/').pop()}</span>
       </div>
       <div style={{ display: 'flex', gap: 4 }}>
-        <button type="button" className="btn-icon" onClick={() => window.open(`${import.meta.env.VITE_API_URL}${v}`, '_blank')}>
+        <button type="button" className="btn-icon" onClick={() => window.open(`${import.meta.env.VITE_API_URL || ''}${v}`, '_blank')}>
           <Upload size={12} style={{ transform: 'rotate(180deg)' }} />
         </button>
         <button type="button" className="btn-icon text-danger" onClick={() => fn('')}>
