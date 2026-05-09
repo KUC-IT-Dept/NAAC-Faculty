@@ -42,7 +42,8 @@ function AppRoutes() {
       {/* Faculty */}
       <Route path="/faculty/setup" element={<ProtectedRoute role="faculty"><ProfileSetup /></ProtectedRoute>} />
       <Route path="/faculty/dashboard" element={<ProtectedRoute role="faculty"><FacultyDashboard /></ProtectedRoute>} />
-      <Route path="/faculty/profile/edit" element={<ProtectedRoute role="faculty"><ProfileEdit /></ProtectedRoute>} />
+      <Route path="/faculty/profile/edit" element={<Navigate to="/faculty/profile/edit/personal-information" replace />} />
+      <Route path="/faculty/profile/edit/:sectionId" element={<ProtectedRoute role="faculty"><ProfileEdit /></ProtectedRoute>} />
 
       {/* Public — no auth */}
       <Route path="/profile/:username" element={<PublicProfile />} />

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Outlet, useLocation, useNavigate, useParams, Navigate } from 'react-router-dom';
+import { Outlet, useParams, Navigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import { Plus, Edit2, Trash2, ChevronDown } from 'lucide-react';
 
@@ -122,59 +122,10 @@ export const sectionsData = [
 ];
 
 export function EditProfileLayout() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
   return (
     <AppLayout title="Profile Management">
-      <div style={{ display: 'flex', gap: '32px', maxWidth: '1400px', margin: '0 auto', height: 'calc(100vh - 120px)' }}>
-        {/* Left Side: Navigation */}
-        <div style={{ width: '320px', background: '#FFFFFF', borderRadius: '24px', border: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '24px', borderBottom: '1px solid #E5E7EB' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', margin: 0 }}>Sections</h2>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }} className="dropdown-scroll">
-            {sectionsData.map(section => {
-              const isActive = location.pathname.includes(section.id);
-              return (
-                <button
-                  key={section.id}
-                  onClick={() => navigate(`/admin/edit-profile/${section.id}`)}
-                  style={{
-                    width: '100%',
-                    padding: '14px 16px',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    background: isActive ? '#EAF2FF' : 'transparent',
-                    color: isActive ? '#2563EB' : '#64748B',
-                    border: 'none',
-                    borderLeft: isActive ? '3px solid #2563EB' : '3px solid transparent',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    marginBottom: '8px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseOver={(e) => {
-                    if (!isActive) e.currentTarget.style.background = '#F8FAFC';
-                  }}
-                  onMouseOut={(e) => {
-                    if (!isActive) e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  {section.title}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Right Side: Content */}
-        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '12px' }} className="dropdown-scroll">
-          <Outlet />
-        </div>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', paddingBottom: '32px' }}>
+        <Outlet />
       </div>
     </AppLayout>
   );

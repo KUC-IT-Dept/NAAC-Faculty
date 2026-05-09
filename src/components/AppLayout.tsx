@@ -18,22 +18,22 @@ const facultyNav: NavItem[] = [
 const profileDropdownItems = (role?: 'admin' | 'faculty') => {
   const base = role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   return [
-    { id: 'personal-information', label: '01 - Personal Information', path: role === 'admin' ? `${base}/personal-information` : `${base}?tab=01` },
-    { id: 'qualifications', label: '02 - Qualifications', path: role === 'admin' ? `${base}/qualifications` : `${base}?tab=02` },
-    { id: 'eligibility-tests', label: '03 - Eligibility Tests', path: role === 'admin' ? `${base}/eligibility-tests` : `${base}?tab=03` },
-    { id: 'employment-details', label: '04 - Employment Details', path: role === 'admin' ? `${base}/employment-details` : `${base}?tab=04` },
-    { id: 'work-experience', label: '05 - Work Experience', path: role === 'admin' ? `${base}/work-experience` : `${base}?tab=05` },
-    { id: 'research-publications', label: '06 - Research & Publications', path: role === 'admin' ? `${base}/research-publications` : `${base}?tab=06` },
-    { id: 'awards-honours', label: '07 - Awards & Honours', path: role === 'admin' ? `${base}/awards-honours` : `${base}?tab=07` },
-    { id: 'research-projects', label: '08 - Research Projects', path: role === 'admin' ? `${base}/research-projects` : `${base}?tab=08` },
-    { id: 'research-supervision', label: '09 - Research Supervision', path: role === 'admin' ? `${base}/research-supervision` : `${base}?tab=09` },
-    { id: 'academic-responsibilities', label: '10 - Academic Responsibilities', path: role === 'admin' ? `${base}/academic-responsibilities` : `${base}?tab=10` },
-    { id: 'memberships', label: '11 - Memberships', path: role === 'admin' ? `${base}/memberships` : `${base}?tab=11` },
-    { id: 'fdp-workshops', label: '12 - FDP & Workshops', path: role === 'admin' ? `${base}/fdp-workshops` : `${base}?tab=12` },
-    { id: 'online-courses', label: '13 - Online Courses', path: role === 'admin' ? `${base}/online-courses` : `${base}?tab=13` },
-    { id: 'international-experience', label: '14 - International Experience', path: role === 'admin' ? `${base}/international-experience` : `${base}?tab=14` },
-    { id: 'documents', label: '15 - Documents', path: role === 'admin' ? `${base}/documents` : `${base}?tab=15` },
-    { id: 'visibility', label: 'Visibility', path: role === 'admin' ? `${base}/visibility` : `${base}?tab=visibility` },
+    { id: 'personal-information', label: '01 - Personal Information', path: `${base}/personal-information` },
+    { id: 'qualifications', label: '02 - Qualifications', path: `${base}/qualifications` },
+    { id: 'eligibility-tests', label: '03 - Eligibility Tests', path: `${base}/eligibility-tests` },
+    { id: 'employment-details', label: '04 - Employment Details', path: `${base}/employment-details` },
+    { id: 'work-experience', label: '05 - Work Experience', path: `${base}/work-experience` },
+    { id: 'research-publications', label: '06 - Research & Publications', path: `${base}/research-publications` },
+    { id: 'awards-honours', label: '07 - Awards & Honours', path: `${base}/awards-honours` },
+    { id: 'research-projects', label: '08 - Research Projects', path: `${base}/research-projects` },
+    { id: 'research-supervision', label: '09 - Research Supervision', path: `${base}/research-supervision` },
+    { id: 'academic-responsibilities', label: '10 - Academic Responsibilities', path: `${base}/academic-responsibilities` },
+    { id: 'memberships', label: '11 - Memberships', path: `${base}/memberships` },
+    { id: 'fdp-workshops', label: '12 - FDP & Workshops', path: `${base}/fdp-workshops` },
+    { id: 'online-courses', label: '13 - Online Courses', path: `${base}/online-courses` },
+    { id: 'international-experience', label: '14 - International Experience', path: `${base}/international-experience` },
+    { id: 'documents', label: '15 - Documents', path: `${base}/documents` },
+    { id: 'visibility', label: 'Visibility', path: `${base}/visibility` },
   ];
 };
 
