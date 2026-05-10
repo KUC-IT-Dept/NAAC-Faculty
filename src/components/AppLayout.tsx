@@ -67,6 +67,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         </div>
 
         <nav className="sidebar-nav">
+          laksdfj
           {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : 'My Account'}</div>}
           {navItems.map(item => {
             if (item.label === 'Edit Profile') {
