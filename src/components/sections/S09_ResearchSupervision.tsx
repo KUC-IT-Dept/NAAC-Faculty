@@ -11,7 +11,7 @@ const DEGREES = ['Ph.D', 'M.Phil', 'PG Dissertation'];
 export default function ResearchSupervision({ data, onChange }: { data: any; onChange: (d: any) => void }) {
   const scholars = data.scholars || [];
   const patents = data.patents || [];
-  
+
   const [editingSIdx, setEditingSIdx] = useState<number | null>(null);
   const [editingPIdx, setEditingPIdx] = useState<number | null>(null);
   const [pendingScholar, setPendingScholar] = useState<any>(null);
@@ -52,9 +52,9 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
         <div>
           <div className="section-header-actions" style={{ marginBottom: 16 }}>
             <h5 style={{ margin: 0 }}>Research Scholars</h5>
-            <button 
-              type="button" 
-              onClick={() => setPendingScholar({ ...EMPTY_SCHOLAR })} 
+            <button
+              type="button"
+              onClick={() => setPendingScholar({ ...EMPTY_SCHOLAR })}
               disabled={!!pendingScholar || editingSIdx !== null}
               style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
             >
@@ -66,16 +66,16 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
             {pendingScholar && (
               <div key="pending-scholar" className="list-item-card">
                 <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => { s('scholars', [pendingScholar, ...scholars]); setPendingScholar(null); }} 
+                  <button
+                    type="button"
+                    onClick={() => { s('scholars', [pendingScholar, ...scholars]); setPendingScholar(null); }}
                     disabled={!pendingScholar.scholarName || !pendingScholar.degree}
                     style={{ padding: '6px 12px', marginRight: '8px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
                   >
                     Save
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setPendingScholar(null)}
                     style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
                   >
@@ -108,8 +108,8 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
                   {itemIsEditing ? (
                     <>
                       <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => setEditingSIdx(null)}
                           style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
                         >
@@ -136,16 +136,16 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
                   ) : (
                     <>
                       <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => { setEditingSIdx(i); setEditingPIdx(null); }}
                           style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
                         >
                           Edit
                         </button>
-                        <button 
-                          type="button" 
-                          className="list-item-remove" 
+                        <button
+                          type="button"
+                          className="list-item-remove"
                           onClick={() => s('scholars', scholars.filter((_: any, j: number) => j !== i))}
                           style={{ marginLeft: '8px' }}
                         >
@@ -174,9 +174,9 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
         <div>
           <div className="section-header-actions" style={{ marginBottom: 16 }}>
             <h5 style={{ margin: 0 }}>Patents / IP</h5>
-            <button 
-              type="button" 
-              onClick={() => setPendingPatent({ ...EMPTY_PATENT })} 
+            <button
+              type="button"
+              onClick={() => setPendingPatent({ ...EMPTY_PATENT })}
               disabled={!!pendingPatent || editingPIdx !== null}
               style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
             >
@@ -188,16 +188,16 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
             {pendingPatent && (
               <div key="pending-patent" className="list-item-card">
                 <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => { s('patents', [pendingPatent, ...patents]); setPendingPatent(null); }} 
+                  <button
+                    type="button"
+                    onClick={() => { s('patents', [pendingPatent, ...patents]); setPendingPatent(null); }}
                     disabled={!pendingPatent.title}
                     style={{ padding: '6px 12px', marginRight: '8px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
                   >
                     Save
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setPendingPatent(null)}
                     style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
                   >
@@ -222,8 +222,8 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
                   {itemIsEditing ? (
                     <>
                       <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => setEditingPIdx(null)}
                           style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
                         >
@@ -242,16 +242,16 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
                   ) : (
                     <>
                       <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => { setEditingPIdx(i); setEditingSIdx(null); }}
                           style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
                         >
                           Edit
                         </button>
-                        <button 
-                          type="button" 
-                          className="list-item-remove" 
+                        <button
+                          type="button"
+                          className="list-item-remove"
                           onClick={() => s('patents', patents.filter((_: any, j: number) => j !== i))}
                           style={{ marginLeft: '8px' }}
                         >

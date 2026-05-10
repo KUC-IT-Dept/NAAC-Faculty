@@ -70,8 +70,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             if (item.label === 'Edit Profile') {
               return (
                 <div key="edit-profile-group" style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <button 
-                    className={`nav-item ${isActive(item) || profileDropdownOpen ? 'active' : ''}`} 
+                  <button
+                    className={`nav-item ${isActive(item) || profileDropdownOpen ? 'active' : ''}`}
                     onClick={() => {
                       if (collapsed) setCollapsed(false);
                       setProfileDropdownOpen(!profileDropdownOpen);
@@ -85,18 +85,18 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
                       {!collapsed && <span className="nav-item-label">{item.label}</span>}
                     </div>
                     {!collapsed && (
-                      <ChevronDown 
-                        size={18} 
-                        style={{ 
+                      <ChevronDown
+                        size={18}
+                        style={{
                           transform: profileDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                           transition: 'transform 300ms ease',
                           color: profileDropdownOpen ? '#2563EB' : '#64748B'
-                        }} 
+                        }}
                       />
                     )}
                   </button>
 
-                  <div 
+                  <div
                     style={{
                       height: profileDropdownOpen && !collapsed ? `${Math.min(profileDropdownItems(user?.role).length * 42, 300) + 16}px` : '0px',
                       overflow: 'hidden',

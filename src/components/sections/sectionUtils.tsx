@@ -46,7 +46,7 @@ export const yearSel = (v: string, fn: (s: string) => void, startYear = 1970, en
 /** Dropdown with custom addition */
 export const DropdownWithCustom = ({ v, fn, opts, ph = 'Select or type custom...' }: { v: string, fn: (s: string) => void, opts: string[], ph?: string }) => {
   const [isCustom, setIsCustom] = useState(v && !opts.includes(v));
-  
+
   return (
     <div style={{ display: 'flex', gap: 4 }}>
       {isCustom ? (

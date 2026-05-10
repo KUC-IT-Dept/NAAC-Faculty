@@ -78,7 +78,7 @@ export default function FacultyDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Premium Progress UI */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              
+
               {/* 1. Main Profile Completion Card */}
               <div style={{
                 background: 'linear-gradient(135deg, #F8FBFF, #EEF5FF)',
@@ -100,7 +100,7 @@ export default function FacultyDashboard() {
                     }}>
                       <ClipboardCheck size={34} color="#2563EB" />
                     </div>
-                    
+
                     {/* Title & Badge */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
@@ -117,7 +117,7 @@ export default function FacultyDashboard() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Percentage */}
                   <div style={{ fontSize: '72px', fontWeight: 800, color: '#2563EB', lineHeight: 1 }}>
                     {pct}%
@@ -161,7 +161,7 @@ export default function FacultyDashboard() {
                     75%
                   </span>
                 </div>
-                
+
                 <div style={{ marginBottom: '20px' }}>
                   <div style={{ width: '100%', height: '12px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{
@@ -196,7 +196,7 @@ export default function FacultyDashboard() {
                     60%
                   </span>
                 </div>
-                
+
                 <div style={{ marginBottom: '20px' }}>
                   <div style={{ width: '100%', height: '12px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{
