@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check } from 'lucide-react';
 import { fg, inp, sel, ta, yearSel, pv } from './sectionUtils';
 
 const EMPTY_SCHOLAR = { scholarName: '', gender: '', degree: '', topic: '', enrollmentYear: '', expectedCompletion: '', status: '', university: '', documentUrl: '' };
@@ -7,6 +7,12 @@ const EMPTY_PATENT = { title: '', patentNumber: '', dateOfFiling: '', status: ''
 
 const STATUSES = ['Ongoing', 'Awarded', 'Submitted'];
 const DEGREES = ['Ph.D', 'M.Phil', 'PG Dissertation'];
+
+const btnAdd:    React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnEdit:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
+const btnSave:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
 
 export default function ResearchSupervision({ data, onChange }: { data: any; onChange: (d: any) => void }) {
   const scholars = data.scholars || [];
@@ -56,31 +62,30 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
               type="button"
               onClick={() => setPendingScholar({ ...EMPTY_SCHOLAR })}
               disabled={!!pendingScholar || editingSIdx !== null}
-              style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
+              style={btnAdd}
             >
-              <Plus size={14} /> Add Scholar
+              <Plus size={16} /> Add Scholar
             </button>
           </div>
 
           <div className="items-list">
             {pendingScholar && (
               <div key="pending-scholar" className="list-item-card">
-                <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                  <button
-                    type="button"
-                    onClick={() => { s('scholars', [pendingScholar, ...scholars]); setPendingScholar(null); }}
-                    disabled={!pendingScholar.scholarName || !pendingScholar.degree}
-                    style={{ padding: '6px 12px', marginRight: '8px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPendingScholar(null)}
-                    style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
-                  >
-                    Cancel
-                  </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Scholar</span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => { s('scholars', [pendingScholar, ...scholars]); setPendingScholar(null); }}
+                      disabled={!pendingScholar.scholarName || !pendingScholar.degree}
+                      style={(!pendingScholar.scholarName || !pendingScholar.degree) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                    >
+                      <Check size={14} /> Save
+                    </button>
+                    <button type="button" onClick={() => setPendingScholar(null)} style={btnCancel}>
+                      Cancel
+                    </button>
+                  </div>
                 </div>
                 <div className="form-row form-row-1">
                   {fg('Scholar Name *', inp(pendingScholar.scholarName, v => setPendingScholar({ ...pendingScholar, scholarName: v })))}
@@ -107,14 +112,16 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
                 <div key={i} className="list-item-card">
                   {itemIsEditing ? (
                     <>
-                      <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                        <button
-                          type="button"
-                          onClick={() => setEditingSIdx(null)}
-                          style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-                        >
-                          Save
-                        </button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                        <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Scholar</span>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button type="button" onClick={() => setEditingSIdx(null)} style={btnSave}>
+                            <Check size={14} /> Done
+                          </button>
+                          <button type="button" onClick={() => s('scholars', scholars.filter((_: any, j: number) => j !== i))} style={btnDelete}>
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
                       </div>
                       <div className="form-row form-row-1">
                         {fg('Scholar Name *', inp(sc.scholarName, v => updS(i, 'scholarName', v)))}
@@ -135,21 +142,12 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
                     </>
                   ) : (
                     <>
-                      <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                        <button
-                          type="button"
-                          onClick={() => { setEditingSIdx(i); setEditingPIdx(null); }}
-                          style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
-                        >
-                          Edit
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 16 }}>
+                        <button type="button" onClick={() => { setEditingSIdx(i); setEditingPIdx(null); }} style={btnEdit}>
+                          <Edit2 size={14} /> Edit
                         </button>
-                        <button
-                          type="button"
-                          className="list-item-remove"
-                          onClick={() => s('scholars', scholars.filter((_: any, j: number) => j !== i))}
-                          style={{ marginLeft: '8px' }}
-                        >
-                          <Trash2 size={14} />
+                        <button type="button" onClick={() => s('scholars', scholars.filter((_: any, j: number) => j !== i))} style={btnDelete}>
+                          <Trash2 size={14} /> Delete
                         </button>
                       </div>
                       <div style={{ marginBottom: '12px' }}>{pv('Scholar Name', sc.scholarName)}</div>
@@ -178,31 +176,30 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
               type="button"
               onClick={() => setPendingPatent({ ...EMPTY_PATENT })}
               disabled={!!pendingPatent || editingPIdx !== null}
-              style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
+              style={btnAdd}
             >
-              <Plus size={14} /> Add Patent
+              <Plus size={16} /> Add Patent
             </button>
           </div>
 
           <div className="items-list">
             {pendingPatent && (
               <div key="pending-patent" className="list-item-card">
-                <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                  <button
-                    type="button"
-                    onClick={() => { s('patents', [pendingPatent, ...patents]); setPendingPatent(null); }}
-                    disabled={!pendingPatent.title}
-                    style={{ padding: '6px 12px', marginRight: '8px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPendingPatent(null)}
-                    style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
-                  >
-                    Cancel
-                  </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Patent</span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => { s('patents', [pendingPatent, ...patents]); setPendingPatent(null); }}
+                      disabled={!pendingPatent.title}
+                      style={!pendingPatent.title ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                    >
+                      <Check size={14} /> Save
+                    </button>
+                    <button type="button" onClick={() => setPendingPatent(null)} style={btnCancel}>
+                      Cancel
+                    </button>
+                  </div>
                 </div>
                 {fg('Patent Title *', inp(pendingPatent.title, v => setPendingPatent({ ...pendingPatent, title: v })))}
                 <div className="form-row form-row-1">
@@ -221,14 +218,16 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
                 <div key={i} className="list-item-card">
                   {itemIsEditing ? (
                     <>
-                      <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                        <button
-                          type="button"
-                          onClick={() => setEditingPIdx(null)}
-                          style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-                        >
-                          Save
-                        </button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                        <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Patent</span>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button type="button" onClick={() => setEditingPIdx(null)} style={btnSave}>
+                            <Check size={14} /> Done
+                          </button>
+                          <button type="button" onClick={() => s('patents', patents.filter((_: any, j: number) => j !== i))} style={btnDelete}>
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
                       </div>
                       {fg('Patent Title *', inp(p.title, v => updP(i, 'title', v)))}
                       <div className="form-row form-row-1">
@@ -241,21 +240,12 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
                     </>
                   ) : (
                     <>
-                      <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                        <button
-                          type="button"
-                          onClick={() => { setEditingPIdx(i); setEditingSIdx(null); }}
-                          style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
-                        >
-                          Edit
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 16 }}>
+                        <button type="button" onClick={() => { setEditingPIdx(i); setEditingSIdx(null); }} style={btnEdit}>
+                          <Edit2 size={14} /> Edit
                         </button>
-                        <button
-                          type="button"
-                          className="list-item-remove"
-                          onClick={() => s('patents', patents.filter((_: any, j: number) => j !== i))}
-                          style={{ marginLeft: '8px' }}
-                        >
-                          <Trash2 size={14} />
+                        <button type="button" onClick={() => s('patents', patents.filter((_: any, j: number) => j !== i))} style={btnDelete}>
+                          <Trash2 size={14} /> Delete
                         </button>
                       </div>
                       <div style={{ marginBottom: '12px' }}>{pv('Patent Title', p.title)}</div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { fg, inp, sel, FileInp } from './sectionUtils';
 
 type Membership = {
@@ -20,6 +20,14 @@ const currentYear = new Date().getFullYear();
 const YEAR_OPTS: string[] = [];
 for (let y = currentYear; y >= 1970; y--) YEAR_OPTS.push(String(y));
 
+/* ─── Shared Button Styles ───────────────────────────────────── */
+const btnAdd:    React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnEdit:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
+const btnSave:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+
+/* ─── Form ───────────────────────────────────────────────────── */
 function MembForm({ item, onChange }: {
   item: Membership;
   onChange: (k: keyof Membership, v: string) => void;
@@ -44,6 +52,7 @@ function MembForm({ item, onChange }: {
   );
 }
 
+/* ─── Preview Row ────────────────────────────────────────────── */
 function PreviewRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
@@ -58,44 +67,88 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
   );
 }
 
-function MembPreview({ m }: { m: Membership }) {
+/* ─── Preview Card with Toggle ───────────────────────────────── */
+function PreviewCard({
+  m,
+  onEdit,
+  onDelete,
+  disabled,
+}: {
+  m: Membership;
+  onEdit: () => void;
+  onDelete: () => void;
+  disabled: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-      {/* Left: year badge */}
-      <div style={{
-        minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8,
-        background: 'var(--primary-light, #eff6ff)', flexShrink: 0,
-      }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary, #2563eb)', lineHeight: 1 }}>{m.yearOfJoining || '—'}</div>
-        <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
-      </div>
-
-      {/* Right: details */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-          {m.membershipType && <span className="badge badge-secondary" style={{ flexShrink: 0 }}>{m.membershipType}</span>}
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <PreviewRow label="Professional Body" value={m.professionalBody || 'Unnamed'} />
-          <PreviewRow label="Membership ID" value={m.membershipId} />
-        </div>
-
-        {m.documentUrl && (
-          <div style={{ marginTop: 8 }}>
-            <a
-              href={`${import.meta.env.VITE_API_URL || ''}${m.documentUrl}`}
-              target="_blank" rel="noreferrer"
-              className="preview-file-link"
-            >
-              <ExternalLink size={13} /> View Proof
-            </a>
+    <>
+      {/* ── Collapsed header row ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+          {/* Year badge — white text on solid blue */}
+          <div style={{
+            minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8,
+            background: 'var(--primary, #2563eb)', flexShrink: 0,
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>
+              {m.yearOfJoining || '—'}
+            </div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
           </div>
-        )}
+
+          {/* Summary */}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary, #1e293b)', fontSize: 15, marginBottom: 4 }}>
+              {m.professionalBody || 'Unnamed Organisation'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              {m.membershipType && <span className="badge badge-secondary">{m.membershipType}</span>}
+              {m.membershipId && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>ID: {m.membershipId}</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
+          <button type="button" style={btnEdit} onClick={() => setExpanded(!expanded)}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {expanded ? 'Hide' : 'View'}
+          </button>
+          <button type="button" style={btnEdit} onClick={(e) => { e.stopPropagation(); onEdit(); }} disabled={disabled}>
+            <Edit2 size={14} /> Edit
+          </button>
+          <button type="button" style={btnDelete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* ── Expanded details ── */}
+      {expanded && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
+          <PreviewRow label="Professional Body" value={m.professionalBody} />
+          <PreviewRow label="Membership Type" value={m.membershipType} />
+          <PreviewRow label="Membership ID" value={m.membershipId} />
+          <PreviewRow label="Year of Joining" value={m.yearOfJoining} />
+          {m.documentUrl && (
+            <div style={{ marginTop: 8 }}>
+              <a
+                href={`${import.meta.env.VITE_API_URL || ''}${m.documentUrl}`}
+                target="_blank" rel="noreferrer"
+                className="preview-file-link"
+              >
+                <ExternalLink size={13} /> View Proof
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
+/* ─── Main Component ─────────────────────────────────────────── */
 export default function Memberships({
   data,
   onChange,
@@ -119,11 +172,11 @@ export default function Memberships({
       <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
         <button
           type="button"
-          className="btn btn-primary btn-sm"
+          style={btnAdd}
           onClick={() => setPendingItem({ ...EMPTY })}
           disabled={pendingItem !== null || editingIndex !== null}
         >
-          <Plus size={14} /> Add Membership
+          <Plus size={16} /> Add Membership
         </button>
       </div>
 
@@ -134,13 +187,15 @@ export default function Memberships({
       )}
 
       <div className="items-list">
+        {/* ── Pending new item ── */}
         {pendingItem && (
           <div className="item-card is-editing">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Membership</span>
-              <div>
+              <div style={{ display: 'flex', gap: 8 }}>
                 <button
-                  type="button" className="btn btn-success btn-xs"
+                  type="button"
+                  style={isComplete(pendingItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
                   disabled={!isComplete(pendingItem)}
                   onClick={() => {
                     const updated = [pendingItem, ...data];
@@ -149,13 +204,9 @@ export default function Memberships({
                     setPendingItem(null);
                   }}
                 >
-                  <Check size={12} /> Save
+                  <Check size={14} /> Save
                 </button>
-                <button
-                  type="button" className="btn btn-ghost btn-xs"
-                  style={{ marginLeft: 8 }}
-                  onClick={() => setPendingItem(null)}
-                >
+                <button type="button" style={btnCancel} onClick={() => setPendingItem(null)}>
                   Cancel
                 </button>
               </div>
@@ -164,17 +215,18 @@ export default function Memberships({
           </div>
         )}
 
+        {/* ── Saved items ── */}
         {sorted.map((m, i) => {
           const isEdit = editingIndex === i;
           return (
             <div key={i} className={`item-card ${isEdit ? 'is-editing' : 'is-preview'}`}>
               {isEdit ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Membership</span>
-                    <div>
+                    <div style={{ display: 'flex', gap: 8 }}>
                       <button
-                        type="button" className="btn btn-success btn-xs"
+                        type="button" style={btnSave}
                         onClick={() => {
                           const updated = [...data];
                           updated.sort((a, b) => (parseInt(b.yearOfJoining) || 0) - (parseInt(a.yearOfJoining) || 0));
@@ -182,39 +234,25 @@ export default function Memberships({
                           setEditingIndex(null);
                         }}
                       >
-                        <Check size={12} /> Done
+                        <Check size={14} /> Done
                       </button>
                       <button
-                        type="button" className="btn btn-danger btn-xs"
-                        style={{ marginLeft: 8 }}
+                        type="button" style={btnDelete}
                         onClick={() => { onChange(sorted.filter((_, j) => j !== i)); setEditingIndex(null); }}
                       >
-                        <Trash2 size={12} /> Delete
+                        <Trash2 size={14} /> Delete
                       </button>
                     </div>
                   </div>
                   <MembForm item={m} onChange={(k, v) => upd(i, k, v)} />
                 </>
               ) : (
-                <>
-                  <MembPreview m={m} />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
-                    <button
-                      type="button" className="btn btn-ghost btn-xs"
-                      onClick={() => setEditingIndex(i)}
-                      disabled={pendingItem !== null}
-                    >
-                      <Edit2 size={14} /> Edit
-                    </button>
-                    <button
-                      type="button" className="btn btn-danger btn-xs"
-                      onClick={() => onChange(sorted.filter((_, j) => j !== i))}
-                      disabled={pendingItem !== null}
-                    >
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-                </>
+                <PreviewCard
+                  m={m}
+                  onEdit={() => setEditingIndex(i)}
+                  onDelete={() => onChange(sorted.filter((_, j) => j !== i))}
+                  disabled={pendingItem !== null}
+                />
               )}
             </div>
           );

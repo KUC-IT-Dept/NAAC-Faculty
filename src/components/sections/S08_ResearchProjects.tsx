@@ -1,12 +1,89 @@
 import { useState } from 'react';
-import { Plus, Trash2, ExternalLink } from 'lucide-react';
-import { fg, inp, sel, ta, FileInp, pv } from './sectionUtils';
+import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { fg, inp, sel, ta, FileInp } from './sectionUtils';
 
 const EMPTY = { title: '', fundingAgency: '', amountSanctioned: '', duration: '', status: '', role: '', description: '', documentUrl: '' };
 
 const FUNDING_AGENCIES = ['DST-SERB', 'ICMR', 'AICTE', 'UGC', 'CSIR', 'DBT', 'IYSC', 'IIT'];
 const STATUSES = ['Ongoing', 'Completed', 'Submitted', 'Rejected'];
 const ROLES = ['Principal Investigator (PI)', 'Co-Principal Investigator (Co-PI)', 'Co-Investigator'];
+
+const btnAdd:    React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnEdit:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
+const btnSave:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+
+function PreviewRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <div style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border-light, #f1f5f9)' }}>
+      <span style={{ minWidth: 160, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--text-primary, #1e293b)', wordBreak: 'break-word' }}>{value}</span>
+    </div>
+  );
+}
+
+function ProjectPreviewCard({
+  p, onEdit, onDelete, disabled
+}: {
+  p: any; onEdit: () => void; onDelete: () => void; disabled: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+          <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>
+              {p.duration ? (p.duration.match(/\d{4}/g) || []).slice(-1)[0] || '—' : '—'}
+            </div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary, #1e293b)', fontSize: 15, marginBottom: 4 }}>
+              {p.title || 'Untitled Project'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              {p.fundingAgency && <span className="badge badge-secondary">{p.fundingAgency}</span>}
+              {p.status && <span className="badge badge-secondary">{p.status}</span>}
+              {p.role && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{p.role}</span>}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
+          <button type="button" style={btnEdit} onClick={() => setExpanded(!expanded)}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />} {expanded ? 'Hide' : 'View'}
+          </button>
+          <button type="button" style={btnEdit} onClick={(e) => { e.stopPropagation(); onEdit(); }} disabled={disabled}>
+            <Edit2 size={14} /> Edit
+          </button>
+          <button type="button" style={btnDelete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
+          <PreviewRow label="Project Title" value={p.title} />
+          <PreviewRow label="Funding Agency" value={p.fundingAgency} />
+          <PreviewRow label="Amount Sanctioned" value={p.amountSanctioned ? `₹${p.amountSanctioned}` : null} />
+          <PreviewRow label="Duration" value={p.duration} />
+          <PreviewRow label="Status" value={p.status} />
+          <PreviewRow label="Your Role" value={p.role} />
+          <PreviewRow label="Description" value={p.description} />
+          {p.documentUrl && (
+            <div style={{ marginTop: 8 }}>
+              <a href={`${import.meta.env.VITE_API_URL}${p.documentUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
+                <ExternalLink size={14} /> View Document
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function ResearchProjects({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -51,6 +128,8 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
     return getYear(b) - getYear(a);
   });
 
+
+
   return (
     <>
       <div className="section-header-actions" style={{ marginBottom: 16 }}>
@@ -59,9 +138,9 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
           type="button"
           onClick={handleAddProject}
           disabled={pendingNewItem !== null || editingItemIndex !== null}
-          style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
+          style={btnAdd}
         >
-          <Plus size={14} /> Add Project
+          <Plus size={16} /> Add Project
         </button>
       </div>
 
@@ -72,22 +151,21 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
       <div className="items-list">
         {pendingNewItem && (
           <div key="pending" className="list-item-card">
-            <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-              <button 
-                type="button" 
-                onClick={() => handleSavePending(pendingNewItem)} 
-                disabled={!isItemComplete(pendingNewItem)}
-                style={{ padding: '6px 12px', marginRight: '8px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-              >
-                Save
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setPendingNewItem(null)}
-                style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
-              >
-                Cancel
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Project</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                >
+                  <Check size={14} /> Save
+                </button>
+                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
+                  Cancel
+                </button>
+              </div>
             </div>
             <div className="form-row form-row-1">
               {fg('Project Title *', inp(pendingNewItem.title, v => setPendingNewItem({ ...pendingNewItem, title: v }), 'AI in Healthcare...'))}
@@ -116,14 +194,16 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
             <div key={i} className="list-item-card">
               {itemIsEditing ? (
                 <>
-                  <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => setEditingItemIndex(null)}
-                      style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-                    >
-                      Save
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Project</span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                        <Check size={14} /> Done
+                      </button>
+                      <button type="button" onClick={() => { onChange(sortedData.filter((_, j) => j !== i)); setEditingItemIndex(null); }} style={btnDelete}>
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
                   </div>
                   <div className="form-row form-row-1">
                     {fg('Project Title *', inp(p.title, v => upd(i, 'title', v), 'AI in Healthcare...'))}
@@ -145,46 +225,12 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
                   </div>
                 </>
               ) : (
-                <>
-                  <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => setEditingItemIndex(i)}
-                      style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      type="button" 
-                      className="list-item-remove" 
-                      onClick={() => onChange(data.filter((_, j) => j !== i))}
-                      style={{ marginLeft: '8px' }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <div style={{ marginBottom: '16px' }}>{pv('Project Title', p.title)}</div>
-                  <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
-                    {pv('Funding Agency', p.fundingAgency)}
-                    {pv('Amount Sanctioned', `₹${p.amountSanctioned}`)}
-                  </div>
-                  <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
-                    {pv('Duration', p.duration)}
-                    {pv('Status', p.status)}
-                  </div>
-                  <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
-                    {pv('Your Role', p.role)}
-                    <div></div>
-                  </div>
-                  {p.description && <div style={{ marginBottom: '16px' }}>{pv('Description', p.description)}</div>}
-                  {p.documentUrl && (
-                    <div style={{ marginTop: '8px' }}>
-                      <a href={`${import.meta.env.VITE_API_URL}${p.documentUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
-                        <ExternalLink size={14} /> View Document
-                      </a>
-                    </div>
-                  )}
-                </>
+                <ProjectPreviewCard
+                  p={p}
+                  onEdit={() => setEditingItemIndex(i)}
+                  onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
+                  disabled={pendingNewItem !== null}
+                />
               )}
             </div>
           );

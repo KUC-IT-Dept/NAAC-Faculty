@@ -1,11 +1,85 @@
 
 import { useState } from 'react';
-import { Plus, Trash2, ExternalLink } from 'lucide-react';
-import { fg, inp, sel, ta, FileInp, pv } from './sectionUtils';
+import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { fg, inp, sel, ta, FileInp } from './sectionUtils';
 
 const EMPTY = { name: '', awardingAgency: '', dateOfAward: '', level: '', description: '', documentUrl: '' };
 
 const LEVELS = ['International', 'National', 'State', 'University', 'Institution'];
+
+const btnAdd:    React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnEdit:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
+const btnSave:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+
+function PreviewRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <div style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border-light, #f1f5f9)' }}>
+      <span style={{ minWidth: 160, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--text-primary, #1e293b)', wordBreak: 'break-word' }}>{value}</span>
+    </div>
+  );
+}
+
+function AwardPreviewCard({
+  a, onEdit, onDelete, disabled
+}: {
+  a: any; onEdit: () => void; onDelete: () => void; disabled: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const year = a.dateOfAward ? new Date(a.dateOfAward).getFullYear() : null;
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+          <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{year || '—'}</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary, #1e293b)', fontSize: 15, marginBottom: 4 }}>
+              {a.name || 'Untitled Award'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              {a.awardingAgency && <span className="badge badge-secondary">{a.awardingAgency}</span>}
+              {a.level && <span className="badge badge-secondary">{a.level}</span>}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
+          <button type="button" style={btnEdit} onClick={() => setExpanded(!expanded)}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />} {expanded ? 'Hide' : 'View'}
+          </button>
+          <button type="button" style={btnEdit} onClick={(e) => { e.stopPropagation(); onEdit(); }} disabled={disabled}>
+            <Edit2 size={14} /> Edit
+          </button>
+          <button type="button" style={btnDelete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
+          <PreviewRow label="Award Name" value={a.name} />
+          <PreviewRow label="Awarding Agency" value={a.awardingAgency} />
+          <PreviewRow label="Date of Award" value={a.dateOfAward} />
+          <PreviewRow label="Level" value={a.level} />
+          <PreviewRow label="Description" value={a.description} />
+          {a.documentUrl && (
+            <div style={{ marginTop: 8 }}>
+              <a href={`${import.meta.env.VITE_API_URL}${a.documentUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
+                <ExternalLink size={14} /> View Proof
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function Awards({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -44,17 +118,19 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
     return new Date(b.dateOfAward).getTime() - new Date(a.dateOfAward).getTime();
   });
 
+
+
   return (
     <>
       <div className="section-header-actions" style={{ marginBottom: 16 }}>
         <h5 style={{ margin: 0 }}>Awards / Fellowships / Honours</h5>
-        <button 
-          type="button" 
-          onClick={handleAddAward} 
+        <button
+          type="button"
+          onClick={handleAddAward}
           disabled={pendingNewItem !== null || editingItemIndex !== null}
-          style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
+          style={btnAdd}
         >
-          <Plus size={14} /> Add Award
+          <Plus size={16} /> Add Award
         </button>
       </div>
 
@@ -66,22 +142,21 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
         {/* Render pending new item first (at the top) */}
         {pendingNewItem && (
           <div key="pending" className="list-item-card">
-            <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-              <button 
-                type="button" 
-                onClick={() => handleSavePending(pendingNewItem)} 
-                disabled={!isItemComplete(pendingNewItem)}
-                style={{ padding: '6px 12px', marginRight: '8px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-              >
-                Save
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setPendingNewItem(null)}
-                style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
-              >
-                Cancel
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Award</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                >
+                  <Check size={14} /> Save
+                </button>
+                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
+                  Cancel
+                </button>
+              </div>
             </div>
             <div className="form-row form-row-2">
               {fg('Award / Fellowship / Honour Name *', inp(pendingNewItem.name, v => setPendingNewItem({ ...pendingNewItem, name: v })))}
@@ -105,14 +180,16 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
             <div key={i} className="list-item-card">
               {itemIsEditing ? (
                 <>
-                  <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => setEditingItemIndex(null)}
-                      style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-                    >
-                      Save
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Award</span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                        <Check size={14} /> Done
+                      </button>
+                      <button type="button" onClick={() => { onChange(sortedData.filter((_, j) => j !== i)); setEditingItemIndex(null); }} style={btnDelete}>
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
                   </div>
                   <div className="form-row form-row-2">
                     {fg('Award / Fellowship / Honour Name *', inp(a.name, v => upd(i, 'name', v)))}
@@ -128,41 +205,12 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
                   </div>
                 </>
               ) : (
-                <>
-                  <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => setEditingItemIndex(i)}
-                      style={{ padding: '6px 12px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      type="button" 
-                      className="list-item-remove" 
-                      onClick={() => onChange(sortedData.filter((_, j) => j !== i))}
-                      style={{ marginLeft: '8px' }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
-                    {pv('Award Name', a.name)}
-                    {pv('Awarding Agency', a.awardingAgency)}
-                  </div>
-                  <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
-                    {pv('Date of Award', a.dateOfAward)}
-                    {pv('Level', a.level)}
-                  </div>
-                  {a.description && <div style={{ marginBottom: '16px' }}>{pv('Description', a.description)}</div>}
-                  {a.documentUrl && (
-                    <div style={{ marginTop: '8px' }}>
-                      <a href={`${import.meta.env.VITE_API_URL}${a.documentUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
-                        <ExternalLink size={14} /> View Proof
-                      </a>
-                    </div>
-                  )}
-                </>
+                <AwardPreviewCard
+                  a={a}
+                  onEdit={() => setEditingItemIndex(i)}
+                  onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
+                  disabled={pendingNewItem !== null}
+                />
               )}
             </div>
           );

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { fg, inp, sel, FileInp } from './sectionUtils';
 
 type FDP = {
@@ -14,14 +14,8 @@ type FDP = {
 };
 
 const EMPTY: FDP = {
-  programTitle: '',
-  type: '',
-  organizingInstitution: '',
-  duration: '',
-  mode: '',
-  certificate: '',
-  year: '',
-  documentUrl: '',
+  programTitle: '', type: '', organizingInstitution: '',
+  duration: '', mode: '', certificate: '', year: '', documentUrl: '',
 };
 
 const TYPE_OPTS = ['FDP', 'Workshop', 'Seminar', 'MOOC', 'Refresher', 'Orientation'];
@@ -32,6 +26,14 @@ const currentYear = new Date().getFullYear();
 const YEAR_OPTS: string[] = [];
 for (let y = currentYear; y >= 1970; y--) YEAR_OPTS.push(String(y));
 
+/* ─── Shared Button Styles ───────────────────────────────────── */
+const btnAdd:    React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnEdit:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
+const btnSave:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+
+/* ─── Form ───────────────────────────────────────────────────── */
 function FdpForm({ item, onChange }: { item: FDP; onChange: (k: keyof FDP, v: string) => void }) {
   return (
     <>
@@ -60,6 +62,7 @@ function FdpForm({ item, onChange }: { item: FDP; onChange: (k: keyof FDP, v: st
   );
 }
 
+/* ─── Preview Row ────────────────────────────────────────────── */
 function PreviewRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
@@ -74,46 +77,93 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
   );
 }
 
-function FdpPreview({ item }: { item: FDP }) {
-  return (
-    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-      <div style={{
-        minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8,
-        background: 'var(--primary-light, #eff6ff)', flexShrink: 0,
-      }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary, #2563eb)', lineHeight: 1 }}>{item.year || '—'}</div>
-        <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
-      </div>
+/* ─── Preview Card with Toggle ───────────────────────────────── */
+function PreviewCard({
+  item,
+  onEdit,
+  onDelete,
+  disabled,
+}: {
+  item: FDP;
+  onEdit: () => void;
+  onDelete: () => void;
+  disabled: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-          <span className="badge badge-secondary" style={{ flexShrink: 0 }}>{item.type || 'FDP'}</span>
-          {item.mode && <span className="badge badge-secondary" style={{ flexShrink: 0 }}>{item.mode}</span>}
+  return (
+    <>
+      {/* ── Collapsed header row ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+          {/* Year badge — white text on solid blue */}
+          <div style={{
+            minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8,
+            background: 'var(--primary, #2563eb)', flexShrink: 0,
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>
+              {item.year || '—'}
+            </div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
+          </div>
+
+          {/* Summary */}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary, #1e293b)', fontSize: 15, marginBottom: 4 }}>
+              {item.programTitle || 'Untitled Program'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              {item.type && <span className="badge badge-secondary">{item.type}</span>}
+              {item.mode && <span className="badge badge-secondary">{item.mode}</span>}
+              {item.organizingInstitution && (
+                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{item.organizingInstitution}</span>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
+          <button type="button" style={btnEdit} onClick={() => setExpanded(!expanded)}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {expanded ? 'Hide' : 'View'}
+          </button>
+          <button type="button" style={btnEdit} onClick={(e) => { e.stopPropagation(); onEdit(); }} disabled={disabled}>
+            <Edit2 size={14} /> Edit
+          </button>
+          <button type="button" style={btnDelete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      </div>
+
+      {/* ── Expanded details ── */}
+      {expanded && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Program Name" value={item.programTitle} />
+          <PreviewRow label="Type" value={item.type} />
           <PreviewRow label="Organized By" value={item.organizingInstitution} />
           <PreviewRow label="Duration / Dates" value={item.duration} />
+          <PreviewRow label="Mode" value={item.mode} />
           <PreviewRow label="Certificate" value={item.certificate} />
+          {item.documentUrl && (
+            <div style={{ marginTop: 8 }}>
+              <a
+                href={`${import.meta.env.VITE_API_URL || ''}${item.documentUrl}`}
+                target="_blank" rel="noreferrer"
+                className="preview-file-link"
+              >
+                <ExternalLink size={13} /> View Proof
+              </a>
+            </div>
+          )}
         </div>
-
-        {item.documentUrl && (
-          <div style={{ marginTop: 8 }}>
-            <a
-              href={`${import.meta.env.VITE_API_URL || ''}${item.documentUrl}`}
-              target="_blank" rel="noreferrer"
-              className="preview-file-link"
-            >
-              <ExternalLink size={13} /> View Proof
-            </a>
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </>
   );
 }
 
+/* ─── Main Component ─────────────────────────────────────────── */
 export default function FdpWorkshops({
   data,
   onChange,
@@ -137,11 +187,11 @@ export default function FdpWorkshops({
       <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
         <button
           type="button"
-          className="btn btn-primary btn-sm"
+          style={btnAdd}
           onClick={() => setPendingItem({ ...EMPTY })}
           disabled={pendingItem !== null || editingIndex !== null}
         >
-          <Plus size={14} /> Add FDP / Workshop
+          <Plus size={16} /> Add FDP / Workshop
         </button>
       </div>
 
@@ -152,14 +202,15 @@ export default function FdpWorkshops({
       )}
 
       <div className="items-list">
-        {/* Pending New Entry */}
+        {/* ── Pending New Entry ── */}
         {pendingItem && (
           <div className="item-card is-editing">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Entry</span>
-              <div>
+              <div style={{ display: 'flex', gap: 8 }}>
                 <button
-                  type="button" className="btn btn-success btn-xs"
+                  type="button"
+                  style={isComplete(pendingItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
                   disabled={!isComplete(pendingItem)}
                   onClick={() => {
                     const updated = [pendingItem, ...data];
@@ -168,13 +219,9 @@ export default function FdpWorkshops({
                     setPendingItem(null);
                   }}
                 >
-                  <Check size={12} /> Save
+                  <Check size={14} /> Save
                 </button>
-                <button
-                  type="button" className="btn btn-ghost btn-xs"
-                  style={{ marginLeft: 8 }}
-                  onClick={() => setPendingItem(null)}
-                >
+                <button type="button" style={btnCancel} onClick={() => setPendingItem(null)}>
                   Cancel
                 </button>
               </div>
@@ -183,18 +230,18 @@ export default function FdpWorkshops({
           </div>
         )}
 
-        {/* Existing Entries */}
+        {/* ── Existing Entries ── */}
         {sorted.map((item, i) => {
           const isEdit = editingIndex === i;
           return (
             <div key={i} className={`item-card ${isEdit ? 'is-editing' : 'is-preview'}`}>
               {isEdit ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Entry</span>
-                    <div>
+                    <div style={{ display: 'flex', gap: 8 }}>
                       <button
-                        type="button" className="btn btn-success btn-xs"
+                        type="button" style={btnSave}
                         onClick={() => {
                           const updated = [...data];
                           updated.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
@@ -202,39 +249,25 @@ export default function FdpWorkshops({
                           setEditingIndex(null);
                         }}
                       >
-                        <Check size={12} /> Done
+                        <Check size={14} /> Done
                       </button>
                       <button
-                        type="button" className="btn btn-danger btn-xs"
-                        style={{ marginLeft: 8 }}
+                        type="button" style={btnDelete}
                         onClick={() => { onChange(sorted.filter((_, j) => j !== i)); setEditingIndex(null); }}
                       >
-                        <Trash2 size={12} /> Delete
+                        <Trash2 size={14} /> Delete
                       </button>
                     </div>
                   </div>
                   <FdpForm item={item} onChange={(k, v) => upd(i, k, v)} />
                 </>
               ) : (
-                <>
-                  <FdpPreview item={item} />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
-                    <button
-                      type="button" className="btn btn-ghost btn-xs"
-                      onClick={() => setEditingIndex(i)}
-                      disabled={pendingItem !== null}
-                    >
-                      <Edit2 size={14} /> Edit
-                    </button>
-                    <button
-                      type="button" className="btn btn-danger btn-xs"
-                      onClick={() => onChange(sorted.filter((_, j) => j !== i))}
-                      disabled={pendingItem !== null}
-                    >
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-                </>
+                <PreviewCard
+                  item={item}
+                  onEdit={() => setEditingIndex(i)}
+                  onDelete={() => onChange(sorted.filter((_, j) => j !== i))}
+                  disabled={pendingItem !== null}
+                />
               )}
             </div>
           );
