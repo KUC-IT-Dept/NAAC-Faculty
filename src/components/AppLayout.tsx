@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, UserCircle, Eye, PanelLeftClose, ChevronDown, UserPen } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, UserCircle, Eye, PanelLeftClose, ChevronDown, UserPen, Globe } from 'lucide-react';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
@@ -33,7 +33,6 @@ const profileDropdownItems = (role?: 'admin' | 'faculty') => {
     { id: 'online-courses', label: '13 - Online Courses', path: `${base}/online-courses` },
     { id: 'international-experience', label: '14 - International Experience', path: `${base}/international-experience` },
     { id: 'documents', label: '15 - Documents', path: `${base}/documents` },
-    { id: 'visibility', label: 'Visibility', path: `${base}/visibility` },
   ];
 };
 
@@ -48,6 +47,9 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
   const isActive = (item: NavItem) => item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
   const handleLogout = () => { logout(); navigate('/login'); };
   const initials = (user?.username || 'U').slice(0, 2).toUpperCase();
+
+  const visibilityPath = user?.role === 'admin' ? '/admin/edit-profile/visibility' : '/faculty/profile/edit/visibility';
+  const isVisibilityActive = location.pathname.includes('/visibility');
 
   return (
     <div className="app-layout">
@@ -69,14 +71,20 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
           {navItems.map(item => {
             if (item.label === 'Edit Profile') {
               return (
-                <div key="edit-profile-group" style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div key="edit-profile-group" style={{ 
+                  width: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  flex: profileDropdownOpen && !collapsed ? 1 : 'none',
+                  minHeight: 0
+                }}>
                   <button 
                     className={`nav-item ${isActive(item) || profileDropdownOpen ? 'active' : ''}`} 
                     onClick={() => {
                       if (collapsed) setCollapsed(false);
                       setProfileDropdownOpen(!profileDropdownOpen);
                     }}
-                    style={{ justifyContent: 'space-between', paddingRight: '14px', background: profileDropdownOpen ? '#EEF2FF' : '', color: profileDropdownOpen ? '#2563EB' : '' }}
+                    style={{ justifyContent: 'space-between', paddingRight: '14px', background: profileDropdownOpen ? '#EEF2FF' : '', color: profileDropdownOpen ? '#2563EB' : '', flexShrink: 0 }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                       <span className="nav-item-button" style={{ background: profileDropdownOpen ? 'transparent' : '', color: profileDropdownOpen ? '#2563EB' : '' }}>
@@ -98,23 +106,27 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
 
                   <div 
                     style={{
-                      height: profileDropdownOpen && !collapsed ? `${Math.min(profileDropdownItems(user?.role).length * 42, 300) + 16}px` : '0px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      flex: profileDropdownOpen && !collapsed ? 1 : 'none',
+                      minHeight: 0,
+                      height: profileDropdownOpen && !collapsed ? 'auto' : '0px',
                       overflow: 'hidden',
-                      transition: 'height 300ms ease, opacity 300ms ease',
+                      transition: 'opacity 200ms ease',
                       opacity: profileDropdownOpen && !collapsed ? 1 : 0,
                     }}
                   >
-                    <div style={{
+                    <div className="dropdown-scroll" style={{
                       display: 'flex',
                       flexDirection: 'column',
+                      flex: 1,
+                      overflowY: 'auto',
                       marginLeft: '12px',
                       marginTop: '8px',
                       paddingLeft: '12px',
                       borderLeft: '1px solid #E5E7EB',
-                      maxHeight: '300px',
-                      overflowY: 'auto',
-                      overflowX: 'hidden'
-                    }} className="dropdown-scroll">
+                      paddingBottom: '8px',
+                    }}>
                       {profileDropdownItems(user?.role).map((subItem) => {
                         const isSubActive = location.pathname.includes(subItem.path) || (location.search && subItem.path.includes(location.search));
                         return (
@@ -168,18 +180,31 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             );
           })}
 
-          {user?.role === 'faculty' && (
-            <>
-              {!collapsed && <div className="sidebar-section-label" style={{ marginTop: 16 }}>Public</div>}
-              <button className={`nav-item ${collapsed ? '' : ''}`} onClick={() => window.open(`/profile/${user.username}`, '_blank')}>
-                <span className="nav-item-button"><Eye size={18} /></span>
-                {!collapsed && <span className="nav-item-label">View Public Profile</span>}
-              </button>
-            </>
-          )}
         </nav>
 
         <div className="sidebar-footer">
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+            {!collapsed && <div className="sidebar-section-label" style={{ padding: '0 0 8px' }}>Public</div>}
+            
+            <button 
+              className="nav-item" 
+              onClick={() => navigate(visibilityPath)}
+              style={isVisibilityActive ? { borderLeft: '3px solid #2563EB', borderRadius: '12px', background: '#EEF2FF', color: '#2563EB' } : { borderRadius: '12px', borderLeft: '3px solid transparent' }}
+            >
+              <span className="nav-item-button" style={isVisibilityActive ? { background: 'transparent', color: '#2563EB' } : {}}><Eye size={18} /></span>
+              {!collapsed && <span className="nav-item-label" style={isVisibilityActive ? { fontWeight: 500 } : {}}>Visibility</span>}
+            </button>
+
+            <button 
+              className="nav-item" 
+              onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
+              style={{ borderRadius: '12px' }}
+            >
+              <span className="nav-item-button"><Globe size={18} /></span>
+              {!collapsed && <span className="nav-item-label">View Public Profile</span>}
+            </button>
+          </div>
+
           <div className="sidebar-bottom-card">
             <div className="sidebar-user-profile">
               <div className="sidebar-user-avatar">{initials}</div>
