@@ -32,7 +32,7 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
 
       {/* Responsibilities Section */}
       <div>
-        <div className="section-header-actions" style={{ marginBottom: 16 }}>
+        <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
           <h5 style={{ margin: 0 }}>Responsibilities</h5>
           <button
             type="button"
@@ -132,7 +132,7 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
 
       {/* Courses Section */}
       <div>
-        <div className="section-header-actions" style={{ marginBottom: 16 }}>
+        <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
           <h5 style={{ margin: 0 }}>Courses Taught</h5>
           <button
             type="button"

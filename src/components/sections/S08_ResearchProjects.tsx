@@ -132,7 +132,7 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
 
   return (
     <>
-      <div className="section-header-actions" style={{ marginBottom: 16 }}>
+      <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
         <h5 style={{ margin: 0 }}>Research Projects</h5>
         <button
           type="button"

@@ -56,7 +56,7 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', alignItems: 'start' }}>
         {/* Scholars Section */}
         <div>
-          <div className="section-header-actions" style={{ marginBottom: 16 }}>
+          <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
             <h5 style={{ margin: 0 }}>Research Scholars</h5>
             <button
               type="button"
@@ -170,7 +170,7 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
 
         {/* Patents Section */}
         <div>
-          <div className="section-header-actions" style={{ marginBottom: 16 }}>
+          <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
             <h5 style={{ margin: 0 }}>Patents / IP</h5>
             <button
               type="button"
