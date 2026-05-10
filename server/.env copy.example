@@ -1,0 +1,5 @@
+MONGO_URI=mongodb://127.0.0.1:27017/iqac_faculty
+JWT_SECRET=change_me
+PORT=5000
+NODE_ENV=development
+VITE_API_URL=https://naac-faculty.onrender.com/api

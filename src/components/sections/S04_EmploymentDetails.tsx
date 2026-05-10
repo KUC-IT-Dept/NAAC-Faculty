@@ -244,7 +244,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               </h3>
               {isExpanded ? <ChevronUp size={18} color="#64748b" /> : <ChevronDown size={18} color="#64748b" />}
             </div>
-            <button 
+            <button
               type="button"
               onClick={startEdit}
               style={{
