@@ -1,6 +1,6 @@
-import { Plus, Trash2, Edit3, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, sel } from './sectionUtils';
+import { Plus, Trash2, Edit2, ChevronDown, ChevronUp, Globe, AlertCircle } from 'lucide-react';
+import { fg, inp, sel, yearSel, pv } from './sectionUtils';
 
 const EMPTY = { country: '', purpose: '', institution: '', duration: '', year: '', fundingSource: '' };
 
@@ -32,187 +32,198 @@ const COUNTRIES = [
   'Other'
 ];
 
+const PURPOSE_OPTS = ['Research Visit', 'Post-Doctoral', 'Teaching', 'Conference', 'Collaborative Project', 'Industrial Visit', 'Other'];
+
 export default function InternationalExperience({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [expandedPreview, setExpandedPreview] = useState(true);
+  const [pendingItem, setPendingItem] = useState<any>(null);
+  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
-
-  const handleAddNew = () => {
-    onChange([{ ...EMPTY }, ...data]);
-    setEditingIndex(0);
-    setExpandedPreview(true);
-    setErrorMsg(null);
+  const s = (d: any[]) => onChange(d);
+  const upd = (i: number, k: string, v: string) => {
+    const a = [...data];
+    a[i] = { ...a[i], [k]: v };
+    s(a);
   };
 
-  const handleDelete = (index: number) => {
-    onChange(data.filter((_, i) => i !== index));
-    setErrorMsg(null);
-    if (editingIndex === index) setEditingIndex(null);
-    else if (editingIndex !== null && editingIndex > index) setEditingIndex(editingIndex - 1);
+  const toggleExpand = (idx: number) => {
+    const newSet = new Set(expandedIndices);
+    if (newSet.has(idx)) newSet.delete(idx);
+    else newSet.add(idx);
+    setExpandedIndices(newSet);
   };
 
-  const handleDone = (index: number) => {
-    const item = data[index];
-    if (!item.country?.trim() || !item.purpose?.trim()) {
-      setErrorMsg("Please fill in the required fields: Country and Purpose.");
-      return;
+  const isComplete = (e: any) => !!(e.country && e.purpose && e.year && e.institution);
+
+  const handleSavePending = () => {
+    if (!pendingItem) return;
+    if (isComplete(pendingItem)) {
+      s([pendingItem, ...data]);
+      setPendingItem(null);
+      setErrorMsg(null);
+    } else {
+      setErrorMsg("Please enter Country, Purpose, Year, and Institution.");
     }
-    setErrorMsg(null);
-    setEditingIndex(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingIndex === null) return;
+    const item = data[editingIndex];
+    if (isComplete(item)) {
+      setEditingIndex(null);
+      setErrorMsg(null);
+    } else {
+      setErrorMsg("Required fields are missing.");
+    }
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 16 }}>
-        <button 
-          type="button" 
-          className="btn btn-primary btn-sm" 
-          onClick={handleAddNew}
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+    <div className="section-container">
+      <div className="section-header-actions" style={{ marginBottom: 16 }}>
+        <h5 style={{ margin: 0 }}>International Experience</h5>
+        <button
+          type="button"
+          onClick={() => { setPendingItem({ ...EMPTY }); setErrorMsg(null); }}
+          disabled={pendingItem !== null || editingIndex !== null}
+          style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
         >
-          <Plus size={15} /> Add International Experience
+          <Plus size={16} /> Add Experience
         </button>
       </div>
 
-      <div>
-        {data.length === 0 ? (
-          <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>No international experience added yet.</p>
-        ) : (
-          <div style={{ marginBottom: 20 }}>
-            <div 
-              onClick={() => setExpandedPreview(!expandedPreview)}
-              style={{
-                padding: '12px 16px',
-                background: 'rgba(28, 53, 87, 0.05)',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                border: '1px solid rgba(28, 53, 87, 0.1)',
-                marginBottom: expandedPreview ? 16 : 0
-              }}
-            >
+      <div className="items-list">
+        {pendingItem && (
+          <div className="list-item-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Globe size={20} /> New Experience
+              </h3>
               <div>
-                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--primary-dark)' }}>
-                  International Experience ({data.length})
-                </h4>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-light)' }}>
-                  {data.filter(d => d.country).length} of {data.length} entries filled
-                </p>
+                <button 
+                  type="button" 
+                  onClick={() => { setPendingItem(null); setErrorMsg(null); }}
+                  style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleSavePending}
+                  style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
+                >
+                  Save Experience
+                </button>
               </div>
-              {expandedPreview ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </div>
 
-            {expandedPreview && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {data.map((e, i) => (
-                  <div key={i} style={{
-                    padding: '12px 16px',
-                    background: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px',
-                    position: 'relative'
-                  }}>
-                    {editingIndex === i ? (
-                      <div>
-                        <div className="form-row form-row-2">
-                          {fg('Country *', sel(e.country, v => upd(i, 'country', v), COUNTRIES))}
-                          {fg('Purpose *', sel(e.purpose, v => upd(i, 'purpose', v), ['Research Visit', 'Post-Doctoral', 'Teaching', 'Conference', 'Collaborative Project', 'Industrial Visit', 'Other']))}
-                        </div>
-                        {fg('Institution / University / Organization', inp(e.institution, v => upd(i, 'institution', v)))}
-                        <div className="form-row form-row-3">
-                          {fg('Duration', inp(e.duration, v => upd(i, 'duration', v), '3 months / 1 week'))}
-                          {fg('Year', sel(e.year, v => upd(i, 'year', v), Array.from({ length: 50 }, (_, idx) => (new Date().getFullYear() - idx).toString())))}
-                          {fg('Funding Source', inp(e.fundingSource, v => upd(i, 'fundingSource', v), 'DST / DAAD / Self'))}
-                        </div>
-
-                        {errorMsg && editingIndex === i && (
-                          <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 8, textAlign: 'right' }}>
-                            {errorMsg}
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                          <button 
-                            type="button" 
-                            className="btn btn-ghost btn-sm"
-                            onClick={() => handleDelete(i)}
-                            style={{ color: 'var(--danger)' }}
-                          >
-                            <Trash2 size={14} /> Delete
-                          </button>
-                          <button 
-                            type="button" 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleDone(i)}
-                          >
-                            <Save size={14} /> Done
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-dark)', marginBottom: 4 }}>
-                            {e.purpose ? `${e.purpose} in ${e.country}` : (e.country || <span style={{ color: 'var(--text-light)', fontStyle: 'italic' }}>Untitled Experience</span>)}
-                          </div>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button 
-                              type="button" 
-                              onClick={() => {
-                                setEditingIndex(i);
-                                setErrorMsg(null);
-                              }}
-                              style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', padding: 0 }}
-                            >
-                              <Edit3 size={13} /> Edit
-                            </button>
-                            <button 
-                              type="button" 
-                              onClick={() => handleDelete(i)}
-                              style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', padding: 0 }}
-                            >
-                              <Trash2 size={13} /> Delete
-                            </button>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-                          {e.institution && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Institution:</span>
-                              <span style={{ fontWeight: 500 }}>{e.institution}</span>
-                            </div>
-                          )}
-                          {e.year && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Year:</span>
-                              <span style={{ fontWeight: 500 }}>{e.year}</span>
-                            </div>
-                          )}
-                          {e.duration && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Duration:</span>
-                              <span style={{ fontWeight: 500 }}>{e.duration}</span>
-                            </div>
-                          )}
-                          {e.fundingSource && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Funding Source:</span>
-                              <span style={{ fontWeight: 500 }}>{e.fundingSource}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {errorMsg && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '13px', fontWeight: 600, marginBottom: 16, backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
+                <AlertCircle size={14} /> {errorMsg}
               </div>
             )}
+
+            <div className="form-row form-row-2">
+              {fg('Country *', sel(pendingItem.country, v => setPendingItem({ ...pendingItem, country: v }), COUNTRIES))}
+              {fg('Purpose *', sel(pendingItem.purpose, v => setPendingItem({ ...pendingItem, purpose: v }), PURPOSE_OPTS))}
+            </div>
+            {fg('Institution / University *', inp(pendingItem.institution, v => setPendingItem({ ...pendingItem, institution: v })))}
+            <div className="form-row form-row-3">
+              {fg('Duration', inp(pendingItem.duration, v => setPendingItem({ ...pendingItem, duration: v })))}
+              {fg('Year *', yearSel(pendingItem.year, v => setPendingItem({ ...pendingItem, year: v })))}
+              {fg('Funding Source', inp(pendingItem.fundingSource, v => setPendingItem({ ...pendingItem, fundingSource: v })))}
+            </div>
           </div>
         )}
+
+        {data.map((e, i) => {
+          const isEdit = editingIndex === i;
+          const isExpanded = expandedIndices.has(i);
+          return (
+            <div key={i} className="list-item-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              {isEdit ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>Edit Experience</h3>
+                    <div>
+                      <button 
+                        type="button" 
+                        onClick={() => { setEditingIndex(null); setErrorMsg(null); }}
+                        style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={handleSaveEdit}
+                        style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
+                      >
+                        Save Experience
+                      </button>
+                    </div>
+                  </div>
+
+                  {errorMsg && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '13px', fontWeight: 600, marginBottom: 16, backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
+                      <AlertCircle size={14} /> {errorMsg}
+                    </div>
+                  )}
+
+                  <div className="form-row form-row-2">
+                    {fg('Country *', sel(e.country, v => upd(i, 'country', v), COUNTRIES))}
+                    {fg('Purpose *', sel(e.purpose, v => upd(i, 'purpose', v), PURPOSE_OPTS))}
+                  </div>
+                  {fg('Institution / University *', inp(e.institution, v => upd(i, 'institution', v)))}
+                  <div className="form-row form-row-3">
+                    {fg('Duration', inp(e.duration, v => upd(i, 'duration', v)))}
+                    {fg('Year *', yearSel(e.year, v => upd(i, 'year', v)))}
+                    {fg('Funding Source', inp(e.fundingSource, v => upd(i, 'fundingSource', v)))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => toggleExpand(i)}>
+                      <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
+                        {e.country ? `${e.country} — ${e.purpose}` : `Experience ${i + 1}`}
+                        {e.institution && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>— {e.institution}</span>}
+                        {e.year && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({e.year})</span>}
+                      </h3>
+                      {isExpanded ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
+                    </div>
+                    <div>
+                      <button 
+                        type="button" 
+                        onClick={() => { setEditingIndex(i); setErrorMsg(null); }}
+                        style={{ padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Edit2 size={12} /> Edit
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => s(data.filter((_, j) => j !== i))}
+                        style={{ marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Trash2 size={12} /> Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div style={{ marginTop: '16px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                      <div style={{ marginBottom: '16px' }}>{pv('Institution', e.institution)}</div>
+                      <div className="form-row form-row-3">
+                        {pv('Duration', e.duration)}
+                        {pv('Year', e.year)}
+                        {pv('Funding', e.fundingSource)}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

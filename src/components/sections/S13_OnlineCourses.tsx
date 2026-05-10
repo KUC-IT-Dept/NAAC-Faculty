@@ -1,218 +1,212 @@
-import { Plus, Trash2, Edit3, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, sel } from './sectionUtils';
+import { Plus, Trash2, ExternalLink, Edit2, ChevronDown, ChevronUp, Cpu, AlertCircle } from 'lucide-react';
+import { fg, inp, sel, FileInp, yearSel, pv } from './sectionUtils';
 
 const EMPTY = { courseName: '', platform: '', duration: '', completionYear: '', certificateId: '', certificateUrl: '', score: '' };
+const PLATFORM_OPTS = ['NPTEL', 'Swayam', 'Coursera', 'edX', 'Udemy', 'LinkedIn Learning', 'Google', 'Microsoft', 'AWS', 'Other'];
 
 export default function OnlineCourses({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [expandedPreview, setExpandedPreview] = useState(true);
+  const [pendingItem, setPendingItem] = useState<any>(null);
+  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
-  const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
 
-  const handleAddNew = () => {
-    onChange([{ ...EMPTY }, ...data]);
-    setEditingIndex(0);
-    setExpandedPreview(true);
-    setErrorMsg(null);
+  const s = (d: any[]) => onChange(d);
+  const upd = (i: number, k: string, v: string) => {
+    const a = [...data];
+    a[i] = { ...a[i], [k]: v };
+    s(a);
   };
 
-  const handleDelete = (index: number) => {
-    onChange(data.filter((_, i) => i !== index));
-    setErrorMsg(null);
-    if (editingIndex === index) setEditingIndex(null);
-    else if (editingIndex !== null && editingIndex > index) setEditingIndex(editingIndex - 1);
+  const toggleExpand = (idx: number) => {
+    const newSet = new Set(expandedIndices);
+    if (newSet.has(idx)) newSet.delete(idx);
+    else newSet.add(idx);
+    setExpandedIndices(newSet);
   };
 
-  const handleDone = (index: number) => {
-    const item = data[index];
-    if (!item.courseName?.trim() || !item.platform?.trim()) {
-      setErrorMsg("Please fill in the required fields: Course Name and Platform.");
-      return;
+  const isComplete = (c: any) => !!(c.courseName && c.platform);
+
+  const handleSavePending = () => {
+    if (!pendingItem) return;
+    if (isComplete(pendingItem)) {
+      s([pendingItem, ...data]);
+      setPendingItem(null);
+      setErrorMsg(null);
+    } else {
+      setErrorMsg("Please enter Course Name and Platform.");
     }
-    setErrorMsg(null);
-    setEditingIndex(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingIndex === null) return;
+    const item = data[editingIndex];
+    if (isComplete(item)) {
+      setEditingIndex(null);
+      setErrorMsg(null);
+    } else {
+      setErrorMsg("Required fields are missing.");
+    }
   };
 
   return (
-    <div>
-      {/* Top Bar */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 16 }}>
-        <button 
-          type="button" 
-          className="btn btn-primary btn-sm" 
-          onClick={handleAddNew}
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+    <div className="section-container">
+      <div className="section-header-actions" style={{ marginBottom: 16 }}>
+        <h5 style={{ margin: 0 }}>Online Courses & Certifications</h5>
+        <button
+          type="button"
+          onClick={() => { setPendingItem({ ...EMPTY }); setErrorMsg(null); }}
+          disabled={pendingItem !== null || editingIndex !== null}
+          style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
         >
-          <Plus size={15} /> Add Course
+          <Plus size={16} /> Add Course
         </button>
       </div>
 
-      <div>
-        {data.length === 0 ? (
-          <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>No online courses added yet.</p>
-        ) : (
-          <div style={{ marginBottom: 20 }}>
-            <div 
-              onClick={() => setExpandedPreview(!expandedPreview)}
-              style={{
-                padding: '12px 16px',
-                background: 'rgba(28, 53, 87, 0.05)',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                border: '1px solid rgba(28, 53, 87, 0.1)',
-                marginBottom: expandedPreview ? 16 : 0
-              }}
-            >
+      <div className="items-list">
+        {pendingItem && (
+          <div className="list-item-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Cpu size={20} /> New Course
+              </h3>
               <div>
-                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--primary-dark)' }}>
-                  Online Courses & Certifications ({data.length})
-                </h4>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-light)' }}>
-                  {data.filter(d => d.courseName).length} of {data.length} entries filled
-                </p>
+                <button 
+                  type="button" 
+                  onClick={() => { setPendingItem(null); setErrorMsg(null); }}
+                  style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleSavePending}
+                  style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
+                >
+                  Save Course
+                </button>
               </div>
-              {expandedPreview ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </div>
 
-            {expandedPreview && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {data.map((c, i) => (
-                  <div key={i} style={{
-                    padding: '12px 16px',
-                    background: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px',
-                    position: 'relative'
-                  }}>
-                    {editingIndex === i ? (
-                      <div>
-                        {/* Edit Form */}
-                        {fg('Course / Certification Name *', inp(c.courseName, v => upd(i, 'courseName', v), 'Machine Learning Specialization'))}
-                        <div className="form-row form-row-3">
-                          {fg('Platform / Provider *', sel(c.platform, v => upd(i, 'platform', v), ['NPTEL', 'Swayam', 'Coursera', 'edX', 'Udemy', 'LinkedIn Learning', 'Google', 'Microsoft', 'AWS', 'Other']))}
-                          {fg('Duration', inp(c.duration, v => upd(i, 'duration', v), '8 weeks / 40 hours'))}
-                          {fg('Year of Completion', sel(c.completionYear, v => upd(i, 'completionYear', v), Array.from({ length: 40 }, (_, idx) => (new Date().getFullYear() - idx).toString())))}
-                        </div>
-                        <div className="form-row form-row-3">
-                          {fg('Certificate ID / Number', inp(c.certificateId, v => upd(i, 'certificateId', v)))}
-                          {fg('Score / Grade', inp(c.score, v => upd(i, 'score', v), 'e.g. 95%, A+'))}
-                          <div className="form-group">
-                            <label className="form-label">Upload Certificate</label>
-                            <input 
-                              type="file" 
-                              accept="image/*,.pdf"
-                              className="form-input" 
-                              onChange={e => {
-                                const file = e.target.files?.[0];
-                                if (file) upd(i, 'certificateUrl', file.name);
-                              }} 
-                              style={{ padding: '6px' }}
-                            />
-                            {c.certificateUrl && <div style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: 4 }}>Uploaded: {c.certificateUrl}</div>}
-                          </div>
-                        </div>
-                        {errorMsg && editingIndex === i && (
-                          <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 8, textAlign: 'right' }}>
-                            {errorMsg}
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                          <button 
-                            type="button" 
-                            className="btn btn-ghost btn-sm"
-                            onClick={() => handleDelete(i)}
-                            style={{ color: 'var(--danger)' }}
-                          >
-                            <Trash2 size={14} /> Delete
-                          </button>
-                          <button 
-                            type="button" 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleDone(i)}
-                          >
-                            <Save size={14} /> Done
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        {/* Preview Card */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-dark)', marginBottom: 4 }}>
-                            {c.courseName || <span style={{ color: 'var(--text-light)', fontStyle: 'italic' }}>Untitled Course</span>}
-                          </div>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button 
-                              type="button" 
-                              onClick={() => {
-                                setEditingIndex(i);
-                                setErrorMsg(null);
-                              }}
-                              style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', padding: 0 }}
-                            >
-                              <Edit3 size={13} /> Edit
-                            </button>
-                            <button 
-                              type="button" 
-                              onClick={() => handleDelete(i)}
-                              style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', padding: 0 }}
-                            >
-                              <Trash2 size={13} /> Delete
-                            </button>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-                          {c.platform && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Platform:</span>
-                              <span style={{ fontWeight: 500 }}>{c.platform}</span>
-                            </div>
-                          )}
-                          {c.completionYear && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Year:</span>
-                              <span style={{ fontWeight: 500 }}>{c.completionYear}</span>
-                            </div>
-                          )}
-                          {c.duration && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Duration:</span>
-                              <span style={{ fontWeight: 500 }}>{c.duration}</span>
-                            </div>
-                          )}
-                          {c.certificateId && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Certificate ID:</span>
-                              <span style={{ fontWeight: 500 }}>{c.certificateId}</span>
-                            </div>
-                          )}
-                          {c.score && (
-                            <div style={{ fontSize: '0.78rem' }}>
-                              <span style={{ color: 'var(--text-light)', marginRight: 4 }}>Score / Grade:</span>
-                              <span style={{ fontWeight: 500 }}>{c.score}</span>
-                            </div>
-                          )}
-                        </div>
-                        {c.certificateUrl && (
-                          <div style={{ fontSize: '0.78rem', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <span style={{ color: 'var(--text-light)' }}>Certificate File:</span>
-                            <span style={{ color: 'var(--primary)', fontWeight: 500 }}>{c.certificateUrl}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {errorMsg && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '13px', fontWeight: 600, marginBottom: 16, backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
+                <AlertCircle size={14} /> {errorMsg}
               </div>
             )}
+
+            {fg('Course / Certification Name *', inp(pendingItem.courseName, v => setPendingItem({ ...pendingItem, courseName: v })))}
+            <div className="form-row form-row-3">
+              {fg('Platform / Provider *', sel(pendingItem.platform, v => setPendingItem({ ...pendingItem, platform: v }), PLATFORM_OPTS))}
+              {fg('Duration', inp(pendingItem.duration, v => setPendingItem({ ...pendingItem, duration: v })))}
+              {fg('Year of Completion', yearSel(pendingItem.completionYear, v => setPendingItem({ ...pendingItem, completionYear: v })))}
+            </div>
+            <div className="form-row form-row-2">
+              {fg('Certificate ID', inp(pendingItem.certificateId, v => setPendingItem({ ...pendingItem, certificateId: v })))}
+              {fg('Score / Grade', inp(pendingItem.score, v => setPendingItem({ ...pendingItem, score: v })))}
+            </div>
+            {fg('Upload Certificate', <FileInp v={pendingItem.certificateUrl} fn={v => setPendingItem({ ...pendingItem, certificateUrl: v })} />)}
           </div>
         )}
+
+        {data.map((c, i) => {
+          const isEdit = editingIndex === i;
+          const isExpanded = expandedIndices.has(i);
+          return (
+            <div key={i} className="list-item-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              {isEdit ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>Edit Course</h3>
+                    <div>
+                      <button 
+                        type="button" 
+                        onClick={() => { setEditingIndex(null); setErrorMsg(null); }}
+                        style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={handleSaveEdit}
+                        style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
+                      >
+                        Save Course
+                      </button>
+                    </div>
+                  </div>
+
+                  {errorMsg && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '13px', fontWeight: 600, marginBottom: 16, backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
+                      <AlertCircle size={14} /> {errorMsg}
+                    </div>
+                  )}
+
+                  {fg('Course / Certification Name *', inp(c.courseName, v => upd(i, 'courseName', v)))}
+                  <div className="form-row form-row-3">
+                    {fg('Platform / Provider *', sel(c.platform, v => upd(i, 'platform', v), PLATFORM_OPTS))}
+                    {fg('Duration', inp(c.duration, v => upd(i, 'duration', v)))}
+                    {fg('Year of Completion', yearSel(c.completionYear, v => upd(i, 'completionYear', v)))}
+                  </div>
+                  <div className="form-row form-row-2">
+                    {fg('Certificate ID', inp(c.certificateId, v => upd(i, 'certificateId', v)))}
+                    {fg('Score / Grade', inp(c.score, v => upd(i, 'score', v)))}
+                  </div>
+                  {fg('Upload Certificate', <FileInp v={c.certificateUrl} fn={v => upd(i, 'certificateUrl', v)} />)}
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => toggleExpand(i)}>
+                      <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
+                        {c.courseName || `Course ${i + 1}`}
+                        {c.platform && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>— {c.platform}</span>}
+                        {c.completionYear && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({c.completionYear})</span>}
+                      </h3>
+                      {isExpanded ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
+                    </div>
+                    <div>
+                      <button 
+                        type="button" 
+                        onClick={() => { setEditingIndex(i); setErrorMsg(null); }}
+                        style={{ padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Edit2 size={12} /> Edit
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => s(data.filter((_, j) => j !== i))}
+                        style={{ marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Trash2 size={12} /> Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div style={{ marginTop: '16px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                      <div className="form-row form-row-3" style={{ marginBottom: '16px' }}>
+                        {pv('Platform', c.platform)}
+                        {pv('Duration', c.duration)}
+                        {pv('Year', c.completionYear)}
+                      </div>
+                      <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
+                        {pv('Certificate ID', c.certificateId)}
+                        {pv('Score', c.score)}
+                      </div>
+                      {c.certificateUrl && (
+                        <div style={{ marginTop: '8px' }}>
+                          <a href={`${import.meta.env.VITE_API_URL}${c.certificateUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
+                            <ExternalLink size={14} /> View Certificate
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink } from 'lucide-react';
-import { fg, inp, sel, FileInp } from './sectionUtils';
+import { Plus, Trash2, ExternalLink, Edit2, ChevronDown, ChevronUp, BookOpen, AlertCircle } from 'lucide-react';
+import { fg, inp, sel, FileInp, yearSel, pv } from './sectionUtils';
 
 type FDP = {
   programTitle: string;
@@ -28,92 +28,6 @@ const TYPE_OPTS = ['FDP', 'Workshop', 'Seminar', 'MOOC', 'Refresher', 'Orientati
 const MODE_OPTS = ['Online', 'Offline'];
 const CERT_OPTS = ['Yes', 'No'];
 
-const currentYear = new Date().getFullYear();
-const YEAR_OPTS: string[] = [];
-for (let y = currentYear; y >= 1970; y--) YEAR_OPTS.push(String(y));
-
-function FdpForm({ item, onChange }: { item: FDP; onChange: (k: keyof FDP, v: string) => void }) {
-  return (
-    <>
-      {fg('Program Name *', inp(item.programTitle, v => onChange('programTitle', v)))}
-      <div className="form-row form-row-2">
-        {fg('Type *', sel(item.type, v => onChange('type', v), TYPE_OPTS))}
-        {fg('Organized by *', inp(item.organizingInstitution, v => onChange('organizingInstitution', v)))}
-      </div>
-      <div className="form-row form-row-2">
-        {fg('Duration / Dates', inp(item.duration, v => onChange('duration', v), 'e.g. 5 Days / 10-15 Jan 2024'))}
-        {fg('Year *',
-          <select className="form-select" value={item.year} onChange={e => onChange('year', e.target.value)}>
-            <option value="">— Year —</option>
-            {YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        )}
-      </div>
-      <div className="form-row form-row-2">
-        {fg('Mode', sel(item.mode, v => onChange('mode', v), MODE_OPTS))}
-        {fg('Certificate', sel(item.certificate, v => onChange('certificate', v), CERT_OPTS))}
-      </div>
-      <div style={{ marginTop: 10 }}>
-        {fg('Certificate / Proof / Link', <FileInp v={item.documentUrl} fn={v => onChange('documentUrl', v)} label="Upload Document" />)}
-      </div>
-    </>
-  );
-}
-
-function PreviewRow({ label, value }: { label: string; value?: string | null }) {
-  if (!value) return null;
-  return (
-    <div style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border-light, #f1f5f9)' }}>
-      <span style={{ minWidth: 160, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>
-        {label}
-      </span>
-      <span style={{ fontSize: 13, color: 'var(--text-primary, #1e293b)', wordBreak: 'break-word' }}>
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function FdpPreview({ item }: { item: FDP }) {
-  return (
-    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-      <div style={{
-        minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8,
-        background: 'var(--primary-light, #eff6ff)', flexShrink: 0,
-      }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary, #2563eb)', lineHeight: 1 }}>{item.year || '—'}</div>
-        <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-          <span className="badge badge-secondary" style={{ flexShrink: 0 }}>{item.type || 'FDP'}</span>
-          {item.mode && <span className="badge badge-secondary" style={{ flexShrink: 0 }}>{item.mode}</span>}
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <PreviewRow label="Program Name" value={item.programTitle} />
-          <PreviewRow label="Organized By" value={item.organizingInstitution} />
-          <PreviewRow label="Duration / Dates" value={item.duration} />
-          <PreviewRow label="Certificate" value={item.certificate} />
-        </div>
-
-        {item.documentUrl && (
-          <div style={{ marginTop: 8 }}>
-            <a
-              href={`${import.meta.env.VITE_API_URL || ''}${item.documentUrl}`}
-              target="_blank" rel="noreferrer"
-              className="preview-file-link"
-            >
-              <ExternalLink size={13} /> View Proof
-            </a>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function FdpWorkshops({
   data,
   onChange,
@@ -123,123 +37,213 @@ export default function FdpWorkshops({
 }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pendingItem, setPendingItem] = useState<FDP | null>(null);
-
-  const upd = (i: number, k: keyof FDP, v: string) => {
-    const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a);
-  };
+  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const sorted = [...data].sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
 
+  const s = (d: FDP[]) => onChange(d);
+  const upd = (i: number, k: keyof FDP, v: string) => {
+    const a = [...sorted];
+    a[i] = { ...a[i], [k]: v };
+    s(a);
+  };
+
+  const toggleExpand = (idx: number) => {
+    const newSet = new Set(expandedIndices);
+    if (newSet.has(idx)) newSet.delete(idx);
+    else newSet.add(idx);
+    setExpandedIndices(newSet);
+  };
+
   const isComplete = (item: FDP) => !!(item.programTitle && item.type && item.year);
 
+  const handleSavePending = () => {
+    if (!pendingItem) return;
+    if (isComplete(pendingItem)) {
+      s([pendingItem, ...data]);
+      setPendingItem(null);
+      setErrorMsg(null);
+    } else {
+      setErrorMsg("Please enter Program Name, Type, and Year.");
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editingIndex === null) return;
+    const item = sorted[editingIndex];
+    if (isComplete(item)) {
+      setEditingIndex(null);
+      setErrorMsg(null);
+    } else {
+      setErrorMsg("Required fields are missing.");
+    }
+  };
+
   return (
-    <>
-      <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
+    <div className="section-container">
+      <div className="section-header-actions" style={{ marginBottom: 16 }}>
+        <h5 style={{ margin: 0 }}>FDP / Workshops / Training</h5>
         <button
           type="button"
-          className="btn btn-primary btn-sm"
-          onClick={() => setPendingItem({ ...EMPTY })}
+          onClick={() => { setPendingItem({ ...EMPTY }); setErrorMsg(null); }}
           disabled={pendingItem !== null || editingIndex !== null}
+          style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
         >
-          <Plus size={14} /> Add FDP / Workshop
+          <Plus size={16} /> Add Entry
         </button>
       </div>
 
-      {sorted.length === 0 && !pendingItem && (
-        <div className="empty-state">
-          No entries added yet. Click <strong>Add FDP / Workshop</strong> to get started.
-        </div>
-      )}
-
       <div className="items-list">
-        {/* Pending New Entry */}
         {pendingItem && (
-          <div className="item-card is-editing">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Entry</span>
+          <div className="list-item-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BookOpen size={20} /> New Entry
+              </h3>
               <div>
-                <button
-                  type="button" className="btn btn-success btn-xs"
-                  disabled={!isComplete(pendingItem)}
-                  onClick={() => {
-                    const updated = [pendingItem, ...data];
-                    updated.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
-                    onChange(updated);
-                    setPendingItem(null);
-                  }}
-                >
-                  <Check size={12} /> Save
-                </button>
-                <button
-                  type="button" className="btn btn-ghost btn-xs"
-                  style={{ marginLeft: 8 }}
-                  onClick={() => setPendingItem(null)}
+                <button 
+                  type="button" 
+                  onClick={() => { setPendingItem(null); setErrorMsg(null); }}
+                  style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
                 >
                   Cancel
                 </button>
+                <button 
+                  type="button" 
+                  onClick={handleSavePending}
+                  style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
+                >
+                  Save Entry
+                </button>
               </div>
             </div>
-            <FdpForm item={pendingItem} onChange={(k, v) => setPendingItem({ ...pendingItem, [k]: v })} />
+
+            {errorMsg && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '13px', fontWeight: 600, marginBottom: 16, backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
+                <AlertCircle size={14} /> {errorMsg}
+              </div>
+            )}
+
+            {fg('Program Name *', inp(pendingItem.programTitle, v => setPendingItem({ ...pendingItem, programTitle: v })))}
+            <div className="form-row form-row-2">
+              {fg('Type *', sel(pendingItem.type, v => setPendingItem({ ...pendingItem, type: v }), TYPE_OPTS))}
+              {fg('Organized by *', inp(pendingItem.organizingInstitution, v => setPendingItem({ ...pendingItem, organizingInstitution: v })))}
+            </div>
+            <div className="form-row form-row-2">
+              {fg('Duration / Dates', inp(pendingItem.duration, v => setPendingItem({ ...pendingItem, duration: v })))}
+              {fg('Year *', yearSel(pendingItem.year, v => setPendingItem({ ...pendingItem, year: v })))}
+            </div>
+            <div className="form-row form-row-2">
+              {fg('Mode', sel(pendingItem.mode, v => setPendingItem({ ...pendingItem, mode: v }), MODE_OPTS))}
+              {fg('Certificate', sel(pendingItem.certificate, v => setPendingItem({ ...pendingItem, certificate: v }), CERT_OPTS))}
+            </div>
+            {fg('Certificate / Proof', <FileInp v={pendingItem.documentUrl} fn={v => setPendingItem({ ...pendingItem, documentUrl: v })} />)}
           </div>
         )}
 
-        {/* Existing Entries */}
         {sorted.map((item, i) => {
           const isEdit = editingIndex === i;
+          const isExpanded = expandedIndices.has(i);
           return (
-            <div key={i} className={`item-card ${isEdit ? 'is-editing' : 'is-preview'}`}>
+            <div key={i} className="list-item-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
               {isEdit ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Entry</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>Edit Entry</h3>
                     <div>
-                      <button
-                        type="button" className="btn btn-success btn-xs"
-                        onClick={() => {
-                          const updated = [...data];
-                          updated.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
-                          onChange(updated);
-                          setEditingIndex(null);
-                        }}
+                      <button 
+                        type="button" 
+                        onClick={() => { setEditingIndex(null); setErrorMsg(null); }}
+                        style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
                       >
-                        <Check size={12} /> Done
+                        Cancel
                       </button>
-                      <button
-                        type="button" className="btn btn-danger btn-xs"
-                        style={{ marginLeft: 8 }}
-                        onClick={() => { onChange(sorted.filter((_, j) => j !== i)); setEditingIndex(null); }}
+                      <button 
+                        type="button" 
+                        onClick={handleSaveEdit}
+                        style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
+                      >
+                        Save Entry
+                      </button>
+                    </div>
+                  </div>
+
+                  {errorMsg && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '13px', fontWeight: 600, marginBottom: 16, backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
+                      <AlertCircle size={14} /> {errorMsg}
+                    </div>
+                  )}
+
+                  {fg('Program Name *', inp(item.programTitle, v => upd(i, 'programTitle', v)))}
+                  <div className="form-row form-row-2">
+                    {fg('Type *', sel(item.type, v => upd(i, 'type', v), TYPE_OPTS))}
+                    {fg('Organized by *', inp(item.organizingInstitution, v => upd(i, 'organizingInstitution', v)))}
+                  </div>
+                  <div className="form-row form-row-2">
+                    {fg('Duration / Dates', inp(item.duration, v => upd(i, 'duration', v)))}
+                    {fg('Year *', yearSel(item.year, v => upd(i, 'year', v)))}
+                  </div>
+                  <div className="form-row form-row-2">
+                    {fg('Mode', sel(item.mode, v => upd(i, 'mode', v), MODE_OPTS))}
+                    {fg('Certificate', sel(item.certificate, v => upd(i, 'certificate', v), CERT_OPTS))}
+                  </div>
+                  {fg('Certificate / Proof', <FileInp v={item.documentUrl} fn={v => upd(i, 'documentUrl', v)} />)}
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => toggleExpand(i)}>
+                      <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
+                        {item.programTitle || `Entry ${i + 1}`}
+                        {item.organizingInstitution && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>— {item.organizingInstitution}</span>}
+                        {item.year && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({item.year})</span>}
+                      </h3>
+                      {isExpanded ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
+                    </div>
+                    <div>
+                      <button 
+                        type="button" 
+                        onClick={() => { setEditingIndex(i); setErrorMsg(null); }}
+                        style={{ padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Edit2 size={12} /> Edit
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => s(sorted.filter((_, j) => j !== i))}
+                        style={{ marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
                         <Trash2 size={12} /> Delete
                       </button>
                     </div>
                   </div>
-                  <FdpForm item={item} onChange={(k, v) => upd(i, k, v)} />
-                </>
-              ) : (
-                <>
-                  <FdpPreview item={item} />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
-                    <button
-                      type="button" className="btn btn-ghost btn-xs"
-                      onClick={() => setEditingIndex(i)}
-                      disabled={pendingItem !== null}
-                    >
-                      <Edit2 size={14} /> Edit
-                    </button>
-                    <button
-                      type="button" className="btn btn-danger btn-xs"
-                      onClick={() => onChange(sorted.filter((_, j) => j !== i))}
-                      disabled={pendingItem !== null}
-                    >
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
+
+                  {isExpanded && (
+                    <div style={{ marginTop: '16px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                      <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
+                        {pv('Type', item.type)}
+                        {pv('Organized By', item.organizingInstitution)}
+                      </div>
+                      <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
+                        {pv('Duration', item.duration)}
+                        {pv('Mode', item.mode)}
+                      </div>
+                      {item.documentUrl && (
+                        <div style={{ marginTop: '8px' }}>
+                          <a href={`${import.meta.env.VITE_API_URL}${item.documentUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
+                            <ExternalLink size={14} /> View Certificate
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>
           );
         })}
       </div>
-    </>
+    </div>
   );
 }

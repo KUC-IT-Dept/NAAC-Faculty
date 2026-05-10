@@ -1113,6 +1113,13 @@ tbody tr:last-child td {
 }
 
 /* ── Subsection heading ──────────────────────────────────────── */
+.section-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .subsection-title {
   font-size: 0.8rem;
   font-weight: 700;
