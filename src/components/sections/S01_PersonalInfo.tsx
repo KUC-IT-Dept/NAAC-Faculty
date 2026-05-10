@@ -1,15 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import { fg, inp, sel, ta, dateInp, Sub, Note } from './sectionUtils';
+import { useState, useEffect } from 'react';
+import { fg, inp, ta, dateInp } from './sectionUtils';
 import ProfilePictureUpload from '../ProfilePictureUpload';
 
 export default function PersonalInfo({ data, onChange }: { data: any; onChange: (d: any) => void }) {
   // Ensure data is an object
   const safeData = data || {};
   const s = (k: string, v: string) => onChange({ ...safeData, [k]: v });
-  
+
   // Single edit state for entire form
   const [isEditing, setIsEditing] = useState(false);
-  const previousDataRef = useRef(data);
 
   // Auto-return to preview mode after save
   useEffect(() => {
@@ -23,17 +22,17 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     };
 
     // Listen for any click that might be a save button
-    const handleClick = (e) => {
+    const handleClick = (e: any) => {
       const target = e.target;
       if (target.tagName === 'BUTTON' || target.closest('button')) {
         const button = target.tagName === 'BUTTON' ? target : target.closest('button');
         const buttonText = button.textContent?.toLowerCase() || '';
         const buttonTitle = button.title?.toLowerCase() || '';
-        
+
         // Check if this looks like a save button (but NOT the edit button)
-        if ((buttonText.includes('save') || buttonTitle.includes('save') || 
-            button.type === 'submit' || button.className.includes('save')) && 
-            !buttonText.includes('edit')) {
+        if ((buttonText.includes('save') || buttonTitle.includes('save') ||
+          button.type === 'submit' || button.className.includes('save')) &&
+          !buttonText.includes('edit')) {
           setTimeout(() => {
             setIsEditing(false);
           }, 1500); // Wait for save to complete
@@ -62,13 +61,13 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
       clearInterval(checkInterval);
     };
   }, [isEditing]);
-  
+
   // Simple select without custom option
-  const SimpleSelect = ({ value, onChange, options, placeholder = "— Select —" }) => {
+  const SimpleSelect = ({ value, onChange, options, placeholder = "— Select —" }: { value: any, onChange: (val: string) => void, options: any[], placeholder?: string }) => {
     return (
-      <select 
-        className="form-select" 
-        value={value || ''} 
+      <select
+        className="form-select"
+        value={value || ''}
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="">{placeholder}</option>
@@ -76,9 +75,9 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
       </select>
     );
   };
-  
+
   // Preview display helper
-  const renderPreview = (label, value) => (
+  const renderPreview = (label: string, value: any) => (
     <div style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
       <strong>{label}:</strong> {value || 'Not specified'}
     </div>
@@ -90,7 +89,7 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     <div className="personal-info-container">
       {!isEditing && (
         <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-          <button 
+          <button
             onClick={() => setIsEditing(true)}
             className="btn btn-outline"
           >
@@ -102,7 +101,7 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
       {/* Profile Box */}
       <div className="info-box profile-box">
         <div className="profile-header">
-          <ProfilePictureUpload 
+          <ProfilePictureUpload
             currentPicture={safeData.profilePicture}
             onPictureChange={(url) => s('profilePicture', url)}
             isEditing={isEditing}
@@ -168,75 +167,75 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
         <div className="scrollable-content">
           <div className="form-section">
             <h4>Family Information</h4>
-              {isEditing ? (
-                fg("Father's Name", inp(data.fatherName, v => s('fatherName', v)))
-              ) : (
-                renderPreview("Father's Name", safeData.fatherName)
-              )}
-              {isEditing ? (
-                fg("Mother's Name", inp(data.motherName, v => s('motherName', v)))
-              ) : (
-                renderPreview("Mother's Name", safeData.motherName)
-              )}
-              {isEditing ? (
-                fg("Spouse's Name", inp(data.spouseName, v => s('spouseName', v)))
-              ) : (
-                renderPreview("Spouse's Name", safeData.spouseName)
-              )}
+            {isEditing ? (
+              fg("Father's Name", inp(data.fatherName, v => s('fatherName', v)))
+            ) : (
+              renderPreview("Father's Name", safeData.fatherName)
+            )}
+            {isEditing ? (
+              fg("Mother's Name", inp(data.motherName, v => s('motherName', v)))
+            ) : (
+              renderPreview("Mother's Name", safeData.motherName)
+            )}
+            {isEditing ? (
+              fg("Spouse's Name", inp(data.spouseName, v => s('spouseName', v)))
+            ) : (
+              renderPreview("Spouse's Name", safeData.spouseName)
+            )}
           </div>
 
           <div className="form-section">
             <h4>Personal Information</h4>
-              {isEditing ? (
-                fg('Date of Birth', dateInp(data.dateOfBirth, v => s('dateOfBirth', v)))
-              ) : (
-                renderPreview('Date of Birth', safeData.dateOfBirth)
-              )}
-              {isEditing ? (
-                fg('Age', inp(data.age, v => s('age', v)))
-              ) : (
-                renderPreview('Age', safeData.age)
-              )}
-              {isEditing ? (
-                fg('Place of Birth', inp(data.placeOfBirth, v => s('placeOfBirth', v)))
-              ) : (
-                renderPreview('Place of Birth', safeData.placeOfBirth)
-              )}
-              {isEditing ? (
-                fg('Gender', <SimpleSelect value={data.gender} onChange={v => s('gender', v)} options={['Male', 'Female', 'Transgender', 'Other']} />)
-              ) : (
-                renderPreview('Gender', safeData.gender)
-              )}
-              {isEditing ? (
-                fg('Blood Group', <SimpleSelect value={data.bloodGroup} onChange={v => s('bloodGroup', v)} options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} />)
-              ) : (
-                renderPreview('Blood Group', safeData.bloodGroup)
-              )}
-              {isEditing ? (
-                fg('Nationality', <SimpleSelect value={data.nationality} onChange={v => s('nationality', v)} options={['Indian', 'NRI', 'Foreign']} />)
-              ) : (
-                renderPreview('Nationality', safeData.nationality)
-              )}
-              {isEditing ? (
-                fg('Marital Status', <SimpleSelect value={data.maritalStatus} onChange={v => s('maritalStatus', v)} options={['Single', 'Married', 'Divorced', 'Widowed']} />)
-              ) : (
-                renderPreview('Marital Status', safeData.maritalStatus)
-              )}
-              {isEditing ? (
-                fg('Differently Abled', <SimpleSelect value={data.differentlyAbled} onChange={v => s('differentlyAbled', v)} options={['No', 'Yes']} />)
-              ) : (
-                renderPreview('Differently Abled', safeData.differentlyAbled)
-              )}
-              {isEditing ? (
-                fg('Religion', <SimpleSelect value={data.religion} onChange={v => s('religion', v)} options={['Hindu', 'Muslim', 'Christian', 'Sikh', 'Buddhist', 'Jain', 'Other']} />)
-              ) : (
-                renderPreview('Religion', safeData.religion)
-              )}
-              {isEditing ? (
-                fg('Community', inp(data.community, v => s('community', v)))
-              ) : (
-                renderPreview('Community', safeData.community)
-              )}
+            {isEditing ? (
+              fg('Date of Birth', dateInp(data.dateOfBirth, v => s('dateOfBirth', v)))
+            ) : (
+              renderPreview('Date of Birth', safeData.dateOfBirth)
+            )}
+            {isEditing ? (
+              fg('Age', inp(data.age, v => s('age', v)))
+            ) : (
+              renderPreview('Age', safeData.age)
+            )}
+            {isEditing ? (
+              fg('Place of Birth', inp(data.placeOfBirth, v => s('placeOfBirth', v)))
+            ) : (
+              renderPreview('Place of Birth', safeData.placeOfBirth)
+            )}
+            {isEditing ? (
+              fg('Gender', <SimpleSelect value={data.gender} onChange={v => s('gender', v)} options={['Male', 'Female', 'Transgender', 'Other']} />)
+            ) : (
+              renderPreview('Gender', safeData.gender)
+            )}
+            {isEditing ? (
+              fg('Blood Group', <SimpleSelect value={data.bloodGroup} onChange={v => s('bloodGroup', v)} options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} />)
+            ) : (
+              renderPreview('Blood Group', safeData.bloodGroup)
+            )}
+            {isEditing ? (
+              fg('Nationality', <SimpleSelect value={data.nationality} onChange={v => s('nationality', v)} options={['Indian', 'NRI', 'Foreign']} />)
+            ) : (
+              renderPreview('Nationality', safeData.nationality)
+            )}
+            {isEditing ? (
+              fg('Marital Status', <SimpleSelect value={data.maritalStatus} onChange={v => s('maritalStatus', v)} options={['Single', 'Married', 'Divorced', 'Widowed']} />)
+            ) : (
+              renderPreview('Marital Status', safeData.maritalStatus)
+            )}
+            {isEditing ? (
+              fg('Differently Abled', <SimpleSelect value={data.differentlyAbled} onChange={v => s('differentlyAbled', v)} options={['No', 'Yes']} />)
+            ) : (
+              renderPreview('Differently Abled', safeData.differentlyAbled)
+            )}
+            {isEditing ? (
+              fg('Religion', <SimpleSelect value={data.religion} onChange={v => s('religion', v)} options={['Hindu', 'Muslim', 'Christian', 'Sikh', 'Buddhist', 'Jain', 'Other']} />)
+            ) : (
+              renderPreview('Religion', safeData.religion)
+            )}
+            {isEditing ? (
+              fg('Community', inp(data.community, v => s('community', v)))
+            ) : (
+              renderPreview('Community', safeData.community)
+            )}
           </div>
 
           <div className="form-section">
@@ -282,30 +281,30 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
 
           <div className="form-section">
             <h4>Contact Information</h4>
-              {isEditing ? (
-                fg('Mobile Number', inp(data.mobileNumber, v => s('mobileNumber', v), '+91 XXXXX XXXXX'))
-              ) : (
-                renderPreview('Mobile Number', safeData.mobileNumber)
-              )}
-              {isEditing ? (
-                fg('Email ID', inp(data.emailId, v => s('emailId', v), 'you@example.com'))
-              ) : (
-                renderPreview('Email ID', safeData.emailId)
-              )}
+            {isEditing ? (
+              fg('Mobile Number', inp(data.mobileNumber, v => s('mobileNumber', v), '+91 XXXXX XXXXX'))
+            ) : (
+              renderPreview('Mobile Number', safeData.mobileNumber)
+            )}
+            {isEditing ? (
+              fg('Email ID', inp(data.emailId, v => s('emailId', v), 'you@example.com'))
+            ) : (
+              renderPreview('Email ID', safeData.emailId)
+            )}
           </div>
 
           <div className="form-section">
             <h4>Identity Documents</h4>
-              {isEditing ? (
-                fg('Aadhaar Number', inp(data.aadhaarNumber, v => s('aadhaarNumber', v), 'XXXX XXXX XXXX'))
-              ) : (
-                renderPreview('Aadhaar Number', safeData.aadhaarNumber)
-              )}
-              {isEditing ? (
-                fg('PAN Number', inp(data.panNumber, v => s('panNumber', v), 'AAAAA0000A'))
-              ) : (
-                renderPreview('PAN Number', safeData.panNumber)
-              )}
+            {isEditing ? (
+              fg('Aadhaar Number', inp(data.aadhaarNumber, v => s('aadhaarNumber', v), 'XXXX XXXX XXXX'))
+            ) : (
+              renderPreview('Aadhaar Number', safeData.aadhaarNumber)
+            )}
+            {isEditing ? (
+              fg('PAN Number', inp(data.panNumber, v => s('panNumber', v), 'AAAAA0000A'))
+            ) : (
+              renderPreview('PAN Number', safeData.panNumber)
+            )}
           </div>
         </div>
       </div>

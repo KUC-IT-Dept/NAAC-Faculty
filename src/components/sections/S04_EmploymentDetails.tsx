@@ -1,6 +1,6 @@
 import { fg, inp, dateInp, Sub } from './sectionUtils';
 import { useState, useEffect } from 'react';
-import { Edit2, Save, X, Briefcase, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Edit2, Save, Briefcase, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 
 const EMPTY = { 
   employeeId: '', 
@@ -44,7 +44,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-  const s = (k: string, v: string) => onChange({ ...data, [k]: v });
+
 
   useEffect(() => {
     setIsEditing(false);

@@ -3,8 +3,8 @@ import { useParams, Navigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
-import { Save, Eye } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { Save } from 'lucide-react';
+
 import PersonalInfo        from '../../components/sections/S01_PersonalInfo';
 import Qualifications      from '../../components/sections/S02_Qualifications';
 import EligibilityTests    from '../../components/sections/S03_EligibilityTests';
@@ -74,7 +74,6 @@ export default function ProfileEdit() {
   const [profile, setProfile] = useState<any>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const { user } = useAuth();
 
   useEffect(() => {
     api.get('/faculty/me')

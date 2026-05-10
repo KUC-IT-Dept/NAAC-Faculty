@@ -1,6 +1,6 @@
 import { Plus, Trash2, Edit2, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, sel, Sub } from './sectionUtils';
+import { fg, inp } from './sectionUtils';
 
 const EMPTY = { 
   examName: '', 
@@ -17,11 +17,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
 
-  const upd = (i: number, k: string, v: string) => { 
-    const a = [...data]; 
-    a[i] = { ...a[i], [k]: v }; 
-    onChange(a); 
-  };
+
 
   const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
     <select

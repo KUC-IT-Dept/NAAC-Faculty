@@ -1,6 +1,6 @@
 import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, sel, dateInp, Sub } from './sectionUtils';
+import { fg, inp } from './sectionUtils';
 
 const EMPTY = {
   degreeLevel: '',
@@ -27,11 +27,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
     return yearB - yearA;
   });
 
-  const upd = (i: number, k: string, v: string) => {
-    const a = [...data];
-    a[i] = { ...a[i], [k]: v };
-    onChange(a);
-  };
+
 
   const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
     <select

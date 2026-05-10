@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, UserCircle, Eye, PanelLeftClose, ChevronDown, UserPen, Globe } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, ChevronDown, UserPen, Globe } from 'lucide-react';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
@@ -71,15 +71,15 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
           {navItems.map(item => {
             if (item.label === 'Edit Profile') {
               return (
-                <div key="edit-profile-group" style={{ 
-                  width: '100%', 
-                  display: 'flex', 
+                <div key="edit-profile-group" style={{
+                  width: '100%',
+                  display: 'flex',
                   flexDirection: 'column',
                   flex: profileDropdownOpen && !collapsed ? 1 : 'none',
                   minHeight: 0
                 }}>
-                  <button 
-                    className={`nav-item ${isActive(item) || profileDropdownOpen ? 'active' : ''}`} 
+                  <button
+                    className={`nav-item ${isActive(item) || profileDropdownOpen ? 'active' : ''}`}
                     onClick={() => {
                       if (collapsed) setCollapsed(false);
                       setProfileDropdownOpen(!profileDropdownOpen);
@@ -93,18 +93,18 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
                       {!collapsed && <span className="nav-item-label">{item.label}</span>}
                     </div>
                     {!collapsed && (
-                      <ChevronDown 
-                        size={18} 
-                        style={{ 
+                      <ChevronDown
+                        size={18}
+                        style={{
                           transform: profileDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                           transition: 'transform 300ms ease',
                           color: profileDropdownOpen ? '#2563EB' : '#64748B'
-                        }} 
+                        }}
                       />
                     )}
                   </button>
 
-                  <div 
+                  <div
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -185,9 +185,9 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         <div className="sidebar-footer">
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
             {!collapsed && <div className="sidebar-section-label" style={{ padding: '0 0 8px' }}>Public</div>}
-            
-            <button 
-              className="nav-item" 
+
+            <button
+              className="nav-item"
               onClick={() => navigate(visibilityPath)}
               style={isVisibilityActive ? { borderLeft: '3px solid #2563EB', borderRadius: '12px', background: '#EEF2FF', color: '#2563EB' } : { borderRadius: '12px', borderLeft: '3px solid transparent' }}
             >
@@ -195,8 +195,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
               {!collapsed && <span className="nav-item-label" style={isVisibilityActive ? { fontWeight: 500 } : {}}>Visibility</span>}
             </button>
 
-            <button 
-              className="nav-item" 
+            <button
+              className="nav-item"
               onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
               style={{ borderRadius: '12px' }}
             >
