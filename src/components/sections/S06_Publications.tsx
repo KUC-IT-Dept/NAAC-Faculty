@@ -28,6 +28,7 @@ type Publication = {
   bookType: string;
   organizedBy: string;
   publishedInProceedings: string;
+  isEditing?: boolean;
 };
 
 const EMPTY: Publication = {
@@ -35,7 +36,8 @@ const EMPTY: Publication = {
   year: '', volume: '', issue: '', issn: '', isbn: '', pages: '',
   impactFactor: '', indexedIn: '', peerReviewed: '', doi: '', level: '',
   presentationType: '', venue: '', conferenceDates: '', documentUrl: '',
-  editors: '', bookType: '', organizedBy: '', publishedInProceedings: ''
+  editors: '', bookType: '', organizedBy: '', publishedInProceedings: '',
+  isEditing: true
 };
 
 const PUB_TYPES = ['Journal Articles', 'Book Chapters', 'Books Authored / Edited', 'Conference Papers'];
@@ -181,31 +183,37 @@ const btnStyles = {
     backgroundColor: '#4f46e5', color: '#ffffff',
     padding: '8px 16px', borderRadius: '6px',
     fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer'
-  },
+  } as React.CSSProperties,
   edit: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
     backgroundColor: '#f8fafc', color: '#334155',
     padding: '6px 12px', borderRadius: '6px',
     fontSize: '13px', fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer'
-  },
+  } as React.CSSProperties,
   delete: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
     backgroundColor: '#fff1f2', color: '#be123c',
     padding: '6px 12px', borderRadius: '6px',
     fontSize: '13px', fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer'
-  },
+  } as React.CSSProperties,
   save: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
     backgroundColor: '#10b981', color: '#ffffff',
     padding: '6px 12px', borderRadius: '6px',
     fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer'
-  },
+  } as React.CSSProperties,
+  saveDisabled: {
+    display: 'inline-flex', alignItems: 'center', gap: '6px',
+    backgroundColor: '#d1fae5', color: '#6ee7b7',
+    padding: '6px 12px', borderRadius: '6px',
+    fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'not-allowed'
+  } as React.CSSProperties,
   cancel: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
     backgroundColor: '#f1f5f9', color: '#475569',
     padding: '6px 12px', borderRadius: '6px',
     fontSize: '13px', fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer'
-  }
+  } as React.CSSProperties,
 };
 
 /* ─── Structured Preview ─────────────────────────────────────── */
@@ -296,14 +304,16 @@ function PreviewDetails({ p }: { p: Publication }) {
 
 function PreviewCard({
   p,
-  onEdit,
-  onDelete,
-  disabled
+  i,
+  data,
+  onChange,
+  toggleEdit,
 }: {
   p: Publication;
-  onEdit: () => void;
-  onDelete: () => void;
-  disabled: boolean;
+  i: number;
+  data: Publication[];
+  onChange: (d: Publication[]) => void;
+  toggleEdit: (i: number, state: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -335,10 +345,10 @@ function PreviewCard({
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             {expanded ? 'Hide' : 'View'}
           </button>
-          <button type="button" style={btnStyles.edit} onClick={(e) => { e.stopPropagation(); onEdit(); }} disabled={disabled}>
+          <button type="button" style={btnStyles.edit} onClick={(e) => { e.stopPropagation(); toggleEdit(i, true); }}>
             <Edit2 size={14} /> Edit
           </button>
-          <button type="button" style={btnStyles.delete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
+          <button type="button" style={btnStyles.delete} onClick={(e) => { e.stopPropagation(); onChange(data.filter((_, idx) => idx !== i)); }}>
             <Trash2 size={14} /> Delete
           </button>
         </div>
@@ -399,14 +409,21 @@ export default function Publications({
   data: Publication[];
   onChange: (d: Publication[]) => void;
 }) {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [pendingItem, setPendingItem] = useState<Publication | null>(null);
 
   const upd = (i: number, k: keyof Publication, v: string) => {
-    const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a);
+    const arr = [...data];
+    arr[i] = { ...arr[i], [k]: v };
+    onChange(arr);
   };
 
-  const sorted = [...data].sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+  const toggleEdit = (i: number, state: boolean) => {
+    const arr = [...data];
+    arr[i] = { ...arr[i], isEditing: state };
+    if (!state) {
+      arr.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+    }
+    onChange(arr);
+  };
 
   const isComplete = (p: Publication) => !!(p.title && p.type);
 
@@ -420,92 +437,58 @@ export default function Publications({
         <button
           type="button"
           style={btnStyles.add}
-          onClick={() => setPendingItem({ ...EMPTY })}
-          disabled={pendingItem !== null || editingIndex !== null}
+          onClick={() => onChange([{ ...EMPTY }, ...data])}
         >
           <Plus size={16} /> Add Publication
         </button>
       </div>
 
-      {sorted.length === 0 && !pendingItem && (
+      {data.length === 0 && (
         <div className="empty-state">
           No publications added yet. Click <strong>Add Publication</strong> to get started.
         </div>
       )}
 
-      <div className="items-list">
-        {/* ── Pending new item at top ── */}
-        {pendingItem && (
-          <div className="item-card is-editing">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Publication</span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  type="button" style={btnStyles.save}
-                  disabled={!isComplete(pendingItem)}
-                  onClick={() => {
-                    const updated = [pendingItem, ...data];
-                    updated.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
-                    onChange(updated);
-                    setPendingItem(null);
-                  }}
-                >
-                  <Check size={14} /> Save
-                </button>
-                <button
-                  type="button" style={btnStyles.cancel}
-                  onClick={() => setPendingItem(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-            <PubForm item={pendingItem} onChange={(k, v) => setPendingItem({ ...pendingItem, [k]: v })} />
-          </div>
-        )}
-
-        {/* ── Saved items (year-sorted) ── */}
-        {sorted.map((p, i) => {
-          const isEdit = editingIndex === i;
-          return (
-            <div key={i} className={`item-card ${isEdit ? 'is-editing' : 'is-preview'}`}>
-              {isEdit ? (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Publication</span>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button
-                        type="button" style={btnStyles.save}
-                        onClick={() => {
-                          const updated = [...data];
-                          updated.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
-                          onChange(updated);
-                          setEditingIndex(null);
-                        }}
-                      >
-                        <Check size={14} /> Done
-                      </button>
-                      <button
-                        type="button" style={btnStyles.delete}
-                        onClick={() => { onChange(sorted.filter((_, j) => j !== i)); setEditingIndex(null); }}
-                      >
-                        <Trash2 size={14} /> Delete
-                      </button>
-                    </div>
+      <div className="items-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {data.map((p, i) => (
+          <div key={i} className={`item-card ${p.isEditing ? 'is-editing' : 'is-preview'}`}>
+            {p.isEditing ? (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>
+                    {!p.title ? 'New Publication' : 'Editing Publication'}
+                  </span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      style={isComplete(p) ? btnStyles.save : btnStyles.saveDisabled}
+                      disabled={!isComplete(p)}
+                      title={!isComplete(p) ? 'Please fill in required fields' : 'Save entry'}
+                      onClick={() => toggleEdit(i, false)}
+                    >
+                      <Check size={14} /> Save
+                    </button>
+                    <button
+                      type="button" style={btnStyles.delete}
+                      onClick={() => onChange(data.filter((_, idx) => idx !== i))}
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
                   </div>
-                  <PubForm item={p} onChange={(k, v) => upd(i, k, v)} />
-                </>
-              ) : (
-                <PreviewCard
-                  p={p}
-                  onEdit={() => setEditingIndex(i)}
-                  onDelete={() => onChange(sorted.filter((_, j) => j !== i))}
-                  disabled={pendingItem !== null}
-                />
-              )}
-            </div>
-          );
-        })}
+                </div>
+                <PubForm item={p} onChange={(k, v) => upd(i, k, v)} />
+              </>
+            ) : (
+              <PreviewCard
+                p={p}
+                i={i}
+                data={data}
+                onChange={onChange}
+                toggleEdit={toggleEdit}
+              />
+            )}
+          </div>
+        ))}
       </div>
     </>
   );

@@ -122,13 +122,13 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
 
   return (
     <>
-      <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
-        <h5 style={{ margin: 0 }}>Awards / Fellowships / Honours</h5>
+      <div className="section-header-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 16 }}>
+        <h5 style={{ margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Awards / Fellowships / Honours</h5>
         <button
           type="button"
           onClick={handleAddAward}
           disabled={pendingNewItem !== null || editingItemIndex !== null}
-          style={btnAdd}
+          style={{ ...btnAdd, flexShrink: 0 }}
         >
           <Plus size={16} /> Add Award
         </button>
