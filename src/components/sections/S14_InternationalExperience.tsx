@@ -81,7 +81,7 @@ export default function InternationalExperience({ data, onChange }: { data: any[
   return (
     <div className="section-container">
       <div className="section-header-actions" style={{ marginBottom: 16 }}>
-        <h5 style={{ margin: 0 }}>International Experience</h5>
+        <h5 style={{ margin: 0 }}></h5>
         <button
           type="button"
           onClick={() => { setPendingItem({ ...EMPTY }); setErrorMsg(null); }}
@@ -100,15 +100,15 @@ export default function InternationalExperience({ data, onChange }: { data: any[
                 <Globe size={20} /> New Experience
               </h3>
               <div>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => { setPendingItem(null); setErrorMsg(null); }}
                   style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={handleSavePending}
                   style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
                 >
@@ -146,15 +146,15 @@ export default function InternationalExperience({ data, onChange }: { data: any[
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>Edit Experience</h3>
                     <div>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => { setEditingIndex(null); setErrorMsg(null); }}
                         style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
                       >
                         Cancel
                       </button>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={handleSaveEdit}
                         style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
                       >
@@ -192,15 +192,15 @@ export default function InternationalExperience({ data, onChange }: { data: any[
                       {isExpanded ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
                     </div>
                     <div>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => { setEditingIndex(i); setErrorMsg(null); }}
                         style={{ padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
                         <Edit2 size={12} /> Edit
                       </button>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => s(data.filter((_, j) => j !== i))}
                         style={{ marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >

@@ -52,7 +52,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
   return (
     <div className="section-container">
       <div className="section-header-actions" style={{ marginBottom: 16 }}>
-        <h5 style={{ margin: 0 }}>Online Courses & Certifications</h5>
+        <h5 style={{ margin: 0 }}></h5>
         <button
           type="button"
           onClick={() => { setPendingItem({ ...EMPTY }); setErrorMsg(null); }}

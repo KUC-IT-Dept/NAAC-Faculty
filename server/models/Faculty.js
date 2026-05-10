@@ -131,6 +131,8 @@ const membershipSchema = new mongoose.Schema({
   professionalBody: { type: String, default: '' },
   membershipType: { type: String, default: '' }, // Life / Annual
   membershipId: { type: String, default: '' },
+  yearOfJoining: { type: String, default: '' },
+  documentUrl: { type: String, default: '' },
 }, { _id: false });
 
 // Section 14: International Experience
