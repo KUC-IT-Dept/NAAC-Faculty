@@ -122,9 +122,7 @@ export default function ProfileEdit() {
                 <p className="text-xs text-muted" style={{ marginTop: 2 }}>Changes are saved per section.</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => window.open(`/profile/${user?.username}`, '_blank')}>
-                  <Eye size={14} /> Preview
-                </button>
+ 
                 <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
                   {saving ? <><span className="spinner" style={{ width: 13, height: 13 }} /> Saving…</> : <><Save size={14} /> Save</>}
                 </button>
