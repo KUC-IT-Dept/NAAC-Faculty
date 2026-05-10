@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit2, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { fg, inp } from './sectionUtils';
 
@@ -15,6 +15,7 @@ const EMPTY = {
 export default function EligibilityTests({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
 
   const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
     <select
@@ -73,6 +74,18 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
 
   const updateEditingData = (key: string, value: string) => {
     setEditingData((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  const toggleCard = (index: number) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   const renderPreview = (label: string, value: any) => (
@@ -177,11 +190,14 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
             </>
           ) : (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
-                  {e.examName || `Eligibility Test ${i + 1}`}
-                  {e.year && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({e.year})</span>}
-                </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => toggleCard(i)}>
+                  <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
+                    {e.examName || `Eligibility Test ${i + 1}`}
+                    {e.year && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({e.year})</span>}
+                  </h3>
+                  {expandedCards.has(i) ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
+                </div>
                 <div>
                   <button
                     type="button"
@@ -225,15 +241,17 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {renderPreview('Exam Name', e.examName)}
-                {renderPreview('Year', e.year)}
-                {renderPreview('Subject', e.subject)}
-                {renderPreview('Certificate No.', e.certificateNo)}
-                {renderPreview('State (for SET / SLET)', e.state)}
-                {renderPreview('Score (for GATE)', e.score)}
-                {renderPreview('Fellowship Agency (for JRF)', e.fellowshipAgency)}
-              </div>
+              {expandedCards.has(i) && (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {renderPreview('Exam Name', e.examName)}
+                  {renderPreview('Year', e.year)}
+                  {renderPreview('Subject', e.subject)}
+                  {renderPreview('Certificate No.', e.certificateNo)}
+                  {renderPreview('State (for SET / SLET)', e.state)}
+                  {renderPreview('Score (for GATE)', e.score)}
+                  {renderPreview('Fellowship Agency (for JRF)', e.fellowshipAgency)}
+                </div>
+              )}
             </>
           )}
         </div>
