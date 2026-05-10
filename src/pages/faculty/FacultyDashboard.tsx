@@ -240,13 +240,7 @@ export default function FacultyDashboard() {
                         <span className={`badge ${(s.count || 0) > 0 ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '0.75rem', padding: '4px 10px' }}>
                           {s.count || 0} entries
                         </span>
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => navigate('/faculty/profile/edit')}
-                          style={{ padding: '6px', color: 'var(--text-muted)' }}
-                        >
-                          <Edit3 size={14} />
-                        </button>
+
                       </div>
                     </div>
                   ))}

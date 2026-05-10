@@ -5,21 +5,21 @@ import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { Save } from 'lucide-react';
 
-import PersonalInfo        from '../../components/sections/S01_PersonalInfo';
-import Qualifications      from '../../components/sections/S02_Qualifications';
-import EligibilityTests    from '../../components/sections/S03_EligibilityTests';
-import EmploymentDetails   from '../../components/sections/S04_EmploymentDetails';
-import WorkExperience      from '../../components/sections/S05_WorkExperience';
-import Publications        from '../../components/sections/S06_Publications';
-import Awards              from '../../components/sections/S07_Awards';
-import ResearchProjects    from '../../components/sections/S08_ResearchProjects';
+import PersonalInfo from '../../components/sections/S01_PersonalInfo';
+import Qualifications from '../../components/sections/S02_Qualifications';
+import EligibilityTests from '../../components/sections/S03_EligibilityTests';
+import EmploymentDetails from '../../components/sections/S04_EmploymentDetails';
+import WorkExperience from '../../components/sections/S05_WorkExperience';
+import Publications from '../../components/sections/S06_Publications';
+import Awards from '../../components/sections/S07_Awards';
+import ResearchProjects from '../../components/sections/S08_ResearchProjects';
 import ResearchSupervision from '../../components/sections/S09_ResearchSupervision';
-import AcademicResp        from '../../components/sections/S10_AcademicResponsibilities';
-import Memberships         from '../../components/sections/S11_Memberships';
-import FdpWorkshops        from '../../components/sections/S12_FdpWorkshops';
-import OnlineCourses       from '../../components/sections/S13_OnlineCourses';
-import InternationalExp    from '../../components/sections/S14_InternationalExperience';
-import Documents           from '../../components/sections/S15_Documents';
+import AcademicResp from '../../components/sections/S10_AcademicResponsibilities';
+import Memberships from '../../components/sections/S11_Memberships';
+import FdpWorkshops from '../../components/sections/S12_FdpWorkshops';
+import OnlineCourses from '../../components/sections/S13_OnlineCourses';
+import InternationalExp from '../../components/sections/S14_InternationalExperience';
+import Documents from '../../components/sections/S15_Documents';
 
 const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'personal-information': { key: 'personalInfo', label: 'Personal Information' },
@@ -41,21 +41,21 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
 };
 
 const VIS_ITEMS = [
-  { key: 'personalInfo',           label: 'Personal Information',       desc: 'Name, contact, address' },
-  { key: 'photo',                  label: 'Profile Photo',              desc: 'Show photo publicly' },
-  { key: 'qualifications',         label: 'Qualifications',             desc: 'Degrees & education' },
-  { key: 'eligibilityTests',       label: 'Eligibility Tests',          desc: 'NET / SET / GATE' },
-  { key: 'employmentDetails',      label: 'Employment Details',         desc: 'Current position & pay' },
-  { key: 'workExperience',         label: 'Work Experience',            desc: 'Previous positions' },
-  { key: 'publications',           label: 'Publications',               desc: 'Journals, books, conferences' },
-  { key: 'projects',               label: 'Research Projects',          desc: 'Funded projects' },
-  { key: 'awards',                 label: 'Awards & Honours',           desc: 'Recognition' },
-  { key: 'researchSupervision',    label: 'Research Supervision',       desc: 'Ph.D / M.Phil scholars' },
+  { key: 'personalInfo', label: 'Personal Information', desc: 'Name, contact, address' },
+  { key: 'photo', label: 'Profile Photo', desc: 'Show photo publicly' },
+  { key: 'qualifications', label: 'Qualifications', desc: 'Degrees & education' },
+  { key: 'eligibilityTests', label: 'Eligibility Tests', desc: 'NET / SET / GATE' },
+  { key: 'employmentDetails', label: 'Employment Details', desc: 'Current position & pay' },
+  { key: 'workExperience', label: 'Work Experience', desc: 'Previous positions' },
+  { key: 'publications', label: 'Publications', desc: 'Journals, books, conferences' },
+  { key: 'projects', label: 'Research Projects', desc: 'Funded projects' },
+  { key: 'awards', label: 'Awards & Honours', desc: 'Recognition' },
+  { key: 'researchSupervision', label: 'Research Supervision', desc: 'Ph.D / M.Phil scholars' },
   { key: 'academicResponsibilities', label: 'Academic Responsibilities', desc: 'Committees & courses' },
-  { key: 'memberships',            label: 'Memberships',                desc: 'Professional bodies' },
-  { key: 'fdpWorkshops',           label: 'FDP / Workshops',            desc: 'Training programmes' },
-  { key: 'onlineCourses',          label: 'Online Courses',             desc: 'Certifications' },
-  { key: 'internationalExperience', label: 'International Experience',  desc: 'Research visits abroad' },
+  { key: 'memberships', label: 'Memberships', desc: 'Professional bodies' },
+  { key: 'fdpWorkshops', label: 'FDP / Workshops', desc: 'Training programmes' },
+  { key: 'onlineCourses', label: 'Online Courses', desc: 'Certifications' },
+  { key: 'internationalExperience', label: 'International Experience', desc: 'Research visits abroad' },
 ];
 
 const EMPTY: any = {
@@ -121,7 +121,7 @@ export default function ProfileEdit() {
                 <p className="text-xs text-muted" style={{ marginTop: 2 }}>Changes are saved per section.</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
- 
+
                 <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
                   {saving ? <><span className="spinner" style={{ width: 13, height: 13 }} /> Saving…</> : <><Save size={14} /> Save</>}
                 </button>
@@ -129,21 +129,21 @@ export default function ProfileEdit() {
             </div>
 
             <div className="card-body animate-fadeIn">
-              {tab === 'personalInfo'             && <PersonalInfo        data={profile.personalInfo}             onChange={v => set('personalInfo', v)} />}
-              {tab === 'qualifications'            && <Qualifications       data={profile.qualifications}            onChange={v => set('qualifications', v)} />}
-              {tab === 'eligibilityTests'          && <EligibilityTests     data={profile.eligibilityTests}          onChange={v => set('eligibilityTests', v)} />}
-              {tab === 'employmentDetails'         && <EmploymentDetails    data={profile.employmentDetails}         onChange={v => set('employmentDetails', v)} />}
-              {tab === 'workExperience'            && <WorkExperience       data={profile.workExperience}            onChange={v => set('workExperience', v)} />}
-              {tab === 'publications'              && <Publications          data={profile.publications}              onChange={v => set('publications', v)} />}
-              {tab === 'awards'                   && <Awards               data={profile.awards}                   onChange={v => set('awards', v)} />}
-              {tab === 'projects'                 && <ResearchProjects     data={profile.projects}                 onChange={v => set('projects', v)} />}
-              {tab === 'researchSupervision'       && <ResearchSupervision  data={profile.researchSupervision}       onChange={v => set('researchSupervision', v)} />}
-              {tab === 'academicResponsibilities'  && <AcademicResp         data={profile.academicResponsibilities}  onChange={v => set('academicResponsibilities', v)} />}
-              {tab === 'memberships'               && <Memberships          data={profile.memberships}               onChange={v => set('memberships', v)} />}
-              {tab === 'fdpWorkshops'              && <FdpWorkshops         data={profile.fdpWorkshops}              onChange={v => set('fdpWorkshops', v)} />}
-              {tab === 'onlineCourses'             && <OnlineCourses        data={profile.onlineCourses}             onChange={v => set('onlineCourses', v)} />}
-              {tab === 'internationalExperience'   && <InternationalExp     data={profile.internationalExperience}   onChange={v => set('internationalExperience', v)} />}
-              {tab === 'documents'                && <Documents            data={profile.documents}                onChange={v => set('documents', v)} />}
+              {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} />}
+              {tab === 'qualifications' && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
+              {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
+              {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} />}
+              {tab === 'workExperience' && <WorkExperience data={profile.workExperience} onChange={v => set('workExperience', v)} />}
+              {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
+              {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} />}
+              {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} />}
+              {tab === 'researchSupervision' && <ResearchSupervision data={profile.researchSupervision} onChange={v => set('researchSupervision', v)} />}
+              {tab === 'academicResponsibilities' && <AcademicResp data={profile.academicResponsibilities} onChange={v => set('academicResponsibilities', v)} />}
+              {tab === 'memberships' && <Memberships data={profile.memberships} onChange={v => set('memberships', v)} />}
+              {tab === 'fdpWorkshops' && <FdpWorkshops data={profile.fdpWorkshops} onChange={v => set('fdpWorkshops', v)} />}
+              {tab === 'onlineCourses' && <OnlineCourses data={profile.onlineCourses} onChange={v => set('onlineCourses', v)} />}
+              {tab === 'internationalExperience' && <InternationalExp data={profile.internationalExperience} onChange={v => set('internationalExperience', v)} />}
+              {tab === 'documents' && <Documents data={profile.documents} onChange={v => set('documents', v)} />}
 
               {tab === 'visibility' && (
                 <div>

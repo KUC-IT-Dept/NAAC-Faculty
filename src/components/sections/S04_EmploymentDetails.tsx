@@ -2,19 +2,19 @@ import { fg, inp, dateInp, Sub } from './sectionUtils';
 import { useState, useEffect } from 'react';
 import { Edit2, Save, Briefcase, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 
-const EMPTY = { 
-  employeeId: '', 
-  designation: '', 
-  department: '', 
-  institution: '', 
-  affiliatedUniversity: '', 
+const EMPTY = {
+  employeeId: '',
+  designation: '',
+  department: '',
+  institution: '',
+  affiliatedUniversity: '',
   typeOfInstitution: '',
-  natureOfAppointment: '', 
-  dateOfJoining: '', 
-  dateOfConfirmation: '', 
-  payBand: '', 
-  bankAccountDetails: '', 
-  pfNumber: '', 
+  natureOfAppointment: '',
+  dateOfJoining: '',
+  dateOfConfirmation: '',
+  payBand: '',
+  bankAccountDetails: '',
+  pfNumber: '',
   serviceBookNumber: '',
   dateOfFirstPromotion: '',
   natureOfAppointment1: '',
@@ -87,7 +87,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
   if (!hasData && !isEditing) {
     return (
       <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-        <button 
+        <button
           type="button"
           onClick={startEdit}
           style={{
@@ -114,7 +114,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
 
   return (
     <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-      
+
       {isEditing ? (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
@@ -122,7 +122,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               <Briefcase size={22} color="#111827" /> Edit Employment Details
             </h3>
             <div>
-              <button 
+              <button
                 type="button"
                 onClick={cancelEdit}
                 style={{
@@ -139,7 +139,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               >
                 Cancel
               </button>
-              <button 
+              <button
                 type="button"
                 onClick={saveEdit}
                 style={{
@@ -164,10 +164,10 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           <Sub>Current Position</Sub>
           <div className="form-row form-row-2">
             {fg('Employee ID / Staff Code', inp(editingData.employeeId, v => updateEditingData('employeeId', v)))}
-            {fg('Designation *', <CustomSelect 
-              value={editingData.designation} 
-              onChange={(v: string) => updateEditingData('designation', v)} 
-              options={['Assistant Professor', 'Associate Professor', 'Professor']} 
+            {fg('Designation *', <CustomSelect
+              value={editingData.designation}
+              onChange={(v: string) => updateEditingData('designation', v)}
+              options={['Assistant Professor', 'Associate Professor', 'Professor']}
             />)}
           </div>
           <div className="form-row form-row-2">
@@ -176,19 +176,19 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           </div>
           <div className="form-row form-row-2">
             {fg('University Affiliated to', inp(editingData.affiliatedUniversity, v => updateEditingData('affiliatedUniversity', v)))}
-            {fg('Type of Institution', <CustomSelect 
-              value={editingData.typeOfInstitution} 
-              onChange={(v: string) => updateEditingData('typeOfInstitution', v)} 
-              options={['Government', 'Aided', 'Private', 'Deemed', 'Central University']} 
+            {fg('Type of Institution', <CustomSelect
+              value={editingData.typeOfInstitution}
+              onChange={(v: string) => updateEditingData('typeOfInstitution', v)}
+              options={['Government', 'Aided', 'Private', 'Deemed', 'Central University']}
             />)}
           </div>
 
           <Sub>Appointment & Pay Details</Sub>
           <div className="form-row form-row-3">
-            {fg('Nature of Appointment', <CustomSelect 
-              value={editingData.natureOfAppointment} 
-              onChange={(v: string) => updateEditingData('natureOfAppointment', v)} 
-              options={natureOptions} 
+            {fg('Nature of Appointment', <CustomSelect
+              value={editingData.natureOfAppointment}
+              onChange={(v: string) => updateEditingData('natureOfAppointment', v)}
+              options={natureOptions}
             />)}
             {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v)))}
             {fg('Date of Confirmation / Regularization', dateInp(editingData.dateOfConfirmation, v => updateEditingData('dateOfConfirmation', v)))}
@@ -207,10 +207,10 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           <Sub>First Promotion</Sub>
           <div className="form-row form-row-3">
             {fg('Date of First promotion', dateInp(editingData.dateOfFirstPromotion, v => updateEditingData('dateOfFirstPromotion', v)))}
-            {fg('Nature of Appointment', <CustomSelect 
-              value={editingData.natureOfAppointment1} 
-              onChange={(v: string) => updateEditingData('natureOfAppointment1', v)} 
-              options={natureOptions} 
+            {fg('Nature of Appointment', <CustomSelect
+              value={editingData.natureOfAppointment1}
+              onChange={(v: string) => updateEditingData('natureOfAppointment1', v)}
+              options={natureOptions}
             />)}
             {fg('New Pay Band / Pay Scale', inp(editingData.newPayBand1, v => updateEditingData('newPayBand1', v)))}
           </div>
@@ -218,10 +218,10 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           <Sub>Second Promotion</Sub>
           <div className="form-row form-row-3">
             {fg('Date of Second promotion', dateInp(editingData.dateOfSecondPromotion, v => updateEditingData('dateOfSecondPromotion', v)))}
-            {fg('Nature of Appointment', <CustomSelect 
-              value={editingData.natureOfAppointment2} 
-              onChange={(v: string) => updateEditingData('natureOfAppointment2', v)} 
-              options={natureOptions} 
+            {fg('Nature of Appointment', <CustomSelect
+              value={editingData.natureOfAppointment2}
+              onChange={(v: string) => updateEditingData('natureOfAppointment2', v)}
+              options={natureOptions}
             />)}
             {fg('New Pay Band / Pay Scale', inp(editingData.newPayBand2, v => updateEditingData('newPayBand2', v)))}
           </div>
@@ -229,10 +229,10 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           <Sub>Third Promotion</Sub>
           <div className="form-row form-row-3">
             {fg('Date of Third promotion', dateInp(editingData.dateOfThirdPromotion, v => updateEditingData('dateOfThirdPromotion', v)))}
-            {fg('Nature of Appointment', <CustomSelect 
-              value={editingData.natureOfAppointment3} 
-              onChange={(v: string) => updateEditingData('natureOfAppointment3', v)} 
-              options={natureOptions} 
+            {fg('Nature of Appointment', <CustomSelect
+              value={editingData.natureOfAppointment3}
+              onChange={(v: string) => updateEditingData('natureOfAppointment3', v)}
+              options={natureOptions}
             />)}
             {fg('New Pay Band / Pay Scale', inp(editingData.newPayBand3, v => updateEditingData('newPayBand3', v)))}
           </div>
@@ -246,7 +246,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               </h3>
               {isExpanded ? <ChevronUp size={18} color="#64748b" /> : <ChevronDown size={18} color="#64748b" />}
             </div>
-            <button 
+            <button
               type="button"
               onClick={startEdit}
               style={{
