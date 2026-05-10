@@ -124,7 +124,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             padding: '8px 16px',
             fontSize: '14px',
             cursor: 'pointer',
-            backgroundColor: '#4f46e5',
+            backgroundColor: '#111827',
             color: 'white',
             border: 'none',
             borderRadius: '6px',
@@ -144,7 +144,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
                 <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <GraduationCap size={20} color="#4f46e5" /> Edit Qualification
+                  <GraduationCap size={20} color="#111827" /> Edit Qualification
                 </h3>
                 <div>
                   <button
@@ -171,7 +171,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                       padding: '6px 16px',
                       fontSize: '14px',
                       cursor: 'pointer',
-                      backgroundColor: '#4f46e5',
+                      backgroundColor: '#111827',
                       color: 'white',
                       border: 'none',
                       borderRadius: '6px',
