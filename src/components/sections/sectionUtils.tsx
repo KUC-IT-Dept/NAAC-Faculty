@@ -1,5 +1,5 @@
 import { ReactNode, useState, useRef } from 'react';
-import { Upload, X, FileText } from 'lucide-react';
+import { Upload, X, FileText, ExternalLink, RefreshCw } from 'lucide-react';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -75,13 +75,19 @@ export const DropdownWithCustom = ({ v, fn, opts, ph = 'Select or type custom...
 };
 
 /** File Upload Component */
-export const FileInp = ({ v, fn, label = 'Upload Document' }: { v: string, fn: (s: string) => void, label?: string }) => {
+export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image/*" }: { v: string, fn: (s: string) => void, label?: string, accept?: string }) => {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Check file size (e.g., 2MB limit)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File size exceeds 2MB limit.');
+      return;
+    }
 
     const fd = new FormData();
     fd.append('file', file);
@@ -90,37 +96,86 @@ export const FileInp = ({ v, fn, label = 'Upload Document' }: { v: string, fn: (
     try {
       const r = await api.post('/faculty/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       fn(r.data.url);
-      toast.success('File uploaded!');
+      toast.success('File uploaded successfully!');
     } catch {
-      toast.error('Upload failed');
+      toast.error('Upload failed. Please try again.');
     } finally {
       setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
     }
   };
 
   if (v) return (
-    <div className="file-preview-box">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-        <FileText size={16} className="text-primary" />
-        <span className="text-xs truncate" style={{ maxWidth: 150 }}>{v.split('/').pop()}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', backgroundColor: '#f0f9ff', border: '1px dashed #0ea5e9', borderRadius: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+        <div style={{ backgroundColor: '#0ea5e9', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <FileText size={18} color="white" />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: '#0369a1', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            {v.split('/').pop()}
+          </div>
+          <div style={{ fontSize: '11px', color: '#0ea5e9' }}>Ready to view</div>
+        </div>
       </div>
       <div style={{ display: 'flex', gap: 4 }}>
-        <button type="button" className="btn-icon" onClick={() => window.open(`${import.meta.env.VITE_API_URL || ''}${v}`, '_blank')}>
-          <Upload size={12} style={{ transform: 'rotate(180deg)' }} />
+        <button 
+          type="button" 
+          onClick={() => window.open(`${import.meta.env.VITE_API_URL || ''}${v}`, '_blank')}
+          title="View Document"
+          style={{ padding: '6px', backgroundColor: 'white', border: '1px solid #e0f2fe', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
+        >
+          <ExternalLink size={14} />
         </button>
-        <button type="button" className="btn-icon text-danger" onClick={() => fn('')}>
-          <X size={12} />
+        <button 
+          type="button" 
+          onClick={() => fn('')}
+          title="Remove Document"
+          style={{ padding: '6px', backgroundColor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
+        >
+          <X size={14} />
         </button>
       </div>
     </div>
   );
 
   return (
-    <button type="button" className="file-upload-trigger" onClick={() => fileRef.current?.click()} disabled={uploading}>
-      <input type="file" ref={fileRef} hidden onChange={handleUpload} />
-      {uploading ? <div className="spinner" style={{ width: 12, height: 12 }} /> : <Upload size={14} />}
-      <span>{uploading ? 'Uploading...' : label}</span>
-    </button>
+    <div 
+      onClick={() => !uploading && fileRef.current?.click()}
+      style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        gap: '10px', 
+        padding: '12px 20px', 
+        backgroundColor: uploading ? '#f1f5f9' : '#ffffff', 
+        border: '2px dashed #cbd5e1', 
+        borderRadius: '8px', 
+        cursor: uploading ? 'not-allowed' : 'pointer', 
+        transition: 'all 0.2s ease',
+        color: '#64748b',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+      onMouseEnter={(e) => { if (!uploading) e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}
+      onMouseLeave={(e) => { if (!uploading) e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.backgroundColor = uploading ? '#f1f5f9' : '#ffffff'; }}
+    >
+      <input type="file" ref={fileRef} hidden onChange={handleUpload} accept={accept} />
+      
+      {uploading ? (
+        <RefreshCw size={18} className="animate-spin" color="#3b82f6" />
+      ) : (
+        <Upload size={18} color="#94a3b8" />
+      )}
+      
+      <span style={{ fontSize: '14px', fontWeight: 600, color: uploading ? '#3b82f6' : '#475569' }}>
+        {uploading ? 'Uploading...' : label}
+      </span>
+      
+      {uploading && (
+        <div style={{ position: 'absolute', bottom: 0, left: 0, height: '3px', backgroundColor: '#3b82f6', width: '100%', transition: 'width 0.3s ease' }} />
+      )}
+    </div>
   );
 };
 

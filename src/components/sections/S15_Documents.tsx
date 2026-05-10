@@ -1,72 +1,106 @@
-import { FileText, CheckCircle2 } from 'lucide-react';
-import { Note } from './sectionUtils';
+import { FileText, CheckCircle2, Info } from 'lucide-react';
+import { Note, FileInp } from './sectionUtils';
 
-const DOC_LIST = [
-  { key: 'photo',          label: 'Passport-size Photograph',        required: true,  hint: 'Recent, clear. JPEG/PNG/PDF, max 200KB.' },
-  { key: 'signature',      label: 'Signature',                        required: true,  hint: 'Scanned on white background.' },
-  { key: 'aadhar',         label: 'Aadhaar Card',                     required: true,  hint: 'Both sides, self-attested. PDF format.' },
-  { key: 'pan',            label: 'PAN Card',                         required: false, hint: 'PDF format.' },
-  { key: 'ssc',            label: 'SSC / 10th Marksheet',             required: true,  hint: 'PDF format.' },
-  { key: 'hsc',            label: 'HSC / 12th Marksheet',             required: true,  hint: 'PDF format.' },
-  { key: 'ug',             label: 'UG Degree & All Marksheets',        required: true,  hint: 'All semester/year marksheets. PDF format.' },
-  { key: 'pg',             label: 'PG Degree & All Marksheets',        required: false, hint: 'PDF format.' },
-  { key: 'phd',            label: 'Ph.D. Degree Certificate',          required: false, hint: 'Provisional acceptable. PDF format.' },
-  { key: 'mphil',          label: 'M.Phil. Degree Certificate',        required: false, hint: 'PDF format.' },
-  { key: 'net',            label: 'NET / SET / JRF Certificate',       required: false, hint: 'If applicable. PDF format.' },
-  { key: 'gate',           label: 'GATE Score Card',                   required: false, hint: 'If applicable. PDF format.' },
-  { key: 'apptLetter',     label: 'Appointment Letter',                required: true,  hint: 'Current institution. PDF format.' },
-  { key: 'experienceCert', label: 'Experience Certificates (Previous)',required: false, hint: 'All previous employers. PDF format.' },
-  { key: 'casteCert',      label: 'Caste / Category Certificate',      required: false, hint: 'OBC / SC / ST / EWS if applicable. PDF format.' },
-  { key: 'disabilityCert', label: 'Disability Certificate',            required: false, hint: 'If applicable. PDF format.' },
-  { key: 'publications',   label: 'Publications List (PDF)',            required: false, hint: 'With DOI / links. PDF format.' },
-  { key: 'noc',            label: 'No-Objection Certificate (NOC)',     required: false, hint: 'If applicable. PDF format.' },
+const DOC_GROUPS = [
+  {
+    title: 'Identity & Identification',
+    docs: [
+      { key: 'photo',          label: 'Photograph',              required: true,  hint: 'Recent, clear JPEG/PNG.' },
+      { key: 'signature',      label: 'Signature',               required: true,  hint: 'Scanned on white background.' },
+      { key: 'aadhar',         label: 'Aadhaar Card',            required: true,  hint: 'Both sides, self-attested.' },
+      { key: 'pan',            label: 'PAN Card',                required: false, hint: 'PDF format.' },
+    ]
+  },
+  {
+    title: 'Academic Certificates',
+    docs: [
+      { key: 'ssc',            label: '10th Marksheet',          required: true,  hint: 'SSC or equivalent.' },
+      { key: 'hsc',            label: '12th Marksheet',          required: true,  hint: 'HSC or equivalent.' },
+      { key: 'ug',             label: 'UG Degree',               required: true,  hint: 'Degree & all marksheets.' },
+      { key: 'pg',             label: 'PG Degree',               required: false, hint: 'Degree & all marksheets.' },
+      { key: 'phd',            label: 'Ph.D. Certificate',       required: false, hint: 'Provisional acceptable.' },
+      { key: 'mphil',          label: 'M.Phil. Certificate',     required: false, hint: 'If applicable.' },
+      { key: 'net',            label: 'NET / SET / JRF',         required: false, hint: 'Eligibility certificate.' },
+      { key: 'gate',           label: 'GATE Score Card',         required: false, hint: 'If applicable.' },
+    ]
+  },
+  {
+    title: 'Professional & Service Records',
+    docs: [
+      { key: 'apptLetter',     label: 'Appointment Letter',      required: true,  hint: 'Current institution.' },
+      { key: 'experienceCert', label: 'Experience Proofs',       required: false, hint: 'Previous employers.' },
+      { key: 'publications',   label: 'Publications List',       required: false, hint: 'PDF with links/DOI.' },
+      { key: 'noc',            label: 'NOC Certificate',         required: false, hint: 'From current employer.' },
+    ]
+  },
+  {
+    title: 'Other Documents',
+    docs: [
+      { key: 'casteCert',      label: 'Category Certificate',    required: false, hint: 'OBC/SC/ST/EWS.' },
+      { key: 'disabilityCert', label: 'Disability Certificate',  required: false, hint: 'If applicable.' },
+    ]
+  }
 ];
 
 export default function Documents({ data, onChange }: { data: any; onChange: (d: any) => void }) {
   const s = (k: string, v: string) => onChange({ ...data, [k]: v });
+
   return (
-    <div>
+    <div className="section-container">
       <Note>
-        Please upload your documents below. All files should be in <strong>PDF format</strong> (except for your photograph and signature, which can be images). Ensure the file size is optimized before uploading.
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <Info size={20} style={{ marginTop: 2, flexShrink: 0 }} />
+          <div>
+            Please upload all relevant documents. Files must be in <strong>PDF format</strong> (except for your photograph and signature).
+            Ensure documents are clear and self-attested where necessary.
+          </div>
+        </div>
       </Note>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {DOC_LIST.map(doc => (
-          <div key={doc.key} className="list-item-card" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 14, alignItems: 'center', padding: '12px 16px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.855rem', fontWeight: 500 }}>
-                <FileText size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                {doc.label}
-                {doc.required && <span style={{ color: 'var(--danger)', fontSize: '0.7rem', fontWeight: 700 }}>*</span>}
-              </div>
-              {doc.hint && <p className="form-hint" style={{ marginTop: 3 }}>{doc.hint}</p>}
-            </div>
-            
-            <div>
-              <input
-                type="file"
-                accept={doc.key === 'photo' || doc.key === 'signature' ? "image/*,.pdf" : ".pdf"}
-                className="form-input"
-                onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (file) s(doc.key, file.name);
-                }}
-                style={{ fontSize: '0.82rem', padding: '6px' }}
-              />
-              {data[doc.key] && (
-                <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <CheckCircle2 size={13} /> 
-                  <span style={{ fontWeight: 500, color: 'var(--primary-dark)' }}>{data[doc.key]}</span>
+      {DOC_GROUPS.map(group => (
+        <div key={group.title} style={{ marginTop: '32px' }}>
+          <h4 style={{ fontSize: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ height: '1px', flex: 1, backgroundColor: '#e2e8f0' }}></span>
+            {group.title}
+            <span style={{ height: '1px', flex: 1, backgroundColor: '#e2e8f0' }}></span>
+          </h4>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+            {group.docs.map(doc => (
+              <div key={doc.key} className="list-item-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0 }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '14px', fontWeight: 700, color: '#111827' }}>
+                      <FileText size={16} color="#3b82f6" />
+                      {doc.label}
+                      {doc.required && <span style={{ color: '#ef4444' }}>*</span>}
+                    </div>
+                    {data[doc.key] && <CheckCircle2 size={18} color="#10b981" />}
+                  </div>
+                  {doc.hint && <p style={{ margin: '0 0 16px 0', color: '#64748b', fontSize: '11px', lineHeight: '1.4' }}>{doc.hint}</p>}
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
 
-      <p className="form-hint" style={{ marginTop: 14 }}>
-        Fields marked <span style={{ color: 'var(--danger)', fontWeight: 700 }}>*</span> are mandatory for profile verification.
-      </p>
+                <div style={{ marginTop: 'auto' }}>
+                  <FileInp 
+                    v={data[doc.key]} 
+                    fn={v => s(doc.key, v)} 
+                    accept={doc.key === 'photo' || doc.key === 'signature' ? "image/*,.pdf" : ".pdf"}
+                  />
+                  {data[doc.key] && (
+                    <div style={{ marginTop: 8, fontSize: '11px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <CheckCircle2 size={12} /> Uploaded
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div style={{ marginTop: '40px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px', color: '#475569' }}>
+        <strong>Note:</strong> Fields marked with <span style={{ color: '#ef4444' }}>*</span> are mandatory for verification by the administration.
+      </div>
     </div>
   );
 }
