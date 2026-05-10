@@ -177,11 +177,11 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
             ) : (
               renderPreview("Mother's Name", safeData.motherName)
             )}
-            {isEditing ? (
+            {/* {isEditing ? (
               fg("Spouse's Name", inp(data.spouseName, v => s('spouseName', v)))
             ) : (
               renderPreview("Spouse's Name", safeData.spouseName)
-            )}
+            )} */}
           </div>
 
           <div className="form-section">
