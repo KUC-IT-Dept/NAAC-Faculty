@@ -149,10 +149,10 @@ a:hover {
 
 .sidebar {
   width: var(--sidebar-w);
+  flex-shrink: 0;
   background: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
   position: fixed;
   top: 0;
@@ -163,7 +163,7 @@ a:hover {
   box-shadow: var(--shadow-sm);
   transition: width 300ms ease;
   overflow: hidden;
-  padding: 18px 16px 20px;
+  padding: 18px 16px 0px; /* removed bottom padding to let footer handle it */
 }
 
 .sidebar.collapsed {
@@ -292,7 +292,7 @@ a:hover {
   flex-direction: column;
   gap: 8px;
   padding: 0;
-  overflow-y: auto;
+  overflow: hidden; /* Only the inner edit profile list will scroll */
 }
 
 .sidebar.collapsed .sidebar-nav {
@@ -409,8 +409,14 @@ a:hover {
 .sidebar-footer {
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  padding-bottom: 0;
+  padding: 16px 0 20px;
+  background: var(--sidebar-bg);
+  border-top: 1px solid #E5E7EB;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .sidebar-bottom-card {
