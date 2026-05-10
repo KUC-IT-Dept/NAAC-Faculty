@@ -18,12 +18,11 @@
   --primary-dark: #1d4ed8;
   /* darker blue for emphasis        */
 
-  --accent: #f8b2485f;
-  /* muted warm gold — CTA only       */
-  --accent-light: #f5b937;
-  /* hover state of accent            */
-  --accent-pale: #fdf6e8;
-  /* soft tint for alert backgrounds  */
+  --accent: #2563eb;
+  /* same as primary for consistency */
+  --accent-light: #3b82f6;
+  --accent-pale: #dbeafe;
+  /* light blue highlights           */
 
   --success: #059669;
   /* green for success states        */
@@ -1455,206 +1454,14 @@ tbody tr:last-child td {
   color: #1e3a6e;
 }
 
-/* ── Personal Info Layout ───────────────────────────────────── */
-.personal-info-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.info-box {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-  padding: 24px;
-}
-
-.profile-box {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-  color: #fff;
-  border: none;
-}
-
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.profile-info {
-  flex: 1;
-}
-
-.profile-name {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #fff;
-}
-
-.profile-headline {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-@media (max-width: 768px) {
-  .info-grid {
-    grid-template-columns: 1fr;
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
   }
-}
 
-.biography-box h3,
-.subjects-interests-box h3,
-.personal-details-box h3 {
-  font-size: 1.1rem;
-  margin-bottom: 16px;
-  color: var(--primary-dark);
-  border-bottom: 2px solid #000000;
-  padding-bottom: 8px;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-}
-
-.subjects-interests-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.subject-section h4,
-.interest-section h4 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.biography-content,
-.subjects-content,
-.interests-content {
-  line-height: 1.6;
-  color: var(--text);
-  white-space: pre-wrap;
-}
-
-.personal-details-box {
-  max-height: 600px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.scrollable-content {
-  overflow-y: auto;
-  flex: 1;
-  padding-right: 8px;
-}
-
-.scrollable-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollable-content::-webkit-scrollbar-track {
-  background: var(--bg);
-  border-radius: 3px;
-}
-
-.scrollable-content::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 3px;
-}
-
-.scrollable-content::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
-.form-section {
-  margin-bottom: 24px;
-}
-
-.form-section h4 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
-}
-
-.address-section {
-  margin-bottom: 20px;
-}
-
-.address-section h5 {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-/* Profile Picture Upload Styles */
-.profile-picture-display,
-.profile-picture-upload {
-  flex-shrink: 0;
-}
-
-.profile-picture-container {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.profile-picture-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.profile-picture-placeholder {
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.profile-picture-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-  font-size: 0.75rem;
-  font-weight: 600;
-  gap: 4px;
-}
-
-.profile-picture-container:hover .profile-picture-overlay {
-  opacity: 1;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
