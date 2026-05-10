@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fg, inp, ta, dateInp } from './sectionUtils';
+import { fg, inp, ta } from './sectionUtils';
 import ProfilePictureUpload from '../ProfilePictureUpload';
 
 export default function PersonalInfo({ data, onChange }: { data: any; onChange: (d: any) => void }) {
@@ -7,8 +7,32 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
   const safeData = data || {};
   const s = (k: string, v: string) => onChange({ ...safeData, [k]: v });
 
+  // Calculate age from date of birth
+  const calculateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return '';
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    
+    // Check if date is valid
+    if (isNaN(dob.getTime())) return '';
+    
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    
+    // Ensure age is not negative
+    return Math.max(0, age).toString();
+  };
+
+  
   // Single edit state for entire form
   const [isEditing, setIsEditing] = useState(false);
+
+  // Debug: Log current data on every render
+  console.log('Current safeData:', safeData);
+  console.log('Date of birth value:', safeData.dateOfBirth);
 
   // Auto-return to preview mode after save
   useEffect(() => {
@@ -166,35 +190,29 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
         <h3>Personal Details</h3>
         <div className="scrollable-content">
           <div className="form-section">
-            <h4>Family Information</h4>
-            {isEditing ? (
-              fg("Father's Name", inp(data.fatherName, v => s('fatherName', v)))
-            ) : (
-              renderPreview("Father's Name", safeData.fatherName)
-            )}
-            {isEditing ? (
-              fg("Mother's Name", inp(data.motherName, v => s('motherName', v)))
-            ) : (
-              renderPreview("Mother's Name", safeData.motherName)
-            )}
-            {/* {isEditing ? (
-              fg("Spouse's Name", inp(data.spouseName, v => s('spouseName', v)))
-            ) : (
-              renderPreview("Spouse's Name", safeData.spouseName)
-            )} */}
-          </div>
-
-          <div className="form-section">
             <h4>Personal Information</h4>
             {isEditing ? (
-              fg('Date of Birth', dateInp(data.dateOfBirth, v => s('dateOfBirth', v)))
+              fg('Date of Birth', (
+                <input 
+                  className="form-input" 
+                  type="date" 
+                  value={safeData.dateOfBirth || ''} 
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    s('dateOfBirth', value);
+                    const calculatedAge = calculateAge(value);
+                    s('age', calculatedAge);
+                  }}
+                  key="dateOfBirth"
+                />
+              ))
             ) : (
-              renderPreview('Date of Birth', safeData.dateOfBirth)
+              renderPreview('Date of Birth', safeData.dateOfBirth || '')
             )}
             {isEditing ? (
-              fg('Age', inp(data.age, v => s('age', v)))
+              fg('Age', inp(calculateAge(safeData.dateOfBirth) || safeData.age, v => s('age', v), 'Calculated from DOB'))
             ) : (
-              renderPreview('Age', safeData.age)
+              renderPreview('Age', calculateAge(safeData.dateOfBirth) || safeData.age)
             )}
             {isEditing ? (
               fg('Place of Birth', inp(data.placeOfBirth, v => s('placeOfBirth', v)))
@@ -232,9 +250,49 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               renderPreview('Religion', safeData.religion)
             )}
             {isEditing ? (
+              fg('Category', <SimpleSelect value={data.category} onChange={v => s('category', v)} options={['General', 'OBC', 'SC', 'ST', 'EWS']} />)
+            ) : (
+              renderPreview('Category', safeData.category)
+            )}
+            {isEditing ? (
+              fg('Sub Category', inp(data.subCategory, v => s('subCategory', v), 'Specify sub-category if any'))
+            ) : (
+              renderPreview('Sub Category', safeData.subCategory)
+            )}
+            {isEditing ? (
               fg('Community', inp(data.community, v => s('community', v)))
             ) : (
               renderPreview('Community', safeData.community)
+            )}
+          </div>
+
+          <div className="form-section">
+            <h4>Family Information</h4>
+            {isEditing ? (
+              fg("Father's Name", inp(data.fatherName, v => s('fatherName', v)))
+            ) : (
+              renderPreview("Father's Name", safeData.fatherName)
+            )}
+            {isEditing ? (
+              fg("Mother's Name", inp(data.motherName, v => s('motherName', v)))
+            ) : (
+              renderPreview("Mother's Name", safeData.motherName)
+            )}
+            
+            {/* Show spouse fields only if marital status is married, widowed, or divorced */}
+            {(safeData.maritalStatus === 'Married' || safeData.maritalStatus === 'Widowed' || safeData.maritalStatus === 'Divorced') && (
+              <>
+                {isEditing ? (
+                  fg("Spouse's Name", inp(data.spouseName, v => s('spouseName', v), 'Spouse full name'))
+                ) : (
+                  renderPreview("Spouse's Name", safeData.spouseName)
+                )}
+                {isEditing ? (
+                  fg("Spouse's Occupation", inp(data.spouseOccupation, v => s('spouseOccupation', v), 'Spouse occupation'))
+                ) : (
+                  renderPreview("Spouse's Occupation", safeData.spouseOccupation)
+                )}
+              </>
             )}
           </div>
 
@@ -287,9 +345,33 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               renderPreview('Mobile Number', safeData.mobileNumber)
             )}
             {isEditing ? (
-              fg('Email ID', inp(data.emailId, v => s('emailId', v), 'you@example.com'))
+              fg('Alternate Mobile Number', inp(data.alternateMobileNumber, v => s('alternateMobileNumber', v), '+91 XXXXX XXXXX'))
             ) : (
-              renderPreview('Email ID', safeData.emailId)
+              renderPreview('Alternate Mobile Number', safeData.alternateMobileNumber)
+            )}
+            {isEditing ? (
+              fg('Official Email ID', inp(data.officialEmailId, v => s('officialEmailId', v), 'official@institution.com'))
+            ) : (
+              renderPreview('Official Email ID', safeData.officialEmailId)
+            )}
+            {isEditing ? (
+              fg('Personal Email ID', inp(data.personalEmailId, v => s('personalEmailId', v), 'personal@gmail.com'))
+            ) : (
+              renderPreview('Personal Email ID', safeData.personalEmailId)
+            )}
+          </div>
+
+          <div className="form-section">
+            <h4>Emergency Contact</h4>
+            {isEditing ? (
+              fg('Emergency Contact Name', inp(data.emergencyContactName, v => s('emergencyContactName', v), 'Full Name'))
+            ) : (
+              renderPreview('Emergency Contact Name', safeData.emergencyContactName)
+            )}
+            {isEditing ? (
+              fg('Emergency Contact Number', inp(data.emergencyContactNumber, v => s('emergencyContactNumber', v), '+91 XXXXX XXXXX'))
+            ) : (
+              renderPreview('Emergency Contact Number', safeData.emergencyContactNumber)
             )}
           </div>
 
@@ -304,6 +386,11 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               fg('PAN Number', inp(data.panNumber, v => s('panNumber', v), 'AAAAA0000A'))
             ) : (
               renderPreview('PAN Number', safeData.panNumber)
+            )}
+            {isEditing ? (
+              fg('Passport Number (if any)', inp(data.passportNumber, v => s('passportNumber', v), 'A1234567'))
+            ) : (
+              renderPreview('Passport Number', safeData.passportNumber)
             )}
           </div>
         </div>
