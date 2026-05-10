@@ -1,5 +1,5 @@
 import { ReactNode, useState, useRef } from 'react';
-import { Upload, X, FileText, Plus } from 'lucide-react';
+import { Upload, X, FileText } from 'lucide-react';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 

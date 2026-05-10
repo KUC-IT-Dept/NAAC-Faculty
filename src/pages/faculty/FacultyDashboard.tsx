@@ -4,7 +4,7 @@ import AppLayout from '../../components/AppLayout';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
-import { Edit3, Eye, Share2, BookOpen, Award, Briefcase, GraduationCap, FlaskConical, CheckCircle2, AlertCircle, Settings, User, FileText, Globe, ClipboardCheck } from 'lucide-react';
+import { Edit3, Eye, Share2, BookOpen, Award, Briefcase, GraduationCap, FlaskConical, CheckCircle2, AlertCircle, Settings, Globe, ClipboardCheck } from 'lucide-react';
 
 export default function FacultyDashboard() {
   const { user } = useAuth();

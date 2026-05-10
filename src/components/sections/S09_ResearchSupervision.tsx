@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, Trash2, ExternalLink } from 'lucide-react';
-import { fg, inp, sel, ta, FileInp, yearSel, pv } from './sectionUtils';
+import { Plus, Trash2 } from 'lucide-react';
+import { fg, inp, sel, ta, yearSel, pv } from './sectionUtils';
 
 const EMPTY_SCHOLAR = { scholarName: '', gender: '', degree: '', topic: '', enrollmentYear: '', expectedCompletion: '', status: '', university: '', documentUrl: '' };
 const EMPTY_PATENT = { title: '', patentNumber: '', dateOfFiling: '', status: '', description: '', documentUrl: '' };

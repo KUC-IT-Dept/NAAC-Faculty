@@ -287,7 +287,7 @@ export function AdminProfileSection() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-        {currentSection.configs.map((config, idx) => (
+        {currentSection.configs.map((config) => (
           <DropdownConfigList key={`${currentSection.id}-${config.name}`} config={config} />
         ))}
         
