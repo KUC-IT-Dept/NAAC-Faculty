@@ -291,8 +291,18 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0;
-  overflow: hidden; /* Only the inner edit profile list will scroll */
+  padding: 0 4px 0 0;
+  overflow-y: auto;
+  max-height: calc(100vh - 220px);
+  scroll-behavior: smooth;
+
+  /* Hide scrollbar while preserving scroll behavior */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar.collapsed .sidebar-nav {
@@ -302,6 +312,16 @@ a:hover {
   align-items: center;
   gap: 8px;
   padding: 0;
+}
+
+.sidebar-subitems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar.collapsed .sidebar-subitems {
+  display: none;
 }
 
 .nav-item {
@@ -324,6 +344,14 @@ a:hover {
 
 .nav-item:hover {
   background: #F3F6FC;
+}
+
+.nav-subitem {
+  padding-left: 64px;
+}
+
+.sidebar.collapsed .nav-subitem {
+  display: none;
 }
 
 .nav-item-button {

@@ -36,14 +36,18 @@ function AppRoutes() {
       {/* Admin */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/edit-profile" element={<ProtectedRoute role="admin"><EditProfileLayout /></ProtectedRoute>}>
-        <Route index element={<Navigate to="/admin/edit-profile/personal-information" replace />} />
+        <Route index element={
+          <div style={{ padding: '48px 24px', color: '#64748B', fontSize: '0.95rem', lineHeight: 1.7 }}>
+            Select one of the profile sections from the sidebar to begin editing.
+          </div>
+        } />
         <Route path=":sectionId" element={<AdminProfileSection />} />
       </Route>
 
       {/* Faculty */}
       <Route path="/faculty/setup" element={<ProtectedRoute role="faculty"><ProfileSetup /></ProtectedRoute>} />
       <Route path="/faculty/dashboard" element={<ProtectedRoute role="faculty"><FacultyDashboard /></ProtectedRoute>} />
-      <Route path="/faculty/profile/edit" element={<Navigate to="/faculty/profile/edit/personal-information" replace />} />
+      <Route path="/faculty/profile/edit" element={<ProtectedRoute role="faculty"><ProfileEdit /></ProtectedRoute>} />
       <Route path="/faculty/profile/edit/:sectionId" element={<ProtectedRoute role="faculty"><ProfileEdit /></ProtectedRoute>} />
 
       {/* Public — no auth */}

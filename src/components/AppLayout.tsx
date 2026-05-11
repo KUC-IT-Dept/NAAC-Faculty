@@ -1,7 +1,7 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, ChevronDown, UserPen, Globe } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe } from 'lucide-react';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
@@ -41,15 +41,26 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
 
   const navItems = user?.role === 'admin' ? adminNav : facultyNav;
+  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : 'Faculty User');
+  const displayRole = user?.role === 'admin' ? 'Administrator' : 'Faculty User';
+  const initials = displayName.slice(0, 2).toUpperCase();
+  const editProfileBase = user?.role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   const isActive = (item: NavItem) => item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
   const handleLogout = () => { logout(); navigate('/login'); };
-  const initials = (user?.username || 'U').slice(0, 2).toUpperCase();
 
   const visibilityPath = user?.role === 'admin' ? '/admin/edit-profile/visibility' : '/faculty/profile/edit/visibility';
   const isVisibilityActive = location.pathname.includes('/visibility');
+
+  useEffect(() => {
+    if (location.pathname.startsWith(editProfileBase)) {
+      setEditProfileOpen(true);
+    } else {
+      setEditProfileOpen(false);
+    }
+  }, [location.pathname, editProfileBase]);
 
   return (
     <div className="app-layout">
@@ -67,108 +78,38 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         </div>
 
         <nav className="sidebar-nav">
-          laksdfj
           {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : 'My Account'}</div>}
           {navItems.map(item => {
             if (item.label === 'Edit Profile') {
               return (
-                <div key="edit-profile-group" style={{
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  flex: profileDropdownOpen && !collapsed ? 1 : 'none',
-                  minHeight: 0
-                }}>
+                <div key={item.path} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <button
-                    className={`nav-item ${isActive(item) || profileDropdownOpen ? 'active' : ''}`}
+                    className={`nav-item ${isActive(item) ? 'active' : ''}`}
                     onClick={() => {
                       if (collapsed) setCollapsed(false);
-                      setProfileDropdownOpen(!profileDropdownOpen);
+                      setEditProfileOpen(prev => !prev);
                     }}
-                    style={{ justifyContent: 'space-between', paddingRight: '14px', background: profileDropdownOpen ? '#EEF2FF' : '', color: profileDropdownOpen ? '#2563EB' : '', flexShrink: 0 }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <span className="nav-item-button" style={{ background: profileDropdownOpen ? 'transparent' : '', color: profileDropdownOpen ? '#2563EB' : '' }}>
-                        {item.icon}
-                      </span>
-                      {!collapsed && <span className="nav-item-label">{item.label}</span>}
-                    </div>
-                    {!collapsed && (
-                      <ChevronDown
-                        size={18}
-                        style={{
-                          transform: profileDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 300ms ease',
-                          color: profileDropdownOpen ? '#2563EB' : '#64748B'
-                        }}
-                      />
-                    )}
+                    <span className="nav-item-button">{item.icon}</span>
+                    {!collapsed && <span className="nav-item-label">{item.label}</span>}
                   </button>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      flex: profileDropdownOpen && !collapsed ? 1 : 'none',
-                      minHeight: 0,
-                      height: profileDropdownOpen && !collapsed ? 'auto' : '0px',
-                      overflow: 'hidden',
-                      transition: 'opacity 200ms ease',
-                      opacity: profileDropdownOpen && !collapsed ? 1 : 0,
-                    }}
-                  >
-                    <div className="dropdown-scroll" style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      flex: 1,
-                      overflowY: 'auto',
-                      marginLeft: '12px',
-                      marginTop: '8px',
-                      paddingLeft: '12px',
-                      borderLeft: '1px solid #E5E7EB',
-                      paddingBottom: '8px',
-                    }}>
+                  {editProfileOpen && (
+                    <div className="sidebar-subitems">
                       {profileDropdownItems(user?.role).map((subItem) => {
-                        const isSubActive = location.pathname.includes(subItem.path) || (location.search && subItem.path.includes(location.search));
+                        const isSubActive = location.pathname === subItem.path;
                         return (
                           <button
                             key={subItem.id}
+                            className={`nav-item nav-subitem ${isSubActive ? 'active' : ''}`}
                             onClick={() => navigate(subItem.path)}
-                            style={{
-                              height: '42px',
-                              minHeight: '42px',
-                              borderRadius: '12px',
-                              paddingLeft: '14px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              background: isSubActive ? '#EEF2FF' : 'transparent',
-                              color: isSubActive ? '#2563EB' : '#64748B',
-                              borderLeft: isSubActive ? '3px solid #2563EB' : '3px solid transparent',
-                              fontSize: '0.85rem',
-                              fontWeight: 500,
-                              cursor: 'pointer',
-                              border: 'none',
-                              borderBottom: 'none',
-                              borderRight: 'none',
-                              borderTop: 'none',
-                              textAlign: 'left',
-                              width: '100%',
-                              transition: 'all 200ms ease',
-                              whiteSpace: 'nowrap'
-                            }}
-                            onMouseOver={(e) => {
-                              if (!isSubActive) e.currentTarget.style.background = '#F8FAFC';
-                            }}
-                            onMouseOut={(e) => {
-                              if (!isSubActive) e.currentTarget.style.background = 'transparent';
-                            }}
                           >
-                            {subItem.label}
+                            {!collapsed && <span className="nav-item-label">{subItem.label}</span>}
                           </button>
                         );
                       })}
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             }
@@ -187,23 +128,27 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
             {!collapsed && <div className="sidebar-section-label" style={{ padding: '0 0 8px' }}>Public</div>}
 
-            <button
-              className="nav-item"
-              onClick={() => navigate(visibilityPath)}
-              style={isVisibilityActive ? { borderLeft: '3px solid #2563EB', borderRadius: '12px', background: '#EEF2FF', color: '#2563EB' } : { borderRadius: '12px', borderLeft: '3px solid transparent' }}
-            >
-              <span className="nav-item-button" style={isVisibilityActive ? { background: 'transparent', color: '#2563EB' } : {}}><Eye size={18} /></span>
-              {!collapsed && <span className="nav-item-label" style={isVisibilityActive ? { fontWeight: 500 } : {}}>Visibility</span>}
-            </button>
+            {user?.role !== 'admin' && (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+              <button
+                className="nav-item"
+                onClick={() => navigate(visibilityPath)}
+                style={isVisibilityActive ? { borderLeft: '3px solid #2563EB', borderRadius: '12px', background: '#EEF2FF', color: '#2563EB' } : { borderRadius: '12px', borderLeft: '3px solid transparent' }}
+              >
+                <span className="nav-item-button" style={isVisibilityActive ? { background: 'transparent', color: '#2563EB' } : {}}><Eye size={18} /></span>
+                {!collapsed && <span className="nav-item-label" style={isVisibilityActive ? { fontWeight: 500 } : {}}>Visibility</span>}
+              </button>
 
-            <button
-              className="nav-item"
-              onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
-              style={{ borderRadius: '12px' }}
-            >
-              <span className="nav-item-button"><Globe size={18} /></span>
-              {!collapsed && <span className="nav-item-label">View Public Profile</span>}
-            </button>
+              <button
+                className="nav-item"
+                onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
+                style={{ borderRadius: '12px' }}
+              >
+                <span className="nav-item-button"><Globe size={18} /></span>
+                {!collapsed && <span className="nav-item-label">View Public Profile</span>}
+              </button>
+            </div>
+          )}
           </div>
 
           <div className="sidebar-bottom-card">
@@ -211,8 +156,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
               <div className="sidebar-user-avatar">{initials}</div>
               {!collapsed && (
                 <div className="sidebar-user-info">
-                  <div className="sidebar-user-name">{user?.username}</div>
-                  <div className="sidebar-user-role">{user?.role}</div>
+                  <div className="sidebar-user-name">{displayName}</div>
+                  <div className="sidebar-user-role">{displayRole}</div>
                 </div>
               )}
             </div>

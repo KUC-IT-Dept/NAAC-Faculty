@@ -307,7 +307,13 @@ export function AdminProfileSection() {
   const { sectionId } = useParams();
   const currentSection = sectionsData.find(s => s.id === sectionId);
 
-  if (!currentSection) return <Navigate to="/admin/edit-profile/personal-information" replace />;
+  if (!currentSection) {
+    return (
+      <div style={{ padding: '48px 24px', color: '#64748B', fontSize: '0.95rem', lineHeight: 1.7 }}>
+        Select one of the profile sections from the sidebar to begin editing.
+      </div>
+    );
+  }
 
   return (
     <>
