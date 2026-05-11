@@ -1,6 +1,7 @@
 import { fg, inp, dateInp } from './sectionUtils';
 import { useState } from 'react';
 import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, payScaleOptions } from '../../shared/dropdownOptions';
 
 const EMPTY = {
   employeeId: '',
@@ -195,7 +196,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               {fg('Designation *', <CustomSelect
                 value={editingData.designation}
                 onChange={(v: string) => updateEditingData('designation', v)}
-                options={['Assistant Professor', 'Associate Professor', 'Professor']}
+                options={designationOptions}
               />)}
             </div>
             <div className="form-row form-row-1">
@@ -206,15 +207,23 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               />)}
             </div>
             <div className="form-row form-row-2">
-              {fg('Department', inp(editingData.department, v => updateEditingData('department', v)))}
+              {fg('Department', <CustomSelect
+                value={editingData.department}
+                onChange={(v: string) => updateEditingData('department', v)}
+                options={departmentOptions}
+              />)}
               {fg('College / Institution Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
             </div>
             <div className="form-row form-row-2">
-              {fg('University Affiliated to', inp(editingData.affiliatedUniversity, v => updateEditingData('affiliatedUniversity', v)))}
+              {fg('University Affiliated to', <CustomSelect
+                value={editingData.affiliatedUniversity}
+                onChange={(v: string) => updateEditingData('affiliatedUniversity', v)}
+                options={affiliatedUniversityOptions}
+              />)}
               {fg('Type of Institution', <CustomSelect
                 value={editingData.typeOfInstitution}
                 onChange={(v: string) => updateEditingData('typeOfInstitution', v)}
-                options={['Government', 'Aided', 'Private', 'Deemed', 'Central University']}
+                options={institutionTypeOptions}
               />)}
             </div>
 
@@ -222,13 +231,17 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               {fg('Nature of Appointment', <CustomSelect
                 value={editingData.natureOfAppointment}
                 onChange={(v: string) => updateEditingData('natureOfAppointment', v)}
-                options={['Regular', 'Contract', 'Guest', 'Adjunct', 'Visiting', 'Assistant Professor', 'Associate Professor', 'Professor', 'Senior Professor']}
+                options={natureOfAppointmentOptions}
               />)}
               {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v)))}
               {fg('Date of Confirmation / Regularization', dateInp(editingData.dateOfConfirmation, v => updateEditingData('dateOfConfirmation', v)))}
             </div>
             <div className="form-row form-row-1">
-              {fg('Pay Band / Pay Scale / CTC', inp(editingData.payBand, v => updateEditingData('payBand', v)))}
+              {fg('Pay Band / Pay Scale / CTC', <CustomSelect
+                value={editingData.payBand}
+                onChange={(v: string) => updateEditingData('payBand', v)}
+                options={payScaleOptions}
+              />)}
             </div>
 
             <div className="form-row form-row-3">
@@ -243,9 +256,13 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                 {fg('Nature of Appointment', <CustomSelect
                   value={editingData.natureOfAppointment1}
                   onChange={(v: string) => updateEditingData('natureOfAppointment1', v)}
-                  options={['Regular', 'Contract', 'Guest', 'Adjunct', 'Visiting', 'Assistant Professor', 'Associate Professor', 'Professor', 'Senior Professor']}
+                  options={natureOfAppointmentOptions}
                 />)}
-                {fg('New Pay Band / Pay Scale', inp(editingData.newPayBand1, v => updateEditingData('newPayBand1', v)))}
+                {fg('New Pay Band / Pay Scale', <CustomSelect
+                  value={editingData.newPayBand1}
+                  onChange={(v: string) => updateEditingData('newPayBand1', v)}
+                  options={payScaleOptions}
+                />)}
               </div>
             )}
 
@@ -255,9 +272,13 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                 {fg('Nature of Appointment', <CustomSelect
                   value={editingData.natureOfAppointment2}
                   onChange={(v: string) => updateEditingData('natureOfAppointment2', v)}
-                  options={['Regular', 'Contract', 'Guest', 'Adjunct', 'Visiting', 'Assistant Professor', 'Associate Professor', 'Professor', 'Senior Professor']}
+                  options={natureOfAppointmentOptions}
                 />)}
-                {fg('New Pay Band / Pay Scale', inp(editingData.newPayBand2, v => updateEditingData('newPayBand2', v)))}
+                {fg('New Pay Band / Pay Scale', <CustomSelect
+                  value={editingData.newPayBand2}
+                  onChange={(v: string) => updateEditingData('newPayBand2', v)}
+                  options={payScaleOptions}
+                />)}
               </div>
             )}
 
@@ -267,9 +288,13 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                 {fg('Nature of Appointment', <CustomSelect
                   value={editingData.natureOfAppointment3}
                   onChange={(v: string) => updateEditingData('natureOfAppointment3', v)}
-                  options={['Regular', 'Contract', 'Guest', 'Adjunct', 'Visiting', 'Assistant Professor', 'Associate Professor', 'Professor', 'Senior Professor']}
+                  options={natureOfAppointmentOptions}
                 />)}
-                {fg('New Pay Band / Pay Scale', inp(editingData.newPayBand3, v => updateEditingData('newPayBand3', v)))}
+                {fg('New Pay Band / Pay Scale', <CustomSelect
+                  value={editingData.newPayBand3}
+                  onChange={(v: string) => updateEditingData('newPayBand3', v)}
+                  options={payScaleOptions}
+                />)}
               </div>
             )}
           </>

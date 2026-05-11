@@ -1,6 +1,7 @@
 import { Plus, Trash2, Edit2, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { fg, inp } from './sectionUtils';
+import { examNameOptions, subjectPaperOptions, stateForSetOptions, fellowshipAgencyOptions } from '../../shared/dropdownOptions';
 
 const EMPTY = {
   examName: '',
@@ -180,7 +181,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
               {fg('Eligibility Test *', <CustomSelect
                 value={editingData.examName}
                 onChange={(v: string) => updateEditingData('examName', v)}
-                options={['NET', 'SET / SLET', 'GATE', 'JRF', 'Any other competitive exam qualified']}
+                options={examNameOptions}
               />)}
               {fg('Year', inp(editingData.year, v => updateEditingData('year', v), 'e.g., 2022'))}
             </div>
@@ -222,33 +223,11 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                 <div className="form-row form-row-1">
                   {fg('DD', inp(editingData.dd, v => updateEditingData('dd', v), 'e.g., 01/01/2022'))}
                 </div>
-                <div className="form-row form-row-3">
-                  {fg('UGC', <CustomSelect
-                    value={editingData.fellowshipAgency === 'UGC' ? 'UGC' : ''}
-                    onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'UGC' ? 'UGC' : '')}
-                    options={['UGC']}
-                  />)}
-                  {fg('CSIR', <CustomSelect
-                    value={editingData.fellowshipAgency === 'CSIR' ? 'CSIR' : ''}
-                    onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'CSIR' ? 'CSIR' : '')}
-                    options={['CSIR']}
-                  />)}
-                  {fg('University', <CustomSelect
-                    value={editingData.fellowshipAgency === 'University' ? 'University' : ''}
-                    onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'University' ? 'University' : '')}
-                    options={['University']}
-                  />)}
-                </div>
-                <div className="form-row form-row-2">
-                  {fg('NBHM', <CustomSelect
-                    value={editingData.fellowshipAgency === 'NBHM' ? 'NBHM' : ''}
-                    onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'NBHM' ? 'NBHM' : '')}
-                    options={['NBHM']}
-                  />)}
-                  {fg('DAE', <CustomSelect
-                    value={editingData.fellowshipAgency === 'DAE' ? 'DAE' : ''}
-                    onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'DAE' ? 'DAE' : '')}
-                    options={['DAE']}
+                <div className="form-row form-row-1">
+                  {fg('Fellowship Agency', <CustomSelect
+                    value={editingData.fellowshipAgency}
+                    onChange={(v: string) => updateEditingData('fellowshipAgency', v)}
+                    options={fellowshipAgencyOptions}
                   />)}
                 </div>
               </>
@@ -312,7 +291,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                 {fg('Eligibility Test *', <CustomSelect
                   value={editingData.examName}
                   onChange={(v: string) => updateEditingData('examName', v)}
-                  options={['NET', 'SET / SLET', 'GATE', 'JRF', 'Any other competitive exam qualified']}
+                  options={examNameOptions}
                 />)}
                 {fg('Year', inp(editingData.year, v => updateEditingData('year', v), 'e.g., 2022'))}
               </div>
@@ -354,33 +333,11 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                   <div className="form-row form-row-1">
                     {fg('DD', inp(editingData.dd, v => updateEditingData('dd', v), 'e.g., 01/01/2022'))}
                   </div>
-                  <div className="form-row form-row-3">
-                    {fg('UGC', <CustomSelect
-                      value={editingData.fellowshipAgency === 'UGC' ? 'UGC' : ''}
-                      onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'UGC' ? 'UGC' : '')}
-                      options={['UGC']}
-                    />)}
-                    {fg('CSIR', <CustomSelect
-                      value={editingData.fellowshipAgency === 'CSIR' ? 'CSIR' : ''}
-                      onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'CSIR' ? 'CSIR' : '')}
-                      options={['CSIR']}
-                    />)}
-                    {fg('University', <CustomSelect
-                      value={editingData.fellowshipAgency === 'University' ? 'University' : ''}
-                      onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'University' ? 'University' : '')}
-                      options={['University']}
-                    />)}
-                  </div>
-                  <div className="form-row form-row-2">
-                    {fg('NBHM', <CustomSelect
-                      value={editingData.fellowshipAgency === 'NBHM' ? 'NBHM' : ''}
-                      onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'NBHM' ? 'NBHM' : '')}
-                      options={['NBHM']}
-                    />)}
-                    {fg('DAE', <CustomSelect
-                      value={editingData.fellowshipAgency === 'DAE' ? 'DAE' : ''}
-                      onChange={(v: string) => updateEditingData('fellowshipAgency', v === 'DAE' ? 'DAE' : '')}
-                      options={['DAE']}
+                  <div className="form-row form-row-1">
+                    {fg('Fellowship Agency', <CustomSelect
+                      value={editingData.fellowshipAgency}
+                      onChange={(v: string) => updateEditingData('fellowshipAgency', v)}
+                      options={fellowshipAgencyOptions}
                     />)}
                   </div>
                 </>

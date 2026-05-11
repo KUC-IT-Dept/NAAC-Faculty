@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { fg, inp, sel, FileInp, DropdownWithCustom } from './sectionUtils';
+import { publicationTypeOptions, publicationLevelOptions, indexedInOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
 
 /* â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 type Publication = {
@@ -38,11 +39,11 @@ const EMPTY: Publication = {
   editors: '', bookType: '', organizedBy: '', publishedInProceedings: ''
 };
 
-const PUB_TYPES = ['Journal Articles', 'Book Chapters', 'Books Authored / Edited', 'Conference Papers'];
-const INDEX_OPTS = ['SCI', 'Scopus', 'UGC-CARE', 'Web of Science', 'Others'];
+const PUB_TYPES = publicationTypeOptions;
+const INDEX_OPTS = indexedInOptions;
 const BOOK_TYPES = ['Authored', 'Edited', 'Co-authored'];
-const LEVELS = ['National', 'International'];
-const YES_NO = ['Yes', 'No'];
+const LEVELS = publicationLevelOptions;
+const YES_NO = peerReviewedStatusOptions;
 
 const currentYear = new Date().getFullYear();
 const YEAR_OPTS: string[] = [];
