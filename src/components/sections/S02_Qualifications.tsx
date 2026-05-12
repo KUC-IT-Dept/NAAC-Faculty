@@ -1,6 +1,7 @@
 import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { fg, inp } from './sectionUtils';
+import { degreeLevelOptions, divisionOptions, studyModeOptions } from '../../shared/dropdownOptions';
 
 const EMPTY = {
   degreeLevel: '',
@@ -189,7 +190,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
               {fg('Degree Level *', <CustomSelect
                 value={editingData.degreeLevel}
                 onChange={(v: string) => updateEditingData('degreeLevel', v)}
-                options={['10th', '12th', 'UG', 'PG', 'M.Phil', 'Ph.D', 'PDF', 'Additional Educational Qualifications']}
+                options={degreeLevelOptions}
               />)}
               {fg('Degree / Qualification Name', inp(editingData.degreeName, v => updateEditingData('degreeName', v), 'e.g., B.Sc / M.Tech'))}
               {fg('Specialization / Subject', inp(editingData.specialization, v => updateEditingData('specialization', v), 'e.g., Computer Science'))}
@@ -204,12 +205,12 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
               {fg('Division', <CustomSelect
                 value={editingData.division}
                 onChange={(v: string) => updateEditingData('division', v)}
-                options={['First', 'Second', 'Third']}
+                options={divisionOptions}
               />)}
               {fg('Mode', <CustomSelect
                 value={editingData.mode}
                 onChange={(v: string) => updateEditingData('mode', v)}
-                options={['Regular', 'Distance']}
+                options={studyModeOptions}
               />)}
             </div>
             <div className="form-row form-row-1">
@@ -267,7 +268,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 {fg('Degree Level *', <CustomSelect
                   value={editingData.degreeLevel}
                   onChange={(v: string) => updateEditingData('degreeLevel', v)}
-                  options={['10th', '12th', 'UG', 'PG', 'M.Phil', 'Ph.D', 'PDF', 'Additional Educational Qualifications']}
+                  options={degreeLevelOptions}
                 />)}
                 {fg('Degree / Qualification Name', inp(editingData.degreeName, v => updateEditingData('degreeName', v), 'e.g., B.Sc / M.Tech'))}
                 {fg('Specialization / Subject', inp(editingData.specialization, v => updateEditingData('specialization', v), 'e.g., Computer Science'))}
@@ -282,12 +283,12 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 {fg('Division', <CustomSelect
                   value={editingData.division}
                   onChange={(v: string) => updateEditingData('division', v)}
-                  options={['First', 'Second', 'Third']}
+                  options={divisionOptions}
                 />)}
                 {fg('Mode', <CustomSelect
                   value={editingData.mode}
                   onChange={(v: string) => updateEditingData('mode', v)}
-                  options={['Regular', 'Distance']}
+                  options={studyModeOptions}
                 />)}
               </div>
               <div className="form-row form-row-1">

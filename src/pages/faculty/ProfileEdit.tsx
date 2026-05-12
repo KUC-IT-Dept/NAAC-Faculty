@@ -83,12 +83,19 @@ export default function ProfileEdit() {
   }, []);
 
   if (!section && !loading) {
-    return <Navigate to="/faculty/profile/edit/personal-information" replace />;
+    return (
+      <AppLayout title="Edit Profile">
+        <div style={{ padding: '48px 24px', color: '#64748B', fontSize: '0.95rem', lineHeight: 1.7 }}>
+          Select one of the profile sections from the sidebar to begin editing.
+        </div>
+      </AppLayout>
+    );
   }
 
-  const tab = section?.key || 'personalInfo';
+  const tab = section?.key;
 
   const save = async () => {
+    if (!tab) return;
     setSaving(true);
     try {
       if (tab === 'visibility') await api.patch('/faculty/me/visibility', profile.visibility);

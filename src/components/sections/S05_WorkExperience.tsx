@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { fg, inp, sel, dateInp } from './sectionUtils';
+import { designationPostOptions, natureOfWorkOptions, employmentTypeOptions } from '../../shared/dropdownOptions';
 
 type UploadedFile = {
   name: string;
@@ -31,9 +32,9 @@ const EMPTY: WorkExp = {
   isEditing: true,
 };
 
-const DEFAULT_DESIGNATIONS = ['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Researcher', 'Industry Professional'];
+const DEFAULT_DESIGNATIONS = designationPostOptions;
 const DEFAULT_DEPARTMENTS = ['Computer Science', 'Information Technology', 'Electronics', 'Electrical', 'Mechanical', 'Civil', 'Mathematics', 'Physics', 'Chemistry', 'Commerce', 'Management', 'English'];
-const DEFAULT_NATURES = ['Teaching', 'Research', 'Industry / Corporate', 'Administrative', 'Contract', 'Permanent'];
+const DEFAULT_NATURES = natureOfWorkOptions;
 const DEFAULT_REASONS = ['Career Growth', 'Higher Studies', 'Relocation', 'Better Opportunity', 'Contract Completed', 'Personal Reasons'];
 
 /* ─── Shared Button Styles ───────────────────────────────────── */
