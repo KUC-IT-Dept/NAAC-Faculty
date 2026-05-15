@@ -125,7 +125,7 @@ export default function AdminDashboard() {
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div className="avatar">
-                        {(f.profile?.personalInfo?.fullName || f.username).slice(0, 2).toUpperCase()}
+                        {((f.profile?.personalInfo?.fullName || f.username || '').slice(0, 2)).toUpperCase()}
                       </div>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{f.profile?.personalInfo?.fullName || '—'}</div>
