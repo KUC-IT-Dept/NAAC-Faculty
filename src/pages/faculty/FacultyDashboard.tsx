@@ -33,11 +33,11 @@ export default function FacultyDashboard() {
 
   return (
     <AppLayout title="Dashboard">
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Profile Header Section */}
-        <div style={{ marginBottom: '32px' }}>
-          <div className="card" style={{ padding: '32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }} className="profile-header">
+        <div style={{ marginBottom: '20px' }}>
+          <div className="card" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }} className="profile-header">
               {/* Avatar */}
               <div className="avatar avatar-xl" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)', border: '4px solid #fff', boxShadow: 'var(--shadow-md)' }}>
                 {pi.photoUrl ? <img src={pi.photoUrl} alt="profile" /> : (pi.fullName || user?.username || 'F').slice(0, 2).toUpperCase()}
@@ -45,27 +45,27 @@ export default function FacultyDashboard() {
 
               {/* Profile Info */}
               <div style={{ flex: 1, minWidth: '200px' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--text)', marginBottom: '4px', lineHeight: '1.2' }}>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--text)', marginBottom: '4px', lineHeight: '1.2' }}>
                   {pi.fullName || user?.username}
                 </h1>
-                <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
                   {pi.designation}{pi.designation && pi.department ? ' · ' : ''}{pi.department}
                 </p>
-                <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
                   {pi.institution}
                 </p>
 
                 {/* Action Buttons */}
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }} className="action-buttons">
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }} className="action-buttons">
                   <button
                     className="btn btn-outline"
                     onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
                     style={{ borderColor: 'var(--border-strong)', color: 'var(--primary)' }}
                   >
-                    <Eye size={16} /> Public Profile
+                    <Eye size={14} /> Public Profile
                   </button>
                   <button className="btn btn-primary" onClick={() => navigate('/faculty/profile/edit')}>
-                    <Edit3 size={16} /> Edit Profile
+                    <Edit3 size={14} /> Edit Profile
                   </button>
                 </div>
               </div>
@@ -73,44 +73,44 @@ export default function FacultyDashboard() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '32px', alignItems: 'start' }} className="faculty-dashboard-grid">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: '20px', alignItems: 'start' }} className="faculty-dashboard-grid">
           {/* Main Content */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Premium Progress UI */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
               {/* 1. Main Profile Completion Card */}
               <div style={{
                 background: 'linear-gradient(135deg, #F8FBFF, #EEF5FF)',
                 border: '1px solid #93C5FD',
-                borderRadius: '24px',
-                padding: '32px',
-                boxShadow: '0 10px 30px rgba(37, 99, 235, 0.12)',
+                borderRadius: '16px',
+                padding: '20px',
+                boxShadow: '0 8px 24px rgba(37, 99, 235, 0.12)',
               }}>
                 {/* Top Section */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     {/* Icon Container */}
                     <div style={{
-                      width: '72px', height: '72px',
+                      width: '56px', height: '56px',
                       background: '#EAF2FF',
                       borderRadius: '50%',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       flexShrink: 0
                     }}>
-                      <ClipboardCheck size={34} color="#2563EB" />
+                      <ClipboardCheck size={28} color="#2563EB" />
                     </div>
 
                     {/* Title & Badge */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                        <h2 style={{ fontSize: '42px', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#0F172A', margin: 0, lineHeight: 1 }}>
                           Profile Completion
                         </h2>
                         <span style={{
                           background: '#DBEAFE', color: '#2563EB',
-                          borderRadius: '999px', padding: '10px 18px',
-                          fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.05em'
+                          borderRadius: '999px', padding: '6px 14px',
+                          fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.05em'
                         }}>
                           MAIN PROFILE
                         </span>
@@ -119,28 +119,28 @@ export default function FacultyDashboard() {
                   </div>
 
                   {/* Percentage */}
-                  <div style={{ fontSize: '72px', fontWeight: 800, color: '#2563EB', lineHeight: 1 }}>
+                  <div style={{ fontSize: '56px', fontWeight: 700, color: '#2563EB', lineHeight: 1 }}>
                     {pct}%
                   </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div style={{ marginBottom: '24px' }}>
-                  <div style={{ width: '100%', height: '16px', background: '#DBEAFE', borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ width: '100%', height: '12px', background: '#DBEAFE', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{
                       width: `${pct}%`, height: '100%',
                       background: 'linear-gradient(90deg, #2563EB, #3B82F6, #60A5FA)',
                       borderRadius: '999px',
-                      boxShadow: '0 0 16px rgba(37, 99, 235, 0.3)',
+                      boxShadow: '0 0 12px rgba(37, 99, 235, 0.3)',
                       transition: 'width 1s ease-out'
                     }} />
                   </div>
                 </div>
 
                 {/* Status Message */}
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: pct >= 30 ? '#ECFDF5' : '#FFFBEB', borderRadius: '999px', padding: '14px 22px' }}>
-                  {pct >= 30 ? <CheckCircle2 size={20} color="#059669" /> : <AlertCircle size={20} color="#F59E0B" />}
-                  <span style={{ color: pct >= 30 ? '#059669' : '#D97706', fontWeight: 600, fontSize: '0.95rem' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: pct >= 30 ? '#ECFDF5' : '#FFFBEB', borderRadius: '999px', padding: '10px 16px' }}>
+                  {pct >= 30 ? <CheckCircle2 size={16} color="#059669" /> : <AlertCircle size={16} color="#F59E0B" />}
+                  <span style={{ color: pct >= 30 ? '#059669' : '#D97706', fontWeight: 500, fontSize: '0.9rem' }}>
                     {pct >= 30 ? 'Profile is publicly visible.' : 'Complete at least 30% to make profile public.'}
                   </span>
                 </div>
@@ -150,20 +150,20 @@ export default function FacultyDashboard() {
               <div style={{
                 background: '#FFFFFF',
                 border: '1px solid #E5E7EB',
-                borderRadius: '24px',
-                padding: '32px'
+                borderRadius: '16px',
+                padding: '20px'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '28px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '24px', fontWeight: 600, color: '#0F172A', margin: 0 }}>
                     Personal Information
                   </h3>
-                  <span style={{ fontSize: '32px', fontWeight: 800, color: '#2563EB', lineHeight: 1 }}>
+                  <span style={{ fontSize: '28px', fontWeight: 700, color: '#2563EB', lineHeight: 1 }}>
                     75%
                   </span>
                 </div>
 
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{ width: '100%', height: '12px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ width: '100%', height: '10px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{
                       width: '75%', height: '100%',
                       background: 'linear-gradient(90deg, #2563EB, #3B82F6)',
@@ -173,9 +173,9 @@ export default function FacultyDashboard() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <AlertCircle size={18} color="#F59E0B" />
-                  <span style={{ color: '#64748B', fontWeight: 500, fontSize: '0.95rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertCircle size={16} color="#F59E0B" />
+                  <span style={{ color: '#64748B', fontWeight: 500, fontSize: '0.9rem' }}>
                     This section is 75% complete.
                   </span>
                 </div>
@@ -185,20 +185,20 @@ export default function FacultyDashboard() {
               <div style={{
                 background: '#FFFFFF',
                 border: '1px solid #E5E7EB',
-                borderRadius: '24px',
-                padding: '32px'
+                borderRadius: '16px',
+                padding: '20px'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '28px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '24px', fontWeight: 600, color: '#0F172A', margin: 0 }}>
                     Documents
                   </h3>
-                  <span style={{ fontSize: '32px', fontWeight: 800, color: '#EA580C', lineHeight: 1 }}>
+                  <span style={{ fontSize: '28px', fontWeight: 700, color: '#EA580C', lineHeight: 1 }}>
                     60%
                   </span>
                 </div>
 
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{ width: '100%', height: '12px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ width: '100%', height: '10px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{
                       width: '60%', height: '100%',
                       background: 'linear-gradient(90deg, #EA580C, #F97316)',
@@ -208,9 +208,9 @@ export default function FacultyDashboard() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <AlertCircle size={18} color="#F59E0B" />
-                  <span style={{ color: '#64748B', fontWeight: 500, fontSize: '0.95rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertCircle size={16} color="#F59E0B" />
+                  <span style={{ color: '#64748B', fontWeight: 500, fontSize: '0.9rem' }}>
                     This section is 60% complete.
                   </span>
                 </div>
@@ -219,25 +219,25 @@ export default function FacultyDashboard() {
 
             {/* Profile Sections Card */}
             <div className="card">
-              <div className="card-header" style={{ paddingBottom: '8px' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
+              <div className="card-header" style={{ paddingBottom: '6px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
                   Profile Sections
                 </h3>
               </div>
-              <div className="card-body" style={{ paddingTop: '8px' }}>
-                <div style={{ display: 'grid', gap: '12px' }}>
+              <div className="card-body" style={{ paddingTop: '6px' }}>
+                <div style={{ display: 'grid', gap: '10px' }}>
                   {sections.map(s => (
-                    <div key={s.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg)', transition: 'all 0.2s ease' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div key={s.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg)', transition: 'all 0.2s ease' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center' }}>
                           {s.icon}
                         </div>
-                        <span style={{ fontSize: '0.95rem', fontWeight: '500', color: 'var(--text)' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text)' }}>
                           {s.label}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className={`badge ${(s.count || 0) > 0 ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '0.75rem', padding: '4px 10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className={`badge ${(s.count || 0) > 0 ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
                           {s.count || 0} entries
                         </span>
 
@@ -250,17 +250,17 @@ export default function FacultyDashboard() {
           </div>
 
           {/* Right Sidebar */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Public Profile URL */}
             <div className="card">
               <div className="card-body">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '12px' }}>
-                  <Share2 size={18} color="var(--primary)" />
-                  <h4 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '10px' }}>
+                  <Share2 size={16} color="var(--primary)" />
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
                     Public Profile URL
                   </h4>
                 </div>
-                <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xs)', padding: '10px 14px', fontSize: '0.85rem', wordBreak: 'break-all', color: 'var(--primary)', fontWeight: 500, border: '1px solid var(--border)', marginBottom: '14px' }}>
+                <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xs)', padding: '8px 12px', fontSize: '0.8rem', wordBreak: 'break-all', color: 'var(--primary)', fontWeight: 500, border: '1px solid var(--border)', marginBottom: '12px' }}>
                   {publicUrl}
                 </div>
                 <button
@@ -276,13 +276,13 @@ export default function FacultyDashboard() {
             {/* Visibility Settings */}
             <div className="card">
               <div className="card-body">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '12px' }}>
-                  <Settings size={18} color="var(--primary)" />
-                  <h4 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '10px' }}>
+                  <Settings size={16} color="var(--primary)" />
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
                     Visibility Settings
                   </h4>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.4' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '14px', lineHeight: '1.4' }}>
                   Control which sections appear on your public profile.
                 </p>
                 <button
@@ -298,25 +298,25 @@ export default function FacultyDashboard() {
             {(pi.orcidId || pi.googleScholarId || pi.scopusId) && (
               <div className="card">
                 <div className="card-body">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '12px' }}>
-                    <Globe size={18} color="var(--primary)" />
-                    <h4 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '10px' }}>
+                    <Globe size={16} color="var(--primary)" />
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
                       Research IDs
                     </h4>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {pi.orcidId && (
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         <strong style={{ color: 'var(--text)' }}>ORCID:</strong> {pi.orcidId}
                       </div>
                     )}
                     {pi.googleScholarId && (
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         <strong style={{ color: 'var(--text)' }}>Google Scholar:</strong> {pi.googleScholarId}
                       </div>
                     )}
                     {pi.scopusId && (
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         <strong style={{ color: 'var(--text)' }}>Scopus:</strong> {pi.scopusId}
                       </div>
                     )}

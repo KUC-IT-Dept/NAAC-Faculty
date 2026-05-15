@@ -125,27 +125,27 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         </nav>
 
         <div className="sidebar-footer">
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
-            {!collapsed && <div className="sidebar-section-label" style={{ padding: '0 0 8px' }}>Public</div>}
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '12px', paddingTop: '4px' }}>
+            {!collapsed && <div className="sidebar-section-label" style={{ padding: '0 0 6px' }}>Public</div>}
 
             {user?.role !== 'admin' && (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '10px' }}>
               <button
                 className="nav-item"
                 onClick={() => navigate(visibilityPath)}
-                style={isVisibilityActive ? { borderLeft: '3px solid #2563EB', borderRadius: '12px', background: '#EEF2FF', color: '#2563EB' } : { borderRadius: '12px', borderLeft: '3px solid transparent' }}
+                style={isVisibilityActive ? { borderLeft: '3px solid #2563EB', borderRadius: '12px', background: '#EEF2FF', color: '#2563EB', height: '40px', padding: '0 10px' } : { borderRadius: '12px', borderLeft: '3px solid transparent', height: '40px', padding: '0 10px' }}
               >
-                <span className="nav-item-button" style={isVisibilityActive ? { background: 'transparent', color: '#2563EB' } : {}}><Eye size={18} /></span>
-                {!collapsed && <span className="nav-item-label" style={isVisibilityActive ? { fontWeight: 500 } : {}}>Visibility</span>}
+                <span className="nav-item-button" style={isVisibilityActive ? { background: 'transparent', color: '#2563EB', width: '34px', height: '34px' } : { width: '34px', height: '34px' }}><Eye size={16} /></span>
+                {!collapsed && <span className="nav-item-label" style={isVisibilityActive ? { fontWeight: 500, fontSize: '0.88rem', lineHeight: 1.2 } : { fontSize: '0.88rem', lineHeight: 1.2 }}>Visibility</span>}
               </button>
 
               <button
                 className="nav-item"
                 onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
-                style={{ borderRadius: '12px' }}
+                style={{ borderRadius: '12px', height: '40px', padding: '0 10px' }}
               >
-                <span className="nav-item-button"><Globe size={18} /></span>
-                {!collapsed && <span className="nav-item-label">View Public Profile</span>}
+                <span className="nav-item-button" style={{ width: '34px', height: '34px' }}><Globe size={16} /></span>
+                {!collapsed && <span className="nav-item-label" style={{ fontSize: '0.88rem', lineHeight: 1.2 }}>View Public Profile</span>}
               </button>
             </div>
           )}
@@ -178,7 +178,11 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             </span>
           </div>
         </header>
-        <main className="page-content animate-fadeIn">{children}</main>
+        <main className="page-content" style={{ overflow: 'hidden', maxHeight: 'calc(100vh - var(--header-h))' }}>
+          <div style={{ height: '100%', overflowY: 'auto', padding: '20px' }}>
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

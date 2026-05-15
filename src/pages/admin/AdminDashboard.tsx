@@ -79,7 +79,7 @@ export default function AdminDashboard() {
   return (
     <AppLayout title="Admin Dashboard">
       {/* Stats */}
-      <div className="stat-grid" style={{ marginBottom: 28 }}>
+      <div className="stat-grid" style={{ marginBottom: 20 }}>
         {statCards.map(s => (
           <div key={s.label} className="stat-card">
             <div className="stat-card-icon" style={{ background: s.bg }}>
@@ -93,13 +93,13 @@ export default function AdminDashboard() {
 
       {/* Faculty Table */}
       <div className="card">
-        <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16 }}>
+        <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
           <div>
-            <h2 style={{ fontSize: '1.1rem' }}>Faculty Accounts</h2>
+            <h2 style={{ fontSize: '1rem' }}>Faculty Accounts</h2>
             <p className="text-muted text-sm">Manage all registered faculty members</p>
           </div>
           <button id="add-faculty-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>
-            <Plus size={16} /> Add Faculty
+            <Plus size={14} /> Add Faculty
           </button>
         </div>
         <div className="table-wrap">
@@ -117,56 +117,57 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32 }}><div className="spinner" /></td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
               ) : faculty.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>No faculty accounts yet. Add one above.</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No faculty accounts yet. Add one above.</td></tr>
               ) : faculty.map(f => (
                 <tr key={f._id}>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div className="avatar">
                         {(f.profile?.personalInfo?.fullName || f.username).slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{f.profile?.personalInfo?.fullName || '—'}</div>
+                        <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{f.profile?.personalInfo?.fullName || '—'}</div>
                         <div className="text-xs text-muted">{f.profile?.personalInfo?.designation || 'Profile Incomplete'}</div>
                       </div>
                     </div>
                   </td>
-                  <td><code style={{ background: 'var(--bg)', padding: '2px 6px', borderRadius: 4 }}>{f.username}</code></td>
-                  <td className="text-sm text-muted">{f.email}</td>
+                  <td><code style={{ background: 'var(--bg)', padding: '2px 6px', borderRadius: 4, fontSize: '0.8rem' }}>{f.username}</code></td>
+                  <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{f.email}</td>
                   <td>
-                    <span className={`badge ${f.profile?.profileComplete ? 'badge-active' : 'badge-pending'}`}>
+                    <span className={`badge ${f.profile?.profileComplete ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
                       {f.profile?.profileComplete ? 'Complete' : f.isFirstLogin ? 'First Login' : 'Incomplete'}
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 100 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 80 }}>
                       <div className="progress-bar-wrap" style={{ flex: 1 }}>
                         <div className="progress-bar" style={{ width: `${f.profile?.completionPercentage || 0}%` }} />
                       </div>
-                      <span className="text-xs text-muted">{f.profile?.completionPercentage || 0}%</span>
+                      <span className="text-xs text-muted" style={{ fontSize: '0.7rem' }}>{f.profile?.completionPercentage || 0}%</span>
                     </div>
                   </td>
                   <td>
-                    <span className={`badge ${f.isActive ? 'badge-active' : 'badge-inactive'}`}>
+                    <span className={`badge ${f.isActive ? 'badge-active' : 'badge-inactive'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
                       {f.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn btn-ghost btn-sm" title="View public profile" onClick={() => window.open(`/profile/${f.username}`, '_blank')}>
-                        <Eye size={14} />
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <button className="btn btn-ghost btn-sm" title="View public profile" onClick={() => window.open(`/profile/${f.username}`, '_blank')} style={{ padding: '6px' }}>
+                        <Eye size={12} />
                       </button>
                       <button
                         className="btn btn-ghost btn-sm"
                         title={f.isActive ? 'Deactivate' : 'Activate'}
                         onClick={() => toggleStatus(f._id)}
+                        style={{ padding: '6px' }}
                       >
-                        {f.isActive ? <ToggleRight size={16} color="var(--success)" /> : <ToggleLeft size={16} />}
+                        {f.isActive ? <ToggleRight size={14} color="var(--success)" /> : <ToggleLeft size={14} />}
                       </button>
-                      <button className="btn btn-ghost btn-sm" title="Delete" onClick={() => deleteFaculty(f._id, f.username)}>
-                        <Trash2 size={14} color="var(--danger)" />
+                      <button className="btn btn-ghost btn-sm" title="Delete" onClick={() => deleteFaculty(f._id, f.username)} style={{ padding: '6px' }}>
+                        <Trash2 size={12} color="var(--danger)" />
                       </button>
                     </div>
                   </td>
