@@ -33,7 +33,15 @@ const EMPTY: WorkExp = {
 
 const DEFAULT_DESIGNATIONS = ['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Researcher', 'Industry Professional'];
 const DEFAULT_DEPARTMENTS = ['Computer Science', 'Information Technology', 'Electronics', 'Electrical', 'Mechanical', 'Civil', 'Mathematics', 'Physics', 'Chemistry', 'Commerce', 'Management', 'English'];
-const DEFAULT_NATURES = ['Teaching', 'Research', 'Industry / Corporate', 'Administrative', 'Contract', 'Permanent'];
+const DEFAULT_NATURES = [
+  'Regular / Permanent',
+  'Contractual',
+  'Guest Faculty',
+  'Visiting Faculty',
+  'Management Quota Staff',
+  'Hourly / Lecture-based',
+  'Ad-hoc Teacher',
+];
 const DEFAULT_REASONS = ['Career Growth', 'Higher Studies', 'Relocation', 'Better Opportunity', 'Contract Completed', 'Personal Reasons'];
 
 /* ─── Shared Button Styles ───────────────────────────────────── */
@@ -58,21 +66,23 @@ const btnStyles = {
   } as React.CSSProperties,
   save: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#10b981', color: '#ffffff',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer'
+    backgroundColor: '#16a34a', color: '#ffffff',
+    padding: '7px 20px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer',
+    marginLeft: '8px',
   } as React.CSSProperties,
   saveDisabled: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#d1fae5', color: '#6ee7b7',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'not-allowed'
+    backgroundColor: '#bbf7d0', color: '#86efac',
+    padding: '7px 20px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'not-allowed',
+    marginLeft: '8px',
   } as React.CSSProperties,
   cancel: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#f1f5f9', color: '#475569',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer'
+    backgroundColor: '#fff1f2', color: '#9f1239',
+    padding: '7px 20px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer'
   } as React.CSSProperties,
 };
 
@@ -168,7 +178,8 @@ function PreviewCard({
             <PreviewRow label="Institution Name" value={e.organization} />
             <PreviewRow label="Designation" value={e.designation} />
             <PreviewRow label="Department" value={e.department} />
-            <PreviewRow label="From – To" value={`${e.from ? new Date(e.from).toLocaleDateString() : '-'} → ${e.to ? new Date(e.to).toLocaleDateString() : '-'}`} />
+            <PreviewRow label="From Date" value={e.from ? new Date(e.from).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'} />
+            <PreviewRow label="To Date" value={e.to ? new Date(e.to).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'} />
             <PreviewRow label="Total Duration" value={calculateDuration(e.from, e.to)} />
             <PreviewRow label="Nature of Appointment" value={e.nature} />
             <PreviewRow label="Reason for Leaving" value={e.reasonForLeaving} />
@@ -260,7 +271,14 @@ export default function WorkExperience({ data, onChange }: { data: WorkExp[]; on
                   <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>
                     {!e.organization ? 'New Entry' : 'Editing Entry'}
                   </span>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      style={btnStyles.cancel}
+                      onClick={() => onChange(data.filter((_, idx) => idx !== i))}
+                    >
+                      <X size={14} /> Cancel
+                    </button>
                     <button
                       type="button"
                       style={isComplete(e) ? btnStyles.save : btnStyles.saveDisabled}
@@ -269,13 +287,6 @@ export default function WorkExperience({ data, onChange }: { data: WorkExp[]; on
                       onClick={() => toggleEdit(i, false)}
                     >
                       <Check size={14} /> Save
-                    </button>
-                    <button
-                      type="button"
-                      style={btnStyles.delete}
-                      onClick={() => onChange(data.filter((_, idx) => idx !== i))}
-                    >
-                      <Trash2 size={14} /> Delete
                     </button>
                   </div>
                 </div>
