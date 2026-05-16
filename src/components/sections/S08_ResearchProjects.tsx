@@ -1,8 +1,39 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
 import { fg, inp, sel, ta, FileInp } from './sectionUtils';
 
-const EMPTY = { title: '', fundingAgency: '', amountSanctioned: '', duration: '', status: '', role: '', description: '', documentUrl: '' };
+const EMPTY = { title: '', fundingAgency: '', amountSanctioned: '', duration: '', startDate: '', endDate: '', isOngoing: false, status: '', role: '', description: '', documentUrl: '' };
+
+function calculateDuration(start: string, end: string, isOngoing: boolean) {
+  if (!start) return { text: '—', months: 0, formatted: '' };
+  const d1 = new Date(start);
+  const d2 = isOngoing ? new Date() : (end ? new Date(end) : null);
+  
+  if (isNaN(d1.getTime()) || (!isOngoing && (!d2 || isNaN(d2.getTime())))) {
+    return { text: '—', months: 0, formatted: '' };
+  }
+  
+  if (!isOngoing && d2 && d1 > d2) {
+    return { text: 'Invalid Dates', months: 0, formatted: '' };
+  }
+
+  const diffMonths = (d2!.getFullYear() - d1.getFullYear()) * 12 + (d2!.getMonth() - d1.getMonth());
+  const totalMonths = diffMonths < 0 ? 0 : diffMonths;
+  
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+  
+  let text = '';
+  if (years > 0) text += `${years} Year${years > 1 ? 's' : ''} `;
+  if (months > 0 || years === 0) text += `${months} Month${months !== 1 ? 's' : ''}`;
+  text = text.trim();
+
+  const startYear = d1.getFullYear();
+  const endYear = isOngoing ? 'Present' : d2!.getFullYear();
+  const formatted = `${startYear} - ${endYear} (${text})`;
+
+  return { text, months: totalMonths, formatted };
+}
 
 const FUNDING_AGENCIES = ['DST-SERB', 'ICMR', 'AICTE', 'UGC', 'CSIR', 'DBT', 'IYSC', 'IIT'];
 const STATUSES = ['Ongoing', 'Completed', 'Submitted', 'Rejected'];
@@ -97,6 +128,63 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
 
   const isItemComplete = (item: any) => item.title && item.fundingAgency;
 
+  const renderDurationSection = (item: any, isPending: boolean, idx?: number) => {
+    const handleDateChange = (k: string, v: any) => {
+      const newItem = { ...item, [k]: v };
+      if (k === 'isOngoing' && v) {
+        newItem.endDate = '';
+      }
+      const c = calculateDuration(newItem.startDate, newItem.endDate, newItem.isOngoing);
+      if (c.formatted) {
+        newItem.duration = c.formatted;
+      } else {
+        newItem.duration = '';
+      }
+      
+      if (isPending) {
+        setPendingNewItem(newItem);
+      } else {
+        const a = [...data];
+        a[idx!] = newItem;
+        onChange(a);
+      }
+    };
+
+    const calc = calculateDuration(item.startDate, item.endDate, item.isOngoing);
+
+    return (
+      <>
+        <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 16 }}>
+          {fg('Project Start Date', <input type="date" className="form-input" value={item.startDate || ''} onChange={e => handleDateChange('startDate', e.target.value)} />)}
+          {fg('Project End Date', <input type="date" className="form-input" value={item.endDate || ''} disabled={item.isOngoing} onChange={e => handleDateChange('endDate', e.target.value)} min={item.startDate || ''} />)}
+          {fg('Ongoing Project', 
+            <div style={{ display: 'flex', alignItems: 'center', height: '38px', padding: '0 8px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 8 }}>
+                <input type="checkbox" checked={item.isOngoing || false} onChange={e => handleDateChange('isOngoing', e.target.checked)} style={{ width: 16, height: 16, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                <span style={{ fontSize: 13, color: '#334155', fontWeight: 500 }}>Ongoing</span>
+              </label>
+            </div>
+          )}
+        </div>
+        
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Calendar size={18} color="#0284c7" />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, color: '#0284c7', fontWeight: 500, marginBottom: 2 }}>Calculated Duration</div>
+            <div style={{ fontSize: 14, color: '#0f172a', fontWeight: 600 }}>
+              {calc.text !== '—' && calc.text !== 'Invalid Dates' ? (
+                <>{calc.text} <span style={{ color: '#64748b', fontSize: 13, fontWeight: 400 }}>({calc.months} Months)</span></>
+              ) : (
+                <span style={{ color: '#94a3b8' }}>{calc.text === 'Invalid Dates' ? 'Invalid Dates' : 'Select dates to calculate'}</span>
+              )}
+            </div>
+          </div>
+          <div style={{ background: '#e0f2fe', color: '#0284c7', padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, border: '1px solid #bae6fd' }}>Auto Calculated</div>
+        </div>
+      </>
+    );
+  };
+
   const handleAddProject = () => {
     setPendingNewItem({ ...EMPTY });
   };
@@ -173,12 +261,12 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
               {fg('Funding Agency *', sel(pendingNewItem.fundingAgency, v => setPendingNewItem({ ...pendingNewItem, fundingAgency: v }), FUNDING_AGENCIES))}
               {fg('Amount Sanctioned (₹)', inp(pendingNewItem.amountSanctioned, v => setPendingNewItem({ ...pendingNewItem, amountSanctioned: v }), '5,00,000'))}
             </div>
+            {renderDurationSection(pendingNewItem, true)}
             <div className="form-row form-row-2">
-              {fg('Duration', inp(pendingNewItem.duration, v => setPendingNewItem({ ...pendingNewItem, duration: v }), '3 years or 2021-2024'))}
               {fg('Status', sel(pendingNewItem.status, v => setPendingNewItem({ ...pendingNewItem, status: v }), STATUSES))}
-            </div>
-            <div className="form-row form-row-2">
               {fg('Your Role', sel(pendingNewItem.role, v => setPendingNewItem({ ...pendingNewItem, role: v }), ROLES))}
+            </div>
+            <div className="form-row form-row-1">
               {fg('Sanction Letter / Document', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} />)}
             </div>
             <div className="form-row form-row-1">
@@ -211,12 +299,12 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
                     {fg('Funding Agency *', sel(p.fundingAgency, v => upd(i, 'fundingAgency', v), FUNDING_AGENCIES))}
                     {fg('Amount Sanctioned (₹)', inp(p.amountSanctioned, v => upd(i, 'amountSanctioned', v), '5,00,000'))}
                   </div>
+                  {renderDurationSection(p, false, i)}
                   <div className="form-row form-row-2">
-                    {fg('Duration', inp(p.duration, v => upd(i, 'duration', v), '3 years or 2021-2024'))}
                     {fg('Status', sel(p.status, v => upd(i, 'status', v), STATUSES))}
-                  </div>
-                  <div className="form-row form-row-2">
                     {fg('Your Role', sel(p.role, v => upd(i, 'role', v), ROLES))}
+                  </div>
+                  <div className="form-row form-row-1">
                     {fg('Sanction Letter / Document', <FileInp v={p.documentUrl} fn={v => upd(i, 'documentUrl', v)} />)}
                   </div>
                   <div className="form-row form-row-1">
