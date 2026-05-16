@@ -3,7 +3,7 @@ import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, Chevro
 import { fg, inp, sel, FileInp, DropdownWithCustom } from './sectionUtils';
 import { publicationTypeOptions, publicationLevelOptions, indexedInOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
 
-/* â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- Types --- */
 type Publication = {
   type: string;
   title: string;
@@ -53,9 +53,9 @@ for (let y = currentYear; y >= 1970; y--) YEAR_OPTS.push(String(y));
 
 const VOLUME_OPTS: string[] = Array.from({ length: 50 }, (_, i) => String(i + 1));
 const ISSUE_OPTS: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1));
-const PAGES_OPTS: string[] = ['1â€“5', '1â€“8', '1â€“10', '1â€“12', '1â€“15', '1â€“20', '100â€“110'];
+const PAGES_OPTS: string[] = ['1-5', '1-8', '1-10', '1-12', '1-15', '1-20', '100-110'];
 
-/* â”€â”€â”€ Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- Form --- */
 function PubForm({ item, onChange }: {
   item: Publication;
   onChange: (k: keyof Publication, v: string) => void;
@@ -78,7 +78,7 @@ function PubForm({ item, onChange }: {
             {fg('ISSN Number', inp(item.issn, v => onChange('issn', v)))}
             {fg('Year of Publication *',
               <select className="form-select" value={item.year} onChange={e => onChange('year', e.target.value)}>
-                <option value="">â€” Year â€”</option>
+                <option value="">Select Year</option>
                 {YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             )}
@@ -110,7 +110,7 @@ function PubForm({ item, onChange }: {
             {fg('ISBN', inp(item.isbn, v => onChange('isbn', v)))}
             {fg('Year *',
               <select className="form-select" value={item.year} onChange={e => onChange('year', e.target.value)}>
-                <option value="">â€” Year â€”</option>
+                <option value="">Select Year</option>
                 {YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             )}
@@ -129,7 +129,7 @@ function PubForm({ item, onChange }: {
             {fg('ISBN', inp(item.isbn, v => onChange('isbn', v)))}
             {fg('Year *',
               <select className="form-select" value={item.year} onChange={e => onChange('year', e.target.value)}>
-                <option value="">â€” Year â€”</option>
+                <option value="">Select Year</option>
                 {YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             )}
