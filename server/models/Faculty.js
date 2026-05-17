@@ -54,7 +54,7 @@ const workExpSchema = new mongoose.Schema({
 
 // Section 6: Publications
 const publicationSchema = new mongoose.Schema({
-  type: { type: String, enum: ['journal', 'book', 'bookChapter', 'conference'], default: 'journal' },
+  type: { type: String, enum: ['Journal Articles', 'Book Chapters', 'Books Authored / Edited', 'Conference Papers', 'journal', 'book', 'bookChapter', 'conference'], default: 'Journal Articles' },
   title: { type: String, default: '' },
   authors: { type: String, default: '' },
   authorRole: { type: String, default: '' }, // Principal / Co-Author
@@ -85,9 +85,11 @@ const projectSchema = new mongoose.Schema({
   title: { type: String, default: '' },
   fundingAgency: { type: String, default: '' },
   amountSanctioned: { type: String, default: '' },
-  duration: { type: String, default: '' },
+  startDate: { type: String, default: '' },
+  endDate: { type: String, default: '' },
   status: { type: String, default: '' }, // Completed / Ongoing
   role: { type: String, default: '' }, // PI / Co-PI
+  referenceNumber: { type: String, default: '' },
 }, { _id: false });
 
 // Section 7: Awards
@@ -95,6 +97,7 @@ const awardSchema = new mongoose.Schema({
   name: { type: String, default: '' },
   awardingAgency: { type: String, default: '' },
   dateOfAward: { type: String, default: '' },
+  yearReceived: { type: String, default: '' },
   level: { type: String, default: '' }, // International / National / State / University
 }, { _id: false });
 
