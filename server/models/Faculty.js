@@ -284,6 +284,30 @@ const facultySchema = new mongoose.Schema({
   // Section 14: International Experience
   internationalExperience: { type: [internationalExpSchema], default: [] },
 
+  // Section 15: Documents (stored as key → URL map)
+  documents: {
+    photo:          { type: String, default: '' },
+    signature:      { type: String, default: '' },
+    aadhar:         { type: String, default: '' },
+    pan:            { type: String, default: '' },
+    ssc:            { type: String, default: '' },
+    hsc:            { type: String, default: '' },
+    ug:             { type: String, default: '' },
+    pg:             { type: String, default: '' },
+    phd:            { type: String, default: '' },
+    mphil:          { type: String, default: '' },
+    net:            { type: String, default: '' },
+    gate:           { type: String, default: '' },
+    apptLetter:     { type: String, default: '' },
+    experienceCert: { type: String, default: '' },
+    publications:   { type: String, default: '' },
+    noc:            { type: String, default: '' },
+    casteCert:      { type: String, default: '' },
+    disabilityCert: { type: String, default: '' },
+    dobProof:       { type: String, default: '' },
+    nationalId:     { type: String, default: '' },
+  },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Faculty', facultySchema);
