@@ -1542,6 +1542,10 @@ tbody tr:last-child td {
   flex: 1;
 }
 
+.profile-box .form-label {
+  color: #ffffff;
+}
+
 .profile-name {
   font-size: 2rem;
   font-weight: 700;
@@ -1666,6 +1670,15 @@ tbody tr:last-child td {
 .profile-picture-display,
 .profile-picture-upload {
   flex-shrink: 0;
+}
+
+.profile-picture-display {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .profile-picture-container {

@@ -196,10 +196,6 @@ export default function AdminDashboard() {
                   <input className="form-input" type="email" required placeholder="faculty@university.edu.in" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} autoFocus />
                   <p className="form-hint">Username will be auto-generated from the email address.</p>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Full Name (Optional)</label>
-                  <input className="form-input" placeholder="Dr. First Last" value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))} />
-                </div>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>

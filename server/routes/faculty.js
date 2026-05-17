@@ -81,6 +81,10 @@ router.put('/me', facultyOnly, async (req, res) => {
     const updateData = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) updateData[f] = req.body[f]; });
 
+    if (updateData.personalInfo?.fullName && typeof updateData.personalInfo.fullName === 'string') {
+      updateData.personalInfo.fullName = updateData.personalInfo.fullName.replace(/^temp--/i, '').trim();
+    }
+
     let faculty = await Faculty.findOne({ userId: req.user._id });
     if (!faculty) faculty = new Faculty({ userId: req.user._id, username: req.user.username });
 

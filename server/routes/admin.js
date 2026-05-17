@@ -44,10 +44,11 @@ router.post('/faculty', async (req, res) => {
       createdBy: req.user._id,
     });
 
+    const adminFullName = fullName ? `temp--${fullName}` : '';
     await Faculty.create({
       userId: user._id,
       username: user.username,
-      personalInfo: { fullName: fullName || '', officialEmail: email.trim().toLowerCase() },
+      personalInfo: { fullName: adminFullName, officialEmail: email.trim().toLowerCase() },
     });
 
     res.status(201).json({
