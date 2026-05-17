@@ -20,10 +20,14 @@ export default function FacultyDashboard() {
 
   const pct = profile?.completionPercentage || 0;
   const pi = profile?.personalInfo || {};
+  const employment = profile?.employmentDetails || {};
+  const rawName = pi.fullName || [pi.firstName, pi.middleName, pi.lastName].filter(Boolean).join(' ').trim() || user?.username;
+  const displayName = rawName?.replace(/^temp--/i, '').trim();
+  const displayHeadline = pi.professionalHeadline;
 
   const sections = [
     { key: 'qualifications', label: 'Qualifications', icon: <GraduationCap size={20} />, count: profile?.qualifications?.length },
-    { key: 'teachingExperience', label: 'Teaching Experience', icon: <Briefcase size={20} />, count: profile?.teachingExperience?.length },
+    { key: 'workExperience', label: 'Work Experience', icon: <Briefcase size={20} />, count: profile?.workExperience?.length },
     { key: 'publications', label: 'Publications', icon: <BookOpen size={20} />, count: profile?.publications?.length },
     { key: 'projects', label: 'Research Projects', icon: <FlaskConical size={20} />, count: profile?.projects?.length },
     { key: 'awards', label: 'Awards & Honors', icon: <Award size={20} />, count: profile?.awards?.length },
@@ -39,21 +43,28 @@ export default function FacultyDashboard() {
           <div className="card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }} className="profile-header">
               {/* Avatar */}
-              <div className="avatar avatar-xl" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)', border: '4px solid #fff', boxShadow: 'var(--shadow-md)' }}>
-                {pi.photoUrl ? <img src={pi.photoUrl} alt="profile" /> : (pi.fullName || user?.username || 'F').slice(0, 2).toUpperCase()}
+              <div className="avatar avatar-xl" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)', border: '4px solid #fff', boxShadow: 'var(--shadow-md)', overflow: 'hidden' }}>
+                {profile?.personalInfo?.photoUrl ? (
+                  <img src={profile.personalInfo.photoUrl} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (displayName || 'F').slice(0, 2).toUpperCase()}
               </div>
 
               {/* Profile Info */}
               <div style={{ flex: 1, minWidth: '200px' }}>
                 <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--text)', marginBottom: '4px', lineHeight: '1.2' }}>
-                  {pi.fullName || user?.username}
+                  {displayName}
                 </h1>
                 <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  {pi.designation}{pi.designation && pi.department ? ' · ' : ''}{pi.department}
+                  {employment.designation}{employment.designation && employment.department ? ' · ' : ''}{employment.department}
                 </p>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                  {pi.institution}
+                  {employment.institution}
                 </p>
+                {displayHeadline && (
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                    {displayHeadline}
+                  </p>
+                )}
 
                 {/* Action Buttons */}
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }} className="action-buttons">

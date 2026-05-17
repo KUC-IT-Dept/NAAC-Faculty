@@ -108,8 +108,11 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     </div>
   );
 
-  // Get full name for display
-  const fullName = `${safeData.firstName || ''} ${safeData.middleName || ''} ${safeData.lastName || ''}`.trim();
+  // Get full name for display (fallback to stored fullName)
+  const rawFullName = safeData.fullName || [safeData.firstName, safeData.middleName, safeData.lastName].filter(Boolean).join(' ').trim();
+  const fullName = rawFullName.replace(/^temp--/i, '').trim();
+  const profilePic = safeData.photoUrl;
+
   return (
     <div className="personal-info-container">
       {!isEditing && (
@@ -127,8 +130,8 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
       <div className="info-box profile-box">
         <div className="profile-header">
           <ProfilePictureUpload
-            currentPicture={safeData.profilePicture}
-            onPictureChange={(url) => s('profilePicture', url)}
+            currentPicture={profilePic}
+            onPictureChange={(url) => s('photoUrl', url)}
             isEditing={isEditing}
           />
           <div className="profile-info">
@@ -214,11 +217,6 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               fg('Age', inp(calculateAge(safeData.dateOfBirth) || safeData.age, v => s('age', v), 'Calculated from DOB'))
             ) : (
               renderPreview('Age', calculateAge(safeData.dateOfBirth) || safeData.age)
-            )}
-            {isEditing ? (
-              fg('Place of Birth', inp(data.placeOfBirth, v => s('placeOfBirth', v)))
-            ) : (
-              renderPreview('Place of Birth', safeData.placeOfBirth)
             )}
             {isEditing ? (
               fg('Gender', <SimpleSelect value={data.gender} onChange={v => s('gender', v)} options={genderOptions} />)

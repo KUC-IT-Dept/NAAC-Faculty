@@ -34,7 +34,13 @@ export default function PublicProfile() {
   );
 
   const pi = profile.personalInfo || {};
-  const initials = (pi.fullName || username || 'F').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+  const employment = profile.employmentDetails || {};
+  const rawName = pi.fullName || [pi.firstName, pi.middleName, pi.lastName].filter(Boolean).join(' ').trim() || username || 'Faculty';
+  const fullName = rawName.replace(/^temp--/i, '').trim();
+  const initials = fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+  const displayEmail = pi.officialEmail || pi.officialEmailId;
+  const displayPhone = pi.mobilePersonal || pi.mobileNumber;
+  const displayHeadline = pi.professionalHeadline;
 
   return (
     <div className="public-layout">
@@ -49,14 +55,15 @@ export default function PublicProfile() {
               <div style={{ fontSize: '0.72rem', color: 'rgba(201,162,39,0.9)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
                 Faculty Profile
               </div>
-              <h1 style={{ color: '#fff', marginBottom: 8 }}>{pi.fullName || username}</h1>
+              <h1 style={{ color: '#fff', marginBottom: 8 }}>{fullName}</h1>
               <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', marginBottom: 4 }}>
-                {pi.designation}{pi.designation && pi.department ? ' · ' : ''}{pi.department}
+                {employment.designation}{employment.designation && employment.department ? ' · ' : ''}{employment.department}
               </p>
-              {pi.institution && <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.875rem' }}>{pi.institution}</p>}
+              {employment.institution && <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.875rem' }}>{employment.institution}</p>}
+              {displayHeadline && <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.875rem', marginTop: 6 }}>{displayHeadline}</p>}
               <div style={{ display: 'flex', gap: 14, marginTop: 14, flexWrap: 'wrap' }}>
-                {pi.officialEmail && <a href={`mailto:${pi.officialEmail}`} style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={13} />{pi.officialEmail}</a>}
-                {pi.phone && <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 5 }}><Phone size={13} />{pi.phone}</span>}
+                {displayEmail && <a href={`mailto:${displayEmail}`} style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={13} />{displayEmail}</a>}
+                {displayPhone && <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 5 }}><Phone size={13} />{displayPhone}</span>}
                 {pi.linkedIn && <a href={pi.linkedIn} target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 5 }}><Link2 size={13} />LinkedIn</a>}
                 {pi.website && <a href={pi.website} target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 5 }}><Globe size={13} />Website</a>}
               </div>
@@ -78,23 +85,23 @@ export default function PublicProfile() {
             <div className="profile-section-title"><GraduationCap size={18} color="var(--navy)" /> Academic Qualifications</div>
             <div className="profile-section-body">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead><tr><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Degree</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Subject</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>University</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Grade</th></tr></thead>
-                <tbody>{profile.qualifications.map((q: any, i: number) => <tr key={i} style={{ borderTop: '1px solid var(--border)' }}><td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>{q.degree}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.subject}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{q.university}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.year}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.classGrade}</td></tr>)}</tbody>
+                <thead><tr><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Degree</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Specialization</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>University</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Grade</th></tr></thead>
+                <tbody>{profile.qualifications.map((q: any, i: number) => <tr key={i} style={{ borderTop: '1px solid var(--border)' }}><td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>{[q.degreeLevel, q.degreeName].filter(Boolean).join(' · ') || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.specialization || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{q.university || q.boardUniversity || q.institution || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.yearOfPassing || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.percentageCGPA || q.division || '—'}</td></tr>)}</tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* Teaching Experience */}
-        {profile.teachingExperience?.length > 0 && (
+        {/* Work Experience */}
+        {profile.workExperience?.length > 0 && (
           <div className="profile-section">
-            <div className="profile-section-title"><Briefcase size={18} color="var(--navy)" /> Teaching Experience</div>
+            <div className="profile-section-title"><Briefcase size={18} color="var(--navy)" /> Work Experience</div>
             <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {profile.teachingExperience.map((e: any, i: number) => (
+              {profile.workExperience.map((e: any, i: number) => (
                 <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8, borderLeft: '3px solid var(--gold)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                    <div><div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{e.designation}</div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{e.institution}{e.department ? ` · ${e.department}` : ''}</div></div>
-                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: '0.82rem', color: 'var(--navy)', fontWeight: 600 }}>{e.from} – {e.to || 'Present'}</div>{e.level && <span className="badge badge-navy" style={{ marginTop: 4 }}>{e.level}</span>}</div>
+                    <div><div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{e.designation || '—'}</div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{e.organization || '—'}</div></div>
+                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: '0.82rem', color: 'var(--navy)', fontWeight: 600 }}>{e.from || '—'} – {e.to || 'Present'}</div>{e.nature && <span className="badge badge-navy" style={{ marginTop: 4 }}>{e.nature}</span>}</div>
                   </div>
                 </div>
               ))}
@@ -103,16 +110,17 @@ export default function PublicProfile() {
         )}
 
         {/* Research Experience */}
-        {profile.researchExperience && profile.researchExperience.totalYears && (
+        {profile.researchGuidance && (
           <div className="profile-section">
             <div className="profile-section-title"><FlaskConical size={18} color="var(--navy)" /> Research Experience</div>
             <div className="profile-section-body">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12, marginBottom: 16 }}>
                 {[
-                  { label: 'Total Experience', value: `${profile.researchExperience.totalYears} yrs` },
-                  { label: 'Ph.D Completed', value: profile.researchExperience.guidedPhDCompleted || '—' },
-                  { label: 'Ph.D Ongoing', value: profile.researchExperience.guidedPhDOngoing || '—' },
-                  { label: 'M.Phil Guided', value: profile.researchExperience.guidedMPhil || '—' },
+                  { label: 'Ph.D Completed', value: profile.researchGuidance.phdCompleted || '—' },
+                  { label: 'Ph.D Ongoing', value: profile.researchGuidance.phdInProgress || '—' },
+                  { label: 'M.Phil Completed', value: profile.researchGuidance.mphilCompleted || '—' },
+                  { label: 'M.Phil Ongoing', value: profile.researchGuidance.mphilInProgress || '—' },
+                  { label: 'PG Projects', value: profile.researchGuidance.pgProjectsSupervised || '—' },
                 ].map(s => (
                   <div key={s.label} style={{ background: 'var(--bg)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
                     <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--navy)', fontFamily: 'var(--font-heading)' }}>{s.value}</div>
@@ -120,9 +128,6 @@ export default function PublicProfile() {
                   </div>
                 ))}
               </div>
-              {profile.researchExperience.areasOfSpecialization?.length > 0 && (
-                <div><p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8 }}>AREAS OF SPECIALIZATION</p><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{profile.researchExperience.areasOfSpecialization.map((a: string) => <span key={a} className="badge badge-navy">{a}</span>)}</div></div>
-              )}
             </div>
           </div>
         )}
@@ -165,7 +170,7 @@ export default function PublicProfile() {
                   </div>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 6, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                     {p.fundingAgency && <span>Agency: <strong>{p.fundingAgency}</strong></span>}
-                    {p.amount && <span>Amount: <strong>₹{p.amount}</strong></span>}
+                    {p.amountSanctioned && <span>Amount: <strong>₹{p.amountSanctioned}</strong></span>}
                     {p.duration && <span>Duration: <strong>{p.duration}</strong></span>}
                     {p.role && <span>Role: <strong>{p.role}</strong></span>}
                   </div>
@@ -183,9 +188,9 @@ export default function PublicProfile() {
               {profile.awards.map((a: any, i: number) => (
                 <div key={i} style={{ padding: '16px', background: 'var(--bg)', borderRadius: 8, borderTop: '3px solid var(--gold)' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4 }}>{a.name}</div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 4 }}>{a.awardingBody}</div>
-                  {a.year && <div style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 600 }}>{a.year}</div>}
-                  {a.description && <div style={{ fontSize: '0.82rem', marginTop: 6, color: 'var(--text)' }}>{a.description}</div>}
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 4 }}>{a.awardingAgency}</div>
+                  {a.dateOfAward && <div style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 600 }}>{a.dateOfAward}</div>}
+                  {a.level && <div style={{ fontSize: '0.82rem', marginTop: 6, color: 'var(--text)' }}>{a.level}</div>}
                 </div>
               ))}
             </div>
@@ -199,8 +204,8 @@ export default function PublicProfile() {
             <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {profile.memberships.map((m: any, i: number) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
-                  <div><span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{m.organization}</span>{m.membershipType && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 8 }}>({m.membershipType})</span>}</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{m.memberId && `ID: ${m.memberId}`}{m.year && <span style={{ marginLeft: 8 }}>{m.year}</span>}</div>
+                  <div><span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{m.professionalBody}</span>{m.membershipType && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 8 }}>({m.membershipType})</span>}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{m.membershipId && `ID: ${m.membershipId}`}{m.yearOfJoining && <span style={{ marginLeft: 8 }}>{m.yearOfJoining}</span>}</div>
                 </div>
               ))}
             </div>
@@ -208,13 +213,13 @@ export default function PublicProfile() {
         )}
 
         {/* Admin Roles */}
-        {profile.administrativeRoles?.length > 0 && (
+        {profile.adminResponsibilities?.length > 0 && (
           <div className="profile-section">
             <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Administrative Roles</div>
             <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {profile.administrativeRoles.map((r: any, i: number) => (
+              {profile.adminResponsibilities.map((r: any, i: number) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
-                  <div><span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.role}</span><span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.organization}</span></div>
+                  <div><span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.committeeName}</span><span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.role}</span></div>
                   <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from} – {r.to || 'Present'}</span>
                 </div>
               ))}
