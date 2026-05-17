@@ -1,5 +1,6 @@
 import { FileText, CheckCircle2, Info } from 'lucide-react';
 import { Note, FileInp } from './sectionUtils';
+import { useAuth } from '../../context/AuthContext';
 
 const DOC_GROUPS = [
   {
@@ -43,7 +44,22 @@ const DOC_GROUPS = [
 ];
 
 export default function Documents({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+  const { user } = useAuth();
   const s = (k: string, v: string) => onChange({ ...data, [k]: v });
+
+  const displayGroups = DOC_GROUPS.map(group => {
+    let docs = [...group.docs];
+
+    if (user?.role === 'faculty') {
+      if (group.title === 'Other Documents') {
+        docs.push({ key: 'dobProof', label: 'Date of Birth Proof', required: false, hint: 'Birth certificate / SSLC / Government ID.' });
+      } else if (group.title === 'Identity & Identification') {
+        docs.push({ key: 'nationalId', label: 'National ID', required: false, hint: 'Voter ID / Passport / Driving License.' });
+      }
+    }
+
+    return { ...group, docs };
+  });
 
   return (
     <div className="section-container">
@@ -57,7 +73,7 @@ export default function Documents({ data, onChange }: { data: any; onChange: (d:
         </div>
       </Note>
 
-      {DOC_GROUPS.map(group => (
+      {displayGroups.map(group => (
         <div key={group.title} style={{ marginTop: '32px' }}>
           <h4 style={{ fontSize: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ height: '1px', flex: 1, backgroundColor: '#e2e8f0' }}></span>
@@ -84,7 +100,7 @@ export default function Documents({ data, onChange }: { data: any; onChange: (d:
                   <FileInp 
                     v={data[doc.key]} 
                     fn={v => s(doc.key, v)} 
-                    accept={doc.key === 'photo' || doc.key === 'signature' ? "image/*,.pdf" : ".pdf"}
+                    accept={['photo', 'signature', 'dobProof', 'nationalId'].includes(doc.key) ? "image/*,.pdf" : ".pdf"}
                   />
                   {data[doc.key] && (
                     <div style={{ marginTop: 8, fontSize: '11px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
