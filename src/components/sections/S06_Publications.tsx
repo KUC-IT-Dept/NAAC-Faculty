@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { fg, inp, sel, FileInp, DropdownWithCustom } from './sectionUtils';
-import { publicationTypeOptions, publicationLevelOptions, indexedInOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
+import { publicationLevelOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
 
 /* --- Types --- */
 type Publication = {
@@ -41,8 +41,14 @@ const EMPTY: Publication = {
   isEditing: true
 };
 
-const PUB_TYPES = publicationTypeOptions;
-const INDEX_OPTS = indexedInOptions;
+const PUB_TABS = [
+  { id: 'Journal Articles', label: 'Journal Articles (6.1)' },
+  { id: 'Book Chapters', label: 'Book Chapters (6.2)' },
+  { id: 'Books Authored / Edited', label: 'Books Authored / Edited (6.3)' },
+  { id: 'Conference Papers', label: 'Conference Papers (6.4)' },
+];
+
+const INDEX_OPTS = ['SCI', 'Scopus', 'UGC-CARE', 'Web of Science', 'Others'];
 const BOOK_TYPES = ['Authored', 'Edited', 'Co-authored'];
 const LEVELS = publicationLevelOptions;
 const YES_NO = peerReviewedStatusOptions;
@@ -64,10 +70,6 @@ function PubForm({ item, onChange }: {
 
   return (
     <>
-      <div className="form-row form-row-3">
-        {fg('Publication Type *', sel(item.type, v => onChange('type', v), PUB_TYPES))}
-      </div>
-
       {t === 'Journal Articles' && (
         <>
           <div className="form-row form-row-2">
@@ -410,6 +412,7 @@ export default function Publications({
   data: Publication[];
   onChange: (d: Publication[]) => void;
 }) {
+  const [activeTab, setActiveTab] = useState('Journal Articles');
 
   const upd = (i: number, k: keyof Publication, v: string) => {
     const arr = [...data];
@@ -434,24 +437,50 @@ export default function Publications({
         {data.length > 0 && <SummaryBanner data={data} />}
       </div>
 
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
+        {PUB_TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '10px 16px',
+              borderRadius: '8px',
+              border: activeTab === tab.id ? 'none' : '1px solid #e2e8f0',
+              background: activeTab === tab.id ? '#2563eb' : '#ffffff',
+              color: activeTab === tab.id ? '#ffffff' : '#475569',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              boxShadow: activeTab === tab.id ? '0 4px 6px -1px rgba(37, 99, 235, 0.2)' : 'none',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
         <button
           type="button"
           style={btnStyles.add}
-          onClick={() => onChange([{ ...EMPTY }, ...data])}
+          onClick={() => onChange([{ ...EMPTY, type: activeTab }, ...data])}
         >
           <Plus size={16} /> Add Publication
         </button>
       </div>
 
-      {data.length === 0 && (
+      {data.filter(p => p.type === activeTab).length === 0 && (
         <div className="empty-state">
-          No publications added yet. Click <strong>Add Publication</strong> to get started.
+          No publications added yet in this category. Click <strong>Add Publication</strong> to get started.
         </div>
       )}
 
       <div className="items-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {data.map((p, i) => (
+        {data.map((p, i) => {
+          if (p.type !== activeTab) return null;
+          return (
           <div key={i} className={`item-card ${p.isEditing ? 'is-editing' : 'is-preview'}`}>
             {p.isEditing ? (
               <>
@@ -489,7 +518,8 @@ export default function Publications({
               />
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );

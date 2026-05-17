@@ -4,9 +4,13 @@ import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from
 import { fg, inp, sel, ta, FileInp } from './sectionUtils';
 import { awardLevelOptions } from '../../shared/dropdownOptions';
 
-const EMPTY = { name: '', awardingAgency: '', dateOfAward: '', level: '', description: '', documentUrl: '' };
+const EMPTY = { name: '', awardingAgency: '', dateOfAward: '', yearReceived: '', level: '', description: '', documentUrl: '' };
 
 const LEVELS = awardLevelOptions;
+
+const currentYear = new Date().getFullYear();
+const YEAR_OPTS: string[] = [];
+for (let y = currentYear; y >= 1970; y--) YEAR_OPTS.push(String(y));
 
 const btnAdd:    React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -67,6 +71,7 @@ function AwardPreviewCard({
           <PreviewRow label="Award Name" value={a.name} />
           <PreviewRow label="Awarding Agency" value={a.awardingAgency} />
           <PreviewRow label="Date of Award" value={a.dateOfAward} />
+          <PreviewRow label="Year Received" value={a.yearReceived} />
           <PreviewRow label="Level" value={a.level} />
           <PreviewRow label="Description" value={a.description} />
           {a.documentUrl && (
@@ -165,11 +170,15 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
             </div>
             <div className="form-row form-row-2">
               {fg('Date / Year of Award', <input type="date" value={pendingNewItem.dateOfAward} onChange={e => setPendingNewItem({ ...pendingNewItem, dateOfAward: e.target.value })} className="form-input" />)}
-              {fg('Level', sel(pendingNewItem.level, v => setPendingNewItem({ ...pendingNewItem, level: v }), LEVELS))}
+              {fg('Year Received', <select className="form-select" value={pendingNewItem.yearReceived || ''} onChange={e => setPendingNewItem({ ...pendingNewItem, yearReceived: e.target.value })}><option value="">— Select Year —</option>{YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}</select>)}
             </div>
             <div className="form-row form-row-2">
+              {fg('Level', sel(pendingNewItem.level, v => setPendingNewItem({ ...pendingNewItem, level: v }), LEVELS))}
               {fg('Brief Description (optional)', ta(pendingNewItem.description, v => setPendingNewItem({ ...pendingNewItem, description: v }), 'Details about the award...'))}
+            </div>
+            <div className="form-row form-row-2">
               {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} />)}
+              <div></div>
             </div>
           </div>
         )}
@@ -198,11 +207,15 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
                   </div>
                   <div className="form-row form-row-2">
                     {fg('Date / Year of Award', <input type="date" value={a.dateOfAward} onChange={e => upd(i, 'dateOfAward', e.target.value)} className="form-input" />)}
-                    {fg('Level', sel(a.level, v => upd(i, 'level', v), LEVELS))}
+                    {fg('Year Received', <select className="form-select" value={a.yearReceived || ''} onChange={e => upd(i, 'yearReceived', e.target.value)}><option value="">— Select Year —</option>{YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}</select>)}
                   </div>
                   <div className="form-row form-row-2">
+                    {fg('Level', sel(a.level, v => upd(i, 'level', v), LEVELS))}
                     {fg('Brief Description (optional)', ta(a.description, v => upd(i, 'description', v), 'Details about the award...'))}
+                  </div>
+                  <div className="form-row form-row-2">
                     {fg('Certificate / Proof', <FileInp v={a.documentUrl} fn={v => upd(i, 'documentUrl', v)} />)}
+                    <div></div>
                   </div>
                 </>
               ) : (
