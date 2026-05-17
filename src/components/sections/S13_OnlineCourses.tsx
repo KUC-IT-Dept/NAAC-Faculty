@@ -1,213 +1,194 @@
 import { useState } from 'react';
-import { Plus, Trash2, ExternalLink, Edit2, ChevronDown, ChevronUp, Cpu, AlertCircle } from 'lucide-react';
-import { fg, inp, sel, FileInp, yearSel, pv } from './sectionUtils';
+import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { fg, inp, sel, FileInp, yearSel } from './sectionUtils';
 
 const EMPTY = { courseName: '', platform: '', duration: '', completionYear: '', certificateId: '', certificateUrl: '', score: '' };
 const PLATFORM_OPTS = ['NPTEL', 'Swayam', 'Coursera', 'edX', 'Udemy', 'LinkedIn Learning', 'Google', 'Microsoft', 'AWS', 'Other'];
 
-export default function OnlineCourses({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [pendingItem, setPendingItem] = useState<any>(null);
-  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
+const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
 
-  const s = (d: any[]) => onChange(d);
-  const upd = (i: number, k: string, v: string) => {
-    const a = [...data];
-    a[i] = { ...a[i], [k]: v };
-    s(a);
-  };
+function PreviewRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <div style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border-light, #f1f5f9)' }}>
+      <span style={{ minWidth: 160, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--text-primary, #1e293b)', wordBreak: 'break-word' }}>{value}</span>
+    </div>
+  );
+}
 
-  const toggleExpand = (idx: number) => {
-    const newSet = new Set(expandedIndices);
-    if (newSet.has(idx)) newSet.delete(idx);
-    else newSet.add(idx);
-    setExpandedIndices(newSet);
-  };
-
-  const isComplete = (c: any) => !!(c.courseName && c.platform);
-
-  const handleSavePending = () => {
-    if (!pendingItem) return;
-    if (isComplete(pendingItem)) {
-      s([pendingItem, ...data]);
-      setPendingItem(null);
-      setErrorMsg(null);
-    } else {
-      setErrorMsg("Please enter Course Name and Platform.");
-    }
-  };
-
-  const handleSaveEdit = () => {
-    if (editingIndex === null) return;
-    const item = data[editingIndex];
-    if (isComplete(item)) {
-      setEditingIndex(null);
-      setErrorMsg(null);
-    } else {
-      setErrorMsg("Required fields are missing.");
-    }
-  };
+function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: () => void; onDelete: () => void; disabled: boolean }) {
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="section-container">
-      <div className="section-header-actions" style={{ marginBottom: 16 }}>
-        <h5 style={{ margin: 0 }}></h5>
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+          <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{item.completionYear || '—'}</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary, #1e293b)', fontSize: 15, marginBottom: 4 }}>
+              {item.courseName || 'Untitled Course'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              {item.platform && <span className="badge badge-secondary">{item.platform}</span>}
+              {item.score && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Score: {item.score}</span>}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
+          <button type="button" style={btnEdit} onClick={() => setExpanded(!expanded)}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />} {expanded ? 'Hide' : 'View'}
+          </button>
+          <button type="button" style={btnEdit} onClick={(e) => { e.stopPropagation(); onEdit(); }} disabled={disabled}>
+            <Edit2 size={14} /> Edit
+          </button>
+          <button type="button" style={btnDelete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
+          <PreviewRow label="Course Name" value={item.courseName} />
+          <PreviewRow label="Platform" value={item.platform} />
+          <PreviewRow label="Duration" value={item.duration} />
+          <PreviewRow label="Year" value={item.completionYear} />
+          <PreviewRow label="Certificate ID" value={item.certificateId} />
+          <PreviewRow label="Score" value={item.score} />
+          {item.certificateUrl && (
+            <div style={{ marginTop: 8 }}>
+              <a href={`${import.meta.env.VITE_API_URL || ''}${item.certificateUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
+                <ExternalLink size={14} /> View Certificate
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+export default function OnlineCourses({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [pendingNewItem, setPendingNewItem] = useState<any>(null);
+  const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
+
+  const isItemComplete = (item: any) => item.courseName && item.platform && item.completionYear;
+
+  const handleAdd = () => {
+    setPendingNewItem({ ...EMPTY });
+  };
+
+  const handleSavePending = (item: any) => {
+    if (isItemComplete(item)) {
+      const updated = [item, ...data];
+      updated.sort((a, b) => (parseInt(b.completionYear) || 0) - (parseInt(a.completionYear) || 0));
+      onChange(updated);
+      setPendingNewItem(null);
+    }
+  };
+
+  const sortedData = [...data].sort((a, b) => (parseInt(b.completionYear) || 0) - (parseInt(a.completionYear) || 0));
+
+  return (
+    <>
+      <div className="section-header-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 16 }}>
+        <h5 style={{ margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Online Courses / Certifications</h5>
         <button
           type="button"
-          onClick={() => { setPendingItem({ ...EMPTY }); setErrorMsg(null); }}
-          disabled={pendingItem !== null || editingIndex !== null}
-          style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
+          onClick={handleAdd}
+          disabled={pendingNewItem !== null || editingItemIndex !== null}
+          style={{ ...btnAdd, flexShrink: 0 }}
         >
           <Plus size={16} /> Add Course
         </button>
       </div>
 
+      {sortedData.length === 0 && (
+        <div className="empty-state">No courses added yet. Click Add Course to get started.</div>
+      )}
+
       <div className="items-list">
-        {pendingItem && (
-          <div className="list-item-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Cpu size={20} /> New Course
-              </h3>
-              <div>
-                <button 
-                  type="button" 
-                  onClick={() => { setPendingItem(null); setErrorMsg(null); }}
-                  style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
+        {pendingNewItem && (
+          <div key="pending" className="list-item-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Course</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
                 >
+                  <Check size={14} /> Save
+                </button>
+                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
                   Cancel
                 </button>
-                <button 
-                  type="button" 
-                  onClick={handleSavePending}
-                  style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
-                >
-                  Save Course
-                </button>
               </div>
             </div>
-
-            {errorMsg && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '13px', fontWeight: 600, marginBottom: 16, backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
-                <AlertCircle size={14} /> {errorMsg}
-              </div>
-            )}
-
-            {fg('Course / Certification Name *', inp(pendingItem.courseName, v => setPendingItem({ ...pendingItem, courseName: v })))}
+            {fg('Course / Certification Name *', inp(pendingNewItem.courseName, v => setPendingNewItem({ ...pendingNewItem, courseName: v })))}
             <div className="form-row form-row-3">
-              {fg('Platform / Provider *', sel(pendingItem.platform, v => setPendingItem({ ...pendingItem, platform: v }), PLATFORM_OPTS))}
-              {fg('Duration', inp(pendingItem.duration, v => setPendingItem({ ...pendingItem, duration: v })))}
-              {fg('Year of Completion', yearSel(pendingItem.completionYear, v => setPendingItem({ ...pendingItem, completionYear: v })))}
+              {fg('Platform / Provider *', sel(pendingNewItem.platform, v => setPendingNewItem({ ...pendingNewItem, platform: v }), PLATFORM_OPTS))}
+              {fg('Duration', inp(pendingNewItem.duration, v => setPendingNewItem({ ...pendingNewItem, duration: v })))}
+              {fg('Year of Completion *', yearSel(pendingNewItem.completionYear, v => setPendingNewItem({ ...pendingNewItem, completionYear: v })))}
             </div>
             <div className="form-row form-row-2">
-              {fg('Certificate ID', inp(pendingItem.certificateId, v => setPendingItem({ ...pendingItem, certificateId: v })))}
-              {fg('Score / Grade', inp(pendingItem.score, v => setPendingItem({ ...pendingItem, score: v })))}
+              {fg('Certificate ID', inp(pendingNewItem.certificateId, v => setPendingNewItem({ ...pendingNewItem, certificateId: v })))}
+              {fg('Score / Grade', inp(pendingNewItem.score, v => setPendingNewItem({ ...pendingNewItem, score: v })))}
             </div>
-            {fg('Upload Certificate', <FileInp v={pendingItem.certificateUrl} fn={v => setPendingItem({ ...pendingItem, certificateUrl: v })} />)}
+            {fg('Upload Certificate', <FileInp v={pendingNewItem.certificateUrl} fn={v => setPendingNewItem({ ...pendingNewItem, certificateUrl: v })} />)}
           </div>
         )}
 
-        {data.map((c, i) => {
-          const isEdit = editingIndex === i;
-          const isExpanded = expandedIndices.has(i);
+        {sortedData.map((item, i) => {
+          const itemIsEditing = editingItemIndex === i;
           return (
-            <div key={i} className="list-item-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-              {isEdit ? (
+            <div key={i} className="list-item-card">
+              {itemIsEditing ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
-                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>Edit Course</h3>
-                    <div>
-                      <button 
-                        type="button" 
-                        onClick={() => { setEditingIndex(null); setErrorMsg(null); }}
-                        style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', marginRight: '8px', fontWeight: 500 }}
-                      >
-                        Cancel
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Course</span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                        <Check size={14} /> Done
                       </button>
-                      <button 
-                        type="button" 
-                        onClick={handleSaveEdit}
-                        style={{ padding: '6px 16px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 500 }}
-                      >
-                        Save Course
+                      <button type="button" onClick={() => { onChange(sortedData.filter((_, j) => j !== i)); setEditingItemIndex(null); }} style={btnDelete}>
+                        <Trash2 size={14} /> Delete
                       </button>
                     </div>
                   </div>
-
-                  {errorMsg && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '13px', fontWeight: 600, marginBottom: 16, backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
-                      <AlertCircle size={14} /> {errorMsg}
-                    </div>
-                  )}
-
-                  {fg('Course / Certification Name *', inp(c.courseName, v => upd(i, 'courseName', v)))}
+                  {fg('Course / Certification Name *', inp(item.courseName, v => upd(i, 'courseName', v)))}
                   <div className="form-row form-row-3">
-                    {fg('Platform / Provider *', sel(c.platform, v => upd(i, 'platform', v), PLATFORM_OPTS))}
-                    {fg('Duration', inp(c.duration, v => upd(i, 'duration', v)))}
-                    {fg('Year of Completion', yearSel(c.completionYear, v => upd(i, 'completionYear', v)))}
+                    {fg('Platform / Provider *', sel(item.platform, v => upd(i, 'platform', v), PLATFORM_OPTS))}
+                    {fg('Duration', inp(item.duration, v => upd(i, 'duration', v)))}
+                    {fg('Year of Completion *', yearSel(item.completionYear, v => upd(i, 'completionYear', v)))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Certificate ID', inp(c.certificateId, v => upd(i, 'certificateId', v)))}
-                    {fg('Score / Grade', inp(c.score, v => upd(i, 'score', v)))}
+                    {fg('Certificate ID', inp(item.certificateId, v => upd(i, 'certificateId', v)))}
+                    {fg('Score / Grade', inp(item.score, v => upd(i, 'score', v)))}
                   </div>
-                  {fg('Upload Certificate', <FileInp v={c.certificateUrl} fn={v => upd(i, 'certificateUrl', v)} />)}
+                  {fg('Upload Certificate', <FileInp v={item.certificateUrl} fn={v => upd(i, 'certificateUrl', v)} />)}
                 </>
               ) : (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => toggleExpand(i)}>
-                      <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
-                        {c.courseName || `Course ${i + 1}`}
-                        {c.platform && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>— {c.platform}</span>}
-                        {c.completionYear && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({c.completionYear})</span>}
-                      </h3>
-                      {isExpanded ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
-                    </div>
-                    <div>
-                      <button 
-                        type="button" 
-                        onClick={() => { setEditingIndex(i); setErrorMsg(null); }}
-                        style={{ padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <Edit2 size={12} /> Edit
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => s(data.filter((_, j) => j !== i))}
-                        style={{ marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <Trash2 size={12} /> Delete
-                      </button>
-                    </div>
-                  </div>
-
-                  {isExpanded && (
-                    <div style={{ marginTop: '16px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                      <div className="form-row form-row-3" style={{ marginBottom: '16px' }}>
-                        {pv('Platform', c.platform)}
-                        {pv('Duration', c.duration)}
-                        {pv('Year', c.completionYear)}
-                      </div>
-                      <div className="form-row form-row-2" style={{ marginBottom: '16px' }}>
-                        {pv('Certificate ID', c.certificateId)}
-                        {pv('Score', c.score)}
-                      </div>
-                      {c.certificateUrl && (
-                        <div style={{ marginTop: '8px' }}>
-                          <a href={`${import.meta.env.VITE_API_URL}${c.certificateUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
-                            <ExternalLink size={14} /> View Certificate
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
+                <PreviewCard
+                  item={item}
+                  onEdit={() => setEditingItemIndex(i)}
+                  onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
+                  disabled={pendingNewItem !== null}
+                />
               )}
             </div>
           );
         })}
       </div>
-    </div>
+    </>
   );
 }
