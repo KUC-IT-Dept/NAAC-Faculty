@@ -6,39 +6,39 @@ const DOC_GROUPS = [
   {
     title: 'Identity & Identification',
     docs: [
-      { key: 'photo',          label: 'Photograph',              required: true,  hint: 'Recent, clear JPEG/PNG.' },
-      { key: 'signature',      label: 'Signature',               required: true,  hint: 'Scanned on white background.' },
-      { key: 'aadhar',         label: 'Aadhaar Card',            required: true,  hint: 'Both sides, self-attested.' },
-      { key: 'pan',            label: 'PAN Card',                required: false, hint: 'PDF format.' },
+      { key: 'photo', label: 'Photograph', required: true, hint: 'Recent, clear JPEG/PNG.' },
+      { key: 'signature', label: 'Signature', required: true, hint: 'Scanned on white background.' },
+      { key: 'aadhar', label: 'Aadhaar Card', required: true, hint: 'Both sides, self-attested.' },
+      { key: 'pan', label: 'PAN Card', required: false, hint: 'PDF format.' },
     ]
   },
   {
     title: 'Academic Certificates',
     docs: [
-      { key: 'ssc',            label: '10th Marksheet',          required: true,  hint: 'SSC or equivalent.' },
-      { key: 'hsc',            label: '12th Marksheet',          required: true,  hint: 'HSC or equivalent.' },
-      { key: 'ug',             label: 'UG Degree',               required: true,  hint: 'Degree & all marksheets.' },
-      { key: 'pg',             label: 'PG Degree',               required: false, hint: 'Degree & all marksheets.' },
-      { key: 'phd',            label: 'Ph.D. Certificate',       required: false, hint: 'Provisional acceptable.' },
-      { key: 'mphil',          label: 'M.Phil. Certificate',     required: false, hint: 'If applicable.' },
-      { key: 'net',            label: 'NET / SET / JRF',         required: false, hint: 'Eligibility certificate.' },
-      { key: 'gate',           label: 'GATE Score Card',         required: false, hint: 'If applicable.' },
+      { key: 'ssc', label: '10th Marksheet', required: true, hint: 'SSC or equivalent.' },
+      { key: 'hsc', label: '12th Marksheet', required: true, hint: 'HSC or equivalent.' },
+      { key: 'ug', label: 'UG Degree', required: true, hint: 'Degree & all marksheets.' },
+      { key: 'pg', label: 'PG Degree', required: false, hint: 'Degree & all marksheets.' },
+      { key: 'phd', label: 'Ph.D. Certificate', required: false, hint: 'Provisional acceptable.' },
+      { key: 'mphil', label: 'M.Phil. Certificate', required: false, hint: 'If applicable.' },
+      { key: 'net', label: 'NET / SET / JRF', required: false, hint: 'Eligibility certificate.' },
+      { key: 'gate', label: 'GATE Score Card', required: false, hint: 'If applicable.' },
     ]
   },
   {
     title: 'Professional & Service Records',
     docs: [
-      { key: 'apptLetter',     label: 'Appointment Letter',      required: true,  hint: 'Current institution.' },
-      { key: 'experienceCert', label: 'Experience Proofs',       required: false, hint: 'Previous employers.' },
-      { key: 'publications',   label: 'Publications List',       required: false, hint: 'PDF with links/DOI.' },
-      { key: 'noc',            label: 'NOC Certificate',         required: false, hint: 'From current employer.' },
+      { key: 'apptLetter', label: 'Appointment Letter', required: true, hint: 'Current institution.' },
+      { key: 'experienceCert', label: 'Experience Proofs', required: false, hint: 'Previous employers.' },
+      { key: 'publications', label: 'Publications List', required: false, hint: 'PDF with links/DOI.' },
+      { key: 'noc', label: 'NOC Certificate', required: false, hint: 'From current employer.' },
     ]
   },
   {
     title: 'Other Documents',
     docs: [
-      { key: 'casteCert',      label: 'Category Certificate',    required: false, hint: 'OBC/SC/ST/EWS.' },
-      { key: 'disabilityCert', label: 'Disability Certificate',  required: false, hint: 'If applicable.' },
+      { key: 'casteCert', label: 'Category Certificate', required: false, hint: 'OBC/SC/ST/EWS.' },
+      { key: 'disabilityCert', label: 'Disability Certificate', required: false, hint: 'If applicable.' },
     ]
   }
 ];
@@ -80,7 +80,7 @@ export default function Documents({ data, onChange }: { data: any; onChange: (d:
             {group.title}
             <span style={{ height: '1px', flex: 1, backgroundColor: '#e2e8f0' }}></span>
           </h4>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
             {group.docs.map(doc => (
               <div key={doc.key} className="list-item-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0 }}>
@@ -97,9 +97,9 @@ export default function Documents({ data, onChange }: { data: any; onChange: (d:
                 </div>
 
                 <div style={{ marginTop: 'auto' }}>
-                  <FileInp 
-                    v={data[doc.key]} 
-                    fn={v => s(doc.key, v)} 
+                  <FileInp
+                    v={data[doc.key]}
+                    fn={v => s(doc.key, v)}
                     accept={['photo', 'signature', 'dobProof', 'nationalId'].includes(doc.key) ? "image/*,.pdf" : ".pdf"}
                   />
                   {data[doc.key] && (

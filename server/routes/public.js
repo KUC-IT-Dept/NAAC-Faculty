@@ -47,6 +47,15 @@ router.get('/:username', async (req, res) => {
       fdpWorkshops: vis.fdpWorkshops ? faculty.fdpWorkshops : [],
       memberships: vis.memberships ? faculty.memberships : [],
       internationalExperience: vis.internationalExperience ? faculty.internationalExperience : [],
+      adminNonAcademicResponsibilities: vis.adminNonAcademicResponsibilities ? faculty.adminNonAcademicResponsibilities : [],
+      academicAdministration: vis.academicAdministration ? faculty.academicAdministration : [],
+      qualityAssurance: vis.qualityAssurance ? faculty.qualityAssurance : [],
+      researchAndInnovation: vis.researchAndInnovation ? faculty.researchAndInnovation : [],
+      examinationAndEvaluation: vis.examinationAndEvaluation ? faculty.examinationAndEvaluation : [],
+      administrativeSupport: vis.administrativeSupport ? faculty.administrativeSupport : [],
+      departmentalCharges: vis.departmentalCharges ? faculty.departmentalCharges : [],
+      specialAssignments: vis.specialAssignments ? faculty.specialAssignments : [],
+      extraInstitutionalActivities: vis.extraInstitutionalActivities ? faculty.extraInstitutionalActivities : [],
     };
 
     res.json(publicProfile);

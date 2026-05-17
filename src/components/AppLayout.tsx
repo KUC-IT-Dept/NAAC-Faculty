@@ -32,7 +32,16 @@ const profileDropdownItems = (role?: 'admin' | 'faculty') => {
     { id: 'fdp-workshops', label: '12 - FDP & Workshops', path: `${base}/fdp-workshops` },
     { id: 'online-courses', label: '13 - Online Courses', path: `${base}/online-courses` },
     { id: 'international-experience', label: '14 - International Experience', path: `${base}/international-experience` },
-    { id: 'documents', label: '15 - Documents', path: `${base}/documents` },
+    { id: 'admin-non-academic', label: '15 - Admin & Non-Academic Resp.', path: `${base}/admin-non-academic` },
+    { id: 'academic-administration', label: '16 - Academic Administration', path: `${base}/academic-administration` },
+    { id: 'quality-assurance', label: '17 - Quality Assurance', path: `${base}/quality-assurance` },
+    { id: 'research-innovation', label: '18 - Research & Innovation', path: `${base}/research-innovation` },
+    { id: 'examination-evaluation', label: '19 - Exam & Evaluation', path: `${base}/examination-evaluation` },
+    { id: 'admin-support', label: '20 - Administrative Support', path: `${base}/admin-support` },
+    { id: 'dept-charges', label: '21 - Departmental Charges', path: `${base}/dept-charges` },
+    { id: 'special-assignments', label: '22 - Special Assignments', path: `${base}/special-assignments` },
+    { id: 'extra-institutional', label: '23 - Activities – Extra Institutional', path: `${base}/extra-institutional` },
+    { id: 'documents', label: '24 - Documents', path: `${base}/documents` },
   ];
 };
 

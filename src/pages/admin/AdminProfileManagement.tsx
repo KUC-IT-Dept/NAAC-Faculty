@@ -18,7 +18,16 @@ import {
   programmeTypeOptions, sponsoringAgencyOptions, participationOptions,
   coursePlatformOptions, courseTypeOptions, completionStatusOptions, certificationTypeOptions, learningModeOptions,
   countryVisitOptions, purposeOfVisitOptions, fundingSourceOptions, visitCategoryOptions, collaborationTypeOptions, visitStatusOptions,
-  documentTypeOptions
+  documentTypeOptions,
+  adminChargeOptions,
+  academicAdminOptions,
+  qualityAssuranceOptions,
+  researchInnovationOptions,
+  examinationEvaluationOptions,
+  adminSupportOptions,
+  departmentalChargesOptions,
+  specialAssignmentsOptions,
+  extraInstitutionalOptions
 } from '../../shared/dropdownOptions';
 
 export const sectionsData = [
@@ -162,7 +171,52 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'documents', title: '15 - Documents', configs: [
+    id: 'admin-non-academic', title: '15 - Admin & Non-Academic Responsibilities', configs: [
+      { name: 'Administrative Charge', options: adminChargeOptions }
+    ]
+  },
+  {
+    id: 'academic-administration', title: '16 - Academic Administration', configs: [
+      { name: 'Administrative Charge', options: academicAdminOptions }
+    ]
+  },
+  {
+    id: 'quality-assurance', title: '17 - Quality Assurance', configs: [
+      { name: 'Administrative Charge', options: qualityAssuranceOptions }
+    ]
+  },
+  {
+    id: 'research-innovation', title: '18 - Research and Innovation', configs: [
+      { name: 'Administrative Charge', options: researchInnovationOptions }
+    ]
+  },
+  {
+    id: 'examination-evaluation', title: '19 - Examination and Evaluation', configs: [
+      { name: 'Administrative Charge', options: examinationEvaluationOptions }
+    ]
+  },
+  {
+    id: 'admin-support', title: '20 - Administrative Support', configs: [
+      { name: 'Administrative Charge', options: adminSupportOptions }
+    ]
+  },
+  {
+    id: 'dept-charges', title: '21 - Departmental Charges', configs: [
+      { name: 'Administrative charge', options: departmentalChargesOptions }
+    ]
+  },
+  {
+    id: 'special-assignments', title: '22 - Special Assignments', configs: [
+      { name: 'Administrative charge', options: specialAssignmentsOptions }
+    ]
+  },
+  {
+    id: 'extra-institutional', title: '23 - Activities – Extra Institutional', configs: [
+      { name: 'Administrative charge', options: extraInstitutionalOptions }
+    ]
+  },
+  {
+    id: 'documents', title: '24 - Documents', configs: [
       { name: 'Document Type', options: documentTypeOptions }
     ]
   },

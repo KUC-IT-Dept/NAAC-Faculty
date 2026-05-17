@@ -227,6 +227,187 @@ export default function PublicProfile() {
           </div>
         )}
 
+        {/* Administrative & Non-Academic Responsibilities */}
+        {profile.adminNonAcademicResponsibilities?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Administrative & Non-Academic Responsibilities</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.adminNonAcademicResponsibilities.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Academic Administration */}
+        {profile.academicAdministration?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Academic Administration</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.academicAdministration.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quality Assurance */}
+        {profile.qualityAssurance?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Quality Assurance</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.qualityAssurance.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Research and Innovation */}
+        {profile.researchAndInnovation?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Research and Innovation</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.researchAndInnovation.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Examination and Evaluation */}
+        {profile.examinationAndEvaluation?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Examination & Evaluation</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.examinationAndEvaluation.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Administrative Support */}
+        {profile.administrativeSupport?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Administrative Support</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.administrativeSupport.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Departmental Charges */}
+        {profile.departmentalCharges?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Departmental Charges</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.departmentalCharges.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Special Assignments */}
+        {profile.specialAssignments?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Special Assignments</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.specialAssignments.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Activities – Extra Institutional */}
+        {profile.extraInstitutionalActivities?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Activities – Extra Institutional</div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {profile.extraInstitutionalActivities.map((r: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                  </div>
+                  {(r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+
         {/* Footer */}
         <div style={{ textAlign: 'center', padding: '24px 0 8px', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
           Profile managed via <strong style={{ color: 'var(--navy)' }}>IQAC Faculty Portal</strong>

@@ -114,3 +114,108 @@ export const visitStatusOptions = ['Completed', 'Ongoing', 'Planned', 'Approved'
 
 // Documents
 export const documentTypeOptions = ['Aadhar', 'PAN', 'Passport'];
+
+// Administrative and Non-Academic Responsibilities
+export const adminChargeOptions = ['Principal', 'Campus Director', 'Registrar', 'Vice Principal', 'Convener of Women Cell', 'Admission Director', 'Senate Member', 'Syndicate Member', 'Dean', 'Other'];
+
+// Academic Administration
+export const academicAdminOptions = [
+  'Chairman - PG Board of studies',
+  'Chairman - UG Board of studies',
+  'Member - PG board of studies',
+  'Member - UG board of studies',
+  'Chairman - Designing PG syllabi',
+  'Chairman - Designing UG syllabi',
+  'Scheduling classes',
+  'Monitoring teaching quality',
+  'Serving as examiner, invigilator, paper setter, evaluator under the Controller of Examinations',
+  'Participating in Board of Studies meeting',
+  'Participating in academic councils',
+  'Participating in departmental reviews',
+  'Other',
+];
+
+// Quality Assurance
+export const qualityAssuranceOptions = [
+  'Director IQAC',
+  'Convener NAAC criteria',
+  'Preparing reports for accreditation NAAC',
+  'NAAC department coordinator',
+  'Preparing reports for NIRF ranking',
+  'NIRF Department coordinator',
+  'Coordinating student/teacher feedback and action plans',
+  'Other',
+];
+
+// Research and Innovation
+export const researchInnovationOptions = [
+  'Research Director',
+  'Assisting in research proposals',
+  'Assisting in funding applications',
+  'Assisting in project accounts',
+  'Coordinating departmental research output',
+  'Coordinating conferences',
+  'Other',
+];
+
+// Examination and Evaluation
+export const examinationEvaluationOptions = [
+  'Controller of Examination',
+  'Assisting the Controller of Examinations in scheduling, seating, and logistics',
+  'Helping with tabulation, moderation, and publication of results',
+  'Serving on disciplinary boards during exams',
+  'Contributing questions for question bank',
+  'Managing Question bank',
+  'Other',
+];
+
+// Administrative Support
+export const adminSupportOptions = [
+  'Maintaining student records',
+  'Maintaining student attendance',
+  'Maintaining faculty workload',
+  'Supporting admission processes, counseling, and documentation',
+  'Enforcing institutional rules and regulations',
+  'Other',
+];
+
+// Departmental Charges
+export const departmentalChargesOptions = [
+  'Head of the Department',
+  'Co-ordinator Cultural activities',
+  'Serving as Librarian',
+  'Serving on library committees',
+  'Serving on sports committees',
+  'Serving on cultural committees',
+  'Serving on grievance redressal committees',
+  'Guiding students academically and personally',
+  'Coordinating seminars, workshops',
+  'Other',
+];
+
+// Special Assignments
+export const specialAssignmentsOptions = [
+  'Coordinating community service',
+  'Coordinating NSS',
+  'Coordinating NCC',
+  'Coordinating industry linkages, cultural activities',
+  'Managing LMS, digital classrooms, and ICT initiatives',
+  'PRO',
+  'Coordinator job recruitment cell',
+  'Member Job recruitment cell',
+  'Other',
+];
+
+// Activities - Extra Institutional
+export const extraInstitutionalOptions = [
+  'Syndicate member',
+  'Board of studies',
+  'Visiting professor',
+  'Examiner',
+  'Syllabus committee',
+  'Dean',
+  'Other',
+];
+
+
+

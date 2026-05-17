@@ -20,6 +20,19 @@ import FdpWorkshops from '../../components/sections/S12_FdpWorkshops';
 import OnlineCourses from '../../components/sections/S13_OnlineCourses';
 import InternationalExp from '../../components/sections/S14_InternationalExperience';
 import Documents from '../../components/sections/S15_Documents';
+import AdminNonAcademicResp from '../../components/sections/S16_AdminNonAcademicResponsibilities';
+import AcademicAdmin from '../../components/sections/S17_AcademicAdministration';
+import QualityAssurance from '../../components/sections/S18_QualityAssurance';
+import ResearchInnovation from '../../components/sections/S19_ResearchAndInnovation';
+import ExaminationAndEvaluation from '../../components/sections/S20_ExaminationAndEvaluation';
+import AdministrativeSupport from '../../components/sections/S21_AdministrativeSupport';
+import DepartmentalCharges from '../../components/sections/S22_DepartmentalCharges';
+import SpecialAssignments from '../../components/sections/S23_SpecialAssignments';
+import ExtraInstitutionalActivities from '../../components/sections/S24_ExtraInstitutionalActivities';
+
+
+
+
 
 const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'personal-information': { key: 'personalInfo', label: 'Personal Information' },
@@ -36,6 +49,15 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'fdp-workshops': { key: 'fdpWorkshops', label: 'FDP & Workshops' },
   'online-courses': { key: 'onlineCourses', label: 'Online Courses' },
   'international-experience': { key: 'internationalExperience', label: 'International Experience' },
+  'admin-non-academic': { key: 'adminNonAcademicResponsibilities', label: 'Admin & Non-Academic Responsibilities' },
+  'academic-administration': { key: 'academicAdministration', label: 'Academic Administration' },
+  'quality-assurance': { key: 'qualityAssurance', label: 'Quality Assurance' },
+  'research-innovation': { key: 'researchAndInnovation', label: 'Research and Innovation' },
+  'examination-evaluation': { key: 'examinationAndEvaluation', label: 'Examination & Evaluation' },
+  'admin-support': { key: 'administrativeSupport', label: 'Administrative Support' },
+  'dept-charges': { key: 'departmentalCharges', label: 'Departmental Charges' },
+  'special-assignments': { key: 'specialAssignments', label: 'Special Assignments' },
+  'extra-institutional': { key: 'extraInstitutionalActivities', label: 'Activities – Extra Institutional' },
   'documents': { key: 'documents', label: 'Documents' },
   'visibility': { key: 'visibility', label: 'Visibility' },
 };
@@ -56,6 +78,15 @@ const VIS_ITEMS = [
   { key: 'fdpWorkshops', label: 'FDP / Workshops', desc: 'Training programmes' },
   { key: 'onlineCourses', label: 'Online Courses', desc: 'Certifications' },
   { key: 'internationalExperience', label: 'International Experience', desc: 'Research visits abroad' },
+  { key: 'adminNonAcademicResponsibilities', label: 'Admin & Non-Academic', desc: 'Administrative charges' },
+  { key: 'academicAdministration', label: 'Academic Administration', desc: 'Board & committee roles' },
+  { key: 'qualityAssurance', label: 'Quality Assurance', desc: 'Accreditation, ranking & feedback' },
+  { key: 'researchAndInnovation', label: 'Research & Innovation', desc: 'Research & proposals' },
+  { key: 'examinationAndEvaluation', label: 'Exam & Evaluation', desc: 'Exam roles & duties' },
+  { key: 'administrativeSupport', label: 'Administrative Support', desc: 'Student support, workload & records' },
+  { key: 'departmentalCharges', label: 'Departmental Charges', desc: 'HOD, cultural activities, libraries & committees' },
+  { key: 'specialAssignments', label: 'Special Assignments', desc: 'Community service, NSS, NCC, LMS & ICT' },
+  { key: 'extraInstitutionalActivities', label: 'Extra Institutional Activities', desc: 'Syndicate, BOS, visiting professor, examiner, syllabus committee, Dean' },
 ];
 
 const EMPTY: any = {
@@ -64,6 +95,14 @@ const EMPTY: any = {
   researchSupervision: { scholars: [], patents: [] },
   academicResponsibilities: { responsibilities: [], coursesTaught: [] },
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
+  adminNonAcademicResponsibilities: [],
+  academicAdministration: [], qualityAssurance: [],
+  researchAndInnovation: [],
+  examinationAndEvaluation: [],
+  administrativeSupport: [],
+  departmentalCharges: [],
+  specialAssignments: [],
+  extraInstitutionalActivities: [],
   documents: {}, visibility: {},
 };
 
@@ -150,7 +189,17 @@ export default function ProfileEdit() {
               {tab === 'fdpWorkshops' && <FdpWorkshops data={profile.fdpWorkshops} onChange={v => set('fdpWorkshops', v)} />}
               {tab === 'onlineCourses' && <OnlineCourses data={profile.onlineCourses} onChange={v => set('onlineCourses', v)} />}
               {tab === 'internationalExperience' && <InternationalExp data={profile.internationalExperience} onChange={v => set('internationalExperience', v)} />}
+              {tab === 'adminNonAcademicResponsibilities' && <AdminNonAcademicResp data={profile.adminNonAcademicResponsibilities} onChange={v => set('adminNonAcademicResponsibilities', v)} />}
+              {tab === 'academicAdministration' && <AcademicAdmin data={profile.academicAdministration} onChange={v => set('academicAdministration', v)} />}
+              {tab === 'qualityAssurance' && <QualityAssurance data={profile.qualityAssurance} onChange={v => set('qualityAssurance', v)} />}
+              {tab === 'researchAndInnovation' && <ResearchInnovation data={profile.researchAndInnovation} onChange={v => set('researchAndInnovation', v)} />}
+              {tab === 'examinationAndEvaluation' && <ExaminationAndEvaluation data={profile.examinationAndEvaluation} onChange={v => set('examinationAndEvaluation', v)} />}
+              {tab === 'administrativeSupport' && <AdministrativeSupport data={profile.administrativeSupport} onChange={v => set('administrativeSupport', v)} />}
+              {tab === 'departmentalCharges' && <DepartmentalCharges data={profile.departmentalCharges} onChange={v => set('departmentalCharges', v)} />}
+              {tab === 'specialAssignments' && <SpecialAssignments data={profile.specialAssignments} onChange={v => set('specialAssignments', v)} />}
+              {tab === 'extraInstitutionalActivities' && <ExtraInstitutionalActivities data={profile.extraInstitutionalActivities} onChange={v => set('extraInstitutionalActivities', v)} />}
               {tab === 'documents' && <Documents data={profile.documents} onChange={v => set('documents', v)} />}
+
 
               {tab === 'visibility' && (
                 <div>

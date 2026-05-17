@@ -84,3 +84,15 @@ export declare const visitCategoryOptions: string[];
 export declare const collaborationTypeOptions: string[];
 export declare const visitStatusOptions: string[];
 export declare const documentTypeOptions: string[];
+export declare const adminChargeOptions: string[];
+export declare const academicAdminOptions: string[];
+export declare const qualityAssuranceOptions: string[];
+export declare const researchInnovationOptions: string[];
+export declare const examinationEvaluationOptions: string[];
+export declare const adminSupportOptions: string[];
+export declare const departmentalChargesOptions: string[];
+export declare const specialAssignmentsOptions: string[];
+export declare const extraInstitutionalOptions: string[];
+
+
+
