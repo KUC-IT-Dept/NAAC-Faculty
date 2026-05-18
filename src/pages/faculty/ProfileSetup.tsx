@@ -19,6 +19,19 @@ import FdpWorkshops        from '../../components/sections/S12_FdpWorkshops';
 import OnlineCourses       from '../../components/sections/S13_OnlineCourses';
 import InternationalExp    from '../../components/sections/S14_InternationalExperience';
 import Documents           from '../../components/sections/S15_Documents';
+import AdminNonAcademicResp from '../../components/sections/S16_AdminNonAcademicResponsibilities';
+import AcademicAdmin from '../../components/sections/S17_AcademicAdministration';
+import QualityAssurance from '../../components/sections/S18_QualityAssurance';
+import ResearchInnovation from '../../components/sections/S19_ResearchAndInnovation';
+import ExaminationAndEvaluation from '../../components/sections/S20_ExaminationAndEvaluation';
+import AdministrativeSupport from '../../components/sections/S21_AdministrativeSupport';
+import DepartmentalCharges from '../../components/sections/S22_DepartmentalCharges';
+import SpecialAssignments from '../../components/sections/S23_SpecialAssignments';
+import ExtraInstitutionalActivities from '../../components/sections/S24_ExtraInstitutionalActivities';
+
+
+
+
 
 const STEPS = [
   { id: 0,  label: 'Password',      title: 'Change Your Password',          key: '' },
@@ -36,7 +49,16 @@ const STEPS = [
   { id: 12, label: 'FDP',           title: 'FDP & Workshops',               key: 'fdpWorkshops' },
   { id: 13, label: 'Online',        title: 'Online Courses & Certifications',key: 'onlineCourses' },
   { id: 14, label: 'International', title: 'International Experience',       key: 'internationalExperience' },
-  { id: 15, label: 'Documents',     title: 'Documents to Upload',            key: 'documents' },
+  { id: 15, label: 'Admin/Non-Acad', title: 'Administrative & Non-Academic Responsibilities', key: 'adminNonAcademicResponsibilities' },
+  { id: 16, label: 'Acad. Admin',   title: 'Academic Administration',                        key: 'academicAdministration' },
+  { id: 17, label: 'Quality Assur.',title: 'Quality Assurance',                              key: 'qualityAssurance' },
+  { id: 18, label: 'Research/Inn.', title: 'Research and Innovation',                        key: 'researchAndInnovation' },
+  { id: 19, label: 'Exam & Eval.',  title: 'Examination & Evaluation',                       key: 'examinationAndEvaluation' },
+  { id: 20, label: 'Admin Support', title: 'Administrative Support',                         key: 'administrativeSupport' },
+  { id: 21, label: 'Dept Charges',  title: 'Departmental Charges',                         key: 'departmentalCharges' },
+  { id: 22, label: 'Special Assign', title: 'Special Assignments',                          key: 'specialAssignments' },
+  { id: 23, label: 'Extra Inst',    title: 'Activities – Extra Institutional',               key: 'extraInstitutionalActivities' },
+  { id: 24, label: 'Documents',     title: 'Documents to Upload',                            key: 'documents' },
 ];
 
 const EMPTY: any = {
@@ -45,6 +67,14 @@ const EMPTY: any = {
   researchSupervision: { scholars: [], patents: [] },
   academicResponsibilities: { responsibilities: [], coursesTaught: [] },
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
+  adminNonAcademicResponsibilities: [],
+  academicAdministration: [], qualityAssurance: [],
+  researchAndInnovation: [],
+  examinationAndEvaluation: [],
+  administrativeSupport: [],
+  departmentalCharges: [],
+  specialAssignments: [],
+  extraInstitutionalActivities: [],
   documents: {},
 };
 
@@ -172,7 +202,16 @@ export default function ProfileSetup() {
             {step === 12 && <FdpWorkshops         data={profile.fdpWorkshops}              onChange={v => set('fdpWorkshops', v)} />}
             {step === 13 && <OnlineCourses        data={profile.onlineCourses}             onChange={v => set('onlineCourses', v)} />}
             {step === 14 && <InternationalExp     data={profile.internationalExperience}   onChange={v => set('internationalExperience', v)} />}
-            {step === 15 && <Documents            data={profile.documents}                onChange={v => set('documents', v)} />}
+            {step === 15 && <AdminNonAcademicResp data={profile.adminNonAcademicResponsibilities} onChange={v => set('adminNonAcademicResponsibilities', v)} />}
+            {step === 16 && <AcademicAdmin        data={profile.academicAdministration}           onChange={v => set('academicAdministration', v)} />}
+            {step === 17 && <QualityAssurance     data={profile.qualityAssurance}                 onChange={v => set('qualityAssurance', v)} />}
+            {step === 18 && <ResearchInnovation   data={profile.researchAndInnovation}            onChange={v => set('researchAndInnovation', v)} />}
+            {step === 19 && <ExaminationAndEvaluation data={profile.examinationAndEvaluation}         onChange={v => set('examinationAndEvaluation', v)} />}
+            {step === 20 && <AdministrativeSupport data={profile.administrativeSupport}             onChange={v => set('administrativeSupport', v)} />}
+            {step === 21 && <DepartmentalCharges data={profile.departmentalCharges}             onChange={v => set('departmentalCharges', v)} />}
+            {step === 22 && <SpecialAssignments data={profile.specialAssignments}             onChange={v => set('specialAssignments', v)} />}
+            {step === 23 && <ExtraInstitutionalActivities data={profile.extraInstitutionalActivities} onChange={v => set('extraInstitutionalActivities', v)} />}
+            {step === 24 && <Documents            data={profile.documents}                        onChange={v => set('documents', v)} />}
           </div>
 
           <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid var(--border)' }}>

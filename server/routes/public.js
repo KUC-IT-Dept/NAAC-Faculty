@@ -1,6 +1,7 @@
 const express = require('express');
 const Faculty = require('../models/Faculty');
 const User = require('../models/User');
+const DropdownConfig = require('../models/DropdownConfig');
 
 const router = express.Router();
 
@@ -47,6 +48,15 @@ router.get('/:username', async (req, res) => {
       fdpWorkshops: vis.fdpWorkshops ? faculty.fdpWorkshops : [],
       memberships: vis.memberships ? faculty.memberships : [],
       internationalExperience: vis.internationalExperience ? faculty.internationalExperience : [],
+      adminNonAcademicResponsibilities: vis.adminNonAcademicResponsibilities ? faculty.adminNonAcademicResponsibilities : [],
+      academicAdministration: vis.academicAdministration ? faculty.academicAdministration : [],
+      qualityAssurance: vis.qualityAssurance ? faculty.qualityAssurance : [],
+      researchAndInnovation: vis.researchAndInnovation ? faculty.researchAndInnovation : [],
+      examinationAndEvaluation: vis.examinationAndEvaluation ? faculty.examinationAndEvaluation : [],
+      administrativeSupport: vis.administrativeSupport ? faculty.administrativeSupport : [],
+      departmentalCharges: vis.departmentalCharges ? faculty.departmentalCharges : [],
+      specialAssignments: vis.specialAssignments ? faculty.specialAssignments : [],
+      extraInstitutionalActivities: vis.extraInstitutionalActivities ? faculty.extraInstitutionalActivities : [],
     };
 
     res.json(publicProfile);
@@ -75,6 +85,20 @@ router.get('/', async (req, res) => {
 
     res.json(publicList);
   } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+const ALLOWED_DROPDOWN_KEYS = ['department', 'nature_of_appointment', 'reason_for_leaving', 'designation_post'];
+
+router.get('/dropdowns', async (req, res) => {
+  try {
+    const dropdowns = await DropdownConfig.find({ key: { $in: ALLOWED_DROPDOWN_KEYS } });
+    const response = {};
+    dropdowns.forEach(dl => { response[dl.key] = dl.options; });
+    res.json(response);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
