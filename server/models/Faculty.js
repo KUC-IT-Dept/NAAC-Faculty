@@ -13,18 +13,9 @@ const visibilitySchema = new mongoose.Schema({
   patents: { type: Boolean, default: true },
   researchGuidance: { type: Boolean, default: true },
   adminResponsibilities: { type: Boolean, default: true },
-  adminNonAcademicResponsibilities: { type: Boolean, default: true },
-  academicAdministration: { type: Boolean, default: true },
-  qualityAssurance: { type: Boolean, default: true },
-  researchAndInnovation: { type: Boolean, default: true },
-  examinationAndEvaluation: { type: Boolean, default: true },
   fdpWorkshops: { type: Boolean, default: true },
   memberships: { type: Boolean, default: true },
   internationalExperience: { type: Boolean, default: true },
-  administrativeSupport: { type: Boolean, default: true },
-  departmentalCharges: { type: Boolean, default: true },
-  specialAssignments: { type: Boolean, default: true },
-  extraInstitutionalActivities: { type: Boolean, default: true },
 }, { _id: false });
 
 // Section 2: Qualifications
@@ -63,7 +54,7 @@ const workExpSchema = new mongoose.Schema({
 
 // Section 6: Publications
 const publicationSchema = new mongoose.Schema({
-  type: { type: String, enum: ['journal', 'book', 'bookChapter', 'conference'], default: 'journal' },
+  type: { type: String, enum: ['Journal Articles', 'Book Chapters', 'Books Authored / Edited', 'Conference Papers', 'journal', 'book', 'bookChapter', 'conference'], default: 'Journal Articles' },
   title: { type: String, default: '' },
   authors: { type: String, default: '' },
   authorRole: { type: String, default: '' }, // Principal / Co-Author
@@ -94,9 +85,11 @@ const projectSchema = new mongoose.Schema({
   title: { type: String, default: '' },
   fundingAgency: { type: String, default: '' },
   amountSanctioned: { type: String, default: '' },
-  duration: { type: String, default: '' },
+  startDate: { type: String, default: '' },
+  endDate: { type: String, default: '' },
   status: { type: String, default: '' }, // Completed / Ongoing
   role: { type: String, default: '' }, // PI / Co-PI
+  referenceNumber: { type: String, default: '' },
 }, { _id: false });
 
 // Section 7: Awards
@@ -104,6 +97,7 @@ const awardSchema = new mongoose.Schema({
   name: { type: String, default: '' },
   awardingAgency: { type: String, default: '' },
   dateOfAward: { type: String, default: '' },
+  yearReceived: { type: String, default: '' },
   level: { type: String, default: '' }, // International / National / State / University
 }, { _id: false });
 
@@ -122,81 +116,6 @@ const adminRespSchema = new mongoose.Schema({
   from: { type: String, default: '' },
   to: { type: String, default: '' },
 }, { _id: false });
-
-// Section 16: Administrative and Non-Academic Responsibilities
-const adminNonAcademicRespSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' }, // Principal / Campus Director / Registrar / Vice Principal / etc.
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-// Section 17: Academic Administration
-const academicAdminSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' },
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-// Section 18: Quality Assurance
-const qualityAssuranceSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' },
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-// Section 19: Research and Innovation
-const researchInnovationSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' },
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-// Section 20: Examination and Evaluation
-const examinationEvaluationSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' },
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-// Section 21: Administrative Support
-const administrativeSupportSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' },
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-// Section 22: Departmental Charges
-const departmentalChargesSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' },
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-// Section 23: Special Assignments
-const specialAssignmentsSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' },
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-// Section 24: Activities - Extra Institutional
-const extraInstitutionalActivitiesSchema = new mongoose.Schema({
-  administrativeCharge: { type: String, default: '' },
-  description: { type: String, default: '' },
-  from: { type: String, default: '' },
-  to: { type: String, default: '' },
-}, { _id: false });
-
-
-
 
 // Section 12: FDP / Workshops
 const fdpSchema = new mongoose.Schema({
@@ -365,32 +284,29 @@ const facultySchema = new mongoose.Schema({
   // Section 14: International Experience
   internationalExperience: { type: [internationalExpSchema], default: [] },
 
-  // Section 16: Administrative and Non-Academic Responsibilities
-  adminNonAcademicResponsibilities: { type: [adminNonAcademicRespSchema], default: [] },
-
-  // Section 17: Academic Administration
-  academicAdministration: { type: [academicAdminSchema], default: [] },
-
-  // Section 18: Quality Assurance
-  qualityAssurance: { type: [qualityAssuranceSchema], default: [] },
-
-  // Section 19: Research and Innovation
-  researchAndInnovation: { type: [researchInnovationSchema], default: [] },
-
-  // Section 20: Examination and Evaluation
-  examinationAndEvaluation: { type: [examinationEvaluationSchema], default: [] },
-
-  // Section 21: Administrative Support
-  administrativeSupport: { type: [administrativeSupportSchema], default: [] },
-
-  // Section 22: Departmental Charges
-  departmentalCharges: { type: [departmentalChargesSchema], default: [] },
-
-  // Section 23: Special Assignments
-  specialAssignments: { type: [specialAssignmentsSchema], default: [] },
-
-  // Section 24: Activities - Extra Institutional
-  extraInstitutionalActivities: { type: [extraInstitutionalActivitiesSchema], default: [] },
+  // Section 15: Documents (stored as key → URL map)
+  documents: {
+    photo:          { type: String, default: '' },
+    signature:      { type: String, default: '' },
+    aadhar:         { type: String, default: '' },
+    pan:            { type: String, default: '' },
+    ssc:            { type: String, default: '' },
+    hsc:            { type: String, default: '' },
+    ug:             { type: String, default: '' },
+    pg:             { type: String, default: '' },
+    phd:            { type: String, default: '' },
+    mphil:          { type: String, default: '' },
+    net:            { type: String, default: '' },
+    gate:           { type: String, default: '' },
+    apptLetter:     { type: String, default: '' },
+    experienceCert: { type: String, default: '' },
+    publications:   { type: String, default: '' },
+    noc:            { type: String, default: '' },
+    casteCert:      { type: String, default: '' },
+    disabilityCert: { type: String, default: '' },
+    dobProof:       { type: String, default: '' },
+    nationalId:     { type: String, default: '' },
+  },
 
 }, { timestamps: true });
 

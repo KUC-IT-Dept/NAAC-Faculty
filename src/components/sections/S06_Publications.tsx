@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { fg, inp, sel, FileInp, DropdownWithCustom } from './sectionUtils';
-import { publicationTypeOptions, publicationLevelOptions, indexedInOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
+import { publicationLevelOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
 
 /* --- Types --- */
 type Publication = {
@@ -37,12 +37,17 @@ const EMPTY: Publication = {
   year: '', volume: '', issue: '', issn: '', isbn: '', pages: '',
   impactFactor: '', indexedIn: '', peerReviewed: '', doi: '', level: '',
   presentationType: '', venue: '', conferenceDates: '', documentUrl: '',
-  editors: '', bookType: '', organizedBy: '', publishedInProceedings: '',
-  isEditing: true
+  editors: '', bookType: '', organizedBy: '', publishedInProceedings: ''
 };
 
-const PUB_TYPES = publicationTypeOptions;
-const INDEX_OPTS = indexedInOptions;
+const PUB_TABS = [
+  { id: 'Journal Articles', label: 'Journal Articles (6.1)' },
+  { id: 'Book Chapters', label: 'Book Chapters (6.2)' },
+  { id: 'Books Authored / Edited', label: 'Books Authored / Edited (6.3)' },
+  { id: 'Conference Papers', label: 'Conference Papers (6.4)' },
+];
+
+const INDEX_OPTS = ['SCI', 'Scopus', 'UGC-CARE', 'Web of Science', 'Others'];
 const BOOK_TYPES = ['Authored', 'Edited', 'Co-authored'];
 const LEVELS = publicationLevelOptions;
 const YES_NO = peerReviewedStatusOptions;
@@ -64,10 +69,6 @@ function PubForm({ item, onChange }: {
 
   return (
     <>
-      <div className="form-row form-row-3">
-        {fg('Publication Type *', sel(item.type, v => onChange('type', v), PUB_TYPES))}
-      </div>
-
       {t === 'Journal Articles' && (
         <>
           <div className="form-row form-row-2">
@@ -309,12 +310,14 @@ function PreviewCard({
   data,
   onChange,
   toggleEdit,
+  disabled
 }: {
   p: Publication;
   i: number;
   data: Publication[];
   onChange: (d: Publication[]) => void;
   toggleEdit: (i: number, state: boolean) => void;
+  disabled?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -346,10 +349,10 @@ function PreviewCard({
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             {expanded ? 'Hide' : 'View'}
           </button>
-          <button type="button" style={btnStyles.edit} onClick={(e) => { e.stopPropagation(); toggleEdit(i, true); }}>
+          <button type="button" style={btnStyles.edit} onClick={(e) => { e.stopPropagation(); toggleEdit(i, true); }} disabled={disabled}>
             <Edit2 size={14} /> Edit
           </button>
-          <button type="button" style={btnStyles.delete} onClick={(e) => { e.stopPropagation(); onChange(data.filter((_, idx) => idx !== i)); }}>
+          <button type="button" style={btnStyles.delete} onClick={(e) => { e.stopPropagation(); onChange(data.filter((_, idx) => idx !== i)); }} disabled={disabled}>
             <Trash2 size={14} /> Delete
           </button>
         </div>
@@ -410,6 +413,8 @@ export default function Publications({
   data: Publication[];
   onChange: (d: Publication[]) => void;
 }) {
+  const [pendingNewItem, setPendingNewItem] = useState<Publication | null>(null);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
   const upd = (i: number, k: keyof Publication, v: string) => {
     const arr = [...data];
@@ -417,20 +422,37 @@ export default function Publications({
     onChange(arr);
   };
 
-  const toggleEdit = (i: number, state: boolean) => {
-    const arr = [...data];
-    arr[i] = { ...arr[i], isEditing: state };
-    if (!state) {
-      arr.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
-    }
-    onChange(arr);
+  const isComplete = (p: Publication) => !!(p.title && p.type);
+
+  const handleAdd = () => {
+    setPendingNewItem({ ...EMPTY });
+    setEditingItemIndex(null);
   };
 
-  const isComplete = (p: Publication) => !!(p.title && p.type);
+  const handleSavePending = () => {
+    if (pendingNewItem && isComplete(pendingNewItem)) {
+      const arr = [pendingNewItem, ...data];
+      arr.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+      onChange(arr);
+      setPendingNewItem(null);
+    }
+  };
+
+  const toggleEdit = (i: number, state: boolean) => {
+    if (state) {
+      setEditingItemIndex(i);
+      setPendingNewItem(null);
+    } else {
+      setEditingItemIndex(null);
+      const arr = [...data];
+      arr.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+      onChange(arr);
+    }
+  };
 
   return (
     <>
-      <div style={{ marginBottom: 4 }}>
+      <div style={{ marginBottom: 16 }}>
         {data.length > 0 && <SummaryBanner data={data} />}
       </div>
 
@@ -438,58 +460,143 @@ export default function Publications({
         <button
           type="button"
           style={btnStyles.add}
-          onClick={() => onChange([{ ...EMPTY }, ...data])}
+          onClick={handleAdd}
+          disabled={pendingNewItem !== null || editingItemIndex !== null}
         >
           <Plus size={16} /> Add Publication
         </button>
       </div>
 
-      {data.length === 0 && (
+      {data.length === 0 && pendingNewItem === null && (
         <div className="empty-state">
           No publications added yet. Click <strong>Add Publication</strong> to get started.
         </div>
       )}
 
       <div className="items-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {data.map((p, i) => (
-          <div key={i} className={`item-card ${p.isEditing ? 'is-editing' : 'is-preview'}`}>
-            {p.isEditing ? (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>
-                    {!p.title ? 'New Publication' : 'Editing Publication'}
-                  </span>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      type="button"
-                      style={isComplete(p) ? btnStyles.save : btnStyles.saveDisabled}
-                      disabled={!isComplete(p)}
-                      title={!isComplete(p) ? 'Please fill in required fields' : 'Save entry'}
-                      onClick={() => toggleEdit(i, false)}
-                    >
-                      <Check size={14} /> Save
-                    </button>
-                    <button
-                      type="button" style={btnStyles.delete}
-                      onClick={() => onChange(data.filter((_, idx) => idx !== i))}
-                    >
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-                </div>
-                <PubForm item={p} onChange={(k, v) => upd(i, k, v)} />
-              </>
-            ) : (
-              <PreviewCard
-                p={p}
-                i={i}
-                data={data}
-                onChange={onChange}
-                toggleEdit={toggleEdit}
-              />
-            )}
+        {pendingNewItem && (
+          <div className="item-card is-editing">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Publication</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  style={isComplete(pendingNewItem) ? btnStyles.save : btnStyles.saveDisabled}
+                  disabled={!isComplete(pendingNewItem)}
+                  onClick={handleSavePending}
+                >
+                  <Check size={14} /> Save
+                </button>
+                <button
+                  type="button"
+                  style={btnStyles.cancel}
+                  onClick={() => setPendingNewItem(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
+              {PUB_TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setPendingNewItem({ ...pendingNewItem, type: tab.id })}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: pendingNewItem.type === tab.id ? 'none' : '1px solid #e2e8f0',
+                    background: pendingNewItem.type === tab.id ? '#2563eb' : '#ffffff',
+                    color: pendingNewItem.type === tab.id ? '#ffffff' : '#475569',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: pendingNewItem.type === tab.id ? '0 4px 6px -1px rgba(37, 99, 235, 0.2)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <PubForm 
+              item={pendingNewItem} 
+              onChange={(k, v) => setPendingNewItem({ ...pendingNewItem, [k]: v })} 
+            />
           </div>
-        ))}
+        )}
+
+        {data.map((p, i) => {
+          const isEditing = editingItemIndex === i;
+          return (
+            <div key={i} className={`item-card ${isEditing ? 'is-editing' : 'is-preview'}`}>
+              {isEditing ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Publication</span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        type="button"
+                        style={isComplete(p) ? btnStyles.save : btnStyles.saveDisabled}
+                        disabled={!isComplete(p)}
+                        onClick={() => toggleEdit(i, false)}
+                      >
+                        <Check size={14} /> Done
+                      </button>
+                      <button
+                        type="button" style={btnStyles.delete}
+                        onClick={() => {
+                          const arr = data.filter((_, idx) => idx !== i);
+                          setEditingItemIndex(null);
+                          onChange(arr);
+                        }}
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
+                    {PUB_TABS.map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => upd(i, 'type', tab.id)}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          border: p.type === tab.id ? 'none' : '1px solid #e2e8f0',
+                          background: p.type === tab.id ? '#2563eb' : '#ffffff',
+                          color: p.type === tab.id ? '#ffffff' : '#475569',
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          boxShadow: p.type === tab.id ? '0 4px 6px -1px rgba(37, 99, 235, 0.2)' : 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <PubForm item={p} onChange={(k, v) => upd(i, k, v)} />
+                </>
+              ) : (
+                <PreviewCard
+                  p={p}
+                  i={i}
+                  data={data}
+                  onChange={onChange}
+                  toggleEdit={toggleEdit}
+                  disabled={pendingNewItem !== null || editingItemIndex !== null}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     </>
   );

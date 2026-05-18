@@ -18,9 +18,40 @@ export default function FacultyDashboard() {
 
   if (loading) return <AppLayout title="Faculty Dashboard"><div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div className="spinner" style={{ width: 40, height: 40, borderWidth: 3 }} /></div></AppLayout>;
 
-  const pct = profile?.completionPercentage || 0;
   const pi = profile?.personalInfo || {};
   const employment = profile?.employmentDetails || {};
+
+  // Calculate Personal Information Progress
+  const piCoreFields = [
+    'firstName', 'lastName', 'dateOfBirth', 'gender', 'bloodGroup',
+    'mobileNumber', 'officialEmailId', 'permanentAddress', 'permanentCity',
+    'permanentState', 'permanentPin', 'aadhaarNumber', 'panNumber', 'photoUrl'
+  ];
+  const piCompleted = piCoreFields.filter(f => pi[f] && typeof pi[f] === 'string' && pi[f].trim() !== '').length;
+  const piProgress = profile ? Math.round((piCompleted / piCoreFields.length) * 100) : 0;
+
+  // Calculate Documents Progress
+  const requiredDocs = ['photo', 'signature', 'aadhar', 'ssc', 'hsc', 'ug', 'apptLetter'];
+  const docs = profile?.documents || {};
+  const docsCompleted = requiredDocs.filter(d => docs[d]).length;
+  const docsProgress = profile ? Math.round((docsCompleted / requiredDocs.length) * 100) : 0;
+
+  // Calculate Main Profile Completion
+  const mainSectionsStatus = [
+    piProgress >= 50, // Personal Information (at least 50% filled)
+    (profile?.qualifications?.length || 0) > 0, // Qualifications
+    !!employment?.designation, // Employment Details
+    docsProgress >= 50, // Documents (at least 50% uploaded)
+    (profile?.publications?.length || 0) > 0, // Publications
+    (profile?.projects?.length || 0) > 0, // Projects
+    (profile?.awards?.length || 0) > 0, // Awards & Honours
+    !!(pi.orcidId || pi.googleScholarId || pi.scopusId), // Research IDs
+    Object.keys(profile?.visibility || {}).length > 0, // Visibility Settings
+    (profile?.workExperience?.length || 0) > 0 // Other sections (e.g. Work Experience)
+  ];
+  const completedSectionsCount = mainSectionsStatus.filter(Boolean).length;
+  const pct = profile ? Math.round((completedSectionsCount / mainSectionsStatus.length) * 100) : 0;
+
   const rawName = pi.fullName || [pi.firstName, pi.middleName, pi.lastName].filter(Boolean).join(' ').trim() || user?.username;
   const displayName = rawName?.replace(/^temp--/i, '').trim();
   const displayHeadline = pi.professionalHeadline;
@@ -169,14 +200,14 @@ export default function FacultyDashboard() {
                     Personal Information
                   </h3>
                   <span style={{ fontSize: '28px', fontWeight: 700, color: '#2563EB', lineHeight: 1 }}>
-                    75%
+                    {piProgress}%
                   </span>
                 </div>
 
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ width: '100%', height: '10px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{
-                      width: '75%', height: '100%',
+                      width: `${piProgress}%`, height: '100%',
                       background: 'linear-gradient(90deg, #2563EB, #3B82F6)',
                       borderRadius: '999px',
                       transition: 'width 1s ease-out'
@@ -185,9 +216,9 @@ export default function FacultyDashboard() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <AlertCircle size={16} color="#F59E0B" />
-                  <span style={{ color: '#64748B', fontWeight: 500, fontSize: '0.9rem' }}>
-                    This section is 75% complete.
+                  {piProgress === 100 ? <CheckCircle2 size={16} color="#059669" /> : <AlertCircle size={16} color="#F59E0B" />}
+                  <span style={{ color: piProgress === 100 ? '#059669' : '#64748B', fontWeight: 500, fontSize: '0.9rem' }}>
+                    This section is {piProgress}% complete.
                   </span>
                 </div>
               </div>
@@ -204,14 +235,14 @@ export default function FacultyDashboard() {
                     Documents
                   </h3>
                   <span style={{ fontSize: '28px', fontWeight: 700, color: '#EA580C', lineHeight: 1 }}>
-                    60%
+                    {docsProgress}%
                   </span>
                 </div>
 
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ width: '100%', height: '10px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{
-                      width: '60%', height: '100%',
+                      width: `${docsProgress}%`, height: '100%',
                       background: 'linear-gradient(90deg, #EA580C, #F97316)',
                       borderRadius: '999px',
                       transition: 'width 1s ease-out'
@@ -220,9 +251,9 @@ export default function FacultyDashboard() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <AlertCircle size={16} color="#F59E0B" />
-                  <span style={{ color: '#64748B', fontWeight: 500, fontSize: '0.9rem' }}>
-                    This section is 60% complete.
+                  {docsProgress === 100 ? <CheckCircle2 size={16} color="#059669" /> : <AlertCircle size={16} color="#F59E0B" />}
+                  <span style={{ color: docsProgress === 100 ? '#059669' : '#64748B', fontWeight: 500, fontSize: '0.9rem' }}>
+                    This section is {docsProgress}% complete.
                   </span>
                 </div>
               </div>
