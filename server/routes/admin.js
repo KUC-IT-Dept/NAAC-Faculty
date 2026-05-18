@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const Faculty = require('../models/Faculty');
+const DropdownConfig = require('../models/DropdownConfig');
 const { auth, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
@@ -89,6 +90,41 @@ router.get('/stats', async (req, res) => {
     const profilesComplete = await Faculty.countDocuments({ profileComplete: true });
     res.json({ total, active, inactive: total - active, profilesComplete });
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
+});
+
+const ALLOWED_DROPDOWN_KEYS = ['department', 'nature_of_appointment', 'reason_for_leaving', 'designation_post'];
+
+// GET /api/admin/dropdowns
+router.get('/dropdowns', async (req, res) => {
+  try {
+    const dropdowns = await DropdownConfig.find({ key: { $in: ALLOWED_DROPDOWN_KEYS } });
+    const response = {};
+    dropdowns.forEach(dl => { response[dl.key] = dl.options; });
+    res.json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/admin/dropdowns/:key
+router.patch('/dropdowns/:key', async (req, res) => {
+  try {
+    const key = req.params.key;
+    if (!ALLOWED_DROPDOWN_KEYS.includes(key)) return res.status(400).json({ message: 'Invalid dropdown key' });
+    const { options } = req.body;
+    if (!Array.isArray(options)) return res.status(400).json({ message: 'Options must be an array' });
+
+    const updated = await DropdownConfig.findOneAndUpdate(
+      { key },
+      { options },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 module.exports = router;

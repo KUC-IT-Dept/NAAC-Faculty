@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { fg, inp, sel, dateInp } from './sectionUtils';
+import { designationPostOptions, departmentOptions, natureOfAppointmentOptions, reasonForLeavingOptions, loadDropdownOptionsFromServer } from '../../shared/dropdownOptions';
 
 type UploadedFile = {
   name: string;
@@ -31,18 +32,6 @@ const EMPTY: WorkExp = {
   isEditing: true,
 };
 
-const DEFAULT_DESIGNATIONS = ['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Researcher', 'Industry Professional'];
-const DEFAULT_DEPARTMENTS = ['Computer Science', 'Information Technology', 'Electronics', 'Electrical', 'Mechanical', 'Civil', 'Mathematics', 'Physics', 'Chemistry', 'Commerce', 'Management', 'English'];
-const DEFAULT_NATURES = [
-  'Regular / Permanent',
-  'Contractual',
-  'Guest Faculty',
-  'Visiting Faculty',
-  'Management Quota Staff',
-  'Hourly / Lecture-based',
-  'Ad-hoc Teacher',
-];
-const DEFAULT_REASONS = ['Career Growth', 'Higher Studies', 'Relocation', 'Better Opportunity', 'Contract Completed', 'Personal Reasons'];
 
 /* ─── Shared Button Styles ───────────────────────────────────── */
 const btnStyles = {
@@ -205,6 +194,25 @@ function PreviewCard({
 
 /* ─── Main Component ─────────────────────────────────────────── */
 export default function WorkExperience({ data, onChange }: { data: WorkExp[]; onChange: (d: WorkExp[]) => void; }) {
+  const [designationOptionsState, setDesignationOptionsState] = useState<string[]>(designationPostOptions);
+  const [departmentOptionsState, setDepartmentOptionsState] = useState<string[]>(departmentOptions);
+  const [natureOptionsState, setNatureOptionsState] = useState<string[]>(natureOfAppointmentOptions);
+  const [reasonOptionsState, setReasonOptionsState] = useState<string[]>(reasonForLeavingOptions);
+
+  useEffect(() => {
+    const refresh = () => {
+      setDesignationOptionsState([...designationPostOptions]);
+      setDepartmentOptionsState([...departmentOptions]);
+      setNatureOptionsState([...natureOfAppointmentOptions]);
+      setReasonOptionsState([...reasonForLeavingOptions]);
+    };
+
+    refresh();
+    window.addEventListener('dropdownOptionsUpdated', refresh);
+    loadDropdownOptionsFromServer().catch(() => {});
+
+    return () => window.removeEventListener('dropdownOptionsUpdated', refresh);
+  }, []);
 
   const upd = (i: number, k: keyof WorkExp, v: string) => {
     const arr = [...data];
@@ -294,14 +302,14 @@ export default function WorkExperience({ data, onChange }: { data: WorkExp[]; on
                 {/* ── Form fields ── */}
                 <div className="form-row form-row-3">
                   {fg('Institution Name *', inp(e.organization, v => upd(i, 'organization', v)))}
-                  {fg('Designation', sel(e.designation, v => upd(i, 'designation', v), DEFAULT_DESIGNATIONS))}
-                  {fg('Department', sel(e.department || '', v => upd(i, 'department', v), DEFAULT_DEPARTMENTS))}
+                  {fg('Designation / Post', sel(e.designation, v => upd(i, 'designation', v), designationOptionsState))}
+                  {fg('Department', sel(e.department || '', v => upd(i, 'department', v), departmentOptionsState))}
                 </div>
 
                 <div className="form-row form-row-3">
                   {fg('From Date', dateInp(e.from, v => upd(i, 'from', v)))}
                   {fg('To Date', dateInp(e.to, v => upd(i, 'to', v)))}
-                  {fg('Nature of Appointment', sel(e.nature, v => upd(i, 'nature', v), DEFAULT_NATURES))}
+                  {fg('Nature of Appointment', sel(e.nature, v => upd(i, 'nature', v), natureOptionsState))}
                 </div>
 
                 <div style={{ marginBottom: 12, fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>
@@ -309,7 +317,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExp[]; on
                 </div>
 
                 <div className="form-row form-row-2">
-                  {fg('Reason for Leaving', sel(e.reasonForLeaving, v => upd(i, 'reasonForLeaving', v), DEFAULT_REASONS))}
+                  {fg('Reason for Leaving', sel(e.reasonForLeaving, v => upd(i, 'reasonForLeaving', v), reasonOptionsState))}
                 </div>
 
                 <div className="form-group" style={{ marginTop: 10 }}>

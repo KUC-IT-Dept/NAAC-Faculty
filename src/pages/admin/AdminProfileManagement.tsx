@@ -8,7 +8,7 @@ import {
   degreeLevelOptions, degreeNameOptions, specializationOptions, divisionOptions, studyModeOptions, gradeTypeOptions,
   examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions,
   designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, approvalStatusOptions, payScaleOptions,
-  designationPostOptions, natureOfWorkOptions, employmentTypeOptions, institutionTypeWorkOptions, experienceCategoryOptions,
+  designationPostOptions, reasonForLeavingOptions,
   publicationTypeOptions, publicationLevelOptions, authorRoleOptions, indexedInOptions, peerReviewedStatusOptions, journalCategoryOptions,
   awardCategoryOptions, awardLevelOptions, awardingAgencyTypeOptions, honourTypeOptions, recognitionStatusOptions,
   fundingAgencyOptions, projectStatusOptions, roleInProjectOptions, projectCategoryOptions, fundingTypeOptions,
@@ -18,7 +18,8 @@ import {
   programmeTypeOptions, sponsoringAgencyOptions, participationOptions,
   coursePlatformOptions, courseTypeOptions, completionStatusOptions, certificationTypeOptions, learningModeOptions,
   countryVisitOptions, purposeOfVisitOptions, fundingSourceOptions, visitCategoryOptions, collaborationTypeOptions, visitStatusOptions,
-  documentTypeOptions
+  documentTypeOptions,
+  persistDropdownOptions, saveDropdownOptionsToServer, loadDropdownOptionsFromServer
 } from '../../shared/dropdownOptions';
 
 export const sectionsData = [
@@ -69,10 +70,9 @@ export const sectionsData = [
   {
     id: 'work-experience', title: '05 - Work Experience', configs: [
       { name: 'Designation / Post', options: designationPostOptions },
-      { name: 'Nature of Work', options: natureOfWorkOptions },
-      { name: 'Employment Type', options: employmentTypeOptions },
-      { name: 'Institution Type', options: institutionTypeWorkOptions },
-      { name: 'Experience Category', options: experienceCategoryOptions }
+      { name: 'Department', options: departmentOptions },
+      { name: 'Nature of Appointment', options: natureOfAppointmentOptions },
+      { name: 'Reason for Leaving', options: reasonForLeavingOptions }
     ]
   },
   {
@@ -179,13 +179,26 @@ export function EditProfileLayout() {
   );
 }
 
-function DropdownOption({ opt, isSelected, onClick }: { opt: string, isSelected: boolean, onClick: () => void }) {
+interface DropdownOptionProps {
+  opt: string;
+  isSelected: boolean;
+  onSelect: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  isEditing: boolean;
+  editValue?: string;
+  onEditChange?: (value: string) => void;
+  onEditSave?: () => void;
+  onEditCancel?: () => void;
+}
+
+function DropdownOption({ opt, isSelected, onSelect, onEdit, onDelete, isEditing, editValue, onEditChange, onEditSave, onEditCancel }: DropdownOptionProps) {
   const [isHovered, setIsHovered] = useState(false);
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
+      onClick={onSelect}
       style={{
         height: '40px',
         padding: '10px 12px',
@@ -199,39 +212,167 @@ function DropdownOption({ opt, isSelected, onClick }: { opt: string, isSelected:
         color: isSelected ? '#FFFFFF' : '#111827'
       }}
     >
-      <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{opt}</span>
-      {isHovered && (
-        <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
-          <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: isSelected ? '#BFDBFE' : '#64748B', padding: '4px', borderRadius: '4px' }} onMouseOver={e => e.currentTarget.style.color = isSelected ? '#FFFFFF' : '#2563EB'} onMouseOut={e => e.currentTarget.style.color = isSelected ? '#BFDBFE' : '#64748B'}>
-            <Edit2 size={14} />
-          </button>
-          <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: isSelected ? '#FECACA' : '#64748B', padding: '4px', borderRadius: '4px' }} onMouseOver={e => e.currentTarget.style.color = isSelected ? '#FFFFFF' : '#EF4444'} onMouseOut={e => e.currentTarget.style.color = isSelected ? '#FECACA' : '#64748B'}>
-            <Trash2 size={14} />
-          </button>
-        </div>
+      {isEditing ? (
+        <input
+          autoFocus
+          value={editValue}
+          onChange={e => onEditChange?.(e.target.value)}
+          onClick={e => e.stopPropagation()}
+          onKeyDown={e => e.key === 'Enter' && onEditSave?.()}
+          style={{
+            flex: 1,
+            marginRight: 8,
+            height: '100%',
+            borderRadius: 8,
+            border: '1px solid #cbd5e1',
+            padding: '8px 10px',
+            fontSize: '0.9rem'
+          }}
+        />
+      ) : (
+        <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{opt}</span>
       )}
+      <div style={{ display: 'flex', gap: '8px' }} onClick={e => e.stopPropagation()}>
+        {isEditing ? (
+          <>
+            <button
+              type="button"
+              onClick={onEditSave}
+              style={{ background: '#2563EB', border: 'none', color: '#FFFFFF', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', fontSize: '0.8rem' }}
+            >Save</button>
+            <button
+              type="button"
+              onClick={onEditCancel}
+              style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', color: '#475569', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', fontSize: '0.8rem' }}
+            >Cancel</button>
+          </>
+        ) : isHovered ? (
+          <>
+            <button
+              type="button"
+              aria-label="Edit option"
+              onClick={onEdit}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: isSelected ? '#BFDBFE' : '#64748B', padding: '4px', borderRadius: '4px' }}
+              onMouseOver={e => e.currentTarget.style.color = isSelected ? '#FFFFFF' : '#2563EB'}
+              onMouseOut={e => e.currentTarget.style.color = isSelected ? '#BFDBFE' : '#64748B'}
+            >
+              <Edit2 size={14} />
+            </button>
+            <button
+              type="button"
+              aria-label="Delete option"
+              onClick={onDelete}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: isSelected ? '#FECACA' : '#64748B', padding: '4px', borderRadius: '4px' }}
+              onMouseOver={e => e.currentTarget.style.color = isSelected ? '#FFFFFF' : '#EF4444'}
+              onMouseOut={e => e.currentTarget.style.color = isSelected ? '#FECACA' : '#64748B'}
+            >
+              <Trash2 size={14} />
+            </button>
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }
 
+const FIELD_STORAGE_KEYS: Record<string, string> = {
+  'Designation / Post': 'designationPostOptions',
+  'Department': 'departmentOptions',
+  'Nature of Appointment': 'natureOfAppointmentOptions',
+  'Reason for Leaving': 'reasonForLeavingOptions'
+};
+
 function DropdownConfigList({ config }: { config: any }) {
+  const [options, setOptions] = useState<string[]>([...config.options]);
   const [selected, setSelected] = useState(config.options[0] || 'Select an option');
   const [isOpen, setIsOpen] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingValue, setEditingValue] = useState('');
+  const [newOption, setNewOption] = useState('');
+  const [showNewInput, setShowNewInput] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setSelected(config.options[0] || 'Select an option');
-  }, [config]);
+    const current = [...config.options];
+    setOptions(current);
+    setSelected(current[0] || 'Select an option');
+  }, [config.options]);
+
+  useEffect(() => {
+    const handleConfigUpdate = () => {
+      const current = [...config.options];
+      setOptions(current);
+      setSelected(current[0] || 'Select an option');
+    };
+    window.addEventListener('dropdownOptionsUpdated', handleConfigUpdate);
+    return () => window.removeEventListener('dropdownOptionsUpdated', handleConfigUpdate);
+  }, [config.options]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setEditingIndex(null);
+        setShowNewInput(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const persistOptions = (updated: string[]) => {
+    config.options.splice(0, config.options.length, ...updated);
+    setOptions(updated);
+    const storageKey = FIELD_STORAGE_KEYS[config.name];
+    if (storageKey) {
+      persistDropdownOptions(storageKey, updated);
+      saveDropdownOptionsToServer(storageKey, updated);
+    }
+  };
+
+  const handleSelect = (option: string) => {
+    setSelected(option);
+    setIsOpen(false);
+  };
+
+  const handleAddOption = () => {
+    const trimmed = newOption.trim();
+    if (!trimmed) return;
+    if (!options.includes(trimmed)) {
+      const updated = [...options, trimmed];
+      persistOptions(updated);
+    }
+    setSelected(trimmed);
+    setNewOption('');
+    setShowNewInput(false);
+    setIsOpen(false);
+  };
+
+  const handleDeleteOption = (idx: number) => {
+    const updated = options.filter((_, i) => i !== idx);
+    persistOptions(updated);
+    if (selected === options[idx]) {
+      setSelected(updated[0] || 'Select an option');
+    }
+  };
+
+  const handleEditOption = (idx: number) => {
+    setEditingIndex(idx);
+    setEditingValue(options[idx]);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingIndex === null) return;
+    const trimmed = editingValue.trim();
+    if (!trimmed) return;
+    const updated = options.map((opt, idx) => idx === editingIndex ? trimmed : opt);
+    persistOptions(updated);
+    if (selected === options[editingIndex]) {
+      setSelected(trimmed);
+    }
+    setEditingIndex(null);
+    setEditingValue('');
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -280,40 +421,64 @@ function DropdownConfigList({ config }: { config: any }) {
             transformOrigin: 'top center'
           }}>
             <div className="dropdown-scroll" style={{ maxHeight: '260px', overflowY: 'auto' }}>
-              {config.options.map((opt: string, oIdx: number) => {
+              {options.map((opt: string, oIdx: number) => {
                 const isSelected = selected === opt;
                 return (
                   <DropdownOption
                     key={oIdx}
                     opt={opt}
                     isSelected={isSelected}
-                    onClick={() => {
-                      setSelected(opt);
-                      setIsOpen(false);
-                    }}
+                    isEditing={editingIndex === oIdx}
+                    editValue={editingValue}
+                    onSelect={() => handleSelect(opt)}
+                    onEdit={() => handleEditOption(oIdx)}
+                    onDelete={() => handleDeleteOption(oIdx)}
+                    onEditChange={setEditingValue}
+                    onEditSave={handleSaveEdit}
+                    onEditCancel={() => setEditingIndex(null)}
                   />
                 );
               })}
             </div>
-            <button style={{
-              height: '40px',
-              padding: '0 12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'transparent',
-              border: 'none',
-              borderRadius: '10px',
-              color: '#2563EB',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'background 150ms ease',
-              width: '100%',
-              marginTop: '4px'
-            }} onMouseOver={e => e.currentTarget.style.background = '#EFF6FF'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-              <Plus size={14} /> Add Custom Option
-            </button>
+            {showNewInput ? (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
+                <input
+                  autoFocus
+                  value={newOption}
+                  onChange={e => setNewOption(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddOption()}
+                  placeholder="Add new option"
+                  style={{ flex: 1, height: '40px', padding: '0 12px', borderRadius: '12px', border: '1px solid #D1D5DB', fontSize: '0.95rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddOption}
+                  style={{ height: '40px', padding: '0 16px', borderRadius: '12px', border: 'none', background: '#2563EB', color: '#fff', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Add
+                </button>
+              </div>
+            ) : (
+              <button style={{
+                height: '40px',
+                padding: '0 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'transparent',
+                border: 'none',
+                borderRadius: '10px',
+                color: '#2563EB',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'background 150ms ease',
+                width: '100%',
+                marginTop: '4px'
+              }} onMouseOver={e => e.currentTarget.style.background = '#EFF6FF'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} onClick={() => setShowNewInput(true)}>
+                <Plus size={14} /> Add Custom Option
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -324,6 +489,10 @@ function DropdownConfigList({ config }: { config: any }) {
 export function AdminProfileSection() {
   const { sectionId } = useParams();
   const currentSection = sectionsData.find(s => s.id === sectionId);
+
+  useEffect(() => {
+    loadDropdownOptionsFromServer();
+  }, []);
 
   if (!currentSection) {
     return (
@@ -340,7 +509,7 @@ export function AdminProfileSection() {
         <p style={{ color: '#64748B', margin: 0 }}>Manage dropdown configurations for this section.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(220px, 1fr))', gap: '24px' }}>
         {currentSection.configs.map((config) => (
           <DropdownConfigList key={`${currentSection.id}-${config.name}`} config={config} />
         ))}
