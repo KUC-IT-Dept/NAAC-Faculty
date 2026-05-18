@@ -1,86 +1,7 @@
-import api from '../lib/api';
-
 // Shared dropdown options for Admin and Faculty panels
-const DROPDOWN_STORAGE_KEY = 'dynamicDropdownOptions';
-
-const loadStoredDropdownOptions = () => {
-  if (typeof window === 'undefined') return {};
-  try {
-    const raw = window.localStorage.getItem(DROPDOWN_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
-const storedOptions = loadStoredDropdownOptions();
-
-const hydrate = (key, fallback) => Array.isArray(storedOptions[key]) ? storedOptions[key] : fallback;
-
-const dropdownUpdateEvent = new Event('dropdownOptionsUpdated');
-
-export function persistDropdownOptions(key, value) {
-  if (typeof window === 'undefined') return;
-  try {
-    const stored = loadStoredDropdownOptions();
-    stored[key] = value;
-    window.localStorage.setItem(DROPDOWN_STORAGE_KEY, JSON.stringify(stored));
-    window.dispatchEvent(dropdownUpdateEvent);
-  } catch {
-    // ignore storage failures
-  }
-}
-
-const applyDropdownData = (data) => {
-  if (data.designation_post && Array.isArray(data.designation_post)) {
-    designationPostOptions.splice(0, designationPostOptions.length, ...data.designation_post);
-  }
-  if (data.department && Array.isArray(data.department)) {
-    departmentOptions.splice(0, departmentOptions.length, ...data.department);
-  }
-  if (data.nature_of_appointment && Array.isArray(data.nature_of_appointment)) {
-    natureOfAppointmentOptions.splice(0, natureOfAppointmentOptions.length, ...data.nature_of_appointment);
-  }
-  if (data.reason_for_leaving && Array.isArray(data.reason_for_leaving)) {
-    reasonForLeavingOptions.splice(0, reasonForLeavingOptions.length, ...data.reason_for_leaving);
-  }
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(dropdownUpdateEvent);
-  }
-};
-
-export async function loadDropdownOptionsFromServer() {
-  if (typeof window === 'undefined') return;
-  try {
-    const response = await api.get('/profile/dropdowns');
-    if (response?.data) {
-      applyDropdownData(response.data);
-    }
-  } catch {
-    // ignore API failures, keep local defaults
-  }
-}
-
-const SERVER_KEY_MAP = {
-  designationPostOptions: 'designation_post',
-  departmentOptions: 'department',
-  natureOfAppointmentOptions: 'nature_of_appointment',
-  reasonForLeavingOptions: 'reason_for_leaving'
-};
-
-export async function saveDropdownOptionsToServer(key, value) {
-  if (typeof window === 'undefined') return;
-  const serverKey = SERVER_KEY_MAP[key];
-  if (!serverKey) return;
-  try {
-    await api.patch(`/admin/dropdowns/${serverKey}`, { options: value });
-  } catch {
-    // ignore API failures during update
-  }
-}
 
 // Personal Information
-export const genderOptions = hydrate('genderOptions', ['Male', 'Female', 'Transgender', 'Other']);
+export const genderOptions = ['Male', 'Female', 'Transgender', 'Other'];
 export const bloodGroupOptions = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 export const nationalityOptions = ['Indian', 'Other'];
 export const religionOptions = ['Hindu', 'Muslim', 'Christian', 'Buddhist', 'Sikh', 'Jain', 'Other'];
@@ -108,21 +29,20 @@ export const validityStatusOptions = ['Lifetime', 'Valid', 'Expired', 'Limited P
 export const fellowshipAgencyOptions = ['UGC', 'CSIR', 'University', 'NBHM', 'DAE'];
 
 // Employment Details
-export const designationOptions = hydrate('designationOptions', ['Assistant Professor', 'Associate Professor', 'Professor', 'HOD', 'Dean']);
-export const departmentOptions = hydrate('departmentOptions', ['Computer Science', 'Physics', 'Mathematics', 'Commerce', 'English']);
-export const institutionTypeOptions = hydrate('institutionTypeOptions', ['State', 'Central', 'Private', 'Deemed']);
-export const affiliatedUniversityOptions = hydrate('affiliatedUniversityOptions', ['University of Delhi', 'Anna University', 'Mumbai University']);
-export const natureOfAppointmentOptions = hydrate('natureOfAppointmentOptions', ['Regular', 'Temporary', 'Guest', 'Contract']);
-export const approvalStatusOptions = hydrate('approvalStatusOptions', ['Approved', 'Pending', 'Rejected']);
-export const payScaleOptions = hydrate('payScaleOptions', ['AGP 6000', 'AGP 7000', 'AGP 8000', 'Level 10', 'Level 11']);
+export const designationOptions = ['Assistant Professor', 'Associate Professor', 'Professor', 'HOD', 'Dean'];
+export const departmentOptions = ['Computer Science', 'Physics', 'Mathematics', 'Commerce', 'English'];
+export const institutionTypeOptions = ['State', 'Central', 'Private', 'Deemed'];
+export const affiliatedUniversityOptions = ['University of Delhi', 'Anna University', 'Mumbai University'];
+export const natureOfAppointmentOptions = ['Regular', 'Temporary', 'Contract', 'Guest Faculty'];
+export const approvalStatusOptions = ['Approved', 'Pending', 'Rejected'];
+export const payScaleOptions = ['AGP 6000', 'AGP 7000', 'AGP 8000', 'Level 10', 'Level 11'];
 
 // Work Experience
-export const designationPostOptions = hydrate('designationPostOptions', ['Assistant Professor', 'Associate Professor', 'Professor', 'Lecturer', 'HOD']);
-export const natureOfWorkOptions = hydrate('natureOfWorkOptions', ['Teaching', 'Research', 'Administration', 'Industry Experience', 'Consultancy']);
-export const reasonForLeavingOptions = hydrate('reasonForLeavingOptions', ['Career Growth', 'Higher Studies', 'Relocation', 'Contract Completed']);
-export const employmentTypeOptions = hydrate('employmentTypeOptions', ['Full Time', 'Part Time', 'Contract', 'Temporary', 'Visiting Faculty']);
-export const institutionTypeWorkOptions = hydrate('institutionTypeWorkOptions', ['Government', 'Private', 'Autonomous', 'Deemed University', 'Research Institute']);
-export const experienceCategoryOptions = hydrate('experienceCategoryOptions', ['Academic', 'Industry', 'Research', 'Administrative']);
+export const designationPostOptions = ['Assistant Professor', 'Associate Professor', 'Professor', 'Lecturer', 'HOD'];
+export const natureOfWorkOptions = ['Teaching', 'Research', 'Administration', 'Industry Experience', 'Consultancy'];
+export const employmentTypeOptions = ['Full Time', 'Part Time', 'Contract', 'Temporary', 'Visiting Faculty'];
+export const institutionTypeWorkOptions = ['Government', 'Private', 'Autonomous', 'Deemed University', 'Research Institute'];
+export const experienceCategoryOptions = ['Academic', 'Industry', 'Research', 'Administrative'];
 
 // Research & Publications
 export const publicationTypeOptions = ['Journal', 'Conference Paper', 'Book Chapter', 'Patent', 'Thesis', 'Article'];
@@ -194,3 +114,108 @@ export const visitStatusOptions = ['Completed', 'Ongoing', 'Planned', 'Approved'
 
 // Documents
 export const documentTypeOptions = ['Aadhar', 'PAN', 'Passport'];
+
+// Administrative and Non-Academic Responsibilities
+export const adminChargeOptions = ['Principal', 'Campus Director', 'Registrar', 'Vice Principal', 'Convener of Women Cell', 'Admission Director', 'Senate Member', 'Syndicate Member', 'Dean', 'Other'];
+
+// Academic Administration
+export const academicAdminOptions = [
+  'Chairman - PG Board of studies',
+  'Chairman - UG Board of studies',
+  'Member - PG board of studies',
+  'Member - UG board of studies',
+  'Chairman - Designing PG syllabi',
+  'Chairman - Designing UG syllabi',
+  'Scheduling classes',
+  'Monitoring teaching quality',
+  'Serving as examiner, invigilator, paper setter, evaluator under the Controller of Examinations',
+  'Participating in Board of Studies meeting',
+  'Participating in academic councils',
+  'Participating in departmental reviews',
+  'Other',
+];
+
+// Quality Assurance
+export const qualityAssuranceOptions = [
+  'Director IQAC',
+  'Convener NAAC criteria',
+  'Preparing reports for accreditation NAAC',
+  'NAAC department coordinator',
+  'Preparing reports for NIRF ranking',
+  'NIRF Department coordinator',
+  'Coordinating student/teacher feedback and action plans',
+  'Other',
+];
+
+// Research and Innovation
+export const researchInnovationOptions = [
+  'Research Director',
+  'Assisting in research proposals',
+  'Assisting in funding applications',
+  'Assisting in project accounts',
+  'Coordinating departmental research output',
+  'Coordinating conferences',
+  'Other',
+];
+
+// Examination and Evaluation
+export const examinationEvaluationOptions = [
+  'Controller of Examination',
+  'Assisting the Controller of Examinations in scheduling, seating, and logistics',
+  'Helping with tabulation, moderation, and publication of results',
+  'Serving on disciplinary boards during exams',
+  'Contributing questions for question bank',
+  'Managing Question bank',
+  'Other',
+];
+
+// Administrative Support
+export const adminSupportOptions = [
+  'Maintaining student records',
+  'Maintaining student attendance',
+  'Maintaining faculty workload',
+  'Supporting admission processes, counseling, and documentation',
+  'Enforcing institutional rules and regulations',
+  'Other',
+];
+
+// Departmental Charges
+export const departmentalChargesOptions = [
+  'Head of the Department',
+  'Co-ordinator Cultural activities',
+  'Serving as Librarian',
+  'Serving on library committees',
+  'Serving on sports committees',
+  'Serving on cultural committees',
+  'Serving on grievance redressal committees',
+  'Guiding students academically and personally',
+  'Coordinating seminars, workshops',
+  'Other',
+];
+
+// Special Assignments
+export const specialAssignmentsOptions = [
+  'Coordinating community service',
+  'Coordinating NSS',
+  'Coordinating NCC',
+  'Coordinating industry linkages, cultural activities',
+  'Managing LMS, digital classrooms, and ICT initiatives',
+  'PRO',
+  'Coordinator job recruitment cell',
+  'Member Job recruitment cell',
+  'Other',
+];
+
+// Activities - Extra Institutional
+export const extraInstitutionalOptions = [
+  'Syndicate member',
+  'Board of studies',
+  'Visiting professor',
+  'Examiner',
+  'Syllabus committee',
+  'Dean',
+  'Other',
+];
+
+
+

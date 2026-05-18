@@ -14,3 +14,16 @@ export { default as FdpWorkshopsForm }          from './sections/S12_FdpWorkshop
 export { default as OnlineCoursesForm }         from './sections/S13_OnlineCourses';
 export { default as InternationalExpForm }      from './sections/S14_InternationalExperience';
 export { default as DocumentsForm }             from './sections/S15_Documents';
+export { default as AdminNonAcademicRespForm }  from './sections/S16_AdminNonAcademicResponsibilities';
+export { default as AcademicAdminForm }         from './sections/S17_AcademicAdministration';
+export { default as QualityAssuranceForm }      from './sections/S18_QualityAssurance';
+export { default as ResearchInnovationForm }    from './sections/S19_ResearchAndInnovation';
+export { default as ExaminationAndEvaluationForm } from './sections/S20_ExaminationAndEvaluation';
+export { default as AdministrativeSupportForm }    from './sections/S21_AdministrativeSupport';
+export { default as DepartmentalChargesForm }      from './sections/S22_DepartmentalCharges';
+export { default as SpecialAssignmentsForm }       from './sections/S23_SpecialAssignments';
+export { default as ExtraInstitutionalActivitiesForm } from './sections/S24_ExtraInstitutionalActivities';
+
+
+
+
