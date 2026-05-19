@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
-import { fg, inp, sel, FileInp, yearSel } from './sectionUtils';
+import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
 
-const EMPTY = { country: '', purpose: '', institution: '', duration: '', year: '', fundingSource: '' };
+const EMPTY = { country: '', purpose: '', institution: '', from: '', to: '', fundingSource: '' };
 
 const COUNTRIES = [
   'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan',
@@ -52,13 +52,14 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
 
 function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: () => void; onDelete: () => void; disabled: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const displayYear = item.from ? new Date(item.from).getFullYear() : (item.year || '—');
 
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
           <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{item.year || '—'}</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{displayYear}</div>
             <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
           </div>
           <div style={{ flex: 1 }}>
@@ -87,8 +88,10 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
           <PreviewRow label="Country" value={item.country} />
           <PreviewRow label="Purpose" value={item.purpose} />
           <PreviewRow label="Institution" value={item.institution} />
-          <PreviewRow label="Duration" value={item.duration} />
-          <PreviewRow label="Year" value={item.year} />
+          {item.from && <PreviewRow label="From Date" value={item.from} />}
+          {item.to && <PreviewRow label="To Date" value={item.to} />}
+          {!item.from && !item.to && <PreviewRow label="Duration" value={item.duration} />}
+          {!item.from && !item.to && <PreviewRow label="Year" value={item.year} />}
           <PreviewRow label="Funding Source" value={item.fundingSource} />
         </div>
       )}
@@ -101,7 +104,7 @@ export default function InternationalExperience({ data, onChange }: { data: any[
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
 
-  const isItemComplete = (item: any) => item.country && item.purpose && item.year && item.institution;
+  const isItemComplete = (item: any) => item.country && item.purpose && item.from && item.to && item.institution;
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
@@ -110,13 +113,13 @@ export default function InternationalExperience({ data, onChange }: { data: any[
   const handleSavePending = (item: any) => {
     if (isItemComplete(item)) {
       const updated = [item, ...data];
-      updated.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+      updated.sort((a, b) => (b.from || '').localeCompare(a.from || ''));
       onChange(updated);
       setPendingNewItem(null);
     }
   };
 
-  const sortedData = [...data].sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+  const sortedData = [...data].sort((a, b) => (b.from || '').localeCompare(a.from || ''));
 
   return (
     <>
@@ -161,8 +164,8 @@ export default function InternationalExperience({ data, onChange }: { data: any[
             </div>
             {fg('Institution / University *', inp(pendingNewItem.institution, v => setPendingNewItem({ ...pendingNewItem, institution: v })))}
             <div className="form-row form-row-3">
-              {fg('Duration', inp(pendingNewItem.duration, v => setPendingNewItem({ ...pendingNewItem, duration: v })))}
-              {fg('Year *', yearSel(pendingNewItem.year, v => setPendingNewItem({ ...pendingNewItem, year: v })))}
+              {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
+              {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
               {fg('Funding Source', inp(pendingNewItem.fundingSource, v => setPendingNewItem({ ...pendingNewItem, fundingSource: v })))}
             </div>
           </div>
@@ -191,8 +194,8 @@ export default function InternationalExperience({ data, onChange }: { data: any[
                   </div>
                   {fg('Institution / University *', inp(item.institution, v => upd(i, 'institution', v)))}
                   <div className="form-row form-row-3">
-                    {fg('Duration', inp(item.duration, v => upd(i, 'duration', v)))}
-                    {fg('Year *', yearSel(item.year, v => upd(i, 'year', v)))}
+                    {fg('From Date *', dateInp(item.from, v => upd(i, 'from', v)))}
+                    {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}
                     {fg('Funding Source', inp(item.fundingSource, v => upd(i, 'fundingSource', v)))}
                   </div>
                 </>

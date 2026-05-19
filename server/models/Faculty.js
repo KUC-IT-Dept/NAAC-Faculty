@@ -14,6 +14,7 @@ const visibilitySchema = new mongoose.Schema({
   researchGuidance: { type: Boolean, default: true },
   adminResponsibilities: { type: Boolean, default: true },
   fdpWorkshops: { type: Boolean, default: true },
+  onlineCourses: { type: Boolean, default: true },
   memberships: { type: Boolean, default: true },
   internationalExperience: { type: Boolean, default: true },
 }, { _id: false });
@@ -123,10 +124,25 @@ const fdpSchema = new mongoose.Schema({
   type: { type: String, default: '' },
   organizingInstitution: { type: String, default: '' },
   duration: { type: String, default: '' },
+  from: { type: String, default: '' },
+  to: { type: String, default: '' },
   mode: { type: String, default: '' },
   certificate: { type: String, default: '' },
   year: { type: String, default: '' },
   documentUrl: { type: String, default: '' },
+}, { _id: false });
+
+// Section 13: Online Courses & Certifications
+const onlineCourseSchema = new mongoose.Schema({
+  courseName: { type: String, default: '' },
+  platform: { type: String, default: '' },
+  duration: { type: String, default: '' },
+  completionYear: { type: String, default: '' },
+  from: { type: String, default: '' },
+  to: { type: String, default: '' },
+  certificateId: { type: String, default: '' },
+  certificateUrl: { type: String, default: '' },
+  score: { type: String, default: '' },
 }, { _id: false });
 
 // Section 13: Memberships
@@ -144,6 +160,8 @@ const internationalExpSchema = new mongoose.Schema({
   purpose: { type: String, default: '' }, // Research / Teaching / Conference
   institution: { type: String, default: '' },
   duration: { type: String, default: '' },
+  from: { type: String, default: '' },
+  to: { type: String, default: '' },
   fundingSource: { type: String, default: '' },
 }, { _id: false });
 
@@ -277,6 +295,9 @@ const facultySchema = new mongoose.Schema({
 
   // Section 12: FDP / Workshops / Seminars
   fdpWorkshops: { type: [fdpSchema], default: [] },
+
+  // Section 13: Online Courses & Certifications
+  onlineCourses: { type: [onlineCourseSchema], default: [] },
 
   // Section 13: Professional Memberships
   memberships: { type: [membershipSchema], default: [] },

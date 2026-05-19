@@ -1,3 +1,5 @@
+import api from '../lib/api';
+
 // Shared dropdown options for Admin and Faculty panels
 
 // Personal Information
@@ -43,17 +45,7 @@ export const natureOfWorkOptions = ['Teaching', 'Research', 'Administration', 'I
 export const employmentTypeOptions = ['Full Time', 'Part Time', 'Contract', 'Temporary', 'Visiting Faculty'];
 export const institutionTypeWorkOptions = ['Government', 'Private', 'Autonomous', 'Deemed University', 'Research Institute'];
 export const experienceCategoryOptions = ['Academic', 'Industry', 'Research', 'Administrative'];
-export const reasonForLeavingOptions = [
-  'Better opportunity',
-  'Promotion',
-  'Moved to academia',
-  'Retirement',
-  'Personal reasons',
-  'Contract ended',
-  'Relocation',
-  'Higher studies',
-  'Other',
-];
+export const reasonForLeavingOptions = ['Better opportunity', 'Promotion', 'Resigned', 'Retired', 'Contract Completed', 'Other'];
 
 // Research & Publications
 export const publicationTypeOptions = ['Journal', 'Conference Paper', 'Book Chapter', 'Patent', 'Thesis', 'Article'];
@@ -228,62 +220,84 @@ export const extraInstitutionalOptions = [
   'Other',
 ];
 
-const SERVER_SYNCED_OPTIONS = {
-  department: departmentOptions,
-  nature_of_appointment: natureOfAppointmentOptions,
-  reason_for_leaving: reasonForLeavingOptions,
-  designation_post: designationPostOptions,
+const optionArrays = {
+  departmentOptions,
+  natureOfAppointmentOptions,
+  reasonForLeavingOptions,
+  designationPostOptions
 };
 
-const EXPORT_KEY_TO_SERVER_KEY = {
-  departmentOptions: 'department',
-  natureOfAppointmentOptions: 'nature_of_appointment',
-  reasonForLeavingOptions: 'reason_for_leaving',
-  designationPostOptions: 'designation_post',
+const clientToServerKeyMap = {
+  'departmentOptions': 'department',
+  'natureOfAppointmentOptions': 'nature_of_appointment',
+  'reasonForLeavingOptions': 'reason_for_leaving',
+  'designationPostOptions': 'designation_post'
 };
 
-function applyServerDropdowns(data) {
-  let changed = false;
-  for (const [serverKey, target] of Object.entries(SERVER_SYNCED_OPTIONS)) {
-    const options = data?.[serverKey];
-    if (Array.isArray(options) && options.length > 0) {
-      target.splice(0, target.length, ...options);
-      changed = true;
+const serverToClientKeyMap = {
+  'department': 'departmentOptions',
+  'nature_of_appointment': 'natureOfAppointmentOptions',
+  'reason_for_leaving': 'reasonForLeavingOptions',
+  'designation_post': 'designationPostOptions'
+};
+
+const triggerUpdateEvent = () => {
+  window.dispatchEvent(new CustomEvent('dropdownOptionsUpdated'));
+};
+
+export const loadDropdownOptionsFromServer = async () => {
+  try {
+    // 1. Try to load from localStorage first for instant responsiveness
+    for (const [clientKey, arr] of Object.entries(optionArrays)) {
+      const cached = localStorage.getItem(`iqac_${clientKey}`);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) {
+            arr.splice(0, arr.length, ...parsed);
+          }
+        } catch (e) {
+          console.error('Error parsing cached options for', clientKey, e);
+        }
+      }
     }
+    triggerUpdateEvent();
+
+    // 2. Fetch from server
+    const response = await api.get('/profile/dropdowns');
+    if (response.data) {
+      Object.entries(response.data).forEach(([serverKey, options]) => {
+        const clientKey = serverToClientKeyMap[serverKey];
+        if (clientKey && optionArrays[clientKey] && Array.isArray(options)) {
+          optionArrays[clientKey].splice(0, optionArrays[clientKey].length, ...options);
+          localStorage.setItem(`iqac_${clientKey}`, JSON.stringify(options));
+        }
+      });
+      triggerUpdateEvent();
+    }
+  } catch (err) {
+    console.error('Failed to load dropdown options from server:', err);
   }
-  if (changed && typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('dropdownOptionsUpdated'));
+};
+
+export const persistDropdownOptions = (key, options) => {
+  if (optionArrays[key] && Array.isArray(options)) {
+    optionArrays[key].splice(0, optionArrays[key].length, ...options);
+    localStorage.setItem(`iqac_${key}`, JSON.stringify(options));
+    triggerUpdateEvent();
   }
-}
+};
 
-export async function loadDropdownOptionsFromServer() {
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('iqac_token') : null;
-  const url = token ? '/api/admin/dropdowns' : '/api/profile/dropdowns';
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
-  const res = await fetch(url, { headers });
-  if (!res.ok) return;
-  const data = await res.json();
-  applyServerDropdowns(data);
-}
-
-export function persistDropdownOptions(exportKey, options) {
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(`iqac_dropdown_${exportKey}`, JSON.stringify(options));
-}
-
-export async function saveDropdownOptionsToServer(exportKey, options) {
-  const serverKey = EXPORT_KEY_TO_SERVER_KEY[exportKey];
-  if (!serverKey) return;
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('iqac_token') : null;
-  if (!token) return;
-  await fetch(`/api/admin/dropdowns/${serverKey}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ options }),
-  });
-}
+export const saveDropdownOptionsToServer = async (key, options) => {
+  try {
+    const serverKey = clientToServerKeyMap[key];
+    if (serverKey) {
+      await api.patch(`/admin/dropdowns/${serverKey}`, { options });
+    }
+  } catch (err) {
+    console.error('Failed to save dropdown options to server:', err);
+  }
+};
 
 
+

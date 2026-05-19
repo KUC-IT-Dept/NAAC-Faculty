@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
-import { fg, inp, sel, FileInp, yearSel } from './sectionUtils';
+import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
 
-const EMPTY = { courseName: '', platform: '', duration: '', completionYear: '', certificateId: '', certificateUrl: '', score: '' };
+const EMPTY = { courseName: '', platform: '', from: '', to: '', certificateId: '', certificateUrl: '', score: '' };
 const PLATFORM_OPTS = ['NPTEL', 'Swayam', 'Coursera', 'edX', 'Udemy', 'LinkedIn Learning', 'Google', 'Microsoft', 'AWS', 'Other'];
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
@@ -23,13 +23,14 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
 
 function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: () => void; onDelete: () => void; disabled: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const displayYear = item.from ? new Date(item.from).getFullYear() : (item.completionYear || '—');
 
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
           <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{item.completionYear || '—'}</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{displayYear}</div>
             <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
           </div>
           <div style={{ flex: 1 }}>
@@ -58,8 +59,10 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Course Name" value={item.courseName} />
           <PreviewRow label="Platform" value={item.platform} />
-          <PreviewRow label="Duration" value={item.duration} />
-          <PreviewRow label="Year" value={item.completionYear} />
+          {item.from && <PreviewRow label="From Date" value={item.from} />}
+          {item.to && <PreviewRow label="To Date" value={item.to} />}
+          {!item.from && !item.to && <PreviewRow label="Duration" value={item.duration} />}
+          {!item.from && !item.to && <PreviewRow label="Year" value={item.completionYear} />}
           <PreviewRow label="Certificate ID" value={item.certificateId} />
           <PreviewRow label="Score" value={item.score} />
           {item.certificateUrl && (
@@ -80,7 +83,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
 
-  const isItemComplete = (item: any) => item.courseName && item.platform && item.completionYear;
+  const isItemComplete = (item: any) => item.courseName && item.platform && item.from && item.to;
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
@@ -89,13 +92,13 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
   const handleSavePending = (item: any) => {
     if (isItemComplete(item)) {
       const updated = [item, ...data];
-      updated.sort((a, b) => (parseInt(b.completionYear) || 0) - (parseInt(a.completionYear) || 0));
+      updated.sort((a, b) => (b.from || '').localeCompare(a.from || ''));
       onChange(updated);
       setPendingNewItem(null);
     }
   };
 
-  const sortedData = [...data].sort((a, b) => (parseInt(b.completionYear) || 0) - (parseInt(a.completionYear) || 0));
+  const sortedData = [...data].sort((a, b) => (b.from || '').localeCompare(a.from || ''));
 
   return (
     <>
@@ -137,8 +140,8 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
             {fg('Course / Certification Name *', inp(pendingNewItem.courseName, v => setPendingNewItem({ ...pendingNewItem, courseName: v })))}
             <div className="form-row form-row-3">
               {fg('Platform / Provider *', sel(pendingNewItem.platform, v => setPendingNewItem({ ...pendingNewItem, platform: v }), PLATFORM_OPTS))}
-              {fg('Duration', inp(pendingNewItem.duration, v => setPendingNewItem({ ...pendingNewItem, duration: v })))}
-              {fg('Year of Completion *', yearSel(pendingNewItem.completionYear, v => setPendingNewItem({ ...pendingNewItem, completionYear: v })))}
+              {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
+              {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
             </div>
             <div className="form-row form-row-2">
               {fg('Certificate ID', inp(pendingNewItem.certificateId, v => setPendingNewItem({ ...pendingNewItem, certificateId: v })))}
@@ -168,8 +171,8 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                   {fg('Course / Certification Name *', inp(item.courseName, v => upd(i, 'courseName', v)))}
                   <div className="form-row form-row-3">
                     {fg('Platform / Provider *', sel(item.platform, v => upd(i, 'platform', v), PLATFORM_OPTS))}
-                    {fg('Duration', inp(item.duration, v => upd(i, 'duration', v)))}
-                    {fg('Year of Completion *', yearSel(item.completionYear, v => upd(i, 'completionYear', v)))}
+                    {fg('From Date *', dateInp(item.from, v => upd(i, 'from', v)))}
+                    {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}
                   </div>
                   <div className="form-row form-row-2">
                     {fg('Certificate ID', inp(item.certificateId, v => upd(i, 'certificateId', v)))}
