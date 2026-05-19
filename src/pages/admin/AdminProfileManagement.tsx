@@ -8,7 +8,7 @@ import {
   degreeLevelOptions, degreeNameOptions, specializationOptions, divisionOptions, studyModeOptions, gradeTypeOptions,
   examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions,
   designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, approvalStatusOptions, payScaleOptions,
-  designationPostOptions, reasonForLeavingOptions,
+  designationPostOptions, reasonForLeavingOptions, loadDropdownOptionsFromServer, persistDropdownOptions, saveDropdownOptionsToServer,
   publicationTypeOptions, publicationLevelOptions, authorRoleOptions, indexedInOptions, peerReviewedStatusOptions, journalCategoryOptions,
   awardCategoryOptions, awardLevelOptions, awardingAgencyTypeOptions, honourTypeOptions, recognitionStatusOptions,
   fundingAgencyOptions, projectStatusOptions, roleInProjectOptions, projectCategoryOptions, fundingTypeOptions,

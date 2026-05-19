@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
-import { fg, inp, sel, FileInp, yearSel } from './sectionUtils';
+import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
 
-const EMPTY = { programTitle: '', type: '', organizingInstitution: '', duration: '', mode: '', certificate: '', year: '', documentUrl: '' };
+const EMPTY = { programTitle: '', type: '', organizingInstitution: '', from: '', to: '', mode: '', certificate: '', documentUrl: '' };
 
 const TYPE_OPTS = ['FDP', 'Workshop', 'Seminar', 'MOOC', 'Refresher', 'Orientation'];
 const MODE_OPTS = ['Online', 'Offline'];
@@ -26,13 +26,14 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
 
 function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: () => void; onDelete: () => void; disabled: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const displayYear = item.from ? new Date(item.from).getFullYear() : (item.year || '—');
 
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
           <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{item.year || '—'}</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{displayYear}</div>
             <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
           </div>
           <div style={{ flex: 1 }}>
@@ -65,7 +66,9 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
           <PreviewRow label="Program Name" value={item.programTitle} />
           <PreviewRow label="Type" value={item.type} />
           <PreviewRow label="Organized By" value={item.organizingInstitution} />
-          <PreviewRow label="Duration / Dates" value={item.duration} />
+          {item.from && <PreviewRow label="From Date" value={item.from} />}
+          {item.to && <PreviewRow label="To Date" value={item.to} />}
+          {!item.from && !item.to && <PreviewRow label="Duration / Dates" value={item.duration} />}
           <PreviewRow label="Mode" value={item.mode} />
           <PreviewRow label="Certificate" value={item.certificate} />
           {item.documentUrl && (
@@ -86,7 +89,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
 
-  const isItemComplete = (item: any) => item.programTitle && item.type && item.year;
+  const isItemComplete = (item: any) => item.programTitle && item.type && item.from && item.to;
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
@@ -95,13 +98,13 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
   const handleSavePending = (item: any) => {
     if (isItemComplete(item)) {
       const updated = [item, ...data];
-      updated.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+      updated.sort((a, b) => (b.from || '').localeCompare(a.from || ''));
       onChange(updated);
       setPendingNewItem(null);
     }
   };
 
-  const sortedData = [...data].sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+  const sortedData = [...data].sort((a, b) => (b.from || '').localeCompare(a.from || ''));
 
   return (
     <>
@@ -146,8 +149,8 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
               {fg('Organized by', inp(pendingNewItem.organizingInstitution, v => setPendingNewItem({ ...pendingNewItem, organizingInstitution: v })))}
             </div>
             <div className="form-row form-row-2">
-              {fg('Duration / Dates', inp(pendingNewItem.duration, v => setPendingNewItem({ ...pendingNewItem, duration: v })))}
-              {fg('Year *', yearSel(pendingNewItem.year, v => setPendingNewItem({ ...pendingNewItem, year: v })))}
+              {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
+              {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
             </div>
             <div className="form-row form-row-2">
               {fg('Mode', sel(pendingNewItem.mode, v => setPendingNewItem({ ...pendingNewItem, mode: v }), MODE_OPTS))}
@@ -180,8 +183,8 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
                     {fg('Organized by', inp(item.organizingInstitution, v => upd(i, 'organizingInstitution', v)))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Duration / Dates', inp(item.duration, v => upd(i, 'duration', v)))}
-                    {fg('Year *', yearSel(item.year, v => upd(i, 'year', v)))}
+                    {fg('From Date *', dateInp(item.from, v => upd(i, 'from', v)))}
+                    {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}
                   </div>
                   <div className="form-row form-row-2">
                     {fg('Mode', sel(item.mode, v => upd(i, 'mode', v), MODE_OPTS))}
