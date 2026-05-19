@@ -5,6 +5,20 @@ const DropdownConfig = require('../models/DropdownConfig');
 
 const router = express.Router();
 
+const ALLOWED_DROPDOWN_KEYS = ['department', 'nature_of_appointment', 'reason_for_leaving', 'designation_post'];
+
+router.get('/dropdowns', async (req, res) => {
+  try {
+    const dropdowns = await DropdownConfig.find({ key: { $in: ALLOWED_DROPDOWN_KEYS } });
+    const response = {};
+    dropdowns.forEach(dl => { response[dl.key] = dl.options; });
+    res.json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // GET /api/profile/:username — public profile (no auth)
 router.get('/:username', async (req, res) => {
   try {
@@ -85,20 +99,6 @@ router.get('/', async (req, res) => {
 
     res.json(publicList);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-const ALLOWED_DROPDOWN_KEYS = ['department', 'nature_of_appointment', 'reason_for_leaving', 'designation_post'];
-
-router.get('/dropdowns', async (req, res) => {
-  try {
-    const dropdowns = await DropdownConfig.find({ key: { $in: ALLOWED_DROPDOWN_KEYS } });
-    const response = {};
-    dropdowns.forEach(dl => { response[dl.key] = dl.options; });
-    res.json(response);
-  } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });

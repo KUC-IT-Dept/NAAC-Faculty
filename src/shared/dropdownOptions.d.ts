@@ -33,6 +33,7 @@ export declare const natureOfWorkOptions: string[];
 export declare const employmentTypeOptions: string[];
 export declare const institutionTypeWorkOptions: string[];
 export declare const experienceCategoryOptions: string[];
+export declare const reasonForLeavingOptions: string[];
 export declare const publicationTypeOptions: string[];
 export declare const publicationLevelOptions: string[];
 export declare const authorRoleOptions: string[];
@@ -94,5 +95,8 @@ export declare const departmentalChargesOptions: string[];
 export declare const specialAssignmentsOptions: string[];
 export declare const extraInstitutionalOptions: string[];
 
+export declare function loadDropdownOptionsFromServer(): Promise<void>;
+export declare function persistDropdownOptions(exportKey: string, options: string[]): void;
+export declare function saveDropdownOptionsToServer(exportKey: string, options: string[]): Promise<void>;
 
-
+

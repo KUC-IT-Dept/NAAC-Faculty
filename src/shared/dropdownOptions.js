@@ -43,6 +43,17 @@ export const natureOfWorkOptions = ['Teaching', 'Research', 'Administration', 'I
 export const employmentTypeOptions = ['Full Time', 'Part Time', 'Contract', 'Temporary', 'Visiting Faculty'];
 export const institutionTypeWorkOptions = ['Government', 'Private', 'Autonomous', 'Deemed University', 'Research Institute'];
 export const experienceCategoryOptions = ['Academic', 'Industry', 'Research', 'Administrative'];
+export const reasonForLeavingOptions = [
+  'Better opportunity',
+  'Promotion',
+  'Moved to academia',
+  'Retirement',
+  'Personal reasons',
+  'Contract ended',
+  'Relocation',
+  'Higher studies',
+  'Other',
+];
 
 // Research & Publications
 export const publicationTypeOptions = ['Journal', 'Conference Paper', 'Book Chapter', 'Patent', 'Thesis', 'Article'];
@@ -217,5 +228,62 @@ export const extraInstitutionalOptions = [
   'Other',
 ];
 
+const SERVER_SYNCED_OPTIONS = {
+  department: departmentOptions,
+  nature_of_appointment: natureOfAppointmentOptions,
+  reason_for_leaving: reasonForLeavingOptions,
+  designation_post: designationPostOptions,
+};
 
-
+const EXPORT_KEY_TO_SERVER_KEY = {
+  departmentOptions: 'department',
+  natureOfAppointmentOptions: 'nature_of_appointment',
+  reasonForLeavingOptions: 'reason_for_leaving',
+  designationPostOptions: 'designation_post',
+};
+
+function applyServerDropdowns(data) {
+  let changed = false;
+  for (const [serverKey, target] of Object.entries(SERVER_SYNCED_OPTIONS)) {
+    const options = data?.[serverKey];
+    if (Array.isArray(options) && options.length > 0) {
+      target.splice(0, target.length, ...options);
+      changed = true;
+    }
+  }
+  if (changed && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dropdownOptionsUpdated'));
+  }
+}
+
+export async function loadDropdownOptionsFromServer() {
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('iqac_token') : null;
+  const url = token ? '/api/admin/dropdowns' : '/api/profile/dropdowns';
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const res = await fetch(url, { headers });
+  if (!res.ok) return;
+  const data = await res.json();
+  applyServerDropdowns(data);
+}
+
+export function persistDropdownOptions(exportKey, options) {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.setItem(`iqac_dropdown_${exportKey}`, JSON.stringify(options));
+}
+
+export async function saveDropdownOptionsToServer(exportKey, options) {
+  const serverKey = EXPORT_KEY_TO_SERVER_KEY[exportKey];
+  if (!serverKey) return;
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('iqac_token') : null;
+  if (!token) return;
+  await fetch(`/api/admin/dropdowns/${serverKey}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ options }),
+  });
+}
+
+
