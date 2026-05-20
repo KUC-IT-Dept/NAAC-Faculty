@@ -1,0 +1,90 @@
+[33m08a3347[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mhavana[m[33m, [m[1;31morigin/havana[m[33m)[m edited qualifications
+[33mc83ed6e[m[33m ([m[1;31morigin/sherin[m[33m, [m[1;31morigin/sahal[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/hari[m[33m, [m[1;31morigin/devikav[m[33m, [m[1;31morigin/devang[m[33m, [m[1;31morigin/all-branches-merged-20260519171600[m[33m, [m[1;31morigin/achu[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Merge origin/sahal into main
+[33m578a684[m fix: add reasonForLeaving dropdown export and server sync helpers
+[33m4693126[m Fix dropdown issues and update calendar date inputs for S12, S13, S14
+[33mf84a26f[m Merge pull request #2 from KUC-IT-Dept/devang
+[33ma0b4200[m Merge origin/sahal into devang
+[33m5407e4f[m Update Work Experience admin dropdown management and backend sync
+[33med5e0aa[m chore: resolve merge conflicts — accept main version
+[33m372da48[m chore: update package-lock.json
+[33ma18b20d[m feat: add S21 S22 S23 S24 sections and update dropdowns to native style
+[33m33e6c71[m feat: dynamic profile completion progress bars + fix documents persistence
+[33m99f67fd[m feat: Refactor Publications layout to match other sections
+[33m2b3e508[m Merge remote-tracking branch 'origin/hari'
+[33m438fb46[m feat: Update Publications, Awards, and Research Projects sections
+[33m9feb906[m Merge branch 'origin/hari' into main
+[33mcd31702[m Standardize sections 10-15 themes
+[33m15daf26[m Merge remote-tracking branch 'origin/main' into hari
+[33mf6fa05d[m feat: Add National ID and DOB Proof document uploads for Faculty
+[33m92d2d02[m Update faculty profile data and UI
+[33m46dfbdd[m feat: update Research Projects duration field to auto-calculate
+[33m4eafafc[m updated
+[33m4fd9a7a[m Merge remote-tracking branch 'origin/devang'
+[33m06cb7c0[m Merge branch 'devikav' into main, resolving conflicts by favoring devikav
+[33m59c0918[m fix(admin): guard slice on avatar initials to avoid crash when name/username missing
+[33m040dc53[m chore: push to devang
+[33m633890a[m fixed backlogs of 3 and 5
+[33me468ca4[m Merge remote-tracking branches 'origin/devikav' and 'origin/hari'
+[33ma39d0b7[m Centralize dropdown options in shared config
+[33m135de75[m Fix sidebar navigation and UI issues
+[33m5eeca4f[m fixed errors in 5 to 10
+[33m0ba13bc[m Fix API endpoint proxy and environment variables path
+[33mb116280[m Updated
+[33mc0d9364[m Updated
+[33m6ca2548[m fix: disable noUnusedLocals to fix build errors
+[33m85af74e[m Updated 4th
+[33meb13da7[m Fix frontend crash and complete pending merge
+[33mf52661c[m Merge branch 'achu'
+[33mc56635e[m Standardize sections 11-15 and improve file upload UI
+[33m3b10fd1[m Updated
+[33mfa439d6[m S07-S10: right-align Add buttons (justifyContent flex-end)
+[33m712e351[m Updated
+[33m4ddfc63[m S09: restore original from 8548f7c (revert toggle, keep color theme)
+[33mfd24992[m S09: add toggle preview for scholars and patents
+[33m8548f7c[m fixed color theme of button from 5 to 12 and added necessary toggle
+[33m4d4fe67[m Updated
+[33m34d1cd0[m Update Personal Info section
+[33m263ec6b[m Update faculty dashboard and sections
+[33m88a33f5[m Fix build issues
+[33mb6b5a8e[m Update ProfileEdit.tsx
+[33mf717e04[m Merge origin/sherin, resolving conflicts by accepting sherin's section structure and merging css
+[33m1847a28[m Merge origin/hari
+[33m7a218f4[m Merge origin/havana, resolving conflicts in S13_OnlineCourses
+[33m17b54ff[m Fix sidebar layout and move Visibility to public section
+[33m30be8d1[m Updated
+[33mfc70d7a[m Updated
+[33m70d6ae1[m chore: remove .env copy.example containing secret
+[33m13fb2cb[m Fix unused imports
+[33m8dbdfae[m Include remaining local changes
+[33m834a17d[m Merge branches into main
+[33md5e50e2[m Merge remote-tracking branch 'origin/devikav'
+[33ma8102f4[m Squash merge origin/sherin
+[33md8fce8a[m completed form 11 and 12
+[33mbf378a8[m edited international experience and documents
+[33m144c696[m completed form 5 and 6
+[33ma4bf480[m Squash merge origin/hari
+[33md60150d[m Fix admin and faculty profile navigation behavior
+[33m9d7979c[m Updated
+[33m41d3183[m Refactor admin dropdowns to compact floating UI
+[33m4459ea7[m Merge remote-tracking branch 'origin/main' into achu
+[33me4ef1f4[m Standardize Sections 7-10 UI to Grey Box theme and 2-column layout
+[33mba4afc7[m Merge remote-tracking branch 'origin/achu'
+[33ma1ee4c6[m Normalize API base URL
+[33m5c65edb[m Configure Netlify secrets scan
+[33m9397507[m Remove secrets and add env template
+[33m1c97606[m Fix production API base URL
+[33ma9b3cf6[m Fix Netlify routing and API base URL
+[33m2ebdde4[m Section 7,8,9,10
+[33m0a433c7[m Make API base URL configurable
+[33mcf288af[m Fix build TypeScript errors
+[33m3f0baa9[m Allow all CORS origins
+[33mabd4a07[m Merge pull request #1 from KUC-IT-Dept/sherin
+[33m372def8[m Merge branch 'main' into sherin
+[33mbbc3db3[m Updated
+[33mc42b0b4[m edited online courses
+[33md51394d[m Updated
+[33m5eedc14[m Updated
+[33m4d63b00[m Updated
+[33m4818389[m Add Node.js CI workflow for testing
+[33m7ff52fc[m feat: IQAC Faculty Management System — full MERN implementation
+[33meb3ade1[m initial
