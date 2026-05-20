@@ -29,6 +29,27 @@ const BOARD_OPTIONS_10TH = ['vhse', 'cbse', 'icse', 'kerala board of higher educ
 const BOARD_OPTIONS_12TH = ['vhse', 'cbse', 'icse', 'kerala board of higher secondary education', 'other'];
 const UNIVERSITY_OPTIONS_HIGHER = ['kannur university', 'calicut university', 'kerala university', 'mg university', 'central university', 'open university', 'foreign university', 'other'];
 
+const saveBtnStyle: React.CSSProperties = {
+  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+  backgroundColor: '#16a34a', color: 'white', border: 'none',
+  borderRadius: '8px', fontWeight: 600,
+  display: 'inline-flex', alignItems: 'center', gap: '6px',
+  marginLeft: '8px',
+};
+
+const cancelBtnStyle: React.CSSProperties = {
+  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+  backgroundColor: '#fff1f2', color: '#9f1239',
+  border: '1px solid #fecdd3', borderRadius: '8px', fontWeight: 600,
+  display: 'inline-flex', alignItems: 'center', gap: '6px',
+};
+
+const deleteBtnStyle: React.CSSProperties = {
+  marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+  backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3',
+  borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px',
+};
+
 const showSpecialization = (level: string) => SPECIALIZATION_LEVELS.includes(level);
 const showDegreeName = (level: string) => SPECIALIZATION_LEVELS.includes(level);
 const getBoardUniversityOptions = (level: string) => {
@@ -274,41 +295,16 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    backgroundColor: '#fecdd3',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    marginRight: '8px',
-                    fontWeight: 600,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  style={cancelBtnStyle}
                 >
-                  <X size={16} /> Cancel
+                  <X size={14} /> Cancel
                 </button>
                 <button
                   type="button"
                   onClick={saveEdit}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    backgroundColor: '#22c55e',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  style={saveBtnStyle}
                 >
-                  <Check size={16} /> Save
+                  <Check size={14} /> Save
                 </button>
               </div>
             </div>
@@ -329,41 +325,16 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                   <button
                     type="button"
                     onClick={cancelEdit}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      backgroundColor: '#fecdd3',
-                      color: '#9f1239',
-                      border: 'none',
-                      borderRadius: '8px',
-                      marginRight: '8px',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
+                    style={cancelBtnStyle}
                   >
-                    <X size={16} /> Cancel
+                    <X size={14} /> Cancel
                   </button>
                   <button
                     type="button"
                     onClick={saveEdit}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      backgroundColor: '#22c55e',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
+                    style={saveBtnStyle}
                   >
-                    <Check size={16} /> Save
+                    <Check size={14} /> Save
                   </button>
                 </div>
               </div>
@@ -415,20 +386,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                   <button
                     type="button"
                     onClick={() => removeQualification(i)}
-                    style={{
-                      marginLeft: '8px',
-                      padding: '6px 12px',
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      backgroundColor: '#fecdd3',
-                      color: '#9f1239',
-                      border: '1px solid #fecdd3',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
+                    style={deleteBtnStyle}
                   >
                     <Trash2 size={12} /> Delete
                   </button>

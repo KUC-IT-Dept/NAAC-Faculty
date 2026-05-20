@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, sel, yearSel } from './sectionUtils';
 
 const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'UG & PG', 'UG, PG & Ph.D.', 'Other'];
@@ -14,9 +14,9 @@ const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMembe
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
-const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
-const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' };
-const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: '#fff1f2', color: '#e11d48', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
+const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#16a34a', color: '#fff', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
+const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#9f1239', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
 
 function PreviewRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
@@ -57,7 +57,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
             <Edit2 size={14} /> Edit
           </button>
           <button type="button" style={btnDelete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
-            <Trash2 size={14} /> Delete
+            <Trash2 size={12} /> Delete
           </button>
         </div>
       </div>
@@ -97,7 +97,7 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
             <Edit2 size={14} /> Edit
           </button>
           <button type="button" style={btnDelete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
-            <Trash2 size={14} /> Delete
+            <Trash2 size={12} /> Delete
           </button>
         </div>
       </div>
@@ -174,6 +174,9 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Course</span>
                 <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" onClick={() => setPendingCourse(null)} style={btnCancel}>
+                    <X size={14} /> Cancel
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleSavePendingCourse(pendingCourse)}
@@ -181,9 +184,6 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                     style={isCourseComplete(pendingCourse) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
                   >
                     <Check size={14} /> Save
-                  </button>
-                  <button type="button" onClick={() => setPendingCourse(null)} style={btnCancel}>
-                    Cancel
                   </button>
                 </div>
               </div>
@@ -211,11 +211,11 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Course</span>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" onClick={() => setEditingCourseIndex(null)} style={btnSave}>
-                          <Check size={14} /> Done
+                        <button type="button" onClick={() => setEditingCourseIndex(null)} style={btnCancel}>
+                          <X size={14} /> Cancel
                         </button>
-                        <button type="button" onClick={() => { update('courses', sortedCourses.filter((_, j) => j !== i)); setEditingCourseIndex(null); }} style={btnDelete}>
-                          <Trash2 size={14} /> Delete
+                        <button type="button" onClick={() => setEditingCourseIndex(null)} style={btnSave}>
+                          <Check size={14} /> Save
                         </button>
                       </div>
                     </div>
@@ -269,6 +269,9 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Responsibility</span>
                 <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" onClick={() => setPendingResp(null)} style={btnCancel}>
+                    <X size={14} /> Cancel
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleSavePendingResp(pendingResp)}
@@ -276,9 +279,6 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                     style={isRespComplete(pendingResp) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
                   >
                     <Check size={14} /> Save
-                  </button>
-                  <button type="button" onClick={() => setPendingResp(null)} style={btnCancel}>
-                    Cancel
                   </button>
                 </div>
               </div>
@@ -303,11 +303,11 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Responsibility</span>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" onClick={() => setEditingRespIndex(null)} style={btnSave}>
-                          <Check size={14} /> Done
+                        <button type="button" onClick={() => setEditingRespIndex(null)} style={btnCancel}>
+                          <X size={14} /> Cancel
                         </button>
-                        <button type="button" onClick={() => { update('otherResponsibilities', otherResponsibilities.filter((_: any, j: number) => j !== i)); setEditingRespIndex(null); }} style={btnDelete}>
-                          <Trash2 size={14} /> Delete
+                        <button type="button" onClick={() => setEditingRespIndex(null)} style={btnSave}>
+                          <Check size={14} /> Save
                         </button>
                       </div>
                     </div>
