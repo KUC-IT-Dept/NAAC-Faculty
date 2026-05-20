@@ -253,9 +253,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Service Book Number', inp(editingData.serviceBookNumber, v => updateEditingData('serviceBookNumber', v)))}
       </div>
 
-      <div className="form-row form-row-3">
-        {fg('From Date', dateInp(editingData.from, v => updateEditingData('from', v)))}
-        {fg('To Date', dateInp(editingData.to, v => updateEditingData('to', v)))}
+      <div className="form-row form-row-1">
         {fg('Reason for Leaving', inp(editingData.reasonForLeaving, v => updateEditingData('reasonForLeaving', v)))}
       </div>
 
@@ -491,8 +489,6 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                     })()}
                     {renderPreview('Provident Fund (PF) Number', e.pfNumber)}
                     {renderPreview('Service Book Number', e.serviceBookNumber)}
-                    {renderPreview('From Date', e.from)}
-                    {renderPreview('To Date', e.to)}
                     {renderPreview('Reason for Leaving', e.reasonForLeaving)}
                     {e.documentUrl && (
                       <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>

@@ -83,9 +83,9 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (e.g., 2MB limit)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('File size exceeds 2MB limit.');
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds 10MB limit.');
       return;
     }
 
@@ -94,11 +94,12 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
 
     setUploading(true);
     try {
-      const r = await api.post('/faculty/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const r = await api.post('/faculty/upload', fd);
       fn(r.data.url);
       toast.success('File uploaded successfully!');
-    } catch {
-      toast.error('Upload failed. Please try again.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Upload failed. Please try again.';
+      toast.error(msg);
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
