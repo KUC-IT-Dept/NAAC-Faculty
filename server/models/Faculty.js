@@ -30,7 +30,12 @@ const qualificationSchema = new mongoose.Schema({
   yearOfPassing: { type: String, default: '' },
   percentageCGPA: { type: String, default: '' },
   division: { type: String, default: '' }, // First / Second / Third
-  mode: { type: String, default: '' }, // Regular / Distance / Part-time
+  mode: { type: String, default: '' }, // Regular / Distance / Full time / Part time (Ph.D)
+  country: { type: String, default: '' },
+  state: { type: String, default: '' },
+  countryAndState: { type: String, default: '' },
+  phdCertificate: { type: String, default: '' },
+  thesisTitle: { type: String, default: '' },
 }, { _id: false });
 
 // Section 3: Eligibility Tests
