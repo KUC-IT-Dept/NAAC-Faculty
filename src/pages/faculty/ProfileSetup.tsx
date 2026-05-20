@@ -41,7 +41,7 @@ const STEPS = [
   { id: 5,  label: 'Publications',  title: 'Research & Publications',        key: 'publications' },
   { id: 6,  label: 'Awards',        title: 'Awards & Honours',               key: 'awards' },
   { id: 7,  label: 'Projects',      title: 'Research Projects',              key: 'projects' },
-  { id: 8,  label: 'Supervision',   title: 'Research Supervision & Patents', key: 'researchSupervision' },
+  { id: 8,  label: 'Supervision',   title: 'Research Supervision & Patents', key: 'researchGuidance' },
   { id: 9, label: 'Academic',      title: 'Academic Responsibilities',      key: 'academicResponsibilities' },
   { id: 10, label: 'Memberships',   title: 'Professional Memberships',       key: 'memberships' },
   { id: 11, label: 'FDP',           title: 'FDP & Workshops',               key: 'fdpWorkshops' },
@@ -62,7 +62,15 @@ const STEPS = [
 const EMPTY: any = {
   personalInfo: {}, qualifications: [], eligibilityTests: [], employmentDetails: {},
   publications: [], awards: [], projects: [],
-  researchSupervision: { scholars: [], patents: [] },
+  researchGuidance: {
+    phdCompleted: '',
+    phdInProgress: '',
+    mphilCompleted: '',
+    mphilInProgress: '',
+    pgProjectsSupervised: '',
+    completedStudentsNames: '',
+    studentDetails: [],
+  },
   academicResponsibilities: { responsibilities: [], coursesTaught: [] },
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
   adminNonAcademicResponsibilities: [],
@@ -193,7 +201,7 @@ export default function ProfileSetup() {
             {step === 5  && <Publications          data={profile.publications}              onChange={v => set('publications', v)} />}
             {step === 6  && <Awards               data={profile.awards}                   onChange={v => set('awards', v)} />}
             {step === 7  && <ResearchProjects     data={profile.projects}                 onChange={v => set('projects', v)} />}
-            {step === 8  && <ResearchSupervision  data={profile.researchSupervision}       onChange={v => set('researchSupervision', v)} />}
+            {step === 8  && <ResearchSupervision  data={profile.researchGuidance}       onChange={v => set('researchGuidance', v)} />}
             {step === 9 && <AcademicResp         data={profile.academicResponsibilities}  onChange={v => set('academicResponsibilities', v)} />}
             {step === 10 && <Memberships          data={profile.memberships}               onChange={v => set('memberships', v)} />}
             {step === 11 && <FdpWorkshops         data={profile.fdpWorkshops}              onChange={v => set('fdpWorkshops', v)} />}
