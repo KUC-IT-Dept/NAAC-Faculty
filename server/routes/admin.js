@@ -92,7 +92,20 @@ router.get('/stats', async (req, res) => {
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
-const ALLOWED_DROPDOWN_KEYS = ['department', 'nature_of_appointment', 'reason_for_leaving', 'designation_post'];
+const ALLOWED_DROPDOWN_KEYS = [
+  'gender', 'blood_group', 'nationality', 'religion', 'category', 'sub_category', 'marital_status', 'disability_status', 'disability_type', 'state', 'country',
+  'degree_level', 'degree_name', 'specialization', 'division', 'study_mode', 'grade_type',
+  'exam_name', 'subject_paper', 'state_for_set', 'validity_status', 'fellowship_agency',
+  'designation', 'department', 'institution_type', 'affiliated_university', 'nature_of_appointment', 'approval_status', 'pay_scale',
+  'designation_post', 'nature_of_work', 'employment_type', 'institution_type_work', 'experience_category', 'reason_for_leaving',
+  'publication_type', 'publication_level', 'author_role', 'indexed_in', 'peer_reviewed_status', 'journal_category',
+  'award_category', 'award_level', 'awarding_agency_type', 'honour_type', 'recognition_status',
+  'funding_agency', 'project_status', 'role_in_project', 'project_category', 'funding_type',
+  'research_degree', 'scholar_gender', 'research_status', 'guidance_type', 'patent_status', 'patent_type', 'supervision_category',
+  'committee_type', 'responsibility_role', 'course_level', 'semester_type', 'academic_session_type', 'teaching_category', 'responsibility_status',
+  'admin_charge', 'academic_admin', 'quality_assurance', 'research_innovation', 'examination_evaluation', 'admin_support', 'departmental_charges', 'special_assignments', 'extra_institutional',
+  'document_type'
+];
 
 // GET /api/admin/dropdowns
 router.get('/dropdowns', async (req, res) => {

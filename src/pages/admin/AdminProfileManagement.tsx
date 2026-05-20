@@ -324,13 +324,78 @@ function DropdownOption({ opt, isSelected, onSelect, onEdit, onDelete, isEditing
 }
 
 const FIELD_STORAGE_KEYS: Record<string, string> = {
+  'Gender': 'genderOptions',
+  'Blood Group': 'bloodGroupOptions',
+  'Nationality': 'nationalityOptions',
+  'Religion': 'religionOptions',
+  'Category': 'categoryOptions',
+  'Sub-Category': 'subCategoryOptions',
+  'Marital Status': 'maritalStatusOptions',
+  'Disability Status': 'disabilityStatusOptions',
+  'Disability Type': 'disabilityTypeOptions',
+  'State': 'stateOptions',
+  'Country': 'countryOptions',
+  'Degree Level': 'degreeLevelOptions',
+  'Degree / Certificate Name': 'degreeNameOptions',
+  'Specialization / Subject': 'specializationOptions',
+  'Division / Class': 'divisionOptions',
+  'Study Mode': 'studyModeOptions',
+  'Grade Type': 'gradeTypeOptions',
+  'Exam Name': 'examNameOptions',
+  'Subject / Paper': 'subjectPaperOptions',
+  'State (for SET/SLET)': 'stateForSetOptions',
+  'Validity Status': 'validityStatusOptions',
+  'Designation': 'designationOptions',
   'Designation / Post': 'designationPostOptions',
   'Department': 'departmentOptions',
+  'Institution / College Type': 'institutionTypeOptions',
+  'Affiliated University': 'affiliatedUniversityOptions',
   'Nature of Appointment': 'natureOfAppointmentOptions',
+  'Approval Status': 'approvalStatusOptions',
+  'Pay Scale / Band': 'payScaleOptions',
+  'Publication Type': 'publicationTypeOptions',
+  'Publication Level': 'publicationLevelOptions',
+  'Author Role': 'authorRoleOptions',
+  'Indexed In': 'indexedInOptions',
+  'Peer Reviewed Status': 'peerReviewedStatusOptions',
+  'Journal Category': 'journalCategoryOptions',
+  'Award Category': 'awardCategoryOptions',
+  'Award Level': 'awardLevelOptions',
+  'Awarding Agency Type': 'awardingAgencyTypeOptions',
+  'Honour Type': 'honourTypeOptions',
+  'Recognition Status': 'recognitionStatusOptions',
+  'Funding Agency': 'fundingAgencyOptions',
+  'Project Status': 'projectStatusOptions',
+  'Role in Project': 'roleInProjectOptions',
+  'Project Category': 'projectCategoryOptions',
+  'Funding Type': 'fundingTypeOptions',
+  'Research Degree': 'researchDegreeOptions',
+  'Scholar Gender': 'scholarGenderOptions',
+  'Research Status': 'researchStatusOptions',
+  'Guidance Type': 'guidanceTypeOptions',
+  'Patent Status': 'patentStatusOptions',
+  'Patent Type': 'patentTypeOptions',
+  'Supervision Category': 'supervisionCategoryOptions',
+  'Committee Type': 'committeeTypeOptions',
+  'Responsibility Role': 'responsibilityRoleOptions',
+  'Course Level': 'courseLevelOptions',
+  'Semester Type': 'semesterTypeOptions',
+  'Academic Session Type': 'academicSessionTypeOptions',
+  'Teaching Category': 'teachingCategoryOptions',
+  'Responsibility Status': 'responsibilityStatusOptions',
+  'admin-non-academic::Administrative Charge': 'adminChargeOptions',
+  'academic-administration::Administrative Charge': 'academicAdminOptions',
+  'quality-assurance::Administrative Charge': 'qualityAssuranceOptions',
+  'research-innovation::Administrative Charge': 'researchInnovationOptions',
+  'examination-evaluation::Administrative Charge': 'examinationEvaluationOptions',
+  'admin-support::Administrative Charge': 'adminSupportOptions',
+  'dept-charges::Administrative charge': 'departmentalChargesOptions',
+  'special-assignments::Administrative charge': 'specialAssignmentsOptions',
+  'extra-institutional::Administrative charge': 'extraInstitutionalOptions',
   'Reason for Leaving': 'reasonForLeavingOptions'
 };
 
-function DropdownConfigList({ config }: { config: any }) {
+function DropdownConfigList({ config, sectionId }: { config: any; sectionId: string }) {
   const [options, setOptions] = useState<string[]>([...config.options]);
   const [selected, setSelected] = useState(config.options[0] || 'Select an option');
   const [isOpen, setIsOpen] = useState(false);
@@ -371,7 +436,7 @@ function DropdownConfigList({ config }: { config: any }) {
   const persistOptions = (updated: string[]) => {
     config.options.splice(0, config.options.length, ...updated);
     setOptions(updated);
-    const storageKey = FIELD_STORAGE_KEYS[config.name];
+    const storageKey = FIELD_STORAGE_KEYS[`${sectionId}::${config.name}`] || FIELD_STORAGE_KEYS[config.name];
     if (storageKey) {
       persistDropdownOptions(storageKey, updated);
       saveDropdownOptionsToServer(storageKey, updated);
@@ -559,7 +624,7 @@ export function AdminProfileSection() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(220px, 1fr))', gap: '24px' }}>
         {currentSection.configs.map((config) => (
-          <DropdownConfigList key={`${currentSection.id}-${config.name}`} config={config} />
+          <DropdownConfigList key={`${currentSection.id}-${config.name}`} config={config} sectionId={currentSection.id} />
         ))}
 
         {currentSection.configs.length === 0 && (
