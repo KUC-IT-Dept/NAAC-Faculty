@@ -32,7 +32,12 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
       const formData = new FormData();
       formData.append('profilePicture', file);
 
-      const response = await fetch('/api/upload/profile-picture', {
+      const rawBase = import.meta.env.VITE_API_URL || '/api';
+      const apiBase = rawBase.startsWith('http')
+        ? rawBase.replace(/\/$/, '') + (rawBase.endsWith('/api') ? '' : '/api')
+        : rawBase;
+
+      const response = await fetch(`${apiBase}/upload/profile-picture`, {
         method: 'POST',
         body: formData,
       });
