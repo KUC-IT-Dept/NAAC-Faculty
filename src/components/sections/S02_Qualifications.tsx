@@ -1,6 +1,6 @@
 import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp } from './sectionUtils';
+import { fg, inp, FileInp } from './sectionUtils';
 
 const EMPTY = {
   degreeLevel: '',
@@ -14,7 +14,9 @@ const EMPTY = {
   mode: '',
   country: '',
   state: '',
-  countryAndState: ''
+  countryAndState: '',
+  phdCertificate: '',
+  thesisTitle: '',
 };
 
 const QUALIFICATION_LEVELS = ['10th', '12th', 'UG', 'PG', 'Ph.D', 'M.Phil'];
@@ -22,6 +24,7 @@ const SPECIALIZATION_LEVELS = ['UG', 'PG', 'Ph.D', 'M.Phil'];
 const YEAR_OPTIONS = Array.from({ length: new Date().getFullYear() - 1979 }, (_, i) => String(new Date().getFullYear() - i));
 const DIVISION_OPTIONS = ['First', 'Second', 'Third'];
 const MODE_OPTIONS = ['Regular', 'Distance'];
+const PHD_MODE_OPTIONS = ['Full time', 'Part time'];
 const COUNTRY_OPTIONS = ['India', 'USA', 'UK', 'Australia', 'Other'];
 const STATE_OPTIONS_INDIA = ['Kerala', 'Tamil Nadu', 'Karnataka', 'Maharashtra', 'Delhi', 'Other'];
 const STATE_OPTIONS_OTHER = ['Other'];
@@ -29,8 +32,30 @@ const BOARD_OPTIONS_10TH = ['vhse', 'cbse', 'icse', 'kerala board of higher educ
 const BOARD_OPTIONS_12TH = ['vhse', 'cbse', 'icse', 'kerala board of higher secondary education', 'other'];
 const UNIVERSITY_OPTIONS_HIGHER = ['kannur university', 'calicut university', 'kerala university', 'mg university', 'central university', 'open university', 'foreign university', 'other'];
 
-const showSpecialization = (level: string) => SPECIALIZATION_LEVELS.includes(level);
-const showDegreeName = (level: string) => SPECIALIZATION_LEVELS.includes(level);
+const saveBtnStyle: React.CSSProperties = {
+  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+  backgroundColor: '#16a34a', color: 'white', border: 'none',
+  borderRadius: '8px', fontWeight: 600,
+  display: 'inline-flex', alignItems: 'center', gap: '6px',
+  marginLeft: '8px',
+};
+
+const cancelBtnStyle: React.CSSProperties = {
+  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+  backgroundColor: '#fff1f2', color: '#9f1239',
+  border: '1px solid #fecdd3', borderRadius: '8px', fontWeight: 600,
+  display: 'inline-flex', alignItems: 'center', gap: '6px',
+};
+
+const deleteBtnStyle: React.CSSProperties = {
+  marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+  backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3',
+  borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px',
+};
+
+const isPhDLevel = (level: string) => level === 'Ph.D';
+const showSpecialization = (level: string) => SPECIALIZATION_LEVELS.includes(level) && !isPhDLevel(level);
+const showDegreeName = (level: string) => SPECIALIZATION_LEVELS.includes(level) && !isPhDLevel(level);
 const getBoardUniversityOptions = (level: string) => {
   if (level === '10th') return BOARD_OPTIONS_10TH;
   if (level === '12th') return BOARD_OPTIONS_12TH;
@@ -105,14 +130,37 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
       return;
     }
 
-    const normalizedData = {
-      ...editingData,
-      degreeName: normalizeQualificationName(editingData.degreeLevel, editingData.degreeName),
-      specialization: showSpecialization(editingData.degreeLevel) ? editingData.specialization : '',
-      countryAndState: editingData.country && editingData.state
-        ? `${editingData.country}, ${editingData.state}`
-        : editingData.countryAndState || `${editingData.country || ''}${editingData.state ? `, ${editingData.state}` : ''}`
-    };
+    const level = editingData.degreeLevel || '';
+    const isPhD = isPhDLevel(level);
+    const normalizedData = isPhD
+      ? {
+          degreeLevel: level,
+          degreeName: normalizeQualificationName(level, editingData.degreeName),
+          specialization: editingData.specialization || '',
+          institution: editingData.institution || '',
+          yearOfPassing: editingData.yearOfPassing || '',
+          thesisTitle: editingData.thesisTitle || '',
+          mode: editingData.mode || '',
+          phdCertificate: editingData.phdCertificate || '',
+          country: editingData.country || '',
+          state: editingData.state || '',
+          countryAndState: editingData.country && editingData.state
+            ? `${editingData.country}, ${editingData.state}`
+            : editingData.country || '',
+          university: '',
+          percentageCGPA: '',
+          division: '',
+        }
+      : {
+          ...editingData,
+          degreeName: normalizeQualificationName(level, editingData.degreeName),
+          specialization: showSpecialization(level) ? editingData.specialization : '',
+          thesisTitle: '',
+          phdCertificate: '',
+          countryAndState: editingData.country && editingData.state
+            ? `${editingData.country}, ${editingData.state}`
+            : editingData.countryAndState || `${editingData.country || ''}${editingData.state ? `, ${editingData.state}` : ''}`,
+        };
 
     let newData = [...data];
     
@@ -159,6 +207,72 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
     const level = editingData.degreeLevel || '';
     const showSpec = showSpecialization(level);
     const showName = showDegreeName(level);
+    const isPhD = isPhDLevel(level);
+
+    if (isPhD) {
+      return (
+        <>
+          <div className="form-row form-row-1">
+            {fg('Qualification Level *', <CustomSelect
+              value={editingData.degreeLevel}
+              onChange={(v: string) => updateEditingData('degreeLevel', v)}
+              options={QUALIFICATION_LEVELS}
+            />)}
+          </div>
+
+          <div className="form-row form-row-1">
+            {fg('PhD certificate', <FileInp
+              v={editingData.phdCertificate}
+              fn={v => updateEditingData('phdCertificate', v)}
+              label="Upload PhD Certificate"
+            />)}
+          </div>
+
+          <div className="form-row form-row-2">
+            {fg('Institution / University Name', inp(editingData.institution, v => updateEditingData('institution', v), 'Name of awarding institution'))}
+            {fg('Year of Completion', <CustomSelect
+              value={editingData.yearOfPassing}
+              onChange={(v: string) => updateEditingData('yearOfPassing', v)}
+              options={YEAR_OPTIONS}
+              placeholder="Select Year"
+            />)}
+          </div>
+
+          <div className="form-row form-row-2">
+            {fg('Subject', inp(editingData.specialization, v => updateEditingData('specialization', v), 'e.g., Computer Science'))}
+            {fg('Title of the thesis', inp(editingData.thesisTitle, v => updateEditingData('thesisTitle', v), 'Thesis title'))}
+          </div>
+
+          <div className="form-row form-row-1">
+            {fg('Full time / Part time', <CustomSelect
+              value={editingData.mode}
+              onChange={(v: string) => updateEditingData('mode', v)}
+              options={PHD_MODE_OPTIONS}
+              placeholder="Select mode"
+            />)}
+          </div>
+
+          <div className="form-row form-row-2">
+            {fg('Country & State of Institution', <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <CustomSelect
+                  value={editingData.country}
+                  onChange={(v: string) => updateEditingData('country', v)}
+                  options={COUNTRY_OPTIONS}
+                  placeholder="Select Country"
+                />
+                <CustomSelect
+                  value={editingData.state}
+                  onChange={(v: string) => updateEditingData('state', v)}
+                  options={editingData.country === 'India' ? STATE_OPTIONS_INDIA : STATE_OPTIONS_OTHER}
+                  placeholder="Select State"
+                />
+              </div>
+            </>)}
+          </div>
+        </>
+      );
+    }
 
     return (
       <>
@@ -220,6 +334,52 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
     );
   };
 
+  const renderQualificationPreview = (q: any) => {
+    if (isPhDLevel(q.degreeLevel)) {
+      const countryState = q.countryAndState || [q.country, q.state].filter(Boolean).join(', ');
+      return (
+        <>
+          {renderPreview('Qualification Level', q.degreeLevel)}
+          {q.phdCertificate && (
+            <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+              <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>PhD certificate</span>
+              <a
+                href={`${import.meta.env.VITE_API_URL || ''}${q.phdCertificate}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: '#2563eb', fontSize: '14px', fontWeight: 500 }}
+              >
+                View certificate
+              </a>
+            </div>
+          )}
+          {renderPreview('Institution / University Name', q.institution)}
+          {renderPreview('Year of Completion', q.yearOfPassing)}
+          {renderPreview('Subject', q.specialization)}
+          {renderPreview('Title of the thesis', q.thesisTitle)}
+          {renderPreview('Full time / Part time', q.mode)}
+          {renderPreview('Country & State of Institution', countryState)}
+        </>
+      );
+    }
+
+    return (
+      <>
+        {renderPreview('Qualification Level', q.degreeLevel)}
+        {renderPreview('Degree / Qualification Name', q.degreeName)}
+        {renderPreview('Specialization / Subject', q.specialization)}
+        {renderPreview('Institution / University Name', q.institution)}
+        {renderPreview('Board / University', q.university)}
+        {renderPreview('Year of Passing', q.yearOfPassing)}
+        {renderPreview('Percentage / CGPA', q.percentageCGPA)}
+        {renderPreview('Division', q.division)}
+        {renderPreview('Mode', q.mode)}
+        {renderPreview('Country', q.country)}
+        {renderPreview('State', q.state)}
+      </>
+    );
+  };
+
   const toggleCard = (index: number) => {
     setExpandedCards(prev => {
       const newSet = new Set(prev);
@@ -274,41 +434,16 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    backgroundColor: '#fecdd3',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    marginRight: '8px',
-                    fontWeight: 600,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  style={cancelBtnStyle}
                 >
-                  <X size={16} /> Cancel
+                  <X size={14} /> Cancel
                 </button>
                 <button
                   type="button"
                   onClick={saveEdit}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    backgroundColor: '#22c55e',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  style={saveBtnStyle}
                 >
-                  <Check size={16} /> Save
+                  <Check size={14} /> Save
                 </button>
               </div>
             </div>
@@ -329,41 +464,16 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                   <button
                     type="button"
                     onClick={cancelEdit}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      backgroundColor: '#fecdd3',
-                      color: '#9f1239',
-                      border: 'none',
-                      borderRadius: '8px',
-                      marginRight: '8px',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
+                    style={cancelBtnStyle}
                   >
-                    <X size={16} /> Cancel
+                    <X size={14} /> Cancel
                   </button>
                   <button
                     type="button"
                     onClick={saveEdit}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      backgroundColor: '#22c55e',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
+                    style={saveBtnStyle}
                   >
-                    <Check size={16} /> Save
+                    <Check size={14} /> Save
                   </button>
                 </div>
               </div>
@@ -386,7 +496,12 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                     )}
                     {q.specialization && (
                       <div style={{ fontSize: '14px', color: '#111827', fontWeight: 600, marginTop: '2px' }}>
-                        Specialization: {q.specialization}
+                        {isPhDLevel(q.degreeLevel) ? 'Subject' : 'Specialization'}: {q.specialization}
+                      </div>
+                    )}
+                    {isPhDLevel(q.degreeLevel) && q.thesisTitle && (
+                      <div style={{ fontSize: '14px', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
+                        Thesis: {q.thesisTitle}
                       </div>
                     )}
                   </div>
@@ -415,20 +530,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                   <button
                     type="button"
                     onClick={() => removeQualification(i)}
-                    style={{
-                      marginLeft: '8px',
-                      padding: '6px 12px',
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      backgroundColor: '#fecdd3',
-                      color: '#9f1239',
-                      border: '1px solid #fecdd3',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
+                    style={deleteBtnStyle}
                   >
                     <Trash2 size={12} /> Delete
                   </button>
@@ -437,17 +539,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
 
               {expandedCards.has(i) && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {renderPreview('Qualification Level', q.degreeLevel)}
-                  {renderPreview('Degree / Qualification Name', q.degreeName)}
-                  {renderPreview('Specialization / Subject', q.specialization)}
-                  {renderPreview('Institution / University Name', q.institution)}
-                  {renderPreview('Board / University', q.university)}
-                  {renderPreview('Year of Passing', q.yearOfPassing)}
-                  {renderPreview('Percentage / CGPA', q.percentageCGPA)}
-                  {renderPreview('Division', q.division)}
-                  {renderPreview('Mode', q.mode)}
-                  {renderPreview('Country', q.country)}
-                  {renderPreview('State', q.state)}
+                  {renderQualificationPreview(q)}
                 </div>
               )}
             </>

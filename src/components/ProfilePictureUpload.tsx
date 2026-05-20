@@ -32,10 +32,17 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
       const formData = new FormData();
       formData.append('profilePicture', file);
 
-      const response = await fetch('/api/upload/profile-picture', {
+      const rawBase = import.meta.env.VITE_API_URL || '/api';
+      const apiBase = rawBase.startsWith('http')
+        ? rawBase.replace(/\/$/, '') + (rawBase.endsWith('/api') ? '' : '/api')
+        : rawBase;
+
+      const response = await fetch(`${apiBase}/upload/profile-picture`, {
         method: 'POST',
         body: formData,
       });
+
+
 
       if (!response.ok) {
         throw new Error('Upload failed');
@@ -55,9 +62,9 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
     return (
       <div className="profile-picture-display">
         {currentPicture ? (
-          <img 
-            src={currentPicture} 
-            alt="Profile" 
+          <img
+            src={currentPicture}
+            alt="Profile"
             className="profile-picture-img"
           />
         ) : (
@@ -73,9 +80,9 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
     <div className="profile-picture-upload">
       <div className="profile-picture-container">
         {currentPicture ? (
-          <img 
-            src={currentPicture} 
-            alt="Profile" 
+          <img
+            src={currentPicture}
+            alt="Profile"
             className="profile-picture-img"
           />
         ) : (

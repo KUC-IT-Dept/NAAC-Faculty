@@ -30,7 +30,12 @@ const qualificationSchema = new mongoose.Schema({
   yearOfPassing: { type: String, default: '' },
   percentageCGPA: { type: String, default: '' },
   division: { type: String, default: '' }, // First / Second / Third
-  mode: { type: String, default: '' }, // Regular / Distance / Part-time
+  mode: { type: String, default: '' }, // Regular / Distance / Full time / Part time (Ph.D)
+  country: { type: String, default: '' },
+  state: { type: String, default: '' },
+  countryAndState: { type: String, default: '' },
+  phdCertificate: { type: String, default: '' },
+  thesisTitle: { type: String, default: '' },
 }, { _id: false });
 
 // Section 3: Eligibility Tests
@@ -165,6 +170,15 @@ const internationalExpSchema = new mongoose.Schema({
   fundingSource: { type: String, default: '' },
 }, { _id: false });
 
+const studentDetailSchema = new mongoose.Schema({
+  studentName: { type: String, default: '' },
+  topic: { type: String, default: '' },
+  year: { type: String, default: '' },
+  fellowship: { type: String, default: '' },
+  degree: { type: String, default: '' }, // Ph.D. / M.Phil.
+  status: { type: String, default: '' }, // Ongoing / Completed
+}, { _id: false });
+
 const facultySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   username: { type: String, required: true, unique: true },
@@ -288,6 +302,8 @@ const facultySchema = new mongoose.Schema({
     mphilCompleted: { type: String, default: '' },
     mphilInProgress: { type: String, default: '' },
     pgProjectsSupervised: { type: String, default: '' },
+    completedStudentsNames: { type: String, default: '' },
+    studentDetails: { type: [studentDetailSchema], default: [] },
   },
 
   // Section 11: Admin & Academic Responsibilities
