@@ -9,7 +9,6 @@ import PersonalInfo from '../../components/sections/S01_PersonalInfo';
 import Qualifications from '../../components/sections/S02_Qualifications';
 import EligibilityTests from '../../components/sections/S03_EligibilityTests';
 import EmploymentDetails from '../../components/sections/S04_EmploymentDetails';
-import WorkExperience from '../../components/sections/S05_WorkExperience';
 import Publications from '../../components/sections/S06_Publications';
 import Awards from '../../components/sections/S07_Awards';
 import ResearchProjects from '../../components/sections/S08_ResearchProjects';
@@ -39,7 +38,6 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'qualifications': { key: 'qualifications', label: 'Qualifications' },
   'eligibility-tests': { key: 'eligibilityTests', label: 'Eligibility Tests' },
   'employment-details': { key: 'employmentDetails', label: 'Employment Details' },
-  'work-experience': { key: 'workExperience', label: 'Work Experience' },
   'research-publications': { key: 'publications', label: 'Research & Publications' },
   'awards-honours': { key: 'awards', label: 'Awards & Honours' },
   'research-projects': { key: 'projects', label: 'Research Projects' },
@@ -67,8 +65,7 @@ const VIS_ITEMS = [
   { key: 'photo', label: 'Profile Photo', desc: 'Show photo publicly' },
   { key: 'qualifications', label: 'Qualifications', desc: 'Degrees & education' },
   { key: 'eligibilityTests', label: 'Eligibility Tests', desc: 'NET / SET / GATE' },
-  { key: 'employmentDetails', label: 'Employment Details', desc: 'Current position & pay' },
-  { key: 'workExperience', label: 'Work Experience', desc: 'Previous positions' },
+  { key: 'employmentDetails', label: 'Employment Details', desc: 'Current and previous positions' },
   { key: 'publications', label: 'Publications', desc: 'Journals, books, conferences' },
   { key: 'projects', label: 'Research Projects', desc: 'Funded projects' },
   { key: 'awards', label: 'Awards & Honours', desc: 'Recognition' },
@@ -91,7 +88,7 @@ const VIS_ITEMS = [
 
 const EMPTY: any = {
   personalInfo: {}, qualifications: [], eligibilityTests: [], employmentDetails: {},
-  workExperience: [], publications: [], awards: [], projects: [],
+  publications: [], awards: [], projects: [],
   researchSupervision: { scholars: [], patents: [] },
   academicResponsibilities: { responsibilities: [], coursesTaught: [] },
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
@@ -179,7 +176,6 @@ export default function ProfileEdit() {
               {tab === 'qualifications' && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
               {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
               {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} />}
-              {tab === 'workExperience' && <WorkExperience data={profile.workExperience} onChange={v => set('workExperience', v)} />}
               {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
               {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} />}
               {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} />}

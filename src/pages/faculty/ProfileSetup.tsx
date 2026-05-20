@@ -8,7 +8,6 @@ import PersonalInfo        from '../../components/sections/S01_PersonalInfo';
 import Qualifications      from '../../components/sections/S02_Qualifications';
 import EligibilityTests    from '../../components/sections/S03_EligibilityTests';
 import EmploymentDetails   from '../../components/sections/S04_EmploymentDetails';
-import WorkExperience      from '../../components/sections/S05_WorkExperience';
 import Publications        from '../../components/sections/S06_Publications';
 import Awards              from '../../components/sections/S07_Awards';
 import ResearchProjects    from '../../components/sections/S08_ResearchProjects';
@@ -39,31 +38,30 @@ const STEPS = [
   { id: 2,  label: 'Qualifications',title: 'Educational Qualifications',     key: 'qualifications' },
   { id: 3,  label: 'Eligibility',   title: 'Eligibility Tests',              key: 'eligibilityTests' },
   { id: 4,  label: 'Employment',    title: 'Employment Details',             key: 'employmentDetails' },
-  { id: 5,  label: 'Experience',    title: 'Work Experience',                key: 'workExperience' },
-  { id: 6,  label: 'Publications',  title: 'Research & Publications',        key: 'publications' },
-  { id: 7,  label: 'Awards',        title: 'Awards & Honours',               key: 'awards' },
-  { id: 8,  label: 'Projects',      title: 'Research Projects',              key: 'projects' },
-  { id: 9,  label: 'Supervision',   title: 'Research Supervision & Patents', key: 'researchSupervision' },
-  { id: 10, label: 'Academic',      title: 'Academic Responsibilities',      key: 'academicResponsibilities' },
-  { id: 11, label: 'Memberships',   title: 'Professional Memberships',       key: 'memberships' },
-  { id: 12, label: 'FDP',           title: 'FDP & Workshops',               key: 'fdpWorkshops' },
-  { id: 13, label: 'Online',        title: 'Online Courses & Certifications',key: 'onlineCourses' },
-  { id: 14, label: 'International', title: 'International Experience',       key: 'internationalExperience' },
-  { id: 15, label: 'Admin/Non-Acad', title: 'Administrative & Non-Academic Responsibilities', key: 'adminNonAcademicResponsibilities' },
-  { id: 16, label: 'Acad. Admin',   title: 'Academic Administration',                        key: 'academicAdministration' },
-  { id: 17, label: 'Quality Assur.',title: 'Quality Assurance',                              key: 'qualityAssurance' },
-  { id: 18, label: 'Research/Inn.', title: 'Research and Innovation',                        key: 'researchAndInnovation' },
-  { id: 19, label: 'Exam & Eval.',  title: 'Examination & Evaluation',                       key: 'examinationAndEvaluation' },
-  { id: 20, label: 'Admin Support', title: 'Administrative Support',                         key: 'administrativeSupport' },
-  { id: 21, label: 'Dept Charges',  title: 'Departmental Charges',                         key: 'departmentalCharges' },
-  { id: 22, label: 'Special Assign', title: 'Special Assignments',                          key: 'specialAssignments' },
-  { id: 23, label: 'Extra Inst',    title: 'Activities – Extra Institutional',               key: 'extraInstitutionalActivities' },
-  { id: 24, label: 'Documents',     title: 'Documents to Upload',                            key: 'documents' },
+  { id: 5,  label: 'Publications',  title: 'Research & Publications',        key: 'publications' },
+  { id: 6,  label: 'Awards',        title: 'Awards & Honours',               key: 'awards' },
+  { id: 7,  label: 'Projects',      title: 'Research Projects',              key: 'projects' },
+  { id: 8,  label: 'Supervision',   title: 'Research Supervision & Patents', key: 'researchSupervision' },
+  { id: 9, label: 'Academic',      title: 'Academic Responsibilities',      key: 'academicResponsibilities' },
+  { id: 10, label: 'Memberships',   title: 'Professional Memberships',       key: 'memberships' },
+  { id: 11, label: 'FDP',           title: 'FDP & Workshops',               key: 'fdpWorkshops' },
+  { id: 12, label: 'Online',        title: 'Online Courses & Certifications',key: 'onlineCourses' },
+  { id: 13, label: 'International', title: 'International Experience',       key: 'internationalExperience' },
+  { id: 14, label: 'Admin/Non-Acad', title: 'Administrative & Non-Academic Responsibilities', key: 'adminNonAcademicResponsibilities' },
+  { id: 15, label: 'Acad. Admin',   title: 'Academic Administration',                        key: 'academicAdministration' },
+  { id: 16, label: 'Quality Assur.',title: 'Quality Assurance',                              key: 'qualityAssurance' },
+  { id: 17, label: 'Research/Inn.', title: 'Research and Innovation',                        key: 'researchAndInnovation' },
+  { id: 18, label: 'Exam & Eval.',  title: 'Examination & Evaluation',                       key: 'examinationAndEvaluation' },
+  { id: 19, label: 'Admin Support', title: 'Administrative Support',                         key: 'administrativeSupport' },
+  { id: 20, label: 'Dept Charges',  title: 'Departmental Charges',                         key: 'departmentalCharges' },
+  { id: 21, label: 'Special Assign', title: 'Special Assignments',                          key: 'specialAssignments' },
+  { id: 22, label: 'Extra Inst',    title: 'Activities – Extra Institutional',               key: 'extraInstitutionalActivities' },
+  { id: 23, label: 'Documents',     title: 'Documents to Upload',                            key: 'documents' },
 ];
 
 const EMPTY: any = {
   personalInfo: {}, qualifications: [], eligibilityTests: [], employmentDetails: {},
-  workExperience: [], publications: [], awards: [], projects: [],
+  publications: [], awards: [], projects: [],
   researchSupervision: { scholars: [], patents: [] },
   academicResponsibilities: { responsibilities: [], coursesTaught: [] },
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
@@ -192,26 +190,25 @@ export default function ProfileSetup() {
             {step === 2  && <Qualifications       data={profile.qualifications}            onChange={v => set('qualifications', v)} />}
             {step === 3  && <EligibilityTests     data={profile.eligibilityTests}          onChange={v => set('eligibilityTests', v)} />}
             {step === 4  && <EmploymentDetails    data={profile.employmentDetails}         onChange={v => set('employmentDetails', v)} />}
-            {step === 5  && <WorkExperience       data={profile.workExperience}            onChange={v => set('workExperience', v)} />}
-            {step === 6  && <Publications          data={profile.publications}              onChange={v => set('publications', v)} />}
-            {step === 7  && <Awards               data={profile.awards}                   onChange={v => set('awards', v)} />}
-            {step === 8  && <ResearchProjects     data={profile.projects}                 onChange={v => set('projects', v)} />}
-            {step === 9  && <ResearchSupervision  data={profile.researchSupervision}       onChange={v => set('researchSupervision', v)} />}
-            {step === 10 && <AcademicResp         data={profile.academicResponsibilities}  onChange={v => set('academicResponsibilities', v)} />}
-            {step === 11 && <Memberships          data={profile.memberships}               onChange={v => set('memberships', v)} />}
-            {step === 12 && <FdpWorkshops         data={profile.fdpWorkshops}              onChange={v => set('fdpWorkshops', v)} />}
-            {step === 13 && <OnlineCourses        data={profile.onlineCourses}             onChange={v => set('onlineCourses', v)} />}
-            {step === 14 && <InternationalExp     data={profile.internationalExperience}   onChange={v => set('internationalExperience', v)} />}
-            {step === 15 && <AdminNonAcademicResp data={profile.adminNonAcademicResponsibilities} onChange={v => set('adminNonAcademicResponsibilities', v)} />}
-            {step === 16 && <AcademicAdmin        data={profile.academicAdministration}           onChange={v => set('academicAdministration', v)} />}
-            {step === 17 && <QualityAssurance     data={profile.qualityAssurance}                 onChange={v => set('qualityAssurance', v)} />}
-            {step === 18 && <ResearchInnovation   data={profile.researchAndInnovation}            onChange={v => set('researchAndInnovation', v)} />}
-            {step === 19 && <ExaminationAndEvaluation data={profile.examinationAndEvaluation}         onChange={v => set('examinationAndEvaluation', v)} />}
-            {step === 20 && <AdministrativeSupport data={profile.administrativeSupport}             onChange={v => set('administrativeSupport', v)} />}
-            {step === 21 && <DepartmentalCharges data={profile.departmentalCharges}             onChange={v => set('departmentalCharges', v)} />}
-            {step === 22 && <SpecialAssignments data={profile.specialAssignments}             onChange={v => set('specialAssignments', v)} />}
-            {step === 23 && <ExtraInstitutionalActivities data={profile.extraInstitutionalActivities} onChange={v => set('extraInstitutionalActivities', v)} />}
-            {step === 24 && <Documents            data={profile.documents}                        onChange={v => set('documents', v)} />}
+            {step === 5  && <Publications          data={profile.publications}              onChange={v => set('publications', v)} />}
+            {step === 6  && <Awards               data={profile.awards}                   onChange={v => set('awards', v)} />}
+            {step === 7  && <ResearchProjects     data={profile.projects}                 onChange={v => set('projects', v)} />}
+            {step === 8  && <ResearchSupervision  data={profile.researchSupervision}       onChange={v => set('researchSupervision', v)} />}
+            {step === 9 && <AcademicResp         data={profile.academicResponsibilities}  onChange={v => set('academicResponsibilities', v)} />}
+            {step === 10 && <Memberships          data={profile.memberships}               onChange={v => set('memberships', v)} />}
+            {step === 11 && <FdpWorkshops         data={profile.fdpWorkshops}              onChange={v => set('fdpWorkshops', v)} />}
+            {step === 12 && <OnlineCourses        data={profile.onlineCourses}             onChange={v => set('onlineCourses', v)} />}
+            {step === 13 && <InternationalExp     data={profile.internationalExperience}   onChange={v => set('internationalExperience', v)} />}
+            {step === 14 && <AdminNonAcademicResp data={profile.adminNonAcademicResponsibilities} onChange={v => set('adminNonAcademicResponsibilities', v)} />}
+            {step === 15 && <AcademicAdmin        data={profile.academicAdministration}           onChange={v => set('academicAdministration', v)} />}
+            {step === 16 && <QualityAssurance     data={profile.qualityAssurance}                 onChange={v => set('qualityAssurance', v)} />}
+            {step === 17 && <ResearchInnovation   data={profile.researchAndInnovation}            onChange={v => set('researchAndInnovation', v)} />}
+            {step === 18 && <ExaminationAndEvaluation data={profile.examinationAndEvaluation}         onChange={v => set('examinationAndEvaluation', v)} />}
+            {step === 19 && <AdministrativeSupport data={profile.administrativeSupport}             onChange={v => set('administrativeSupport', v)} />}
+            {step === 20 && <DepartmentalCharges data={profile.departmentalCharges}             onChange={v => set('departmentalCharges', v)} />}
+            {step === 21 && <SpecialAssignments data={profile.specialAssignments}             onChange={v => set('specialAssignments', v)} />}
+            {step === 22 && <ExtraInstitutionalActivities data={profile.extraInstitutionalActivities} onChange={v => set('extraInstitutionalActivities', v)} />}
+            {step === 23 && <Documents            data={profile.documents}                        onChange={v => set('documents', v)} />}
           </div>
 
           <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid var(--border)' }}>
