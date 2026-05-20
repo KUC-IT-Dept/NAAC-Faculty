@@ -42,6 +42,8 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
         body: formData,
       });
 
+
+
       if (!response.ok) {
         throw new Error('Upload failed');
       }
@@ -60,9 +62,9 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
     return (
       <div className="profile-picture-display">
         {currentPicture ? (
-          <img 
-            src={currentPicture} 
-            alt="Profile" 
+          <img
+            src={currentPicture}
+            alt="Profile"
             className="profile-picture-img"
           />
         ) : (
@@ -78,9 +80,9 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
     <div className="profile-picture-upload">
       <div className="profile-picture-container">
         {currentPicture ? (
-          <img 
-            src={currentPicture} 
-            alt="Profile" 
+          <img
+            src={currentPicture}
+            alt="Profile"
             className="profile-picture-img"
           />
         ) : (
