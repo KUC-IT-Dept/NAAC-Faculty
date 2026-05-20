@@ -1,6 +1,6 @@
 import { fg, inp, dateInp } from './sectionUtils';
 import { useState } from 'react';
-import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X } from 'lucide-react';
+import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, ExternalLink } from 'lucide-react';
 import { designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, payScaleOptions } from '../../shared/dropdownOptions';
 
 const EMPTY = {
@@ -17,15 +17,10 @@ const EMPTY = {
   bankAccountDetails: '',
   pfNumber: '',
   serviceBookNumber: '',
-  dateOfFirstPromotion: '',
-  natureOfAppointment1: '',
-  newPayBand1: '',
-  dateOfSecondPromotion: '',
-  natureOfAppointment2: '',
-  newPayBand2: '',
-  dateOfThirdPromotion: '',
-  natureOfAppointment3: '',
-  newPayBand3: ''
+  from: '',
+  to: '',
+  reasonForLeaving: '',
+  files: [] as Array<{ name: string; url?: string }>
 };
 
 const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
@@ -94,6 +89,18 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
     setEditingData((prev: any) => ({ ...prev, [key]: value }));
   };
 
+  const handleFileUpload = (files: FileList | null) => {
+    if (!files) return;
+    const uploadedFiles = Array.from(files).map((file: File) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
+    setEditingData((prev: any) => ({
+      ...prev,
+      files: [...(prev.files || []), ...uploadedFiles],
+    }));
+  };
+
   const toggleCard = (index: number) => {
     setExpandedCards(prev => {
       const newSet = new Set(prev);
@@ -122,6 +129,107 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
     </div>
   );
 
+  const renderFormFields = () => (
+    <>
+      <div className="form-row form-row-2">
+        {fg('Employee ID / Staff Code', inp(editingData.employeeId, v => updateEditingData('employeeId', v)))}
+        {fg('Designation *', <CustomSelect
+          value={editingData.designation}
+          onChange={(v: string) => updateEditingData('designation', v)}
+          options={designationOptions}
+        />)}
+      </div>
+      <div className="form-row form-row-2">
+        {fg('Department', <CustomSelect
+          value={editingData.department}
+          onChange={(v: string) => updateEditingData('department', v)}
+          options={departmentOptions}
+        />)}
+        {fg('College / Institution Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
+      </div>
+      <div className="form-row form-row-2">
+        {fg('University Affiliated to', <CustomSelect
+          value={editingData.affiliatedUniversity}
+          onChange={(v: string) => updateEditingData('affiliatedUniversity', v)}
+          options={affiliatedUniversityOptions}
+        />)}
+        {fg('Type of Institution', <CustomSelect
+          value={editingData.typeOfInstitution}
+          onChange={(v: string) => updateEditingData('typeOfInstitution', v)}
+          options={institutionTypeOptions}
+        />)}
+      </div>
+
+      <div className="form-row form-row-3">
+        {fg('Nature of Appointment', <CustomSelect
+          value={editingData.natureOfAppointment}
+          onChange={(v: string) => updateEditingData('natureOfAppointment', v)}
+          options={natureOfAppointmentOptions}
+        />)}
+        {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v)))}
+        {fg('Date of Confirmation / Regularization', dateInp(editingData.dateOfConfirmation, v => updateEditingData('dateOfConfirmation', v)))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Pay Band / Pay Scale / CTC', <CustomSelect
+          value={editingData.payBand}
+          onChange={(v: string) => updateEditingData('payBand', v)}
+          options={payScaleOptions}
+        />)}
+      </div>
+
+      <div className="form-row form-row-3">
+        {fg('Bank Account Details (for salary)', inp(editingData.bankAccountDetails, v => updateEditingData('bankAccountDetails', v)))}
+        {fg('Provident Fund (PF) Number', inp(editingData.pfNumber, v => updateEditingData('pfNumber', v)))}
+        {fg('Service Book Number', inp(editingData.serviceBookNumber, v => updateEditingData('serviceBookNumber', v)))}
+      </div>
+
+      <div className="form-row form-row-3">
+        {fg('From Date', dateInp(editingData.from, v => updateEditingData('from', v)))}
+        {fg('To Date', dateInp(editingData.to, v => updateEditingData('to', v)))}
+        {fg('Reason for Leaving', inp(editingData.reasonForLeaving, v => updateEditingData('reasonForLeaving', v)))}
+      </div>
+
+      <div className="form-group" style={{ marginTop: 10 }}>
+        <label>Documents / Experience Proof</label>
+        <input type="file" multiple className="form-input" onChange={ev => handleFileUpload(ev.target.files)} />
+        {(editingData.files || []).length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+            {(editingData.files || []).map((f: any, idx: number) => (
+              <div
+                key={idx}
+                style={{
+                  background: 'var(--surface-alt, #f1f5f9)',
+                  padding: '4px 8px',
+                  borderRadius: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 12,
+                  border: '1px solid var(--border-light, #e2e8f0)'
+                }}
+              >
+                <a href={f.url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                  {f.name}
+                </a>
+                <button
+                  type="button"
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}
+                  onClick={() =>
+                    setEditingData((prev: any) => ({
+                      ...prev,
+                      files: (prev.files || []).filter((_: any, x: number) => x !== idx),
+                    }))
+                  }
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
 
   return (
     <div>
@@ -197,112 +305,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               </div>
             </div>
 
-            <div className="form-row form-row-2">
-              {fg('Employee ID / Staff Code', inp(editingData.employeeId, v => updateEditingData('employeeId', v)))}
-              {fg('Designation *', <CustomSelect
-                value={editingData.designation}
-                onChange={(v: string) => updateEditingData('designation', v)}
-                options={designationOptions}
-              />)}
-            </div>
-            <div className="form-row form-row-1">
-              {fg('Number of Promotions', <CustomSelect
-                value={editingData.numberOfPromotions}
-                onChange={(v: string) => updateEditingData('numberOfPromotions', v)}
-                options={['0', '1', '2', '3', '4', '5']}
-              />)}
-            </div>
-            <div className="form-row form-row-2">
-              {fg('Department', <CustomSelect
-                value={editingData.department}
-                onChange={(v: string) => updateEditingData('department', v)}
-                options={departmentOptions}
-              />)}
-              {fg('College / Institution Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
-            </div>
-            <div className="form-row form-row-2">
-              {fg('University Affiliated to', <CustomSelect
-                value={editingData.affiliatedUniversity}
-                onChange={(v: string) => updateEditingData('affiliatedUniversity', v)}
-                options={affiliatedUniversityOptions}
-              />)}
-              {fg('Type of Institution', <CustomSelect
-                value={editingData.typeOfInstitution}
-                onChange={(v: string) => updateEditingData('typeOfInstitution', v)}
-                options={institutionTypeOptions}
-              />)}
-            </div>
-
-            <div className="form-row form-row-3">
-              {fg('Nature of Appointment', <CustomSelect
-                value={editingData.natureOfAppointment}
-                onChange={(v: string) => updateEditingData('natureOfAppointment', v)}
-                options={natureOfAppointmentOptions}
-              />)}
-              {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v)))}
-              {fg('Date of Confirmation / Regularization', dateInp(editingData.dateOfConfirmation, v => updateEditingData('dateOfConfirmation', v)))}
-            </div>
-            <div className="form-row form-row-1">
-              {fg('Pay Band / Pay Scale / CTC', <CustomSelect
-                value={editingData.payBand}
-                onChange={(v: string) => updateEditingData('payBand', v)}
-                options={payScaleOptions}
-              />)}
-            </div>
-
-            <div className="form-row form-row-3">
-              {fg('Bank Account Details (for salary)', inp(editingData.bankAccountDetails, v => updateEditingData('bankAccountDetails', v)))}
-              {fg('Provident Fund (PF) Number', inp(editingData.pfNumber, v => updateEditingData('pfNumber', v)))}
-              {fg('Service Book Number', inp(editingData.serviceBookNumber, v => updateEditingData('serviceBookNumber', v)))}
-            </div>
-
-            {editingData.numberOfPromotions >= 1 && (
-              <div className="form-row form-row-3">
-                {fg('Date of First promotion', dateInp(editingData.dateOfFirstPromotion, v => updateEditingData('dateOfFirstPromotion', v)))}
-                {fg('Nature of Appointment', <CustomSelect
-                  value={editingData.natureOfAppointment1}
-                  onChange={(v: string) => updateEditingData('natureOfAppointment1', v)}
-                  options={natureOfAppointmentOptions}
-                />)}
-                {fg('New Pay Band / Pay Scale', <CustomSelect
-                  value={editingData.newPayBand1}
-                  onChange={(v: string) => updateEditingData('newPayBand1', v)}
-                  options={payScaleOptions}
-                />)}
-              </div>
-            )}
-
-            {editingData.numberOfPromotions >= 2 && (
-              <div className="form-row form-row-3">
-                {fg('Date of Second promotion', dateInp(editingData.dateOfSecondPromotion, v => updateEditingData('dateOfSecondPromotion', v)))}
-                {fg('Nature of Appointment', <CustomSelect
-                  value={editingData.natureOfAppointment2}
-                  onChange={(v: string) => updateEditingData('natureOfAppointment2', v)}
-                  options={natureOfAppointmentOptions}
-                />)}
-                {fg('New Pay Band / Pay Scale', <CustomSelect
-                  value={editingData.newPayBand2}
-                  onChange={(v: string) => updateEditingData('newPayBand2', v)}
-                  options={payScaleOptions}
-                />)}
-              </div>
-            )}
-
-            {editingData.numberOfPromotions >= 3 && (
-              <div className="form-row form-row-3">
-                {fg('Date of Third promotion', dateInp(editingData.dateOfThirdPromotion, v => updateEditingData('dateOfThirdPromotion', v)))}
-                {fg('Nature of Appointment', <CustomSelect
-                  value={editingData.natureOfAppointment3}
-                  onChange={(v: string) => updateEditingData('natureOfAppointment3', v)}
-                  options={natureOfAppointmentOptions}
-                />)}
-                {fg('New Pay Band / Pay Scale', <CustomSelect
-                  value={editingData.newPayBand3}
-                  onChange={(v: string) => updateEditingData('newPayBand3', v)}
-                  options={payScaleOptions}
-                />)}
-              </div>
-            )}
+            {renderFormFields()}
           </>
         </div>
       ) : (
@@ -311,7 +314,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
             {editingIndex === i ? (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
-                  <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Briefcase size={20} color="#111827" /> Edit Employment Details
                   </h3>
                   <div>
@@ -357,14 +360,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                   </div>
                 </div>
 
-                <div className="form-row form-row-2">
-                  {fg('Year *', inp(editingData.year, v => updateEditingData('year', v), 'e.g., 2020'))}
-                  {fg('Designation *', <CustomSelect
-                    value={editingData.designation}
-                    onChange={(v: string) => updateEditingData('designation', v)}
-                    options={['Assistant Professor', 'Associate Professor', 'Professor']}
-                  />)}
-                </div>
+                {renderFormFields()}
               </>
             ) : (
               <>
@@ -438,15 +434,22 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                     {renderPreview('Bank Account Details', e.bankAccountDetails)}
                     {renderPreview('Provident Fund (PF) Number', e.pfNumber)}
                     {renderPreview('Service Book Number', e.serviceBookNumber)}
-                    {e.numberOfPromotions >= 1 && renderPreview('Date of First promotion', e.dateOfFirstPromotion)}
-                    {e.numberOfPromotions >= 1 && renderPreview('First promotion Nature of Appointment', e.natureOfAppointment1)}
-                    {e.numberOfPromotions >= 1 && renderPreview('First promotion New Pay Band', e.newPayBand1)}
-                    {e.numberOfPromotions >= 2 && renderPreview('Date of Second promotion', e.dateOfSecondPromotion)}
-                    {e.numberOfPromotions >= 2 && renderPreview('Second promotion Nature of Appointment', e.natureOfAppointment2)}
-                    {e.numberOfPromotions >= 2 && renderPreview('Second promotion New Pay Band', e.newPayBand2)}
-                    {e.numberOfPromotions >= 3 && renderPreview('Date of Third promotion', e.dateOfThirdPromotion)}
-                    {e.numberOfPromotions >= 3 && renderPreview('Third promotion Nature of Appointment', e.natureOfAppointment3)}
-                    {e.numberOfPromotions >= 3 && renderPreview('Third promotion New Pay Band', e.newPayBand3)}
+                    {renderPreview('From Date', e.from)}
+                    {renderPreview('To Date', e.to)}
+                    {renderPreview('Reason for Leaving', e.reasonForLeaving)}
+                    {(e.files || []).length > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+                        <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Documents</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {(e.files || []).map((f: any, idx: number) => (
+                            <a key={idx} href={f.url} target="_blank" rel="noreferrer" className="preview-file-link" style={{ fontSize: 12 }}>
+                              <ExternalLink size={12} /> {f.name}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 )}
               </>
