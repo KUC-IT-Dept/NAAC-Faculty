@@ -27,6 +27,17 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     return Math.max(0, age).toString();
   };
 
+  // Format date to dd-mm-yyyy
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return `${day}-${month}-${year}`;
+    }
+    return dateStr;
+  };
+
   
   // Single edit state for entire form
   const [isEditing, setIsEditing] = useState(false);
@@ -211,7 +222,7 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
                 />
               ))
             ) : (
-              renderPreview('Date of Birth', safeData.dateOfBirth || '')
+              renderPreview('Date of Birth', formatDate(safeData.dateOfBirth) || '')
             )}
             {isEditing ? (
               fg('Age', inp(calculateAge(safeData.dateOfBirth) || safeData.age, v => s('age', v), 'Calculated from DOB'))
