@@ -79,15 +79,7 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'work-experience', title: '05 - Work Experience', configs: [
-      { name: 'Designation / Post', options: designationPostOptions },
-      { name: 'Department', options: departmentOptions },
-      { name: 'Nature of Appointment', options: natureOfAppointmentOptions },
-      { name: 'Reason for Leaving', options: reasonForLeavingOptions }
-    ]
-  },
-  {
-    id: 'research-publications', title: '06 - Research & Publications', configs: [
+    id: 'research-publications', title: '05 - Research & Publications', configs: [
       { name: 'Publication Type', options: publicationTypeOptions },
       { name: 'Publication Level', options: publicationLevelOptions },
       { name: 'Author Role', options: authorRoleOptions },
@@ -97,7 +89,7 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'awards-honours', title: '07 - Awards & Honours', configs: [
+    id: 'awards-honours', title: '06 - Awards & Honours', configs: [
       { name: 'Award Category', options: awardCategoryOptions },
       { name: 'Award Level', options: awardLevelOptions },
       { name: 'Awarding Agency Type', options: awardingAgencyTypeOptions },
@@ -106,7 +98,7 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'research-projects', title: '08 - Research Projects', configs: [
+    id: 'research-projects', title: '07 - Research Projects', configs: [
       { name: 'Funding Agency', options: fundingAgencyOptions },
       { name: 'Project Status', options: projectStatusOptions },
       { name: 'Role in Project', options: roleInProjectOptions },
@@ -115,7 +107,7 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'research-supervision', title: '09 - Research Supervision', configs: [
+    id: 'research-supervision', title: '08 - Research Supervision', configs: [
       { name: 'Research Degree', options: researchDegreeOptions },
       { name: 'Scholar Gender', options: scholarGenderOptions },
       { name: 'Research Status', options: researchStatusOptions },
@@ -126,7 +118,7 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'academic-responsibilities', title: '10 - Academic Responsibilities', configs: [
+    id: 'academic-responsibilities', title: '09 - Academic Responsibilities', configs: [
       { name: 'Committee Type', options: committeeTypeOptions },
       { name: 'Responsibility Role', options: responsibilityRoleOptions },
       { name: 'Course Level', options: courseLevelOptions },
@@ -137,7 +129,7 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'memberships', title: '11 - Memberships', configs: [
+    id: 'memberships', title: '10 - Memberships', configs: [
       { name: 'Professional Body / Society', options: professionalBodyOptions },
       { name: 'Membership Type', options: membershipTypeOptions },
       { name: 'Membership Category', options: membershipCategoryOptions },
@@ -147,14 +139,14 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'fdp-workshops', title: '12 - FDP & Workshops', configs: [
+    id: 'fdp-workshops', title: '11 - FDP & Workshops', configs: [
       { name: 'Programme Type', options: programmeTypeOptions },
       { name: 'Sponsoring / Funding Agency', options: sponsoringAgencyOptions },
       { name: 'Participation', options: participationOptions }
     ]
   },
   {
-    id: 'online-courses', title: '13 - Online Courses', configs: [
+    id: 'online-courses', title: '12 - Online Courses', configs: [
       { name: 'Course Platform / Provider', options: coursePlatformOptions },
       { name: 'Course Type', options: courseTypeOptions },
       { name: 'Completion Status', options: completionStatusOptions },
@@ -163,7 +155,7 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'international-experience', title: '14 - International Experience', configs: [
+    id: 'international-experience', title: '13 - International Experience', configs: [
       { name: 'Country', options: countryVisitOptions },
       { name: 'Purpose of Visit', options: purposeOfVisitOptions },
       { name: 'Funding Source', options: fundingSourceOptions },
@@ -173,52 +165,52 @@ export const sectionsData = [
     ]
   },
   {
-    id: 'admin-non-academic', title: '15 - Admin & Non-Academic Responsibilities', configs: [
+    id: 'admin-non-academic', title: '14 - Admin & Non-Academic Responsibilities', configs: [
       { name: 'Administrative Charge', options: adminChargeOptions }
     ]
   },
   {
-    id: 'academic-administration', title: '16 - Academic Administration', configs: [
+    id: 'academic-administration', title: '15 - Academic Administration', configs: [
       { name: 'Administrative Charge', options: academicAdminOptions }
     ]
   },
   {
-    id: 'quality-assurance', title: '17 - Quality Assurance', configs: [
+    id: 'quality-assurance', title: '16 - Quality Assurance', configs: [
       { name: 'Administrative Charge', options: qualityAssuranceOptions }
     ]
   },
   {
-    id: 'research-innovation', title: '18 - Research and Innovation', configs: [
+    id: 'research-innovation', title: '17 - Research and Innovation', configs: [
       { name: 'Administrative Charge', options: researchInnovationOptions }
     ]
   },
   {
-    id: 'examination-evaluation', title: '19 - Examination and Evaluation', configs: [
+    id: 'examination-evaluation', title: '18 - Examination and Evaluation', configs: [
       { name: 'Administrative Charge', options: examinationEvaluationOptions }
     ]
   },
   {
-    id: 'admin-support', title: '20 - Administrative Support', configs: [
+    id: 'admin-support', title: '19 - Administrative Support', configs: [
       { name: 'Administrative Charge', options: adminSupportOptions }
     ]
   },
   {
-    id: 'dept-charges', title: '21 - Departmental Charges', configs: [
+    id: 'dept-charges', title: '20 - Departmental Charges', configs: [
       { name: 'Administrative charge', options: departmentalChargesOptions }
     ]
   },
   {
-    id: 'special-assignments', title: '22 - Special Assignments', configs: [
+    id: 'special-assignments', title: '21 - Special Assignments', configs: [
       { name: 'Administrative charge', options: specialAssignmentsOptions }
     ]
   },
   {
-    id: 'extra-institutional', title: '23 - Activities – Extra Institutional', configs: [
+    id: 'extra-institutional', title: '22 - Activities – Extra Institutional', configs: [
       { name: 'Administrative charge', options: extraInstitutionalOptions }
     ]
   },
   {
-    id: 'documents', title: '24 - Documents', configs: [
+    id: 'documents', title: '23 - Documents', configs: [
       { name: 'Document Type', options: documentTypeOptions }
     ]
   },
@@ -332,13 +324,78 @@ function DropdownOption({ opt, isSelected, onSelect, onEdit, onDelete, isEditing
 }
 
 const FIELD_STORAGE_KEYS: Record<string, string> = {
+  'Gender': 'genderOptions',
+  'Blood Group': 'bloodGroupOptions',
+  'Nationality': 'nationalityOptions',
+  'Religion': 'religionOptions',
+  'Category': 'categoryOptions',
+  'Sub-Category': 'subCategoryOptions',
+  'Marital Status': 'maritalStatusOptions',
+  'Disability Status': 'disabilityStatusOptions',
+  'Disability Type': 'disabilityTypeOptions',
+  'State': 'stateOptions',
+  'Country': 'countryOptions',
+  'Degree Level': 'degreeLevelOptions',
+  'Degree / Certificate Name': 'degreeNameOptions',
+  'Specialization / Subject': 'specializationOptions',
+  'Division / Class': 'divisionOptions',
+  'Study Mode': 'studyModeOptions',
+  'Grade Type': 'gradeTypeOptions',
+  'Exam Name': 'examNameOptions',
+  'Subject / Paper': 'subjectPaperOptions',
+  'State (for SET/SLET)': 'stateForSetOptions',
+  'Validity Status': 'validityStatusOptions',
+  'Designation': 'designationOptions',
   'Designation / Post': 'designationPostOptions',
   'Department': 'departmentOptions',
+  'Institution / College Type': 'institutionTypeOptions',
+  'Affiliated University': 'affiliatedUniversityOptions',
   'Nature of Appointment': 'natureOfAppointmentOptions',
+  'Approval Status': 'approvalStatusOptions',
+  'Pay Scale / Band': 'payScaleOptions',
+  'Publication Type': 'publicationTypeOptions',
+  'Publication Level': 'publicationLevelOptions',
+  'Author Role': 'authorRoleOptions',
+  'Indexed In': 'indexedInOptions',
+  'Peer Reviewed Status': 'peerReviewedStatusOptions',
+  'Journal Category': 'journalCategoryOptions',
+  'Award Category': 'awardCategoryOptions',
+  'Award Level': 'awardLevelOptions',
+  'Awarding Agency Type': 'awardingAgencyTypeOptions',
+  'Honour Type': 'honourTypeOptions',
+  'Recognition Status': 'recognitionStatusOptions',
+  'Funding Agency': 'fundingAgencyOptions',
+  'Project Status': 'projectStatusOptions',
+  'Role in Project': 'roleInProjectOptions',
+  'Project Category': 'projectCategoryOptions',
+  'Funding Type': 'fundingTypeOptions',
+  'Research Degree': 'researchDegreeOptions',
+  'Scholar Gender': 'scholarGenderOptions',
+  'Research Status': 'researchStatusOptions',
+  'Guidance Type': 'guidanceTypeOptions',
+  'Patent Status': 'patentStatusOptions',
+  'Patent Type': 'patentTypeOptions',
+  'Supervision Category': 'supervisionCategoryOptions',
+  'Committee Type': 'committeeTypeOptions',
+  'Responsibility Role': 'responsibilityRoleOptions',
+  'Course Level': 'courseLevelOptions',
+  'Semester Type': 'semesterTypeOptions',
+  'Academic Session Type': 'academicSessionTypeOptions',
+  'Teaching Category': 'teachingCategoryOptions',
+  'Responsibility Status': 'responsibilityStatusOptions',
+  'admin-non-academic::Administrative Charge': 'adminChargeOptions',
+  'academic-administration::Administrative Charge': 'academicAdminOptions',
+  'quality-assurance::Administrative Charge': 'qualityAssuranceOptions',
+  'research-innovation::Administrative Charge': 'researchInnovationOptions',
+  'examination-evaluation::Administrative Charge': 'examinationEvaluationOptions',
+  'admin-support::Administrative Charge': 'adminSupportOptions',
+  'dept-charges::Administrative charge': 'departmentalChargesOptions',
+  'special-assignments::Administrative charge': 'specialAssignmentsOptions',
+  'extra-institutional::Administrative charge': 'extraInstitutionalOptions',
   'Reason for Leaving': 'reasonForLeavingOptions'
 };
 
-function DropdownConfigList({ config }: { config: any }) {
+function DropdownConfigList({ config, sectionId }: { config: any; sectionId: string }) {
   const [options, setOptions] = useState<string[]>([...config.options]);
   const [selected, setSelected] = useState(config.options[0] || 'Select an option');
   const [isOpen, setIsOpen] = useState(false);
@@ -379,7 +436,7 @@ function DropdownConfigList({ config }: { config: any }) {
   const persistOptions = (updated: string[]) => {
     config.options.splice(0, config.options.length, ...updated);
     setOptions(updated);
-    const storageKey = FIELD_STORAGE_KEYS[config.name];
+    const storageKey = FIELD_STORAGE_KEYS[`${sectionId}::${config.name}`] || FIELD_STORAGE_KEYS[config.name];
     if (storageKey) {
       persistDropdownOptions(storageKey, updated);
       saveDropdownOptionsToServer(storageKey, updated);
@@ -567,7 +624,7 @@ export function AdminProfileSection() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(220px, 1fr))', gap: '24px' }}>
         {currentSection.configs.map((config) => (
-          <DropdownConfigList key={`${currentSection.id}-${config.name}`} config={config} />
+          <DropdownConfigList key={`${currentSection.id}-${config.name}`} config={config} sectionId={currentSection.id} />
         ))}
 
         {currentSection.configs.length === 0 && (

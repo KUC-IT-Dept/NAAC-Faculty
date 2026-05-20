@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, DropdownWithCustom } from './sectionUtils';
 import { publicationLevelOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
 
@@ -41,10 +41,10 @@ const EMPTY: Publication = {
 };
 
 const PUB_TABS = [
-  { id: 'Journal Articles', label: 'Journal Articles (6.1)' },
-  { id: 'Book Chapters', label: 'Book Chapters (6.2)' },
-  { id: 'Books Authored / Edited', label: 'Books Authored / Edited (6.3)' },
-  { id: 'Conference Papers', label: 'Conference Papers (6.4)' },
+  { id: 'Journal Articles', label: 'Journal Articles' },
+  { id: 'Book Chapters', label: 'Book Chapters' },
+  { id: 'Books Authored / Edited', label: 'Books Authored / Edited' },
+  { id: 'Conference Papers', label: 'Conference Papers' },
 ];
 
 const INDEX_OPTS = ['SCI', 'Scopus', 'UGC-CARE', 'Web of Science', 'Others'];
@@ -187,34 +187,34 @@ const btnStyles = {
     fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer'
   } as React.CSSProperties,
   edit: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#f8fafc', color: '#334155',
+    display: 'inline-flex', alignItems: 'center', gap: '4px',
+    backgroundColor: '#f1f5f9', color: '#475569',
     padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer'
+    fontSize: '13px', fontWeight: 600, border: '1px solid #cbd5e1', cursor: 'pointer'
   } as React.CSSProperties,
   delete: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#fff1f2', color: '#be123c',
+    display: 'inline-flex', alignItems: 'center', gap: '4px',
+    backgroundColor: '#fff1f2', color: '#e11d48',
     padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer'
+    fontSize: '13px', fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer'
   } as React.CSSProperties,
   save: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#10b981', color: '#ffffff',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer'
+    backgroundColor: '#16a34a', color: '#ffffff',
+    padding: '7px 20px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer'
   } as React.CSSProperties,
   saveDisabled: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#d1fae5', color: '#6ee7b7',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'not-allowed'
+    backgroundColor: '#16a35f', color: '#ffffff',
+    padding: '7px 20px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'not-allowed'
   } as React.CSSProperties,
   cancel: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#f1f5f9', color: '#475569',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer'
+    backgroundColor: '#fff1f2', color: '#9f1239',
+    padding: '7px 20px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer'
   } as React.CSSProperties,
 };
 
@@ -481,44 +481,29 @@ export default function Publications({
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   type="button"
+                  style={btnStyles.cancel}
+                  onClick={() => setPendingNewItem(null)}
+                >
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
                   style={isComplete(pendingNewItem) ? btnStyles.save : btnStyles.saveDisabled}
                   disabled={!isComplete(pendingNewItem)}
                   onClick={handleSavePending}
                 >
                   <Check size={14} /> Save
                 </button>
-                <button
-                  type="button"
-                  style={btnStyles.cancel}
-                  onClick={() => setPendingNewItem(null)}
-                >
-                  Cancel
-                </button>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
-              {PUB_TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setPendingNewItem({ ...pendingNewItem, type: tab.id })}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    border: pendingNewItem.type === tab.id ? 'none' : '1px solid #e2e8f0',
-                    background: pendingNewItem.type === tab.id ? '#2563eb' : '#ffffff',
-                    color: pendingNewItem.type === tab.id ? '#ffffff' : '#475569',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    boxShadow: pendingNewItem.type === tab.id ? '0 4px 6px -1px rgba(37, 99, 235, 0.2)' : 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div style={{ marginBottom: '24px', maxWidth: 420 }}>
+              {fg('Publication Type *',
+                <select className="form-select" value={pendingNewItem.type} onChange={e => setPendingNewItem({ ...pendingNewItem, type: e.target.value })}>
+                  <option value="">— Select Publication Type —</option>
+                  {PUB_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
+                </select>
+              )}
             </div>
 
             <PubForm 
@@ -558,28 +543,13 @@ export default function Publications({
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
-                    {PUB_TABS.map(tab => (
-                      <button
-                        key={tab.id}
-                        onClick={() => upd(i, 'type', tab.id)}
-                        style={{
-                          padding: '8px 16px',
-                          borderRadius: '8px',
-                          border: p.type === tab.id ? 'none' : '1px solid #e2e8f0',
-                          background: p.type === tab.id ? '#2563eb' : '#ffffff',
-                          color: p.type === tab.id ? '#ffffff' : '#475569',
-                          fontWeight: 600,
-                          fontSize: '14px',
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                          boxShadow: p.type === tab.id ? '0 4px 6px -1px rgba(37, 99, 235, 0.2)' : 'none',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
+                  <div style={{ marginBottom: '24px', maxWidth: 420 }}>
+                    {fg('Publication Type *',
+                      <select className="form-select" value={p.type} onChange={e => upd(i, 'type', e.target.value)}>
+                        <option value="">— Select Publication Type —</option>
+                        {PUB_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
+                      </select>
+                    )}
                   </div>
 
                   <PubForm item={p} onChange={(k, v) => upd(i, k, v)} />

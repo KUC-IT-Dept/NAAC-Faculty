@@ -47,7 +47,7 @@ export default function FacultyDashboard() {
     (profile?.awards?.length || 0) > 0, // Awards & Honours
     !!(pi.orcidId || pi.googleScholarId || pi.scopusId), // Research IDs
     Object.keys(profile?.visibility || {}).length > 0, // Visibility Settings
-    (profile?.workExperience?.length || 0) > 0 // Other sections (e.g. Work Experience)
+    (profile?.employmentDetails?.length || 0) > 0 // Employment history entries
   ];
   const completedSectionsCount = mainSectionsStatus.filter(Boolean).length;
   const pct = profile ? Math.round((completedSectionsCount / mainSectionsStatus.length) * 100) : 0;
@@ -58,7 +58,7 @@ export default function FacultyDashboard() {
 
   const sections = [
     { key: 'qualifications', label: 'Qualifications', icon: <GraduationCap size={20} />, count: profile?.qualifications?.length },
-    { key: 'workExperience', label: 'Work Experience', icon: <Briefcase size={20} />, count: profile?.workExperience?.length },
+    { key: 'employmentDetails', label: 'Employment Details', icon: <Briefcase size={20} />, count: profile?.employmentDetails?.length },
     { key: 'publications', label: 'Publications', icon: <BookOpen size={20} />, count: profile?.publications?.length },
     { key: 'projects', label: 'Research Projects', icon: <FlaskConical size={20} />, count: profile?.projects?.length },
     { key: 'awards', label: 'Awards & Honors', icon: <Award size={20} />, count: profile?.awards?.length },
