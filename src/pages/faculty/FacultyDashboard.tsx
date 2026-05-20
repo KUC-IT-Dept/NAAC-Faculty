@@ -102,7 +102,6 @@ export default function FacultyDashboard() {
                   <button
                     className="btn btn-outline"
                     onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
-                    style={{ borderColor: 'var(--border-strong)', color: 'var(--primary)' }}
                   >
                     <Eye size={14} /> Public Profile
                   </button>
@@ -308,7 +307,6 @@ export default function FacultyDashboard() {
                 <button
                   className="btn btn-outline w-full btn-sm"
                   onClick={() => { navigator.clipboard.writeText(publicUrl); toast.success('Link copied!'); }}
-                  style={{ borderColor: 'var(--border-strong)' }}
                 >
                   Copy Link
                 </button>
