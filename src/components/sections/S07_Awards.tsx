@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, ta, FileInp } from './sectionUtils';
 import { awardLevelOptions } from '../../shared/dropdownOptions';
 
@@ -14,9 +14,27 @@ for (let y = currentYear; y >= 1970; y--) YEAR_OPTS.push(String(y));
 
 const btnAdd:    React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
-const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
-const btnSave:   React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' };
-const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
+
+const saveBtnStyle: React.CSSProperties = {
+  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+  backgroundColor: '#16a34a', color: 'white', border: 'none',
+  borderRadius: '8px', fontWeight: 600,
+  display: 'inline-flex', alignItems: 'center', gap: '6px',
+  marginLeft: '8px',
+};
+
+const cancelBtnStyle: React.CSSProperties = {
+  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+  backgroundColor: '#fff1f2', color: '#9f1239',
+  border: '1px solid #fecdd3', borderRadius: '8px', fontWeight: 600,
+  display: 'inline-flex', alignItems: 'center', gap: '6px',
+};
+
+const deleteBtnStyle: React.CSSProperties = {
+  marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+  backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3',
+  borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px',
+};
 
 function PreviewRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
@@ -61,7 +79,7 @@ function AwardPreviewCard({
           <button type="button" style={btnEdit} onClick={(e) => { e.stopPropagation(); onEdit(); }} disabled={disabled}>
             <Edit2 size={14} /> Edit
           </button>
-          <button type="button" style={btnDelete} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
+          <button type="button" style={deleteBtnStyle} onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={disabled}>
             <Trash2 size={14} /> Delete
           </button>
         </div>
@@ -151,16 +169,16 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Award</span>
               <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" onClick={() => setPendingNewItem(null)} style={cancelBtnStyle}>
+                  <X size={14} /> Cancel
+                </button>
                 <button
                   type="button"
                   onClick={() => handleSavePending(pendingNewItem)}
                   disabled={!isItemComplete(pendingNewItem)}
-                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                  style={saveBtnStyle}
                 >
                   <Check size={14} /> Save
-                </button>
-                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
-                  Cancel
                 </button>
               </div>
             </div>
@@ -193,10 +211,10 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Award</span>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                      <button type="button" onClick={() => setEditingItemIndex(null)} style={saveBtnStyle}>
                         <Check size={14} /> Done
                       </button>
-                      <button type="button" onClick={() => { onChange(sortedData.filter((_, j) => j !== i)); setEditingItemIndex(null); }} style={btnDelete}>
+                      <button type="button" onClick={() => { onChange(sortedData.filter((_, j) => j !== i)); setEditingItemIndex(null); }} style={deleteBtnStyle}>
                         <Trash2 size={14} /> Delete
                       </button>
                     </div>
