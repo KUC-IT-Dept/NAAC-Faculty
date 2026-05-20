@@ -254,6 +254,13 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
             ) : (
               renderPreview('Differently Abled', safeData.differentlyAbled)
             )}
+            {safeData.differentlyAbled === 'Yes' && (
+              isEditing ? (
+                fg('Type of Disability', inp(data.disabilityType, v => s('disabilityType', v), 'E.g., Visually Impaired...'))
+              ) : (
+                renderPreview('Type of Disability', safeData.disabilityType)
+              )
+            )}
             {isEditing ? (
               fg('Religion', <SimpleSelect value={data.religion} onChange={v => s('religion', v)} options={religionOptions} />)
             ) : (
