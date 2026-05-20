@@ -1,6 +1,6 @@
 import { fg, inp, dateInp } from './sectionUtils';
 import { useState } from 'react';
-import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X } from 'lucide-react';
 import { designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, payScaleOptions } from '../../shared/dropdownOptions';
 
 const EMPTY = {
@@ -159,34 +159,40 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                   type="button"
                   onClick={cancelEdit}
                   style={{
-                    padding: '6px 16px',
+                    padding: '7px 20px',
                     fontSize: '14px',
                     cursor: 'pointer',
-                    backgroundColor: 'transparent',
-                    color: '#64748b',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
+                    backgroundColor: '#fff1f2',
+                    color: '#9f1239',
+                    border: '1px solid #fecdd3',
+                    borderRadius: '8px',
                     marginRight: '8px',
-                    fontWeight: 500
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  Cancel
+                  <X size={14} /> Cancel
                 </button>
                 <button
                   type="button"
                   onClick={saveEdit}
                   style={{
-                    padding: '6px 16px',
+                    padding: '7px 20px',
                     fontSize: '14px',
                     cursor: 'pointer',
-                    backgroundColor: '#4f46e5',
+                    backgroundColor: '#16a34a',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '6px',
-                    fontWeight: 500
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  Save
+                  <Check size={14} /> Save
                 </button>
               </div>
             </div>
@@ -313,34 +319,40 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                       type="button"
                       onClick={cancelEdit}
                       style={{
-                        padding: '6px 16px',
+                        padding: '7px 20px',
                         fontSize: '14px',
                         cursor: 'pointer',
-                        backgroundColor: 'transparent',
-                        color: '#64748b',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '6px',
+                        backgroundColor: '#fff1f2',
+                        color: '#9f1239',
+                        border: '1px solid #fecdd3',
+                        borderRadius: '8px',
                         marginRight: '8px',
-                        fontWeight: 500
+                        fontWeight: 600,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}
                     >
-                      Cancel
+                      <X size={14} /> Cancel
                     </button>
                     <button
                       type="button"
                       onClick={saveEdit}
                       style={{
-                        padding: '6px 16px',
+                        padding: '7px 20px',
                         fontSize: '14px',
                         cursor: 'pointer',
-                        backgroundColor: '#111827',
+                        backgroundColor: '#16a34a',
                         color: 'white',
                         border: 'none',
-                        borderRadius: '6px',
-                        fontWeight: 500
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}
                     >
-                      Save
+                      <Check size={14} /> Save
                     </button>
                   </div>
                 </div>
