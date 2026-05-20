@@ -16,17 +16,17 @@ export const stateOptions = ['Kerala', 'Tamil Nadu', 'Karnataka', 'Maharashtra']
 export const countryOptions = ['India', 'USA', 'UK', 'Australia'];
 
 // Qualifications
-export const degreeLevelOptions = ['UG', 'PG', 'Ph.D', 'Diploma', 'Certificate'];
+export const degreeLevelOptions = ['10th', '12th', 'UG', 'PG', 'Ph.D', 'M.Phil'];
 export const degreeNameOptions = ['B.A.', 'B.Sc.', 'B.Tech', 'M.A.', 'M.Sc.', 'M.Tech', 'Ph.D'];
 export const specializationOptions = ['Computer Science', 'Physics', 'Mathematics', 'English'];
-export const divisionOptions = ['First Class with Distinction', 'First Class', 'Second Class', 'Pass'];
-export const studyModeOptions = ['Regular', 'Distance', 'Online', 'Part Time'];
+export const divisionOptions = ['First', 'Second', 'Third'];
+export const studyModeOptions = ['Regular', 'Distance'];
 export const gradeTypeOptions = ['CGPA', 'Percentage', 'Grade'];
 
 // Eligibility Tests
-export const examNameOptions = ['NET', 'JRF', 'SET', 'SLET', 'GATE', 'UGC-NET', 'CSIR-NET'];
-export const subjectPaperOptions = ['Computer Science', 'Computer Science & Applications', 'Physics', 'Chemistry', 'Mathematics', 'Commerce', 'English'];
-export const stateForSetOptions = ['Kerala', 'Tamil Nadu', 'Karnataka', 'Maharashtra', 'Delhi', 'Gujarat'];
+export const examNameOptions = ['NET', 'SET / SLET', 'GATE', 'JRF'];
+export const subjectPaperOptions = ['Commerce', 'Computer Science & Applications', 'Economics', 'Education', 'English', 'Geography', 'Hindi', 'History', 'Law', 'Library & Information Science', 'Management', 'Mathematics', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sanskrit', 'Social Work', 'Sociology', 'Tourism Administration & Management'];
+export const stateForSetOptions = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman & Nicobar Islands', 'Chandigarh', 'Dadra & Nagar Haveli and Daman & Diu', 'Delhi', 'Jammu & Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'];
 export const validityStatusOptions = ['Lifetime', 'Valid', 'Expired', 'Limited Period'];
 export const fellowshipAgencyOptions = ['UGC', 'CSIR', 'University', 'NBHM', 'DAE'];
 
@@ -35,7 +35,7 @@ export const designationOptions = ['Assistant Professor', 'Associate Professor',
 export const departmentOptions = ['Computer Science', 'Physics', 'Mathematics', 'Commerce', 'English'];
 export const institutionTypeOptions = ['State', 'Central', 'Private', 'Deemed'];
 export const affiliatedUniversityOptions = ['University of Delhi', 'Anna University', 'Mumbai University'];
-export const natureOfAppointmentOptions = ['Regular', 'Temporary', 'Contract', 'Guest Faculty'];
+export const natureOfAppointmentOptions = ['Regular', 'Ad-hoc', 'Contract', 'Guest', 'Visiting', 'Deputation'];
 export const approvalStatusOptions = ['Approved', 'Pending', 'Rejected'];
 export const payScaleOptions = ['AGP 6000', 'AGP 7000', 'AGP 8000', 'Level 10', 'Level 11'];
 
@@ -221,25 +221,27 @@ export const extraInstitutionalOptions = [
 ];
 
 const optionArrays = {
-  departmentOptions,
-  natureOfAppointmentOptions,
-  reasonForLeavingOptions,
-  designationPostOptions
+  genderOptions, bloodGroupOptions, nationalityOptions, religionOptions, categoryOptions, subCategoryOptions, maritalStatusOptions, disabilityStatusOptions, disabilityTypeOptions, stateOptions, countryOptions,
+  degreeLevelOptions, degreeNameOptions, specializationOptions, divisionOptions, studyModeOptions, gradeTypeOptions,
+  examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions, fellowshipAgencyOptions,
+  designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, approvalStatusOptions, payScaleOptions,
+  designationPostOptions, natureOfWorkOptions, employmentTypeOptions, institutionTypeWorkOptions, experienceCategoryOptions, reasonForLeavingOptions,
+  publicationTypeOptions, publicationLevelOptions, authorRoleOptions, indexedInOptions, peerReviewedStatusOptions, journalCategoryOptions,
+  awardCategoryOptions, awardLevelOptions, awardingAgencyTypeOptions, honourTypeOptions, recognitionStatusOptions,
+  fundingAgencyOptions, projectStatusOptions, roleInProjectOptions, projectCategoryOptions, fundingTypeOptions,
+  researchDegreeOptions, scholarGenderOptions, researchStatusOptions, guidanceTypeOptions, patentStatusOptions, patentTypeOptions, supervisionCategoryOptions,
+  committeeTypeOptions, responsibilityRoleOptions, courseLevelOptions, semesterTypeOptions, academicSessionTypeOptions, teachingCategoryOptions, responsibilityStatusOptions,
+  adminChargeOptions, academicAdminOptions, qualityAssuranceOptions, researchInnovationOptions, examinationEvaluationOptions, adminSupportOptions, departmentalChargesOptions, specialAssignmentsOptions, extraInstitutionalOptions,
+  documentTypeOptions
 };
 
-const clientToServerKeyMap = {
-  'departmentOptions': 'department',
-  'natureOfAppointmentOptions': 'nature_of_appointment',
-  'reasonForLeavingOptions': 'reason_for_leaving',
-  'designationPostOptions': 'designation_post'
-};
+const clientToServerKeyMap = Object.fromEntries(
+  Object.keys(optionArrays).map((key) => [key, key.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '')])
+);
 
-const serverToClientKeyMap = {
-  'department': 'departmentOptions',
-  'nature_of_appointment': 'natureOfAppointmentOptions',
-  'reason_for_leaving': 'reasonForLeavingOptions',
-  'designation_post': 'designationPostOptions'
-};
+const serverToClientKeyMap = Object.fromEntries(
+  Object.entries(clientToServerKeyMap).map(([clientKey, serverKey]) => [serverKey, clientKey])
+);
 
 const triggerUpdateEvent = () => {
   window.dispatchEvent(new CustomEvent('dropdownOptionsUpdated'));
@@ -300,4 +302,4 @@ export const saveDropdownOptionsToServer = async (key, options) => {
 };
 
 
-
+
