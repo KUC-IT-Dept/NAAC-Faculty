@@ -27,6 +27,17 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     return Math.max(0, age).toString();
   };
 
+  // Format date to dd-mm-yyyy
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return `${day}-${month}-${year}`;
+    }
+    return dateStr;
+  };
+
   
   // Single edit state for entire form
   const [isEditing, setIsEditing] = useState(false);
@@ -211,7 +222,7 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
                 />
               ))
             ) : (
-              renderPreview('Date of Birth', safeData.dateOfBirth || '')
+              renderPreview('Date of Birth', formatDate(safeData.dateOfBirth) || '')
             )}
             {isEditing ? (
               fg('Age', inp(calculateAge(safeData.dateOfBirth) || safeData.age, v => s('age', v), 'Calculated from DOB'))
@@ -242,6 +253,13 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               fg('Differently Abled', <SimpleSelect value={data.differentlyAbled} onChange={v => s('differentlyAbled', v)} options={disabilityStatusOptions} />)
             ) : (
               renderPreview('Differently Abled', safeData.differentlyAbled)
+            )}
+            {safeData.differentlyAbled === 'Yes' && (
+              isEditing ? (
+                fg('Type of Disability', inp(data.disabilityType, v => s('disabilityType', v), 'E.g., Visually Impaired...'))
+              ) : (
+                renderPreview('Type of Disability', safeData.disabilityType)
+              )
             )}
             {isEditing ? (
               fg('Religion', <SimpleSelect value={data.religion} onChange={v => s('religion', v)} options={religionOptions} />)
