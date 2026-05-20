@@ -41,7 +41,7 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'research-publications': { key: 'publications', label: 'Research & Publications' },
   'awards-honours': { key: 'awards', label: 'Awards & Honours' },
   'research-projects': { key: 'projects', label: 'Research Projects' },
-  'research-supervision': { key: 'researchSupervision', label: 'Research Supervision' },
+  'research-supervision': { key: 'researchGuidance', label: 'Research Supervision' },
   'academic-responsibilities': { key: 'academicResponsibilities', label: 'Academic Responsibilities' },
   'memberships': { key: 'memberships', label: 'Memberships' },
   'fdp-workshops': { key: 'fdpWorkshops', label: 'FDP & Workshops' },
@@ -69,7 +69,7 @@ const VIS_ITEMS = [
   { key: 'publications', label: 'Publications', desc: 'Journals, books, conferences' },
   { key: 'projects', label: 'Research Projects', desc: 'Funded projects' },
   { key: 'awards', label: 'Awards & Honours', desc: 'Recognition' },
-  { key: 'researchSupervision', label: 'Research Supervision', desc: 'Ph.D / M.Phil scholars' },
+  { key: 'researchGuidance', label: 'Research Supervision', desc: 'Ph.D / M.Phil scholars' },
   { key: 'academicResponsibilities', label: 'Academic Responsibilities', desc: 'Committees & courses' },
   { key: 'memberships', label: 'Memberships', desc: 'Professional bodies' },
   { key: 'fdpWorkshops', label: 'FDP / Workshops', desc: 'Training programmes' },
@@ -89,7 +89,15 @@ const VIS_ITEMS = [
 const EMPTY: any = {
   personalInfo: {}, qualifications: [], eligibilityTests: [], employmentDetails: {},
   publications: [], awards: [], projects: [],
-  researchSupervision: { scholars: [], patents: [] },
+  researchGuidance: {
+    phdCompleted: '',
+    phdInProgress: '',
+    mphilCompleted: '',
+    mphilInProgress: '',
+    pgProjectsSupervised: '',
+    completedStudentsNames: '',
+    studentDetails: [],
+  },
   academicResponsibilities: { responsibilities: [], coursesTaught: [] },
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
   adminNonAcademicResponsibilities: [],
@@ -179,7 +187,7 @@ export default function ProfileEdit() {
               {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
               {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} />}
               {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} />}
-              {tab === 'researchSupervision' && <ResearchSupervision data={profile.researchSupervision} onChange={v => set('researchSupervision', v)} />}
+              {tab === 'researchGuidance' && <ResearchSupervision data={profile.researchGuidance} onChange={v => set('researchGuidance', v)} />}
               {tab === 'academicResponsibilities' && <AcademicResp data={profile.academicResponsibilities} onChange={v => set('academicResponsibilities', v)} />}
               {tab === 'memberships' && <Memberships data={profile.memberships} onChange={v => set('memberships', v)} />}
               {tab === 'fdpWorkshops' && <FdpWorkshops data={profile.fdpWorkshops} onChange={v => set('fdpWorkshops', v)} />}
