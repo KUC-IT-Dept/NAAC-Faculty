@@ -92,16 +92,16 @@ export default function PublicProfile() {
           </div>
         )}
 
-        {/* Work Experience */}
-        {profile.workExperience?.length > 0 && (
+        {/* Employment Details */}
+        {profile.employmentDetails?.length > 0 && (
           <div className="profile-section">
-            <div className="profile-section-title"><Briefcase size={18} color="var(--navy)" /> Work Experience</div>
+            <div className="profile-section-title"><Briefcase size={18} color="var(--navy)" /> Employment Details</div>
             <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {profile.workExperience.map((e: any, i: number) => (
+              {profile.employmentDetails.map((e: any, i: number) => (
                 <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8, borderLeft: '3px solid var(--gold)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                    <div><div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{e.designation || '—'}</div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{e.organization || '—'}</div></div>
-                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: '0.82rem', color: 'var(--navy)', fontWeight: 600 }}>{e.from || '—'} – {e.to || 'Present'}</div>{e.nature && <span className="badge badge-navy" style={{ marginTop: 4 }}>{e.nature}</span>}</div>
+                    <div><div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{e.designation || '—'}</div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{e.institution || '—'}</div></div>
+                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: '0.82rem', color: 'var(--navy)', fontWeight: 600 }}>{e.from || e.dateOfJoining || '—'} – {e.to || 'Present'}</div>{e.natureOfAppointment && <span className="badge badge-navy" style={{ marginTop: 4 }}>{e.natureOfAppointment}</span>}</div>
                   </div>
                 </div>
               ))}

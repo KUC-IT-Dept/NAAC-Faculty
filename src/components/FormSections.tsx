@@ -3,7 +3,6 @@ export { default as PersonalInfoForm }         from './sections/S01_PersonalInfo
 export { default as QualificationsForm }        from './sections/S02_Qualifications';
 export { default as EligibilityTestsForm }      from './sections/S03_EligibilityTests';
 export { default as EmploymentDetailsForm }     from './sections/S04_EmploymentDetails';
-export { default as WorkExperienceForm }        from './sections/S05_WorkExperience';
 export { default as PublicationsForm }          from './sections/S06_Publications';
 export { default as AwardsForm }                from './sections/S07_Awards';
 export { default as ResearchProjectsForm }      from './sections/S08_ResearchProjects';
