@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check } from 'lucide-react';
 import { useState } from 'react';
 import { fg, inp } from './sectionUtils';
 
@@ -275,34 +275,40 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                   type="button"
                   onClick={cancelEdit}
                   style={{
-                    padding: '6px 16px',
+                    padding: '8px 16px',
                     fontSize: '14px',
                     cursor: 'pointer',
-                    backgroundColor: 'transparent',
-                    color: '#64748b',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
+                    backgroundColor: '#fecdd3',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
                     marginRight: '8px',
-                    fontWeight: 500
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  Cancel
+                  <X size={16} /> Cancel
                 </button>
                 <button
                   type="button"
                   onClick={saveEdit}
                   style={{
-                    padding: '6px 16px',
+                    padding: '8px 16px',
                     fontSize: '14px',
                     cursor: 'pointer',
-                    backgroundColor: '#4f46e5',
+                    backgroundColor: '#22c55e',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '6px',
-                    fontWeight: 500
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  Save Qualification
+                  <Check size={16} /> Save
                 </button>
               </div>
             </div>
@@ -324,34 +330,40 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                     type="button"
                     onClick={cancelEdit}
                     style={{
-                      padding: '6px 16px',
+                      padding: '8px 16px',
                       fontSize: '14px',
                       cursor: 'pointer',
-                      backgroundColor: 'transparent',
-                      color: '#64748b',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '6px',
+                      backgroundColor: '#fecdd3',
+                      color: '#9f1239',
+                      border: 'none',
+                      borderRadius: '8px',
                       marginRight: '8px',
-                      fontWeight: 500
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
                     }}
                   >
-                    Cancel
+                    <X size={16} /> Cancel
                   </button>
                   <button
                     type="button"
                     onClick={saveEdit}
                     style={{
-                      padding: '6px 16px',
+                      padding: '8px 16px',
                       fontSize: '14px',
                       cursor: 'pointer',
-                      backgroundColor: '#4f46e5',
+                      backgroundColor: '#22c55e',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '6px',
-                      fontWeight: 500
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
                     }}
                   >
-                    Save Qualification
+                    <Check size={16} /> Save
                   </button>
                 </div>
               </div>
@@ -408,8 +420,8 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                       padding: '6px 12px',
                       fontSize: '13px',
                       cursor: 'pointer',
-                      backgroundColor: '#fff1f2',
-                      color: '#e11d48',
+                      backgroundColor: '#fecdd3',
+                      color: '#9f1239',
                       border: '1px solid #fecdd3',
                       borderRadius: '6px',
                       fontWeight: 600,
