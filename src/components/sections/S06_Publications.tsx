@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, DropdownWithCustom } from './sectionUtils';
 import { publicationLevelOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 /* --- Types --- */
 type Publication = {
@@ -49,8 +50,6 @@ const PUB_TABS = [
 
 const INDEX_OPTS = ['SCI', 'Scopus', 'UGC-CARE', 'Web of Science', 'Others'];
 const BOOK_TYPES = ['Authored', 'Edited', 'Co-authored'];
-const LEVELS = publicationLevelOptions;
-const YES_NO = peerReviewedStatusOptions;
 
 const currentYear = new Date().getFullYear();
 const YEAR_OPTS: string[] = [];
@@ -61,9 +60,11 @@ const ISSUE_OPTS: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1))
 const PAGES_OPTS: string[] = ['1-5', '1-8', '1-10', '1-12', '1-15', '1-20', '100-110'];
 
 /* --- Form --- */
-function PubForm({ item, onChange }: {
+function PubForm({ item, onChange, levels, yesNo }: {
   item: Publication;
   onChange: (k: keyof Publication, v: string) => void;
+  levels: string[];
+  yesNo: string[];
 }) {
   const t = item.type;
 
@@ -146,9 +147,9 @@ function PubForm({ item, onChange }: {
             {fg('Conference Name *', inp(item.journal, v => onChange('journal', v)))}
           </div>
           <div className="form-row form-row-3">
-            {fg('National / International', sel(item.level, v => onChange('level', v), LEVELS))}
+            {fg('National / International', sel(item.level, v => onChange('level', v), levels))}
             {fg('Organized by', inp(item.organizedBy, v => onChange('organizedBy', v)))}
-            {fg('Published in Proceedings', sel(item.publishedInProceedings, v => onChange('publishedInProceedings', v), YES_NO))}
+            {fg('Published in Proceedings', sel(item.publishedInProceedings, v => onChange('publishedInProceedings', v), yesNo))}
           </div>
           <div className="form-row form-row-2">
             {fg('Venue (City, Country)', inp(item.venue, v => onChange('venue', v)))}
@@ -413,6 +414,10 @@ export default function Publications({
   data: Publication[];
   onChange: (d: Publication[]) => void;
 }) {
+  // Reactive dropdown options
+  const levels = useDropdownOptions(publicationLevelOptions);
+  const yesNo = useDropdownOptions(peerReviewedStatusOptions);
+
   const [pendingNewItem, setPendingNewItem] = useState<Publication | null>(null);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
@@ -509,6 +514,8 @@ export default function Publications({
             <PubForm 
               item={pendingNewItem} 
               onChange={(k, v) => setPendingNewItem({ ...pendingNewItem, [k]: v })} 
+              levels={levels}
+              yesNo={yesNo}
             />
           </div>
         )}
@@ -552,7 +559,7 @@ export default function Publications({
                     )}
                   </div>
 
-                  <PubForm item={p} onChange={(k, v) => upd(i, k, v)} />
+                  <PubForm item={p} onChange={(k, v) => upd(i, k, v)} levels={levels} yesNo={yesNo} />
                 </>
               ) : (
                 <PreviewCard

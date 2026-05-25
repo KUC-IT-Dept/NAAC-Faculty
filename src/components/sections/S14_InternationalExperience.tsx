@@ -1,38 +1,10 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
+import { countryVisitOptions, purposeOfVisitOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = { country: '', purpose: '', institution: '', from: '', to: '', fundingSource: '' };
-
-const COUNTRIES = [
-  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan',
-  'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi',
-  'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic',
-  'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
-  'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia',
-  'Fiji', 'Finland', 'France',
-  'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana',
-  'Haiti', 'Honduras', 'Hungary',
-  'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Ivory Coast',
-  'Jamaica', 'Japan', 'Jordan',
-  'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan',
-  'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg',
-  'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar',
-  'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway',
-  'Oman',
-  'Pakistan', 'Palau', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal',
-  'Qatar',
-  'Romania', 'Russia', 'Rwanda',
-  'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
-  'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu',
-  'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
-  'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam',
-  'Yemen',
-  'Zambia', 'Zimbabwe',
-  'Other'
-];
-
-const PURPOSE_OPTS = ['Research Visit', 'Post-Doctoral', 'Teaching', 'Conference', 'Collaborative Project', 'Industrial Visit', 'Other'];
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -100,6 +72,10 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
 }
 
 export default function InternationalExperience({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  // Reactive dropdown options
+  const countryOpts = useDropdownOptions(countryVisitOptions);
+  const purposeOpts = useDropdownOptions(purposeOfVisitOptions);
+
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
@@ -159,8 +135,8 @@ export default function InternationalExperience({ data, onChange }: { data: any[
               </div>
             </div>
             <div className="form-row form-row-2">
-              {fg('Country *', sel(pendingNewItem.country, v => setPendingNewItem({ ...pendingNewItem, country: v }), COUNTRIES))}
-              {fg('Purpose *', sel(pendingNewItem.purpose, v => setPendingNewItem({ ...pendingNewItem, purpose: v }), PURPOSE_OPTS))}
+              {fg('Country *', sel(pendingNewItem.country, v => setPendingNewItem({ ...pendingNewItem, country: v }), countryOpts))}
+              {fg('Purpose *', sel(pendingNewItem.purpose, v => setPendingNewItem({ ...pendingNewItem, purpose: v }), purposeOpts))}
             </div>
             {fg('Institution / University *', inp(pendingNewItem.institution, v => setPendingNewItem({ ...pendingNewItem, institution: v })))}
             <div className="form-row form-row-3">
@@ -189,8 +165,8 @@ export default function InternationalExperience({ data, onChange }: { data: any[
                     </div>
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Country *', sel(item.country, v => upd(i, 'country', v), COUNTRIES))}
-                    {fg('Purpose *', sel(item.purpose, v => upd(i, 'purpose', v), PURPOSE_OPTS))}
+                    {fg('Country *', sel(item.country, v => upd(i, 'country', v), countryOpts))}
+                    {fg('Purpose *', sel(item.purpose, v => upd(i, 'purpose', v), purposeOpts))}
                   </div>
                   {fg('Institution / University *', inp(item.institution, v => upd(i, 'institution', v)))}
                   <div className="form-row form-row-3">
