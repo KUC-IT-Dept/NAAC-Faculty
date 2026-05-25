@@ -1,18 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel } from './sectionUtils';
-
-const SPECIAL_ASSIGNMENTS_OPTIONS = [
-  'Coordinating community service',
-  'Coordinating NSS',
-  'Coordinating NCC',
-  'Coordinating industry linkages, cultural activities',
-  'Managing LMS, digital classrooms, and ICT initiatives',
-  'PRO',
-  'Coordinator job recruitment cell',
-  'Member Job recruitment cell',
-  'Other',
-];
+import { specialAssignmentsOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY_RESPONSIBILITY = {
   administrativeCharge: '',
@@ -87,6 +77,9 @@ export default function SpecialAssignments({ data, onChange }: { data: any; onCh
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
+  // Reactive dropdown options
+  const specialAssignmentsOpts = useDropdownOptions(specialAssignmentsOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
 
@@ -139,7 +132,7 @@ export default function SpecialAssignments({ data, onChange }: { data: any; onCh
                 </div>
               </div>
               <div className="form-row form-row-1">
-                {fg('Administrative charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), SPECIAL_ASSIGNMENTS_OPTIONS))}
+                {fg('Administrative charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), specialAssignmentsOpts))}
               </div>
               <div className="form-row form-row-1">
                 {fg('Description (optional)', inp(pending.description, v => setPending({ ...pending, description: v }), 'Brief description of the role'))}
@@ -166,7 +159,7 @@ export default function SpecialAssignments({ data, onChange }: { data: any; onCh
                       </div>
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Administrative charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), SPECIAL_ASSIGNMENTS_OPTIONS))}
+                      {fg('Administrative charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), specialAssignmentsOpts))}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Description (optional)', inp(r.description, v => updItem(i, 'description', v), 'Brief description of the role'))}

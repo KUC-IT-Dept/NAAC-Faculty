@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, yearSel } from './sectionUtils';
+import { membershipTypeOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = { professionalBody: '', membershipType: '', membershipId: '', yearOfJoining: '', documentUrl: '' };
-
-const MEMBERSHIP_TYPES = ['Life Member', 'Annual Member', 'Fellow', 'Senior Member', 'Associate Member'];
 
 const currentYear = new Date().getFullYear();
 const YEAR_OPTS: string[] = [];
@@ -79,6 +79,9 @@ function PreviewCard({ m, onEdit, onDelete, disabled }: { m: any; onEdit: () => 
 }
 
 export default function Memberships({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  // Reactive dropdown options
+  const membershipTypes = useDropdownOptions(membershipTypeOptions);
+
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
@@ -139,7 +142,7 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
             </div>
             {fg('Organization Name *', inp(pendingNewItem.professionalBody, v => setPendingNewItem({ ...pendingNewItem, professionalBody: v })))}
             <div className="form-row form-row-2">
-              {fg('Membership Type *', sel(pendingNewItem.membershipType, v => setPendingNewItem({ ...pendingNewItem, membershipType: v }), MEMBERSHIP_TYPES))}
+              {fg('Membership Type *', sel(pendingNewItem.membershipType, v => setPendingNewItem({ ...pendingNewItem, membershipType: v }), membershipTypes))}
               {fg('Membership ID', inp(pendingNewItem.membershipId, v => setPendingNewItem({ ...pendingNewItem, membershipId: v })))}
             </div>
             <div className="form-row form-row-1">
@@ -168,7 +171,7 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
                   </div>
                   {fg('Organization Name *', inp(m.professionalBody, v => upd(i, 'professionalBody', v)))}
                   <div className="form-row form-row-2">
-                    {fg('Membership Type *', sel(m.membershipType, v => upd(i, 'membershipType', v), MEMBERSHIP_TYPES))}
+                    {fg('Membership Type *', sel(m.membershipType, v => upd(i, 'membershipType', v), membershipTypes))}
                     {fg('Membership ID', inp(m.membershipId, v => upd(i, 'membershipId', v)))}
                   </div>
                   <div className="form-row form-row-1">

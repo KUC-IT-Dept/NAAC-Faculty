@@ -1,16 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel } from './sectionUtils';
-
-const RESEARCH_INNOVATION_OPTIONS = [
-  'Research Director',
-  'Assisting in research proposals',
-  'Assisting in funding applications',
-  'Assisting in project accounts',
-  'Coordinating departmental research output',
-  'Coordinating conferences',
-  'Other',
-];
+import { researchInnovationOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY_RESPONSIBILITY = {
   administrativeCharge: '',
@@ -87,6 +79,9 @@ export default function ResearchAndInnovation({ data, onChange }: { data: any; o
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
+  // Reactive dropdown options
+  const researchInnovationOpts = useDropdownOptions(researchInnovationOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
 
@@ -139,7 +134,7 @@ export default function ResearchAndInnovation({ data, onChange }: { data: any; o
                 </div>
               </div>
               <div className="form-row form-row-1">
-                {fg('Administrative Charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), RESEARCH_INNOVATION_OPTIONS))}
+                {fg('Administrative Charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), researchInnovationOpts))}
               </div>
               <div className="form-row form-row-1">
                 {fg('Description (optional)', inp(pending.description, v => setPending({ ...pending, description: v }), 'Brief description of the role'))}
@@ -165,7 +160,7 @@ export default function ResearchAndInnovation({ data, onChange }: { data: any; o
                       </div>
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Administrative Charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), RESEARCH_INNOVATION_OPTIONS))}
+                      {fg('Administrative Charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), researchInnovationOpts))}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Description (optional)', inp(r.description, v => updItem(i, 'description', v), 'Brief description of the role'))}
