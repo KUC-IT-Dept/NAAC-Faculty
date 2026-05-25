@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Outlet, useParams, Navigate } from 'react-router-dom';
+import { Outlet, useParams, Navigate, useOutletContext } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import { Plus, Edit2, Trash2, ChevronDown } from 'lucide-react';
+import api from '../../lib/api';
 import {
   genderOptions, bloodGroupOptions, nationalityOptions, religionOptions, categoryOptions, subCategoryOptions,
   maritalStatusOptions, disabilityStatusOptions, disabilityTypeOptions, stateOptions, countryOptions,
@@ -31,197 +32,46 @@ import {
   loadDropdownOptionsFromServer,
   persistDropdownOptions,
   saveDropdownOptionsToServer,
+  optionArrays,
 } from '../../shared/dropdownOptions';
 
-export const sectionsData = [
+export const fallbackSectionsData = [
   {
     id: 'personal-information', title: '01 - Personal Information', configs: [
-      { name: 'Gender', options: genderOptions },
-      { name: 'Blood Group', options: bloodGroupOptions },
-      { name: 'Nationality', options: nationalityOptions },
-      { name: 'Religion', options: religionOptions },
-      { name: 'Category', options: categoryOptions },
-      { name: 'Sub-Category', options: subCategoryOptions },
-      { name: 'Marital Status', options: maritalStatusOptions },
-      { name: 'Disability Status', options: disabilityStatusOptions },
-      { name: 'Disability Type', options: disabilityTypeOptions },
-      { name: 'State', options: stateOptions },
-      { name: 'Country', options: countryOptions },
+      { name: 'Gender', optionsKey: 'genderOptions' },
+      { name: 'Blood Group', optionsKey: 'bloodGroupOptions' },
+      { name: 'Nationality', optionsKey: 'nationalityOptions' },
+      { name: 'Religion', optionsKey: 'religionOptions' }
     ]
-  },
-  {
-    id: 'qualifications', title: '02 - Qualifications', configs: [
-      { name: 'Degree Level', options: degreeLevelOptions },
-      { name: 'Degree / Certificate Name', options: degreeNameOptions },
-      { name: 'Specialization / Subject', options: specializationOptions },
-      { name: 'Division / Class', options: divisionOptions },
-      { name: 'Study Mode', options: studyModeOptions },
-      { name: 'Grade Type', options: gradeTypeOptions }
-    ]
-  },
-  {
-    id: 'eligibility-tests', title: '03 - Eligibility Tests', configs: [
-      { name: 'Exam Name', options: examNameOptions },
-      { name: 'Subject / Paper', options: subjectPaperOptions },
-      { name: 'State (for SET/SLET)', options: stateForSetOptions },
-      { name: 'Validity Status', options: validityStatusOptions }
-    ]
-  },
-  {
-    id: 'employment-details', title: '04 - Employment Details', configs: [
-      { name: 'Designation', options: designationOptions },
-      { name: 'Department', options: departmentOptions },
-      { name: 'Institution / College Type', options: institutionTypeOptions },
-      { name: 'Affiliated University', options: affiliatedUniversityOptions },
-      { name: 'Nature of Appointment', options: natureOfAppointmentOptions },
-      { name: 'Approval Status', options: approvalStatusOptions },
-      { name: 'Pay Scale / Band', options: payScaleOptions }
-    ]
-  },
-  {
-    id: 'research-publications', title: '05 - Research & Publications', configs: [
-      { name: 'Publication Type', options: publicationTypeOptions },
-      { name: 'Publication Level', options: publicationLevelOptions },
-      { name: 'Author Role', options: authorRoleOptions },
-      { name: 'Indexed In', options: indexedInOptions },
-      { name: 'Peer Reviewed Status', options: peerReviewedStatusOptions },
-      { name: 'Journal Category', options: journalCategoryOptions }
-    ]
-  },
-  {
-    id: 'awards-honours', title: '06 - Awards & Honours', configs: [
-      { name: 'Award Category', options: awardCategoryOptions },
-      { name: 'Award Level', options: awardLevelOptions },
-      { name: 'Awarding Agency Type', options: awardingAgencyTypeOptions },
-      { name: 'Honour Type', options: honourTypeOptions },
-      { name: 'Recognition Status', options: recognitionStatusOptions }
-    ]
-  },
-  {
-    id: 'research-projects', title: '07 - Research Projects', configs: [
-      { name: 'Funding Agency', options: fundingAgencyOptions },
-      { name: 'Project Status', options: projectStatusOptions },
-      { name: 'Role in Project', options: roleInProjectOptions },
-      { name: 'Project Category', options: projectCategoryOptions },
-      { name: 'Funding Type', options: fundingTypeOptions }
-    ]
-  },
-  {
-    id: 'research-supervision', title: '08 - Research Supervision', configs: [
-      { name: 'Research Degree', options: researchDegreeOptions },
-      { name: 'Scholar Gender', options: scholarGenderOptions },
-      { name: 'Research Status', options: researchStatusOptions },
-      { name: 'Guidance Type', options: guidanceTypeOptions },
-      { name: 'Patent Status', options: patentStatusOptions },
-      { name: 'Patent Type', options: patentTypeOptions },
-      { name: 'Supervision Category', options: supervisionCategoryOptions }
-    ]
-  },
-  {
-    id: 'academic-responsibilities', title: '09 - Academic Responsibilities', configs: [
-      { name: 'Committee Type', options: committeeTypeOptions },
-      { name: 'Responsibility Role', options: responsibilityRoleOptions },
-      { name: 'Course Level', options: courseLevelOptions },
-      { name: 'Semester Type', options: semesterTypeOptions },
-      { name: 'Academic Session Type', options: academicSessionTypeOptions },
-      { name: 'Teaching Category', options: teachingCategoryOptions },
-      { name: 'Responsibility Status', options: responsibilityStatusOptions }
-    ]
-  },
-  {
-    id: 'memberships', title: '10 - Memberships', configs: [
-      { name: 'Professional Body / Society', options: professionalBodyOptions },
-      { name: 'Membership Type', options: membershipTypeOptions },
-      { name: 'Membership Category', options: membershipCategoryOptions },
-      { name: 'Membership Status', options: membershipStatusOptions },
-      { name: 'Membership Level', options: membershipLevelOptions },
-      { name: 'Organization Type', options: organizationTypeOptions }
-    ]
-  },
-  {
-    id: 'fdp-workshops', title: '11 - FDP & Workshops', configs: [
-      { name: 'Programme Type', options: programmeTypeOptions },
-      { name: 'Sponsoring / Funding Agency', options: sponsoringAgencyOptions },
-      { name: 'Participation', options: participationOptions }
-    ]
-  },
-  {
-    id: 'online-courses', title: '12 - Online Courses', configs: [
-      { name: 'Course Platform / Provider', options: coursePlatformOptions },
-      { name: 'Course Type', options: courseTypeOptions },
-      { name: 'Completion Status', options: completionStatusOptions },
-      { name: 'Certification Type', options: certificationTypeOptions },
-      { name: 'Learning Mode', options: learningModeOptions }
-    ]
-  },
-  {
-    id: 'international-experience', title: '13 - International Experience', configs: [
-      { name: 'Country', options: countryVisitOptions },
-      { name: 'Purpose of Visit', options: purposeOfVisitOptions },
-      { name: 'Funding Source', options: fundingSourceOptions },
-      { name: 'Visit Category', options: visitCategoryOptions },
-      { name: 'Collaboration Type', options: collaborationTypeOptions },
-      { name: 'Visit Status', options: visitStatusOptions }
-    ]
-  },
-  {
-    id: 'admin-non-academic', title: '14 - Admin & Non-Academic Responsibilities', configs: [
-      { name: 'Administrative Charge', options: adminChargeOptions }
-    ]
-  },
-  {
-    id: 'academic-administration', title: '15 - Academic Administration', configs: [
-      { name: 'Administrative Charge', options: academicAdminOptions }
-    ]
-  },
-  {
-    id: 'quality-assurance', title: '16 - Quality Assurance', configs: [
-      { name: 'Administrative Charge', options: qualityAssuranceOptions }
-    ]
-  },
-  {
-    id: 'research-innovation', title: '17 - Research and Innovation', configs: [
-      { name: 'Administrative Charge', options: researchInnovationOptions }
-    ]
-  },
-  {
-    id: 'examination-evaluation', title: '18 - Examination and Evaluation', configs: [
-      { name: 'Administrative Charge', options: examinationEvaluationOptions }
-    ]
-  },
-  {
-    id: 'admin-support', title: '19 - Administrative Support', configs: [
-      { name: 'Administrative Charge', options: adminSupportOptions }
-    ]
-  },
-  {
-    id: 'dept-charges', title: '20 - Departmental Charges', configs: [
-      { name: 'Administrative charge', options: departmentalChargesOptions }
-    ]
-  },
-  {
-    id: 'special-assignments', title: '21 - Special Assignments', configs: [
-      { name: 'Administrative charge', options: specialAssignmentsOptions }
-    ]
-  },
-  {
-    id: 'extra-institutional', title: '22 - Activities – Extra Institutional', configs: [
-      { name: 'Administrative charge', options: extraInstitutionalOptions }
-    ]
-  },
-  {
-    id: 'documents', title: '23 - Documents', configs: [
-      { name: 'Document Type', options: documentTypeOptions }
-    ]
-  },
-  { id: 'visibility', title: 'Visibility', configs: [] },
+  }
 ];
 
+
 export function EditProfileLayout() {
+  const [sectionsData, setSectionsData] = useState<any[]>(fallbackSectionsData);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/profile/sections-config')
+      .then(res => setSectionsData(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <AppLayout title="Profile Management">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+          <div className="spinner" style={{ width: 30, height: 30 }} />
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout title="Profile Management">
       <div style={{ maxWidth: '1400px', margin: '0 auto', paddingBottom: '32px' }}>
-        <Outlet />
+        <Outlet context={{ sectionsData }} />
       </div>
     </AppLayout>
   );
@@ -396,8 +246,10 @@ const FIELD_STORAGE_KEYS: Record<string, string> = {
 };
 
 function DropdownConfigList({ config, sectionId }: { config: any; sectionId: string }) {
-  const [options, setOptions] = useState<string[]>([...config.options]);
-  const [selected, setSelected] = useState(config.options[0] || 'Select an option');
+  const getOptionsRef = () => (config.optionsKey && optionArrays[config.optionsKey as keyof typeof optionArrays]) || config.options || [];
+  
+  const [options, setOptions] = useState<string[]>([...getOptionsRef()]);
+  const [selected, setSelected] = useState(getOptionsRef()[0] || 'Select an option');
   const [isOpen, setIsOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState('');
@@ -406,14 +258,14 @@ function DropdownConfigList({ config, sectionId }: { config: any; sectionId: str
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const current = [...config.options];
+    const current = [...getOptionsRef()];
     setOptions(current);
     setSelected(current[0] || 'Select an option');
-  }, [config.options]);
+  }, [config.optionsKey, config.options]);
 
   useEffect(() => {
     const handleConfigUpdate = () => {
-      const current = [...config.options];
+      const current = [...getOptionsRef()];
       setOptions(current);
       setSelected(current[0] || 'Select an option');
     };
@@ -434,9 +286,10 @@ function DropdownConfigList({ config, sectionId }: { config: any; sectionId: str
   }, []);
 
   const persistOptions = (updated: string[]) => {
-    config.options.splice(0, config.options.length, ...updated);
+    const optionsRef = getOptionsRef();
+    if (optionsRef) optionsRef.splice(0, optionsRef.length, ...updated);
     setOptions(updated);
-    const storageKey = FIELD_STORAGE_KEYS[`${sectionId}::${config.name}`] || FIELD_STORAGE_KEYS[config.name];
+    const storageKey = FIELD_STORAGE_KEYS[`${sectionId}::${config.name}`] || FIELD_STORAGE_KEYS[config.name] || config.optionsKey;
     if (storageKey) {
       persistDropdownOptions(storageKey, updated);
       saveDropdownOptionsToServer(storageKey, updated);
@@ -601,7 +454,8 @@ function DropdownConfigList({ config, sectionId }: { config: any; sectionId: str
 
 export function AdminProfileSection() {
   const { sectionId } = useParams();
-  const currentSection = sectionsData.find(s => s.id === sectionId);
+  const { sectionsData } = useOutletContext<{ sectionsData: any[] }>();
+  const currentSection = sectionsData.find(s => s.sectionId === sectionId || s.id === sectionId);
 
   useEffect(() => {
     loadDropdownOptionsFromServer();
@@ -623,11 +477,11 @@ export function AdminProfileSection() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(220px, 1fr))', gap: '24px' }}>
-        {currentSection.configs.map((config) => (
+        {currentSection.configs.map((config: any) => (
           <DropdownConfigList key={`${currentSection.id}-${config.name}`} config={config} sectionId={currentSection.id} />
         ))}
 
-        {currentSection.configs.length === 0 && (
+        {(!currentSection.configs || currentSection.configs.length === 0) && (
           <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#64748B', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #D1D5DB' }}>
             No dropdown configurations available for this section.
           </div>
