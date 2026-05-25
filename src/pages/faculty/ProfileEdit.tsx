@@ -4,6 +4,7 @@ import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { Save } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 import PersonalInfo from '../../components/sections/S01_PersonalInfo';
 import Qualifications from '../../components/sections/S02_Qualifications';
@@ -113,18 +114,55 @@ const EMPTY: any = {
 
 export default function ProfileEdit() {
   const { sectionId } = useParams();
+  const { user } = useAuth();
   const section = sectionId && SECTION_MAP[sectionId] ? SECTION_MAP[sectionId] : null;
+
+  const STORAGE_KEY = `naac_profile_${user?.id || 'draft'}`;
 
   const [profile, setProfile] = useState<any>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get('/faculty/me')
-      .then(r => setProfile({ ...EMPTY, ...Object.fromEntries(Object.entries(r.data).filter(([k]) => k in EMPTY)) }))
-      .catch(() => toast.error('Failed to load profile'))
-      .finally(() => setLoading(false));
-  }, []);
+    const loadProfile = async () => {
+      try {
+        const r = await api.get('/faculty/me');
+        const serverData = { ...EMPTY, ...Object.fromEntries(Object.entries(r.data).filter(([k]) => k in EMPTY)) };
+
+        // Merge: server data as base, local unsaved draft overlaid on top
+        const localDraft = localStorage.getItem(STORAGE_KEY);
+        if (localDraft) {
+          try {
+            const parsedDraft = JSON.parse(localDraft);
+            const merged = { ...serverData, ...parsedDraft };
+            setProfile(merged);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+          } catch {
+            setProfile(serverData);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData));
+          }
+        } else {
+          setProfile(serverData);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData));
+        }
+      } catch {
+        // API failed — fall back to localStorage
+        const localDraft = localStorage.getItem(STORAGE_KEY);
+        if (localDraft) {
+          try {
+            setProfile({ ...EMPTY, ...JSON.parse(localDraft) });
+          } catch {
+            toast.error('Failed to load profile');
+          }
+        } else {
+          toast.error('Failed to load profile');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, [STORAGE_KEY]);
 
   if (!section && !loading) {
     return (
@@ -149,8 +187,21 @@ export default function ProfileEdit() {
     finally { setSaving(false); }
   };
 
-  const set = (k: string, v: any) => setProfile((p: any) => ({ ...p, [k]: v }));
-  const setVis = (k: string, v: boolean) => setProfile((p: any) => ({ ...p, visibility: { ...p.visibility, [k]: v } }));
+  // Auto-save to localStorage on every section change so data survives refresh
+  const set = (k: string, v: any) => {
+    setProfile((p: any) => {
+      const newProfile = { ...p, [k]: v };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newProfile)); } catch { /* silent */ }
+      return newProfile;
+    });
+  };
+  const setVis = (k: string, v: boolean) => {
+    setProfile((p: any) => {
+      const newProfile = { ...p, visibility: { ...p.visibility, [k]: v } };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newProfile)); } catch { /* silent */ }
+      return newProfile;
+    });
+  };
 
   if (loading) return (
     <AppLayout title="Edit Profile">
