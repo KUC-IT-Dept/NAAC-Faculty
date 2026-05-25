@@ -2,6 +2,7 @@ import { fg, inp, dateInp } from './sectionUtils';
 import { useState } from 'react';
 import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, ExternalLink } from 'lucide-react';
 import { designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, payScaleOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = {
   employeeId: '',
@@ -36,6 +37,13 @@ const CustomSelect = ({ value, onChange, options, placeholder = "— Select —"
 );
 
 export default function EmploymentDetails({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+  // Reactive dropdown options
+  const designations = useDropdownOptions(designationOptions);
+  const departments = useDropdownOptions(departmentOptions);
+  const institutionTypes = useDropdownOptions(institutionTypeOptions);
+  const affiliatedUniversities = useDropdownOptions(affiliatedUniversityOptions);
+  const natureOfAppointments = useDropdownOptions(natureOfAppointmentOptions);
+  const payScales = useDropdownOptions(payScaleOptions);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
@@ -136,14 +144,14 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Designation *', <CustomSelect
           value={editingData.designation}
           onChange={(v: string) => updateEditingData('designation', v)}
-          options={designationOptions}
+          options={designations}
         />)}
       </div>
       <div className="form-row form-row-2">
         {fg('Department', <CustomSelect
           value={editingData.department}
           onChange={(v: string) => updateEditingData('department', v)}
-          options={departmentOptions}
+          options={departments}
         />)}
         {fg('College / Institution Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
       </div>
@@ -151,12 +159,12 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('University Affiliated to', <CustomSelect
           value={editingData.affiliatedUniversity}
           onChange={(v: string) => updateEditingData('affiliatedUniversity', v)}
-          options={affiliatedUniversityOptions}
+          options={affiliatedUniversities}
         />)}
         {fg('Type of Institution', <CustomSelect
           value={editingData.typeOfInstitution}
           onChange={(v: string) => updateEditingData('typeOfInstitution', v)}
-          options={institutionTypeOptions}
+          options={institutionTypes}
         />)}
       </div>
 
@@ -164,7 +172,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Nature of Appointment', <CustomSelect
           value={editingData.natureOfAppointment}
           onChange={(v: string) => updateEditingData('natureOfAppointment', v)}
-          options={natureOfAppointmentOptions}
+          options={natureOfAppointments}
         />)}
         {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v)))}
         {fg('Date of Confirmation / Regularization', dateInp(editingData.dateOfConfirmation, v => updateEditingData('dateOfConfirmation', v)))}
@@ -173,7 +181,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Pay Band / Pay Scale / CTC', <CustomSelect
           value={editingData.payBand}
           onChange={(v: string) => updateEditingData('payBand', v)}
-          options={payScaleOptions}
+          options={payScales}
         />)}
       </div>
 

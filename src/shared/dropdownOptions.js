@@ -220,7 +220,7 @@ export const extraInstitutionalOptions = [
   'Other',
 ];
 
-const optionArrays = {
+export const optionArrays = {
   genderOptions, bloodGroupOptions, nationalityOptions, religionOptions, categoryOptions, subCategoryOptions, maritalStatusOptions, disabilityStatusOptions, disabilityTypeOptions, stateOptions, countryOptions,
   degreeLevelOptions, degreeNameOptions, specializationOptions, divisionOptions, studyModeOptions, gradeTypeOptions,
   examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions, fellowshipAgencyOptions,

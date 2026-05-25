@@ -2,6 +2,7 @@ const express = require('express');
 const Faculty = require('../models/Faculty');
 const User = require('../models/User');
 const DropdownConfig = require('../models/DropdownConfig');
+const SectionConfig = require('../models/SectionConfig');
 
 const router = express.Router();
 
@@ -26,6 +27,16 @@ router.get('/dropdowns', async (req, res) => {
     const response = {};
     dropdowns.forEach(dl => { response[dl.key] = dl.options; });
     res.json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/sections-config', async (req, res) => {
+  try {
+    const sections = await SectionConfig.find().sort({ createdAt: 1 });
+    res.json(sections);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
