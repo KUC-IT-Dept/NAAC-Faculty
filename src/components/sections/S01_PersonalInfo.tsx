@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fg, inp, ta } from './sectionUtils';
 import ProfilePictureUpload from '../ProfilePictureUpload';
 import { genderOptions, bloodGroupOptions, nationalityOptions, maritalStatusOptions, disabilityStatusOptions, religionOptions, categoryOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 export default function PersonalInfo({ data, onChange }: { data: any; onChange: (d: any) => void }) {
   // Ensure data is an object
@@ -97,6 +98,15 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
       clearInterval(checkInterval);
     };
   }, [isEditing]);
+
+  // Reactive dropdown options — re-read whenever admin saves changes
+  const genders = useDropdownOptions(genderOptions);
+  const bloodGroups = useDropdownOptions(bloodGroupOptions);
+  const nationalities = useDropdownOptions(nationalityOptions);
+  const maritalStatuses = useDropdownOptions(maritalStatusOptions);
+  const disabilityStatuses = useDropdownOptions(disabilityStatusOptions);
+  const religions = useDropdownOptions(religionOptions);
+  const categories = useDropdownOptions(categoryOptions);
 
   // Simple select without custom option
   const SimpleSelect = ({ value, onChange, options, placeholder = "— Select —" }: { value: any, onChange: (val: string) => void, options: any[], placeholder?: string }) => {
@@ -230,27 +240,27 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               renderPreview('Age', calculateAge(safeData.dateOfBirth) || safeData.age)
             )}
             {isEditing ? (
-              fg('Gender', <SimpleSelect value={data.gender} onChange={v => s('gender', v)} options={genderOptions} />)
+              fg('Gender', <SimpleSelect value={data.gender} onChange={v => s('gender', v)} options={genders} />)
             ) : (
               renderPreview('Gender', safeData.gender)
             )}
             {isEditing ? (
-              fg('Blood Group', <SimpleSelect value={data.bloodGroup} onChange={v => s('bloodGroup', v)} options={bloodGroupOptions} />)
+              fg('Blood Group', <SimpleSelect value={data.bloodGroup} onChange={v => s('bloodGroup', v)} options={bloodGroups} />)
             ) : (
               renderPreview('Blood Group', safeData.bloodGroup)
             )}
             {isEditing ? (
-              fg('Nationality', <SimpleSelect value={data.nationality} onChange={v => s('nationality', v)} options={nationalityOptions} />)
+              fg('Nationality', <SimpleSelect value={data.nationality} onChange={v => s('nationality', v)} options={nationalities} />)
             ) : (
               renderPreview('Nationality', safeData.nationality)
             )}
             {isEditing ? (
-              fg('Marital Status', <SimpleSelect value={data.maritalStatus} onChange={v => s('maritalStatus', v)} options={maritalStatusOptions} />)
+              fg('Marital Status', <SimpleSelect value={data.maritalStatus} onChange={v => s('maritalStatus', v)} options={maritalStatuses} />)
             ) : (
               renderPreview('Marital Status', safeData.maritalStatus)
             )}
             {isEditing ? (
-              fg('Differently Abled', <SimpleSelect value={data.differentlyAbled} onChange={v => s('differentlyAbled', v)} options={disabilityStatusOptions} />)
+              fg('Differently Abled', <SimpleSelect value={data.differentlyAbled} onChange={v => s('differentlyAbled', v)} options={disabilityStatuses} />)
             ) : (
               renderPreview('Differently Abled', safeData.differentlyAbled)
             )}
@@ -262,12 +272,12 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               )
             )}
             {isEditing ? (
-              fg('Religion', <SimpleSelect value={data.religion} onChange={v => s('religion', v)} options={religionOptions} />)
+              fg('Religion', <SimpleSelect value={data.religion} onChange={v => s('religion', v)} options={religions} />)
             ) : (
               renderPreview('Religion', safeData.religion)
             )}
             {isEditing ? (
-              fg('Category', <SimpleSelect value={data.category} onChange={v => s('category', v)} options={categoryOptions} />)
+              fg('Category', <SimpleSelect value={data.category} onChange={v => s('category', v)} options={categories} />)
             ) : (
               renderPreview('Category', safeData.category)
             )}

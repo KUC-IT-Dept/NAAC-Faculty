@@ -1,16 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel } from './sectionUtils';
-
-const EXTRA_INSTITUTIONAL_OPTIONS = [
-  'Syndicate member',
-  'Board of studies',
-  'Visiting professor',
-  'Examiner',
-  'Syllabus committee',
-  'Dean',
-  'Other',
-];
+import { extraInstitutionalOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY_RESPONSIBILITY = {
   administrativeCharge: '',
@@ -85,6 +77,9 @@ export default function ExtraInstitutionalActivities({ data, onChange }: { data:
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
+  // Reactive dropdown options
+  const extraInstitutionalOpts = useDropdownOptions(extraInstitutionalOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
 
@@ -137,7 +132,7 @@ export default function ExtraInstitutionalActivities({ data, onChange }: { data:
                 </div>
               </div>
               <div className="form-row form-row-1">
-                {fg('Administrative charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), EXTRA_INSTITUTIONAL_OPTIONS))}
+                {fg('Administrative charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), extraInstitutionalOpts))}
               </div>
               <div className="form-row form-row-1">
                 {fg('Description (optional)', inp(pending.description, v => setPending({ ...pending, description: v }), 'Brief description of the role'))}
@@ -164,7 +159,7 @@ export default function ExtraInstitutionalActivities({ data, onChange }: { data:
                       </div>
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Administrative charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), EXTRA_INSTITUTIONAL_OPTIONS))}
+                      {fg('Administrative charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), extraInstitutionalOpts))}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Description (optional)', inp(r.description, v => updItem(i, 'description', v), 'Brief description of the role'))}

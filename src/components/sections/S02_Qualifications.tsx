@@ -25,8 +25,103 @@ const YEAR_OPTIONS = Array.from({ length: new Date().getFullYear() - 1979 }, (_,
 const DIVISION_OPTIONS = ['First', 'Second', 'Third'];
 const MODE_OPTIONS = ['Regular', 'Distance'];
 const PHD_MODE_OPTIONS = ['Full time', 'Part time'];
+const PHD_SUBJECT_OPTIONS = [
+  'Agricultural Science',
+  'Anthropology',
+  'Architecture',
+  'Arts',
+  'Biochemistry',
+  'Biology',
+  'Biotechnology',
+  'Botany',
+  'Business Administration',
+  'Chemical Engineering',
+  'Chemistry',
+  'Civil Engineering',
+  'Commerce',
+  'Computer Applications',
+  'Computer Science',
+  'Data Science',
+  'Econometrics',
+  'Economics',
+  'Education',
+  'Electrical Engineering',
+  'Electronics Engineering',
+  'Energy Studies',
+  'Environmental Engineering',
+  'Environmental Science',
+  'Fine Arts',
+  'Forensic Science',
+  'Food Science',
+  'Geography',
+  'Geology',
+  'Genetics',
+  'History',
+  'Humanities',
+  'Information Technology',
+  'Journalism',
+  'Law',
+  'Linguistics',
+  'Management',
+  'Materials Science',
+  'Mathematics',
+  'Mechanical Engineering',
+  'Music',
+  'Nursing',
+  'Pharmacy',
+  'Philosophy',
+  'Physics',
+  'Public Administration',
+  'Science',
+  'Social Work',
+  'Sociology',
+  'Statistics',
+  'Urban Planning',
+  'Veterinary Science',
+  'Visual Arts',
+  'Zoology',
+  'Other'
+];
 const COUNTRY_OPTIONS = ['India', 'USA', 'UK', 'Australia', 'Other'];
-const STATE_OPTIONS_INDIA = ['Kerala', 'Tamil Nadu', 'Karnataka', 'Maharashtra', 'Delhi', 'Other'];
+const STATE_OPTIONS_INDIA = [
+  'Andaman and Nicobar Islands',
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chandigarh',
+  'Chhattisgarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jammu and Kashmir',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Ladakh',
+  'Lakshadweep',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Puducherry',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Other'
+];
 const STATE_OPTIONS_OTHER = ['Other'];
 const BOARD_OPTIONS_10TH = ['vhse', 'cbse', 'icse', 'kerala board of higher education', 'other'];
 const BOARD_OPTIONS_12TH = ['vhse', 'cbse', 'icse', 'kerala board of higher secondary education', 'other'];
@@ -239,7 +334,12 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           </div>
 
           <div className="form-row form-row-2">
-            {fg('Subject', inp(editingData.specialization, v => updateEditingData('specialization', v), 'e.g., Computer Science'))}
+            {fg('Subject', <CustomSelect
+              value={editingData.specialization}
+              onChange={(v: string) => updateEditingData('specialization', v)}
+              options={PHD_SUBJECT_OPTIONS}
+              placeholder="Select Subject"
+            />)}
             {fg('Title of the thesis', inp(editingData.thesisTitle, v => updateEditingData('thesisTitle', v), 'Thesis title'))}
           </div>
 
@@ -264,7 +364,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 <CustomSelect
                   value={editingData.state}
                   onChange={(v: string) => updateEditingData('state', v)}
-                  options={editingData.country === 'India' ? STATE_OPTIONS_INDIA : STATE_OPTIONS_OTHER}
+                  options={editingData.country && editingData.country !== 'India' ? STATE_OPTIONS_OTHER : STATE_OPTIONS_INDIA}
                   placeholder="Select State"
                 />
               </div>
@@ -326,7 +426,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           {fg('State', <CustomSelect
             value={editingData.state}
             onChange={(v: string) => updateEditingData('state', v)}
-            options={editingData.country === 'India' ? STATE_OPTIONS_INDIA : STATE_OPTIONS_OTHER}
+            options={editingData.country && editingData.country !== 'India' ? STATE_OPTIONS_OTHER : STATE_OPTIONS_INDIA}
             placeholder="Select State"
           />)}
         </div>

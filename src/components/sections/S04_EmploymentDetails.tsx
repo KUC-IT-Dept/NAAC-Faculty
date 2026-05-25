@@ -1,7 +1,8 @@
-import { fg, inp, dateInp, FileInp } from './sectionUtils';
-import { useState, useRef } from 'react';
-import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, ExternalLink, FileText } from 'lucide-react';
-import { departmentOptions, affiliatedUniversityOptions, payScaleOptions } from '../../shared/dropdownOptions';
+import { fg, inp, dateInp } from './sectionUtils';
+import { useState } from 'react';
+import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, ExternalLink } from 'lucide-react';
+import { designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, payScaleOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = {
   employeeId: '',
@@ -20,47 +21,7 @@ const EMPTY = {
   from: '',
   to: '',
   reasonForLeaving: '',
-  documentUrl: '',
-  bankName: '',
-  accountNumber: '',
-  ifscCode: '',
-  branchName: ''
-};
-
-const designationOptionsCustom = ['Assistant Professor', 'Associate Professor', 'Professor'];
-const institutionTypeOptionsCustom = ['Government', 'Aided', 'Private', 'Deemed', 'Central University'];
-const natureOfAppointmentOptionsCustom = [
-  'Regular',
-  'Contract',
-  'Guest',
-  'Adjunct',
-  'Visiting',
-  'Assistant Professor',
-  'Associate Professor',
-  'Professor',
-  'Senior Professor'
-];
-
-const parseBankDetails = (str: string) => {
-  try {
-    if (str && str.trim().startsWith('{') && str.trim().endsWith('}')) {
-      const parsed = JSON.parse(str);
-      return {
-        bankName: parsed.bankName || '',
-        accountNumber: parsed.accountNumber || '',
-        ifscCode: parsed.ifscCode || '',
-        branchName: parsed.branchName || ''
-      };
-    }
-  } catch (e) {
-    // Ignore and fallback
-  }
-  return {
-    bankName: str || '',
-    accountNumber: '',
-    ifscCode: '',
-    branchName: ''
-  };
+  files: [] as Array<{ name: string; url?: string }>
 };
 
 const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
@@ -76,71 +37,43 @@ const CustomSelect = ({ value, onChange, options, placeholder = "— Select —"
 );
 
 export default function EmploymentDetails({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+  // Reactive dropdown options
+  const designations = useDropdownOptions(designationOptions);
+  const departments = useDropdownOptions(departmentOptions);
+  const institutionTypes = useDropdownOptions(institutionTypeOptions);
+  const affiliatedUniversities = useDropdownOptions(affiliatedUniversityOptions);
+  const natureOfAppointments = useDropdownOptions(natureOfAppointmentOptions);
+  const payScales = useDropdownOptions(payScaleOptions);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Convert object to array for internal use
   const dataArray = Array.isArray(data) ? data : [];
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    const baseData = index === -1 ? { ...EMPTY } : { ...dataArray[index] };
-    const bankInfo = parseBankDetails(baseData.bankAccountDetails || '');
-    setEditingData({
-      ...baseData,
-      bankName: baseData.bankName || bankInfo.bankName || '',
-      accountNumber: baseData.accountNumber || bankInfo.accountNumber || '',
-      ifscCode: baseData.ifscCode || bankInfo.ifscCode || '',
-      branchName: baseData.branchName || bankInfo.branchName || '',
-      documentUrl: baseData.documentUrl || ''
-    });
+    setEditingData(index === -1 ? { ...EMPTY } : { ...dataArray[index] });
   };
 
   const saveEdit = () => {
-    const keysToCheck = [
-      'employeeId', 'designation', 'department', 'institution',
-      'affiliatedUniversity', 'typeOfInstitution', 'natureOfAppointment',
-      'dateOfJoining', 'dateOfConfirmation', 'payBand', 'pfNumber',
-      'serviceBookNumber', 'from', 'to', 'reasonForLeaving',
-      'documentUrl', 'bankName', 'accountNumber', 'ifscCode', 'branchName'
-    ];
-    const hasAnyData = keysToCheck.some(key => {
-      const val = editingData[key];
-      return val && typeof val === 'string' && val.trim() !== '';
-    });
-
-    if (!hasAnyData) {
-      alert('Please fill in at least one field to save.');
+    // Check if any data has been entered
+    const hasData = Object.values(editingData).some(value => 
+      value !== '' && value !== null && value !== undefined && value !== 0
+    );
+    
+    if (!hasData) {
+      alert('Please enter some data before saving.');
       return;
     }
-
-    const bankDetailsStr = JSON.stringify({
-      bankName: (editingData.bankName || '').trim(),
-      accountNumber: (editingData.accountNumber || '').trim(),
-      ifscCode: (editingData.ifscCode || '').trim(),
-      branchName: (editingData.branchName || '').trim()
-    });
-
-    const entryToSave = {
-      ...editingData,
-      bankAccountDetails: bankDetailsStr
-    };
-
-    // Clean up helper fields
-    delete entryToSave.bankName;
-    delete entryToSave.accountNumber;
-    delete entryToSave.ifscCode;
-    delete entryToSave.branchName;
     
     const newData = [...dataArray];
     if (editingIndex === -1) {
       // Add new entry
-      newData.push(entryToSave);
+      newData.push(editingData);
     } else if (editingIndex !== null) {
       // Update existing entry
-      newData[editingIndex] = entryToSave;
+      newData[editingIndex] = editingData;
     }
     
     // Sort by date of joining descending (latest first)
@@ -162,6 +95,18 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
 
   const updateEditingData = (key: string, value: string) => {
     setEditingData((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  const handleFileUpload = (files: FileList | null) => {
+    if (!files) return;
+    const uploadedFiles = Array.from(files).map((file: File) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
+    setEditingData((prev: any) => ({
+      ...prev,
+      files: [...(prev.files || []), ...uploadedFiles],
+    }));
   };
 
   const toggleCard = (index: number) => {
@@ -196,17 +141,17 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
     <>
       <div className="form-row form-row-2">
         {fg('Employee ID / Staff Code', inp(editingData.employeeId, v => updateEditingData('employeeId', v)))}
-        {fg('Designation', <CustomSelect
+        {fg('Designation *', <CustomSelect
           value={editingData.designation}
           onChange={(v: string) => updateEditingData('designation', v)}
-          options={designationOptionsCustom}
+          options={designations}
         />)}
       </div>
       <div className="form-row form-row-2">
         {fg('Department', <CustomSelect
           value={editingData.department}
           onChange={(v: string) => updateEditingData('department', v)}
-          options={departmentOptions}
+          options={departments}
         />)}
         {fg('College / Institution Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
       </div>
@@ -214,12 +159,12 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('University Affiliated to', <CustomSelect
           value={editingData.affiliatedUniversity}
           onChange={(v: string) => updateEditingData('affiliatedUniversity', v)}
-          options={affiliatedUniversityOptions}
+          options={affiliatedUniversities}
         />)}
         {fg('Type of Institution', <CustomSelect
           value={editingData.typeOfInstitution}
           onChange={(v: string) => updateEditingData('typeOfInstitution', v)}
-          options={institutionTypeOptionsCustom}
+          options={institutionTypes}
         />)}
       </div>
 
@@ -227,7 +172,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Nature of Appointment', <CustomSelect
           value={editingData.natureOfAppointment}
           onChange={(v: string) => updateEditingData('natureOfAppointment', v)}
-          options={natureOfAppointmentOptionsCustom}
+          options={natureOfAppointments}
         />)}
         {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v)))}
         {fg('Date of Confirmation / Regularization', dateInp(editingData.dateOfConfirmation, v => updateEditingData('dateOfConfirmation', v)))}
@@ -236,36 +181,60 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Pay Band / Pay Scale / CTC', <CustomSelect
           value={editingData.payBand}
           onChange={(v: string) => updateEditingData('payBand', v)}
-          options={payScaleOptions}
+          options={payScales}
         />)}
       </div>
 
-      <div className="form-row form-row-2">
-        {fg('Bank Name', inp(editingData.bankName, v => updateEditingData('bankName', v)))}
-        {fg('Account Number', inp(editingData.accountNumber, v => updateEditingData('accountNumber', v)))}
-      </div>
-      <div className="form-row form-row-2">
-        {fg('IFSC Code', inp(editingData.ifscCode, v => updateEditingData('ifscCode', v)))}
-        {fg('Branch Name', inp(editingData.branchName, v => updateEditingData('branchName', v)))}
-      </div>
-      <div className="form-row form-row-2">
+      <div className="form-row form-row-3">
+        {fg('Bank Account Details (for salary)', inp(editingData.bankAccountDetails, v => updateEditingData('bankAccountDetails', v)))}
         {fg('Provident Fund (PF) Number', inp(editingData.pfNumber, v => updateEditingData('pfNumber', v)))}
         {fg('Service Book Number', inp(editingData.serviceBookNumber, v => updateEditingData('serviceBookNumber', v)))}
       </div>
 
-      <div className="form-row form-row-1">
+      <div className="form-row form-row-3">
+        {fg('From Date', dateInp(editingData.from, v => updateEditingData('from', v)))}
+        {fg('To Date', dateInp(editingData.to, v => updateEditingData('to', v)))}
         {fg('Reason for Leaving', inp(editingData.reasonForLeaving, v => updateEditingData('reasonForLeaving', v)))}
       </div>
 
-      <div className="form-group" style={{ marginTop: 15 }}>
-        <label className="form-label" style={{ fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>
-          Experience Document / Proof
-        </label>
-        <FileInp
-          v={editingData.documentUrl}
-          fn={(v) => updateEditingData('documentUrl', v)}
-          accept=".pdf,image/*"
-        />
+      <div className="form-group" style={{ marginTop: 10 }}>
+        <label>Documents / Experience Proof</label>
+        <input type="file" multiple className="form-input" onChange={ev => handleFileUpload(ev.target.files)} />
+        {(editingData.files || []).length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+            {(editingData.files || []).map((f: any, idx: number) => (
+              <div
+                key={idx}
+                style={{
+                  background: 'var(--surface-alt, #f1f5f9)',
+                  padding: '4px 8px',
+                  borderRadius: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 12,
+                  border: '1px solid var(--border-light, #e2e8f0)'
+                }}
+              >
+                <a href={f.url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                  {f.name}
+                </a>
+                <button
+                  type="button"
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}
+                  onClick={() =>
+                    setEditingData((prev: any) => ({
+                      ...prev,
+                      files: (prev.files || []).filter((_: any, x: number) => x !== idx),
+                    }))
+                  }
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
@@ -470,38 +439,22 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                     {renderPreview('Date of Joining', e.dateOfJoining)}
                     {renderPreview('Date of Confirmation', e.dateOfConfirmation)}
                     {renderPreview('Pay Band / Pay Scale / CTC', e.payBand)}
-                    {(() => {
-                      const bankInfo = parseBankDetails(e.bankAccountDetails);
-                      if (bankInfo.bankName || bankInfo.accountNumber || bankInfo.ifscCode || bankInfo.branchName) {
-                        return (
-                          <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
-                            <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Bank Account Details</span>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#1f2937', fontSize: '14px', fontWeight: 500 }}>
-                              {bankInfo.bankName && <div><strong>Bank Name:</strong> {bankInfo.bankName}</div>}
-                              {bankInfo.accountNumber && <div><strong>Account Number:</strong> {bankInfo.accountNumber}</div>}
-                              {bankInfo.ifscCode && <div><strong>IFSC Code:</strong> {bankInfo.ifscCode}</div>}
-                              {bankInfo.branchName && <div><strong>Branch Name:</strong> {bankInfo.branchName}</div>}
-                            </div>
-                          </div>
-                        );
-                      }
-                      return renderPreview('Bank Account Details', '-');
-                    })()}
+                    {renderPreview('Bank Account Details', e.bankAccountDetails)}
                     {renderPreview('Provident Fund (PF) Number', e.pfNumber)}
                     {renderPreview('Service Book Number', e.serviceBookNumber)}
+                    {renderPreview('From Date', e.from)}
+                    {renderPreview('To Date', e.to)}
                     {renderPreview('Reason for Leaving', e.reasonForLeaving)}
-                    {e.documentUrl && (
+                    {(e.files || []).length > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
-                        <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Experience Document</span>
-                        <a
-                          href={`${import.meta.env.VITE_API_URL || ''}${e.documentUrl}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="preview-file-link"
-                          style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                        >
-                          <ExternalLink size={12} /> View Document
-                        </a>
+                        <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Documents</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {(e.files || []).map((f: any, idx: number) => (
+                            <a key={idx} href={f.url} target="_blank" rel="noreferrer" className="preview-file-link" style={{ fontSize: 12 }}>
+                              <ExternalLink size={12} /> {f.name}
+                            </a>
+                          ))}
+                        </div>
                       </div>
                     )}
 

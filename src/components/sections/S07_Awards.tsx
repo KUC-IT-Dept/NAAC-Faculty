@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, ta, FileInp } from './sectionUtils';
 import { awardLevelOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = { name: '', awardingAgency: '', dateOfAward: '', yearReceived: '', level: '', description: '', documentUrl: '' };
-
-const LEVELS = awardLevelOptions;
 
 const currentYear = new Date().getFullYear();
 const YEAR_OPTS: string[] = [];
@@ -106,6 +105,9 @@ function AwardPreviewCard({
 }
 
 export default function Awards({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  // Reactive dropdown options
+  const levels = useDropdownOptions(awardLevelOptions);
+
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
@@ -191,7 +193,7 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
               {fg('Year Received', <select className="form-select" value={pendingNewItem.yearReceived || ''} onChange={e => setPendingNewItem({ ...pendingNewItem, yearReceived: e.target.value })}><option value="">— Select Year —</option>{YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}</select>)}
             </div>
             <div className="form-row form-row-2">
-              {fg('Level', sel(pendingNewItem.level, v => setPendingNewItem({ ...pendingNewItem, level: v }), LEVELS))}
+              {fg('Level', sel(pendingNewItem.level, v => setPendingNewItem({ ...pendingNewItem, level: v }), levels))}
               {fg('Brief Description (optional)', ta(pendingNewItem.description, v => setPendingNewItem({ ...pendingNewItem, description: v }), 'Details about the award...'))}
             </div>
             <div className="form-row form-row-2">
@@ -228,7 +230,7 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
                     {fg('Year Received', <select className="form-select" value={a.yearReceived || ''} onChange={e => upd(i, 'yearReceived', e.target.value)}><option value="">— Select Year —</option>{YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}</select>)}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Level', sel(a.level, v => upd(i, 'level', v), LEVELS))}
+                    {fg('Level', sel(a.level, v => upd(i, 'level', v), levels))}
                     {fg('Brief Description (optional)', ta(a.description, v => upd(i, 'description', v), 'Details about the award...'))}
                   </div>
                   <div className="form-row form-row-2">

@@ -9,6 +9,8 @@ import FacultyDashboard from './pages/faculty/FacultyDashboard';
 import ProfileSetup from './pages/faculty/ProfileSetup';
 import ProfileEdit from './pages/faculty/ProfileEdit';
 import PublicProfile from './pages/PublicProfile';
+import { loadDropdownOptionsFromServer } from './shared/dropdownOptions';
+import { useEffect } from 'react';
 
 function ProtectedRoute({ children, role }: { children: ReactElement; role?: 'admin' | 'faculty' }) {
   const { user, loading } = useAuth();
@@ -24,6 +26,11 @@ function ProtectedRoute({ children, role }: { children: ReactElement; role?: 'ad
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  
+  useEffect(() => {
+    loadDropdownOptionsFromServer();
+  }, []);
+
   if (loading) return null;
 
   return (
