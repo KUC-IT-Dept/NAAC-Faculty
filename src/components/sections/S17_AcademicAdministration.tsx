@@ -1,22 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel } from './sectionUtils';
+import { academicAdminOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
-const ACADEMIC_ADMIN_OPTIONS = [
-  'Chairman - PG Board of studies',
-  'Chairman - UG Board of studies',
-  'Member - PG board of studies',
-  'Member - UG board of studies',
-  'Chairman - Designing PG syllabi',
-  'Chairman - Designing UG syllabi',
-  'Scheduling classes',
-  'Monitoring teaching quality',
-  'Serving as examiner, invigilator, paper setter, evaluator under the Controller of Examinations',
-  'Participating in Board of Studies meeting',
-  'Participating in academic councils',
-  'Participating in departmental reviews',
-  'Other',
-];
 
 const EMPTY_RESPONSIBILITY = {
   administrativeCharge: '',
@@ -94,6 +81,9 @@ export default function AcademicAdministration({ data, onChange }: { data: any; 
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
+  // Reactive dropdown options
+  const academicAdminOpts = useDropdownOptions(academicAdminOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
 
@@ -151,7 +141,7 @@ export default function AcademicAdministration({ data, onChange }: { data: any; 
                 </div>
               </div>
               <div className="form-row form-row-1">
-                {fg('Administrative Charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), ACADEMIC_ADMIN_OPTIONS))}
+                {fg('Administrative Charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), academicAdminOpts))}
               </div>
               <div className="form-row form-row-1">
                 {fg('Description (optional)', inp(pending.description, v => setPending({ ...pending, description: v }), 'Brief description of the role'))}
@@ -181,7 +171,7 @@ export default function AcademicAdministration({ data, onChange }: { data: any; 
                       </div>
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Administrative Charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), ACADEMIC_ADMIN_OPTIONS))}
+                      {fg('Administrative Charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), academicAdminOpts))}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Description (optional)', inp(r.description, v => updItem(i, 'description', v), 'Brief description of the role'))}

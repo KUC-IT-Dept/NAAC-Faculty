@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { fg, inp, sel } from './sectionUtils';
+import { fundingAgencyOptions, projectStatusOptions, roleInProjectOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = { 
   title: '', 
@@ -13,10 +15,6 @@ const EMPTY = {
   referenceNumber: '' 
 };
 
-const FUNDING_AGENCIES = ['DST', 'UGC', 'ICSSR', 'CSIR', 'NBHM', 'Others'];
-const STATUSES = ['Ongoing', 'Completed'];
-const ROLES = ['Principal Investigator', 'Co-PI'];
-
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 8, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #cbd5e1', cursor: 'pointer' };
 const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: '#fff1f2', color: '#e11d48', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
@@ -24,6 +22,10 @@ const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'cent
 const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#9f1239', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
 
 export default function ResearchProjects({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  // Reactive dropdown options
+  const fundingAgencies = useDropdownOptions(fundingAgencyOptions);
+  const statuses = useDropdownOptions(projectStatusOptions);
+  const roles = useDropdownOptions(roleInProjectOptions);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
 
@@ -79,12 +81,12 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
           {fg('Project Reference Number', inp(item.referenceNumber, v => setVal('referenceNumber', v), 'e.g. PRJ-2023-01'))}
         </div>
         <div className="form-row form-row-2">
-          {fg('Funding Agency *', sel(item.fundingAgency, v => setVal('fundingAgency', v), FUNDING_AGENCIES))}
-          {fg('Role', sel(item.role, v => setVal('role', v), ROLES))}
+          {fg('Funding Agency *', sel(item.fundingAgency, v => setVal('fundingAgency', v), fundingAgencies))}
+          {fg('Role', sel(item.role, v => setVal('role', v), roles))}
         </div>
         <div className="form-row form-row-2">
           {fg('Sanctioned Amount (₹)', inp(item.amountSanctioned, v => setVal('amountSanctioned', v), 'e.g. 5,00,000'))}
-          {fg('Status', sel(item.status, v => setVal('status', v), STATUSES))}
+          {fg('Status', sel(item.status, v => setVal('status', v), statuses))}
         </div>
         <div className="form-row form-row-2">
           {fg('Duration (From)', <input type="date" className="form-input" value={item.startDate || ''} onChange={e => setVal('startDate', e.target.value)} />)}

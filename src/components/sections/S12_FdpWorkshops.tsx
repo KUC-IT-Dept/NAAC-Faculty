@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
+import { programmeTypeOptions, learningModeOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = { programTitle: '', type: '', organizingInstitution: '', from: '', to: '', mode: '', certificate: '', documentUrl: '' };
-
-const TYPE_OPTS = ['FDP', 'Workshop', 'Seminar', 'MOOC', 'Refresher', 'Orientation'];
-const MODE_OPTS = ['Online', 'Offline'];
-const CERT_OPTS = ['Yes', 'No'];
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -85,6 +83,11 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
 }
 
 export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  // Reactive dropdown options
+  const programmeTypes = useDropdownOptions(programmeTypeOptions);
+  const learningModes = useDropdownOptions(learningModeOptions);
+  const certOpts = useDropdownOptions(peerReviewedStatusOptions);
+
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
@@ -145,7 +148,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
             </div>
             {fg('Program Name *', inp(pendingNewItem.programTitle, v => setPendingNewItem({ ...pendingNewItem, programTitle: v })))}
             <div className="form-row form-row-2">
-              {fg('Type *', sel(pendingNewItem.type, v => setPendingNewItem({ ...pendingNewItem, type: v }), TYPE_OPTS))}
+              {fg('Type *', sel(pendingNewItem.type, v => setPendingNewItem({ ...pendingNewItem, type: v }), programmeTypes))}
               {fg('Organized by', inp(pendingNewItem.organizingInstitution, v => setPendingNewItem({ ...pendingNewItem, organizingInstitution: v })))}
             </div>
             <div className="form-row form-row-2">
@@ -153,8 +156,8 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
               {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
             </div>
             <div className="form-row form-row-2">
-              {fg('Mode', sel(pendingNewItem.mode, v => setPendingNewItem({ ...pendingNewItem, mode: v }), MODE_OPTS))}
-              {fg('Certificate', sel(pendingNewItem.certificate, v => setPendingNewItem({ ...pendingNewItem, certificate: v }), CERT_OPTS))}
+              {fg('Mode', sel(pendingNewItem.mode, v => setPendingNewItem({ ...pendingNewItem, mode: v }), learningModes))}
+              {fg('Certificate', sel(pendingNewItem.certificate, v => setPendingNewItem({ ...pendingNewItem, certificate: v }), certOpts))}
             </div>
             {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} />)}
           </div>
@@ -179,7 +182,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
                   </div>
                   {fg('Program Name *', inp(item.programTitle, v => upd(i, 'programTitle', v)))}
                   <div className="form-row form-row-2">
-                    {fg('Type *', sel(item.type, v => upd(i, 'type', v), TYPE_OPTS))}
+                    {fg('Type *', sel(item.type, v => upd(i, 'type', v), programmeTypes))}
                     {fg('Organized by', inp(item.organizingInstitution, v => upd(i, 'organizingInstitution', v)))}
                   </div>
                   <div className="form-row form-row-2">
@@ -187,8 +190,8 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
                     {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Mode', sel(item.mode, v => upd(i, 'mode', v), MODE_OPTS))}
-                    {fg('Certificate', sel(item.certificate, v => upd(i, 'certificate', v), CERT_OPTS))}
+                    {fg('Mode', sel(item.mode, v => upd(i, 'mode', v), learningModes))}
+                    {fg('Certificate', sel(item.certificate, v => upd(i, 'certificate', v), certOpts))}
                   </div>
                   {fg('Certificate / Proof', <FileInp v={item.documentUrl} fn={v => upd(i, 'documentUrl', v)} />)}
                 </>

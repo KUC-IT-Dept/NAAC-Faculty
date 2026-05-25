@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
+import { coursePlatformOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = { courseName: '', platform: '', from: '', to: '', certificateId: '', certificateUrl: '', score: '' };
-const PLATFORM_OPTS = ['NPTEL', 'Swayam', 'Coursera', 'edX', 'Udemy', 'LinkedIn Learning', 'Google', 'Microsoft', 'AWS', 'Other'];
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -79,6 +80,9 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
 }
 
 export default function OnlineCourses({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  // Reactive dropdown options
+  const platformOpts = useDropdownOptions(coursePlatformOptions);
+
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
@@ -139,7 +143,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
             </div>
             {fg('Course / Certification Name *', inp(pendingNewItem.courseName, v => setPendingNewItem({ ...pendingNewItem, courseName: v })))}
             <div className="form-row form-row-3">
-              {fg('Platform / Provider *', sel(pendingNewItem.platform, v => setPendingNewItem({ ...pendingNewItem, platform: v }), PLATFORM_OPTS))}
+              {fg('Platform / Provider *', sel(pendingNewItem.platform, v => setPendingNewItem({ ...pendingNewItem, platform: v }), platformOpts))}
               {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
               {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
             </div>
@@ -170,7 +174,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                   </div>
                   {fg('Course / Certification Name *', inp(item.courseName, v => upd(i, 'courseName', v)))}
                   <div className="form-row form-row-3">
-                    {fg('Platform / Provider *', sel(item.platform, v => upd(i, 'platform', v), PLATFORM_OPTS))}
+                    {fg('Platform / Provider *', sel(item.platform, v => upd(i, 'platform', v), platformOpts))}
                     {fg('From Date *', dateInp(item.from, v => upd(i, 'from', v)))}
                     {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}
                   </div>
