@@ -1,19 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel } from './sectionUtils';
-
-const DEPARTMENTAL_CHARGES_OPTIONS = [
-  'Head of the Department',
-  'Co-ordinator Cultural activities',
-  'Serving as Librarian',
-  'Serving on library committees',
-  'Serving on sports committees',
-  'Serving on cultural committees',
-  'Serving on grievance redressal committees',
-  'Guiding students academically and personally',
-  'Coordinating seminars, workshops',
-  'Other',
-];
+import { departmentalChargesOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY_RESPONSIBILITY = {
   administrativeCharge: '',
@@ -88,6 +77,9 @@ export default function DepartmentalCharges({ data, onChange }: { data: any; onC
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
+  // Reactive dropdown options
+  const departmentalChargesOpts = useDropdownOptions(departmentalChargesOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
 
@@ -140,7 +132,7 @@ export default function DepartmentalCharges({ data, onChange }: { data: any; onC
                 </div>
               </div>
               <div className="form-row form-row-1">
-                {fg('Administrative charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), DEPARTMENTAL_CHARGES_OPTIONS))}
+                {fg('Administrative charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), departmentalChargesOpts))}
               </div>
               <div className="form-row form-row-1">
                 {fg('Description (optional)', inp(pending.description, v => setPending({ ...pending, description: v }), 'Brief description of the role'))}
@@ -166,7 +158,7 @@ export default function DepartmentalCharges({ data, onChange }: { data: any; onC
                       </div>
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Administrative charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), DEPARTMENTAL_CHARGES_OPTIONS))}
+                      {fg('Administrative charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), departmentalChargesOpts))}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Description (optional)', inp(r.description, v => updItem(i, 'description', v), 'Brief description of the role'))}
