@@ -99,6 +99,3 @@ export declare const loadDropdownOptionsFromServer: () => Promise<void>;
 export declare const persistDropdownOptions: (key: string, options: string[]) => void;
 export declare const saveDropdownOptionsToServer: (key: string, options: string[]) => Promise<void>;
 export declare const optionArrays: Record<string, string[]>;
-
-
-

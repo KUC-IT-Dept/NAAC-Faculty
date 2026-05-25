@@ -32,9 +32,37 @@ export const fellowshipAgencyOptions = ['UGC', 'CSIR', 'University', 'NBHM', 'DA
 
 // Employment Details
 export const designationOptions = ['Assistant Professor', 'Associate Professor', 'Professor', 'HOD', 'Dean'];
-export const departmentOptions = ['Computer Science', 'Physics', 'Mathematics', 'Commerce', 'English'];
+export const departmentOptions = [
+  'Botany',
+  'Chemistry',
+  'Commerce',
+  'Computer Science',
+  'Economics',
+  'Education',
+  'Electronics',
+  'English',
+  'Environmental Science',
+  'Geography',
+  'Hindi',
+  'History',
+  'Library & Information Science',
+  'Malayalam',
+  'Mathematics',
+  'Microbiology',
+  'Music',
+  'Philosophy',
+  'Physical Education',
+  'Physics',
+  'Political Science',
+  'Psychology',
+  'Sanskrit',
+  'Social Work',
+  'Sociology',
+  'Statistics',
+  'Zoology',
+];
 export const institutionTypeOptions = ['State', 'Central', 'Private', 'Deemed'];
-export const affiliatedUniversityOptions = ['University of Delhi', 'Anna University', 'Mumbai University'];
+export const affiliatedUniversityOptions = ['Kannur University', 'University of Delhi', 'Anna University', 'Mumbai University'];
 export const natureOfAppointmentOptions = ['Regular', 'Ad-hoc', 'Contract', 'Guest', 'Visiting', 'Deputation'];
 export const approvalStatusOptions = ['Approved', 'Pending', 'Rejected'];
 export const payScaleOptions = ['AGP 6000', 'AGP 7000', 'AGP 8000', 'Level 10', 'Level 11'];
