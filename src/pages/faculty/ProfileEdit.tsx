@@ -176,12 +176,12 @@ export default function ProfileEdit() {
 
   const tab = section?.key;
 
-  const save = async () => {
+  const save = async (payload?: any) => {
     if (!tab) return;
     setSaving(true);
     try {
       if (tab === 'visibility') await api.patch('/faculty/me/visibility', profile.visibility);
-      else await api.put('/faculty/me', { [tab]: profile[tab] });
+      else await api.put('/faculty/me', { [tab]: payload !== undefined ? payload : profile[tab] });
       toast.success('Saved!');
     } catch { toast.error('Save failed'); }
     finally { setSaving(false); }
@@ -236,9 +236,9 @@ export default function ProfileEdit() {
               {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
               {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} />}
               {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
-              {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} />}
-              {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} />}
-              {tab === 'researchGuidance' && <ResearchSupervision data={profile.researchGuidance} onChange={v => set('researchGuidance', v)} />}
+              {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} onPersist={save} />}
+              {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} onPersist={save} />}
+              {tab === 'researchGuidance' && <ResearchSupervision data={profile.researchGuidance} onChange={v => set('researchGuidance', v)} onPersist={save} />}
               {tab === 'academicResponsibilities' && <AcademicResp data={profile.academicResponsibilities} onChange={v => set('academicResponsibilities', v)} />}
               {tab === 'memberships' && <Memberships data={profile.memberships} onChange={v => set('memberships', v)} />}
               {tab === 'fdpWorkshops' && <FdpWorkshops data={profile.fdpWorkshops} onChange={v => set('fdpWorkshops', v)} />}

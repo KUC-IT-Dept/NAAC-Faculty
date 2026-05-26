@@ -168,6 +168,20 @@ export default function ProfileSetup() {
     });
   };
 
+  const saveAwardsSection = async (updatedAwards?: any[]) => {
+    setSaving(true);
+    try { await api.put('/faculty/me', { awards: updatedAwards ?? profile.awards }); toast.success('Saved!'); }
+    catch { toast.error('Save failed'); }
+    finally { setSaving(false); }
+  };
+
+  const saveResearchGuidance = async (updatedResearchGuidance?: any) => {
+    setSaving(true);
+    try { await api.put('/faculty/me', { researchGuidance: updatedResearchGuidance ?? profile.researchGuidance }); toast.success('Saved!'); }
+    catch { toast.error('Save failed'); }
+    finally { setSaving(false); }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Header */}
@@ -239,9 +253,9 @@ export default function ProfileSetup() {
             {step === 3  && <EligibilityTests     data={profile.eligibilityTests}          onChange={v => set('eligibilityTests', v)} />}
             {step === 4  && <EmploymentDetails    data={profile.employmentDetails}         onChange={v => set('employmentDetails', v)} />}
             {step === 5  && <Publications          data={profile.publications}              onChange={v => set('publications', v)} />}
-            {step === 6  && <Awards               data={profile.awards}                   onChange={v => set('awards', v)} />}
+            {step === 6  && <Awards               data={profile.awards}                   onChange={v => set('awards', v)} onPersist={saveAwardsSection} />}
             {step === 7  && <ResearchProjects     data={profile.projects}                 onChange={v => set('projects', v)} />}
-            {step === 8  && <ResearchSupervision  data={profile.researchGuidance}       onChange={v => set('researchGuidance', v)} />}
+            {step === 8  && <ResearchSupervision  data={profile.researchGuidance}       onChange={v => set('researchGuidance', v)} onPersist={saveResearchGuidance} />}
             {step === 9 && <AcademicResp         data={profile.academicResponsibilities}  onChange={v => set('academicResponsibilities', v)} />}
             {step === 10 && <Memberships          data={profile.memberships}               onChange={v => set('memberships', v)} />}
             {step === 11 && <FdpWorkshops         data={profile.fdpWorkshops}              onChange={v => set('fdpWorkshops', v)} />}
