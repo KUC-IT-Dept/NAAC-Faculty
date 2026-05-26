@@ -159,6 +159,15 @@ export default function ProfileSetup() {
     else { toast.success('Profile setup complete! 🎉'); navigate('/faculty/dashboard'); }
   };
 
+  // Auto-save to localStorage on every section change so data survives refresh
+  const set = (k: string, v: any) => {
+    setProfile((p: any) => {
+      const newProfile = { ...p, [k]: v };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newProfile)); } catch { /* silent */ }
+      return newProfile;
+    });
+  };
+
   const saveAwardsSection = async (updatedAwards?: any[]) => {
     setSaving(true);
     try { await api.put('/faculty/me', { awards: updatedAwards ?? profile.awards }); toast.success('Saved!'); }
@@ -181,7 +190,6 @@ export default function ProfileSetup() {
       return newProfile;
     });
   };
-
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Header */}
