@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Profile Viewer</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    pre {
+      background: #111;
+      color: #00ff88;
+      padding: 20px;
+      overflow-x: auto;
+      border-radius: 8px;
+      margin-top: 20px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Student Profile Viewer</h1>
+
+  <label>JWT Token:</label>
+
+  <textarea id="token"></textarea>
+
+  <button onclick="getProfile()">Get Profile</button>
+
+  <pre id="output">Response will appear here...</pre>
+
+  <script>
+
+    async function getProfile() {
+
+      const token = document.getElementById("token").value.trim();
+
+      try {
+
+        const response = await fetch("http://localhost:5000/api/student/profile", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+
+        document.getElementById("output").textContent =
+          JSON.stringify(data, null, 2);
+
+      } catch (error) {
+
+        document.getElementById("output").textContent =
+          error.message;
+      }
+    }
+
+  </script>
+
+</body>
+</html>
