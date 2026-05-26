@@ -104,13 +104,20 @@ function AwardPreviewCard({
   );
 }
 
-export default function Awards({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+export default function Awards({ data, onChange, onPersist }: { data: any[]; onChange: (d: any[]) => void; onPersist?: (updatedAwards: any[]) => Promise<void> | void }) {
   // Reactive dropdown options
   const levels = useDropdownOptions(awardLevelOptions);
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
   const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
+
+  const persist = async (updatedAwards: any[]) => {
+    if (onPersist) {
+      try { await onPersist(updatedAwards); }
+      catch (err) { console.error('Failed to persist awards section', err); }
+    }
+  };
 
   // Check if an item has all required fields filled
   const isItemComplete = (item: any) => item.name && item.awardingAgency;
@@ -121,7 +128,7 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
   };
 
   // Handle saving a pending new item (insert at top, then sort)
-  const handleSavePending = (item: any) => {
+  const handleSavePending = async (item: any) => {
     if (isItemComplete(item)) {
       // Insert at top, then sort by dateOfAward descending
       const updated = [item, ...data];
@@ -133,6 +140,7 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
       });
       onChange(updated);
       setPendingNewItem(null);
+      await persist(updated);
     }
   };
 
@@ -205,6 +213,7 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
 
         {/* Render sorted items */}
         {sortedData.map((a, i) => {
+          const originalIndex = data.indexOf(a);
           const itemIsEditing = editingItemIndex === i;
           return (
             <div key={i} className="list-item-card">
@@ -213,28 +222,28 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Award</span>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={saveBtnStyle}>
+                      <button type="button" onClick={async () => { setEditingItemIndex(null); await persist(data); }} style={saveBtnStyle}>
                         <Check size={14} /> Done
                       </button>
-                      <button type="button" onClick={() => { onChange(sortedData.filter((_, j) => j !== i)); setEditingItemIndex(null); }} style={deleteBtnStyle}>
+                      <button type="button" onClick={async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); setEditingItemIndex(null); await persist(updated); }} style={deleteBtnStyle}>
                         <Trash2 size={14} /> Delete
                       </button>
                     </div>
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Award / Fellowship / Honour Name *', inp(a.name, v => upd(i, 'name', v)))}
-                    {fg('Awarding Body / Agency *', sel(a.awardingAgency, v => upd(i, 'awardingAgency', v), ['UGC', 'AICTE', 'DST', 'CSIR', 'ICMR']))}
+                    {fg('Award / Fellowship / Honour Name *', inp(a.name, v => upd(originalIndex, 'name', v)))}
+                    {fg('Awarding Body / Agency *', sel(a.awardingAgency, v => upd(originalIndex, 'awardingAgency', v), ['UGC', 'AICTE', 'DST', 'CSIR', 'ICMR']))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Date / Year of Award', <input type="date" value={a.dateOfAward} onChange={e => upd(i, 'dateOfAward', e.target.value)} className="form-input" />)}
-                    {fg('Year Received', <select className="form-select" value={a.yearReceived || ''} onChange={e => upd(i, 'yearReceived', e.target.value)}><option value="">— Select Year —</option>{YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}</select>)}
+                    {fg('Date / Year of Award', <input type="date" value={a.dateOfAward} onChange={e => upd(originalIndex, 'dateOfAward', e.target.value)} className="form-input" />)}
+                    {fg('Year Received', <select className="form-select" value={a.yearReceived || ''} onChange={e => upd(originalIndex, 'yearReceived', e.target.value)}><option value="">— Select Year —</option>{YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}</select>)}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Level', sel(a.level, v => upd(i, 'level', v), levels))}
-                    {fg('Brief Description (optional)', ta(a.description, v => upd(i, 'description', v), 'Details about the award...'))}
+                    {fg('Level', sel(a.level, v => upd(originalIndex, 'level', v), levels))}
+                    {fg('Brief Description (optional)', ta(a.description, v => upd(originalIndex, 'description', v), 'Details about the award...'))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Certificate / Proof', <FileInp v={a.documentUrl} fn={v => upd(i, 'documentUrl', v)} />)}
+                    {fg('Certificate / Proof', <FileInp v={a.documentUrl} fn={v => upd(originalIndex, 'documentUrl', v)} />)}
                     <div></div>
                   </div>
                 </>
@@ -242,7 +251,7 @@ export default function Awards({ data, onChange }: { data: any[]; onChange: (d: 
                 <AwardPreviewCard
                   a={a}
                   onEdit={() => setEditingItemIndex(i)}
-                  onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
+                  onDelete={async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); await persist(updated); }}
                   disabled={pendingNewItem !== null}
                 />
               )}
