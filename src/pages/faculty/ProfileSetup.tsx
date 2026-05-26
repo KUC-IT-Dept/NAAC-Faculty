@@ -182,14 +182,7 @@ export default function ProfileSetup() {
     finally { setSaving(false); }
   };
 
-  // Auto-save to localStorage on every section change so data survives refresh
-  const set = (k: string, v: any) => {
-    setProfile((p: any) => {
-      const newProfile = { ...p, [k]: v };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newProfile)); } catch { /* silent */ }
-      return newProfile;
-    });
-  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Header */}
