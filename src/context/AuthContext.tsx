@@ -46,6 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    // Clear user-specific profile draft from localStorage
+    if (user?.id) {
+      localStorage.removeItem(`naac_profile_${user.id}`);
+    }
     localStorage.removeItem('iqac_token');
     localStorage.removeItem('iqac_user');
     setToken(null);
