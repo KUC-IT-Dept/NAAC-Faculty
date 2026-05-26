@@ -20,8 +20,14 @@ const cancelBtnStyle: React.CSSProperties = {
 const NUM_OPTS_100 = Array.from({ length: 100 }, (_, i) => String(i + 1));
 const NUM_OPTS_10 = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
-export default function ResearchSupervision({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+export default function ResearchSupervision({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any) => Promise<void> | void }) {
   const studentDetails = data.studentDetails || [];
+
+  const persist = async (updated: any) => {
+    if (!onPersist) return;
+    try { await onPersist(updated); }
+    catch (err) { console.error('Failed to persist research guidance', err); }
+  };
 
   // Dynamically calculate metrics from studentDetails
   const phdAwardedCount = String(studentDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
@@ -44,7 +50,7 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
       .map((s: any) => s.studentName.trim())
       .join(', ');
 
-    onChange({
+    const updated = {
       ...data,
       [k]: v,
       phdCompleted: newPhdCompleted,
@@ -52,11 +58,14 @@ export default function ResearchSupervision({ data, onChange }: { data: any; onC
       mphilCompleted: newMphilCompleted,
       mphilInProgress: newMphilInProgress,
       completedStudentsNames: newCompletedNames,
-      // For backwards compatibility / legacy frontend keys:
       phdAwardedCount: newPhdCompleted,
       phdOngoingCount: newPhdInProgress,
       mphilGuidedCount: newMphilCompleted,
-    });
+    };
+
+    onChange(updated);
+    // Persist asynchronously if handler provided
+    void persist(updated);
   };
 
   const updStudent = (i: number, k: string, v: string) => {

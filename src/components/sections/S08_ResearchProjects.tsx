@@ -21,13 +21,22 @@ const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'ce
 const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#16a34a', color: '#fff', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#9f1239', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
 
-export default function ResearchProjects({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+export default function ResearchProjects({ data, onChange, onPersist }: { data: any[]; onChange: (d: any[]) => void; onPersist?: (updatedProjects: any[]) => Promise<void> | void }) {
   // Reactive dropdown options
   const fundingAgencies = useDropdownOptions(fundingAgencyOptions);
   const statuses = useDropdownOptions(projectStatusOptions);
   const roles = useDropdownOptions(roleInProjectOptions);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
+
+  const persist = async (updatedProjects: any[]) => {
+    if (!onPersist) return;
+    try {
+      await onPersist(updatedProjects);
+    } catch (err) {
+      console.error('Failed to persist research projects', err);
+    }
+  };
 
   const upd = (i: number, k: string, v: string) => {
     const a = [...data];
@@ -42,7 +51,7 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
     setEditingItemIndex(null);
   };
 
-  const handleSavePending = (item: any) => {
+  const handleSavePending = async (item: any) => {
     if (isItemComplete(item)) {
       const updated = [item, ...data];
       updated.sort((a, b) => {
@@ -54,6 +63,7 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
       });
       onChange(updated);
       setPendingNewItem(null);
+      await persist(updated);
     }
   };
 
@@ -139,12 +149,12 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Project</span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                <button type="button" onClick={async () => { setEditingItemIndex(null); await persist(data); }} style={btnSave}>
                   <Check size={14} /> Done
                 </button>
               </div>
             </div>
-            {renderForm(sortedData[editingItemIndex], false, editingItemIndex)}
+            {renderForm(data[editingItemIndex], false, editingItemIndex)}
           </div>
         )}
       </div>
@@ -171,54 +181,61 @@ export default function ResearchProjects({ data, onChange }: { data: any[]; onCh
                 </tr>
               </thead>
               <tbody>
-                {sortedData.map((p, i) => (
-                  <tr key={i} style={{ borderBottom: i !== sortedData.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                    <td style={{ padding: '12px 16px', color: '#64748b' }}>{i + 1}</td>
-                    <td style={{ padding: '12px 16px', color: '#0f172a', fontWeight: 600, minWidth: '150px' }}>{p.title || '—'}</td>
-                    <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.fundingAgency || '—'}</td>
-                    <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.role || '—'}</td>
-                    <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.amountSanctioned ? `₹${p.amountSanctioned}` : '—'}</td>
-                    <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>
-                      {fmtDate(p.startDate)} <span style={{ color: '#94a3b8', margin: '0 4px' }}>to</span> {fmtDate(p.endDate)}
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      {p.status && (
-                        <span style={{ 
-                          padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
-                          background: p.status === 'Completed' ? '#dcfce7' : '#e0f2fe',
-                          color: p.status === 'Completed' ? '#166534' : '#075985',
-                          whiteSpace: 'nowrap'
-                        }}>
-                          {p.status}
-                        </span>
-                      )}
-                      {!p.status && '—'}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.referenceNumber || '—'}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
-                        <button 
-                          type="button" 
-                          onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setEditingItemIndex(i); }} 
-                          style={{ ...btnEdit, padding: '6px' }} 
-                          disabled={pendingNewItem !== null || editingItemIndex !== null}
-                          title="Edit Project"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button 
-                          type="button" 
-                          onClick={() => onChange(sortedData.filter((_, j) => j !== i))} 
-                          style={{ ...btnDelete, padding: '6px' }} 
-                          disabled={pendingNewItem !== null || editingItemIndex !== null}
-                          title="Delete Project"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {sortedData.map((p, i) => {
+                  const originalIndex = data.indexOf(p);
+                  return (
+                    <tr key={i} style={{ borderBottom: i !== sortedData.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                      <td style={{ padding: '12px 16px', color: '#64748b' }}>{i + 1}</td>
+                      <td style={{ padding: '12px 16px', color: '#0f172a', fontWeight: 600, minWidth: '150px' }}>{p.title || '—'}</td>
+                      <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.fundingAgency || '—'}</td>
+                      <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.role || '—'}</td>
+                      <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.amountSanctioned ? `₹${p.amountSanctioned}` : '—'}</td>
+                      <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>
+                        {fmtDate(p.startDate)} <span style={{ color: '#94a3b8', margin: '0 4px' }}>to</span> {fmtDate(p.endDate)}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {p.status && (
+                          <span style={{ 
+                            padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                            background: p.status === 'Completed' ? '#dcfce7' : '#e0f2fe',
+                            color: p.status === 'Completed' ? '#166534' : '#075985',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {p.status}
+                          </span>
+                        )}
+                        {!p.status && '—'}
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.referenceNumber || '—'}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+                          <button 
+                            type="button" 
+                            onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setEditingItemIndex(originalIndex); }} 
+                            style={{ ...btnEdit, padding: '6px' }} 
+                            disabled={pendingNewItem !== null || editingItemIndex !== null}
+                            title="Edit Project"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={async () => {
+                              const updated = data.filter((_, j) => j !== originalIndex);
+                              onChange(updated);
+                              await persist(updated);
+                            }} 
+                            style={{ ...btnDelete, padding: '6px' }} 
+                            disabled={pendingNewItem !== null || editingItemIndex !== null}
+                            title="Delete Project"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
