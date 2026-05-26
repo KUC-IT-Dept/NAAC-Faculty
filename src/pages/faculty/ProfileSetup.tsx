@@ -93,12 +93,45 @@ export default function ProfileSetup() {
   const [pwErr, setPwErr] = useState('');
   const [profile, setProfile] = useState<any>(EMPTY);
 
+  const STORAGE_KEY = `naac_profile_${user?.id || 'draft'}`;
+
   useEffect(() => {
-    api.get('/faculty/me').then(r => {
-      setProfile({ ...EMPTY, ...Object.fromEntries(Object.entries(r.data).filter(([k]) => k in EMPTY)) });
-      if (!user?.isFirstLogin) setStep(1);
-    }).catch(() => {});
-  }, []);
+    const loadProfile = async () => {
+      try {
+        const r = await api.get('/faculty/me');
+        const serverData = { ...EMPTY, ...Object.fromEntries(Object.entries(r.data).filter(([k]) => k in EMPTY)) };
+
+        // Merge: server data as base, local unsaved draft overlaid on top
+        const localDraft = localStorage.getItem(STORAGE_KEY);
+        if (localDraft) {
+          try {
+            const parsedDraft = JSON.parse(localDraft);
+            const merged = { ...serverData, ...parsedDraft };
+            setProfile(merged);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+          } catch {
+            setProfile(serverData);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData));
+          }
+        } else {
+          setProfile(serverData);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData));
+        }
+
+        if (!user?.isFirstLogin) setStep(1);
+      } catch {
+        // API failed — fall back to localStorage
+        const localDraft = localStorage.getItem(STORAGE_KEY);
+        if (localDraft) {
+          try {
+            setProfile({ ...EMPTY, ...JSON.parse(localDraft) });
+            if (!user?.isFirstLogin) setStep(1);
+          } catch { /* silent */ }
+        }
+      }
+    };
+    loadProfile();
+  }, [STORAGE_KEY, user?.isFirstLogin]);
 
   const handlePwChange = async () => {
     setPwErr('');
@@ -140,7 +173,14 @@ export default function ProfileSetup() {
     finally { setSaving(false); }
   };
 
-  const set = (k: string, v: any) => setProfile((p: any) => ({ ...p, [k]: v }));
+  // Auto-save to localStorage on every section change so data survives refresh
+  const set = (k: string, v: any) => {
+    setProfile((p: any) => {
+      const newProfile = { ...p, [k]: v };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newProfile)); } catch { /* silent */ }
+      return newProfile;
+    });
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
