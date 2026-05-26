@@ -1,0 +1,26 @@
+{
+  "name": "profcv-server",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "seed": "node seed.js",
+    "seed:profiles": "node seedProfiles.js",
+    "seed:all": "node seed.js && node seedProfiles.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "index.js": "^0.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.4",
+    "multer": "^1.4.5-lts.1",
+    "papaparse": "^5.4.1",
+    "uuid": "^9.0.1",
+    "xlsx": "^0.18.5"
+  }
+}
