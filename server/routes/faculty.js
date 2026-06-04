@@ -77,7 +77,10 @@ router.put('/me', facultyOnly, async (req, res) => {
       'personalInfo', 'qualifications', 'eligibilityTests', 'employmentDetails',
       'workExperience', 'publications', 'awards', 'projects', 'patents',
       'researchGuidance', 'adminResponsibilities', 'fdpWorkshops', 'memberships',
-      'onlineCourses', 'internationalExperience', 'documents',
+      'onlineCourses', 'internationalExperience', 'adminNonAcademicResponsibilities',
+      'academicAdministration', 'qualityAssurance', 'researchAndInnovation',
+      'examinationAndEvaluation', 'administrativeSupport', 'departmentalCharges',
+      'specialAssignments', 'extraInstitutionalActivities', 'documents',
     ];
     const updateData = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) updateData[f] = req.body[f]; });

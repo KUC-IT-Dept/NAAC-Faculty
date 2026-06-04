@@ -236,10 +236,16 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.institutionName || r.campusName || r.universityName || r.facultyName || r.committeeName || r.title) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.institutionName || r.campusName || r.universityName || r.facultyName || r.committeeName || r.title}
+                      </span>
+                    )}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  {(r.tenureStart || r.tenureEnd || r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>
+                      {r.tenureStart || r.from || '—'} – {r.tenureEnd || r.to || 'Present'}
+                    </span>
                   )}
                 </div>
               ))}
@@ -256,7 +262,11 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.programDepartment || r.departmentProgram || r.syllabusCourse || r.examRole || r.board || r.councilBody || r.department || r.title) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.programDepartment || r.departmentProgram || r.syllabusCourse || r.examRole || r.board || r.councilBody || r.department || r.title}
+                      </span>
+                    )}
                   </div>
                   {(r.from || r.to) && (
                     <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
@@ -296,7 +306,11 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.departmentSchoolCenter || r.departmentUnit || r.fundingAgencyOrganization || r.projectSchemeName || r.conferenceEventName || r.title) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.departmentSchoolCenter || r.departmentUnit || r.fundingAgencyOrganization || r.projectSchemeName || r.conferenceEventName || r.title}
+                      </span>
+                    )}
                   </div>
                   {(r.from || r.to) && (
                     <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
@@ -316,10 +330,16 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.institutionName || r.examinationSession || r.boardName || r.courseName || r.departmentName || r.title) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.institutionName || r.examinationSession || r.boardName || r.courseName || r.departmentName || r.title}
+                      </span>
+                    )}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  {(r.tenureStart || r.tenureEnd || r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>
+                      {r.tenureStart || r.from || '—'} – {r.tenureEnd || r.to || 'Present'}
+                    </span>
                   )}
                 </div>
               ))}
@@ -336,10 +356,16 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.departmentUnit || r.responsibilityTitle || r.roleResponsibility) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.departmentUnit || r.responsibilityTitle || r.roleResponsibility}
+                      </span>
+                    )}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  {(r.tenureStart || r.tenureEnd || r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>
+                      {r.tenureStart || r.from || '—'} – {r.tenureEnd || r.to || 'Present'}
+                    </span>
                   )}
                 </div>
               ))}
