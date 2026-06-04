@@ -124,8 +124,8 @@ const sectionsData = [
     ]
   },
   {
-    id: 'international-experience', title: '13 - International Experience', configs: [
-      { name: 'Country', optionsKey: 'countryVisitOptions' },
+    id: 'international-experience', title: '13 - Academic International Experience', configs: [
+      { name: 'Visited Country', optionsKey: 'countryVisitOptions' },
       { name: 'Purpose of Visit', optionsKey: 'purposeOfVisitOptions' },
       { name: 'Funding Source', optionsKey: 'fundingSourceOptions' },
       { name: 'Visit Category', optionsKey: 'visitCategoryOptions' },

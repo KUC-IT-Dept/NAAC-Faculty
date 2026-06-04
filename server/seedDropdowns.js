@@ -123,7 +123,7 @@ const defaults = {
   certification_type:   ['Free Certificate', 'Paid Certificate', 'Verified Certificate', 'University Certificate'],
   learning_mode:        ['Online', 'Hybrid', 'Self Paced', 'Instructor Led'],
 
-  // International Experience
+  // Academic International Experience
   country_visit:        ['Singapore', 'USA', 'UK', 'Germany', 'Canada', 'Australia', 'Japan', 'France'],
   purpose_of_visit:     ['Conference', 'Research Collaboration', 'Faculty Exchange', 'Workshop', 'Seminar', 'Training Program'],
   funding_source:       ['DST Travel Grant', 'UGC', 'AICTE', 'Self Funded', 'International Fellowship', 'University Sponsorship'],

@@ -30,7 +30,7 @@ const profileDropdownItems = (role?: 'admin' | 'faculty') => {
     { id: 'memberships', label: '10 - Memberships', path: `${base}/memberships` },
     { id: 'fdp-workshops', label: '11 - FDP & Workshops', path: `${base}/fdp-workshops` },
     { id: 'online-courses', label: '12 - Online Courses', path: `${base}/online-courses` },
-    { id: 'international-experience', label: '13 - International Experience', path: `${base}/international-experience` },
+    { id: 'international-experience', label: '13 - Academic International Experience', path: `${base}/international-experience` },
     { id: 'admin-non-academic', label: '14 - Admin & Non-Academic Resp.', path: `${base}/admin-non-academic` },
     { id: 'academic-administration', label: '15 - Academic Administration', path: `${base}/academic-administration` },
     { id: 'quality-assurance', label: '16 - Quality Assurance', path: `${base}/quality-assurance` },
