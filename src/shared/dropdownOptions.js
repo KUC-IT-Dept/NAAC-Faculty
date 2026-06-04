@@ -123,7 +123,7 @@ export const membershipStatusOptions = ['Active', 'Expired', 'Pending', 'Suspend
 export const membershipLevelOptions = ['Member', 'Senior Member', 'Fellow', 'Associate Member', 'Student Member'];
 export const organizationTypeOptions = ['Technical Society', 'Research Organization', 'Academic Association', 'Professional Council', 'Scientific Community'];
 
-// FDP & Workshops
+// Attended FDP & Workshops
 export const programmeTypeOptions = ['FDP', 'Workshop', 'Seminar', 'Conference', 'Short Term Course', 'Refresher Course', 'Orientation Programme', 'Training Programme'];
 export const sponsoringAgencyOptions = ['AICTE', 'UGC', 'TEQIP', 'MHRD', 'DST', 'Self-Funded', 'University Funded', 'Institutional'];
 export const participationOptions = ['Attended', 'Organized', 'Resource Person', 'Presented', 'Chaired Session'];
@@ -133,7 +133,7 @@ export const coursePlatformOptions = ['Coursera', 'NPTEL', 'SWAYAM', 'Udemy', 'e
 export const courseTypeOptions = ['Certification', 'Diploma', 'Skill Development', 'Faculty Development', 'Professional Training'];
 export const completionStatusOptions = ['Completed', 'Ongoing', 'In Progress', 'Certified'];
 export const certificationTypeOptions = ['Free Certificate', 'Paid Certificate', 'Verified Certificate', 'University Certificate'];
-export const learningModeOptions = ['Online', 'Hybrid', 'Self Paced', 'Instructor Led'];
+export const learningModeOptions = ['Online', 'Offline', 'Hybrid', 'Self Paced', 'Instructor Led'];
 
 // Academic International Experience
 export const countryVisitOptions = ['Singapore', 'USA', 'UK', 'Germany', 'Canada', 'Australia', 'Japan', 'France'];

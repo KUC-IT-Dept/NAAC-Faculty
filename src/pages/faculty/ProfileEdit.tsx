@@ -45,7 +45,7 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'research-supervision': { key: 'researchGuidance', label: 'Research Supervision' },
   'academic-responsibilities': { key: 'academicResponsibilities', label: 'Academic Responsibilities' },
   'memberships': { key: 'memberships', label: 'Memberships' },
-  'fdp-workshops': { key: 'fdpWorkshops', label: 'FDP & Workshops' },
+  'fdp-workshops': { key: 'fdpWorkshops', label: 'Attended FDP & Workshops' },
   'online-courses': { key: 'onlineCourses', label: 'Online Courses' },
   'international-experience': { key: 'internationalExperience', label: 'Academic International Experience' },
   'admin-non-academic': { key: 'adminNonAcademicResponsibilities', label: 'Admin & Non-Academic Responsibilities' },

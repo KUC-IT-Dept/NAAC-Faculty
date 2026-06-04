@@ -28,7 +28,7 @@ const profileDropdownItems = (role?: 'admin' | 'faculty') => {
     { id: 'research-supervision', label: '08 - Research Supervision', path: `${base}/research-supervision` },
     { id: 'academic-responsibilities', label: '09 - Academic Responsibilities', path: `${base}/academic-responsibilities` },
     { id: 'memberships', label: '10 - Memberships', path: `${base}/memberships` },
-    { id: 'fdp-workshops', label: '11 - FDP & Workshops', path: `${base}/fdp-workshops` },
+    { id: 'fdp-workshops', label: '11 - Attended FDP & Workshops', path: `${base}/fdp-workshops` },
     { id: 'online-courses', label: '12 - Online Courses', path: `${base}/online-courses` },
     { id: 'international-experience', label: '13 - Academic International Experience', path: `${base}/international-experience` },
     { id: 'admin-non-academic', label: '14 - Admin & Non-Academic Resp.', path: `${base}/admin-non-academic` },
@@ -137,26 +137,26 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             {!collapsed && <div className="sidebar-section-label" style={{ padding: '0 0 6px' }}>Public</div>}
 
             {user?.role !== 'admin' && (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '10px' }}>
-              <button
-                className="nav-item"
-                onClick={() => navigate(visibilityPath)}
-                style={isVisibilityActive ? { borderLeft: '3px solid #2563EB', borderRadius: '12px', background: '#EEF2FF', color: '#2563EB', height: '40px', padding: '0 10px' } : { borderRadius: '12px', borderLeft: '3px solid transparent', height: '40px', padding: '0 10px' }}
-              >
-                <span className="nav-item-button" style={isVisibilityActive ? { background: 'transparent', color: '#2563EB', width: '34px', height: '34px' } : { width: '34px', height: '34px' }}><Eye size={16} /></span>
-                {!collapsed && <span className="nav-item-label" style={isVisibilityActive ? { fontWeight: 500, fontSize: '0.88rem', lineHeight: 1.2 } : { fontSize: '0.88rem', lineHeight: 1.2 }}>Visibility</span>}
-              </button>
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '10px' }}>
+                <button
+                  className="nav-item"
+                  onClick={() => navigate(visibilityPath)}
+                  style={isVisibilityActive ? { borderLeft: '3px solid #2563EB', borderRadius: '12px', background: '#EEF2FF', color: '#2563EB', height: '40px', padding: '0 10px' } : { borderRadius: '12px', borderLeft: '3px solid transparent', height: '40px', padding: '0 10px' }}
+                >
+                  <span className="nav-item-button" style={isVisibilityActive ? { background: 'transparent', color: '#2563EB', width: '34px', height: '34px' } : { width: '34px', height: '34px' }}><Eye size={16} /></span>
+                  {!collapsed && <span className="nav-item-label" style={isVisibilityActive ? { fontWeight: 500, fontSize: '0.88rem', lineHeight: 1.2 } : { fontSize: '0.88rem', lineHeight: 1.2 }}>Visibility</span>}
+                </button>
 
-              <button
-                className="nav-item"
-                onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
-                style={{ borderRadius: '12px', height: '40px', padding: '0 10px' }}
-              >
-                <span className="nav-item-button" style={{ width: '34px', height: '34px' }}><Globe size={16} /></span>
-                {!collapsed && <span className="nav-item-label" style={{ fontSize: '0.88rem', lineHeight: 1.2 }}>View Public Profile</span>}
-              </button>
-            </div>
-          )}
+                <button
+                  className="nav-item"
+                  onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
+                  style={{ borderRadius: '12px', height: '40px', padding: '0 10px' }}
+                >
+                  <span className="nav-item-button" style={{ width: '34px', height: '34px' }}><Globe size={16} /></span>
+                  {!collapsed && <span className="nav-item-label" style={{ fontSize: '0.88rem', lineHeight: 1.2 }}>View Public Profile</span>}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="sidebar-bottom-card">

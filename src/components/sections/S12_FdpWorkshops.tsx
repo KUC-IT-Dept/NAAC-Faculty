@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
-import { programmeTypeOptions, learningModeOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
+import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { fg, inp, sel, dateInp } from './sectionUtils';
+import { programmeTypeOptions, learningModeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
-const EMPTY = { programTitle: '', type: '', organizingInstitution: '', from: '', to: '', mode: '', certificate: '', documentUrl: '' };
+const EMPTY = { programTitle: '', type: '', organizingInstitution: '', from: '', to: '', mode: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -68,14 +68,6 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
           {item.to && <PreviewRow label="To Date" value={item.to} />}
           {!item.from && !item.to && <PreviewRow label="Duration / Dates" value={item.duration} />}
           <PreviewRow label="Mode" value={item.mode} />
-          <PreviewRow label="Certificate" value={item.certificate} />
-          {item.documentUrl && (
-            <div style={{ marginTop: 8 }}>
-              <a href={`${import.meta.env.VITE_API_URL || ''}${item.documentUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
-                <ExternalLink size={14} /> View Proof
-              </a>
-            </div>
-          )}
         </div>
       )}
     </>
@@ -86,7 +78,6 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
   // Reactive dropdown options
   const programmeTypes = useDropdownOptions(programmeTypeOptions);
   const learningModes = useDropdownOptions(learningModeOptions);
-  const certOpts = useDropdownOptions(peerReviewedStatusOptions);
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
@@ -157,9 +148,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
             </div>
             <div className="form-row form-row-2">
               {fg('Mode', sel(pendingNewItem.mode, v => setPendingNewItem({ ...pendingNewItem, mode: v }), learningModes))}
-              {fg('Certificate', sel(pendingNewItem.certificate, v => setPendingNewItem({ ...pendingNewItem, certificate: v }), certOpts))}
             </div>
-            {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} />)}
           </div>
         )}
 
@@ -191,9 +180,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
                   </div>
                   <div className="form-row form-row-2">
                     {fg('Mode', sel(item.mode, v => upd(i, 'mode', v), learningModes))}
-                    {fg('Certificate', sel(item.certificate, v => upd(i, 'certificate', v), certOpts))}
                   </div>
-                  {fg('Certificate / Proof', <FileInp v={item.documentUrl} fn={v => upd(i, 'documentUrl', v)} />)}
                 </>
               ) : (
                 <PreviewCard

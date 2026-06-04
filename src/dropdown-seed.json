@@ -1,284 +1,284 @@
 
 export const sectionsData = [
-    {
+  {
     id: 'personal-information', title: '01 - Personal Information', configs: [
-            { name: 'Gender', options: genderOptions
-            },
-            { name: 'Blood Group', options: bloodGroupOptions
-            },
-            { name: 'Nationality', options: nationalityOptions
-            },
-            { name: 'Religion', options: religionOptions
-            },
-            { name: 'Category', options: categoryOptions
-            },
-            { name: 'Sub-Category', options: subCategoryOptions
-            },
-            { name: 'Marital Status', options: maritalStatusOptions
-            },
-            { name: 'Disability Status', options: disabilityStatusOptions
-            },
-            { name: 'Disability Type', options: disabilityTypeOptions
-            },
-            { name: 'State', options: stateOptions
-            },
-            { name: 'Country', options: countryOptions
-            },
-        ]
-    },
-    {
+      { name: 'Gender', options: genderOptions
+      },
+      { name: 'Blood Group', options: bloodGroupOptions
+      },
+      { name: 'Nationality', options: nationalityOptions
+      },
+      { name: 'Religion', options: religionOptions
+      },
+      { name: 'Category', options: categoryOptions
+      },
+      { name: 'Sub-Category', options: subCategoryOptions
+      },
+      { name: 'Marital Status', options: maritalStatusOptions
+      },
+      { name: 'Disability Status', options: disabilityStatusOptions
+      },
+      { name: 'Disability Type', options: disabilityTypeOptions
+      },
+      { name: 'State', options: stateOptions
+      },
+      { name: 'Country', options: countryOptions
+      },
+    ]
+  },
+  {
     id: 'qualifications', title: '02 - Qualifications', configs: [
-            { name: 'Degree Level', options: degreeLevelOptions
-            },
-            { name: 'Degree / Certificate Name', options: degreeNameOptions
-            },
-            { name: 'Specialization / Subject', options: specializationOptions
-            },
-            { name: 'Division / Class', options: divisionOptions
-            },
-            { name: 'Study Mode', options: studyModeOptions
-            },
-            { name: 'Grade Type', options: gradeTypeOptions
-            }
-        ]
-    },
-    {
+      { name: 'Degree Level', options: degreeLevelOptions
+      },
+      { name: 'Degree / Certificate Name', options: degreeNameOptions
+      },
+      { name: 'Specialization / Subject', options: specializationOptions
+      },
+      { name: 'Division / Class', options: divisionOptions
+      },
+      { name: 'Study Mode', options: studyModeOptions
+      },
+      { name: 'Grade Type', options: gradeTypeOptions
+      }
+    ]
+  },
+  {
     id: 'eligibility-tests', title: '03 - Eligibility Tests', configs: [
-            { name: 'Exam Name', options: examNameOptions
-            },
-            { name: 'Subject / Paper', options: subjectPaperOptions
-            },
-            { name: 'State (for SET/SLET)', options: stateForSetOptions
-            },
-            { name: 'Validity Status', options: validityStatusOptions
-            }
-        ]
-    },
-    {
+      { name: 'Exam Name', options: examNameOptions
+      },
+      { name: 'Subject / Paper', options: subjectPaperOptions
+      },
+      { name: 'State (for SET/SLET)', options: stateForSetOptions
+      },
+      { name: 'Validity Status', options: validityStatusOptions
+      }
+    ]
+  },
+  {
     id: 'employment-details', title: '04 - Employment Details', configs: [
-            { name: 'Designation', options: designationOptions
-            },
-            { name: 'Department', options: departmentOptions
-            },
-            { name: 'Institution / College Type', options: institutionTypeOptions
-            },
-            { name: 'Affiliated University', options: affiliatedUniversityOptions
-            },
-            { name: 'Nature of Appointment', options: natureOfAppointmentOptions
-            },
-            { name: 'Approval Status', options: approvalStatusOptions
-            },
-            { name: 'Pay Scale / Band', options: payScaleOptions
-            }
-        ]
-    },
-    {
+      { name: 'Designation', options: designationOptions
+      },
+      { name: 'Department', options: departmentOptions
+      },
+      { name: 'Institution / College Type', options: institutionTypeOptions
+      },
+      { name: 'Affiliated University', options: affiliatedUniversityOptions
+      },
+      { name: 'Nature of Appointment', options: natureOfAppointmentOptions
+      },
+      { name: 'Approval Status', options: approvalStatusOptions
+      },
+      { name: 'Pay Scale / Band', options: payScaleOptions
+      }
+    ]
+  },
+  {
     id: 'research-publications', title: '05 - Research & Publications', configs: [
-            { name: 'Publication Type', options: publicationTypeOptions
-            },
-            { name: 'Publication Level', options: publicationLevelOptions
-            },
-            { name: 'Author Role', options: authorRoleOptions
-            },
-            { name: 'Indexed In', options: indexedInOptions
-            },
-            { name: 'Peer Reviewed Status', options: peerReviewedStatusOptions
-            },
-            { name: 'Journal Category', options: journalCategoryOptions
-            }
-        ]
-    },
-    {
+      { name: 'Publication Type', options: publicationTypeOptions
+      },
+      { name: 'Publication Level', options: publicationLevelOptions
+      },
+      { name: 'Author Role', options: authorRoleOptions
+      },
+      { name: 'Indexed In', options: indexedInOptions
+      },
+      { name: 'Peer Reviewed Status', options: peerReviewedStatusOptions
+      },
+      { name: 'Journal Category', options: journalCategoryOptions
+      }
+    ]
+  },
+  {
     id: 'awards-honours', title: '06 - Awards & Honours', configs: [
-            { name: 'Award Category', options: awardCategoryOptions
-            },
-            { name: 'Award Level', options: awardLevelOptions
-            },
-            { name: 'Awarding Agency Type', options: awardingAgencyTypeOptions
-            },
-            { name: 'Honour Type', options: honourTypeOptions
-            },
-            { name: 'Recognition Status', options: recognitionStatusOptions
-            }
-        ]
-    },
-    {
+      { name: 'Award Category', options: awardCategoryOptions
+      },
+      { name: 'Award Level', options: awardLevelOptions
+      },
+      { name: 'Awarding Agency Type', options: awardingAgencyTypeOptions
+      },
+      { name: 'Honour Type', options: honourTypeOptions
+      },
+      { name: 'Recognition Status', options: recognitionStatusOptions
+      }
+    ]
+  },
+  {
     id: 'research-projects', title: '07 - Research Projects', configs: [
-            { name: 'Funding Agency', options: fundingAgencyOptions
-            },
-            { name: 'Project Status', options: projectStatusOptions
-            },
-            { name: 'Role in Project', options: roleInProjectOptions
-            },
-            { name: 'Project Category', options: projectCategoryOptions
-            },
-            { name: 'Funding Type', options: fundingTypeOptions
-            }
-        ]
-    },
-    {
+      { name: 'Funding Agency', options: fundingAgencyOptions
+      },
+      { name: 'Project Status', options: projectStatusOptions
+      },
+      { name: 'Role in Project', options: roleInProjectOptions
+      },
+      { name: 'Project Category', options: projectCategoryOptions
+      },
+      { name: 'Funding Type', options: fundingTypeOptions
+      }
+    ]
+  },
+  {
     id: 'research-supervision', title: '08 - Research Supervision', configs: [
-            { name: 'Research Degree', options: researchDegreeOptions
-            },
-            { name: 'Scholar Gender', options: scholarGenderOptions
-            },
-            { name: 'Research Status', options: researchStatusOptions
-            },
-            { name: 'Guidance Type', options: guidanceTypeOptions
-            },
-            { name: 'Patent Status', options: patentStatusOptions
-            },
-            { name: 'Patent Type', options: patentTypeOptions
-            },
-            { name: 'Supervision Category', options: supervisionCategoryOptions
-            }
-        ]
-    },
-    {
+      { name: 'Research Degree', options: researchDegreeOptions
+      },
+      { name: 'Scholar Gender', options: scholarGenderOptions
+      },
+      { name: 'Research Status', options: researchStatusOptions
+      },
+      { name: 'Guidance Type', options: guidanceTypeOptions
+      },
+      { name: 'Patent Status', options: patentStatusOptions
+      },
+      { name: 'Patent Type', options: patentTypeOptions
+      },
+      { name: 'Supervision Category', options: supervisionCategoryOptions
+      }
+    ]
+  },
+  {
     id: 'academic-responsibilities', title: '09 - Academic Responsibilities', configs: [
-            { name: 'Committee Type', options: committeeTypeOptions
-            },
-            { name: 'Responsibility Role', options: responsibilityRoleOptions
-            },
-            { name: 'Course Level', options: courseLevelOptions
-            },
-            { name: 'Semester Type', options: semesterTypeOptions
-            },
-            { name: 'Academic Session Type', options: academicSessionTypeOptions
-            },
-            { name: 'Teaching Category', options: teachingCategoryOptions
-            },
-            { name: 'Responsibility Status', options: responsibilityStatusOptions
-            }
-        ]
-    },
-    {
+      { name: 'Committee Type', options: committeeTypeOptions
+      },
+      { name: 'Responsibility Role', options: responsibilityRoleOptions
+      },
+      { name: 'Course Level', options: courseLevelOptions
+      },
+      { name: 'Semester Type', options: semesterTypeOptions
+      },
+      { name: 'Academic Session Type', options: academicSessionTypeOptions
+      },
+      { name: 'Teaching Category', options: teachingCategoryOptions
+      },
+      { name: 'Responsibility Status', options: responsibilityStatusOptions
+      }
+    ]
+  },
+  {
     id: 'memberships', title: '10 - Memberships', configs: [
-            { name: 'Professional Body / Society', options: professionalBodyOptions
-            },
-            { name: 'Membership Type', options: membershipTypeOptions
-            },
-            { name: 'Membership Category', options: membershipCategoryOptions
-            },
-            { name: 'Membership Status', options: membershipStatusOptions
-            },
-            { name: 'Membership Level', options: membershipLevelOptions
-            },
-            { name: 'Organization Type', options: organizationTypeOptions
-            }
-        ]
-    },
-    {
-    id: 'fdp-workshops', title: '11 - FDP & Workshops', configs: [
-            { name: 'Programme Type', options: programmeTypeOptions
-            },
-            { name: 'Sponsoring / Funding Agency', options: sponsoringAgencyOptions
-            },
-            { name: 'Participation', options: participationOptions
-            }
-        ]
-    },
-    {
+      { name: 'Professional Body / Society', options: professionalBodyOptions
+      },
+      { name: 'Membership Type', options: membershipTypeOptions
+      },
+      { name: 'Membership Category', options: membershipCategoryOptions
+      },
+      { name: 'Membership Status', options: membershipStatusOptions
+      },
+      { name: 'Membership Level', options: membershipLevelOptions
+      },
+      { name: 'Organization Type', options: organizationTypeOptions
+      }
+    ]
+  },
+  {
+    id: 'fdp-workshops', title: '11 - Attended FDP & Workshops', configs: [
+      { name: 'Programme Type', options: programmeTypeOptions
+      },
+      { name: 'Sponsoring / Funding Agency', options: sponsoringAgencyOptions
+      },
+      { name: 'Participation', options: participationOptions
+      }
+    ]
+  },
+  {
     id: 'online-courses', title: '12 - Online Courses', configs: [
-            { name: 'Course Platform / Provider', options: coursePlatformOptions
-            },
-            { name: 'Course Type', options: courseTypeOptions
-            },
-            { name: 'Completion Status', options: completionStatusOptions
-            },
-            { name: 'Certification Type', options: certificationTypeOptions
-            },
-            { name: 'Learning Mode', options: learningModeOptions
-            }
-        ]
-    },
-    {
+      { name: 'Course Platform / Provider', options: coursePlatformOptions
+      },
+      { name: 'Course Type', options: courseTypeOptions
+      },
+      { name: 'Completion Status', options: completionStatusOptions
+      },
+      { name: 'Certification Type', options: certificationTypeOptions
+      },
+      { name: 'Learning Mode', options: learningModeOptions
+      }
+    ]
+  },
+  {
     id: 'international-experience', title: '13 - Academic International Experience', configs: [
-            { name: 'Visited Country', options: countryVisitOptions
-            },
-            { name: 'Purpose of Visit', options: purposeOfVisitOptions
-            },
-            { name: 'Funding Source', options: fundingSourceOptions
-            },
-            { name: 'Visit Category', options: visitCategoryOptions
-            },
-            { name: 'Collaboration Type', options: collaborationTypeOptions
-            },
-            { name: 'Visit Status', options: visitStatusOptions
-            }
-        ]
-    },
-    {
+      { name: 'Visited Country', options: countryVisitOptions
+      },
+      { name: 'Purpose of Visit', options: purposeOfVisitOptions
+      },
+      { name: 'Funding Source', options: fundingSourceOptions
+      },
+      { name: 'Visit Category', options: visitCategoryOptions
+      },
+      { name: 'Collaboration Type', options: collaborationTypeOptions
+      },
+      { name: 'Visit Status', options: visitStatusOptions
+      }
+    ]
+  },
+  {
     id: 'admin-non-academic', title: '14 - Admin & Non-Academic Responsibilities', configs: [
-            { name: 'Administrative Charge', options: adminChargeOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative Charge', options: adminChargeOptions
+      }
+    ]
+  },
+  {
     id: 'academic-administration', title: '15 - Academic Administration', configs: [
-            { name: 'Administrative Charge', options: academicAdminOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative Charge', options: academicAdminOptions
+      }
+    ]
+  },
+  {
     id: 'quality-assurance', title: '16 - Quality Assurance', configs: [
-            { name: 'Administrative Charge', options: qualityAssuranceOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative Charge', options: qualityAssuranceOptions
+      }
+    ]
+  },
+  {
     id: 'research-innovation', title: '17 - Research and Innovation', configs: [
-            { name: 'Administrative Charge', options: researchInnovationOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative Charge', options: researchInnovationOptions
+      }
+    ]
+  },
+  {
     id: 'examination-evaluation', title: '18 - Examination and Evaluation', configs: [
-            { name: 'Administrative Charge', options: examinationEvaluationOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative Charge', options: examinationEvaluationOptions
+      }
+    ]
+  },
+  {
     id: 'admin-support', title: '19 - Administrative Support', configs: [
-            { name: 'Administrative Charge', options: adminSupportOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative Charge', options: adminSupportOptions
+      }
+    ]
+  },
+  {
     id: 'dept-charges', title: '20 - Departmental Charges', configs: [
-            { name: 'Administrative charge', options: departmentalChargesOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative charge', options: departmentalChargesOptions
+      }
+    ]
+  },
+  {
     id: 'special-assignments', title: '21 - Special Assignments', configs: [
-            { name: 'Administrative charge', options: specialAssignmentsOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative charge', options: specialAssignmentsOptions
+      }
+    ]
+  },
+  {
     id: 'extra-institutional', title: '22 - Activities – Extra Institutional', configs: [
-            { name: 'Administrative charge', options: extraInstitutionalOptions
-            }
-        ]
-    },
-    {
+      { name: 'Administrative charge', options: extraInstitutionalOptions
+      }
+    ]
+  },
+  {
     id: 'documents', title: '23 - Documents', configs: [
-            { name: 'Document Type', options: documentTypeOptions
-            }
-        ]
-    },
-    { id: 'visibility', title: 'Visibility', configs: []
-    },
+      { name: 'Document Type', options: documentTypeOptions
+      }
+    ]
+  },
+  { id: 'visibility', title: 'Visibility', configs: []
+  },
 ];
 
 export function EditProfileLayout() {
   return (
     <AppLayout title="Profile Management">
       <div style={
-        { maxWidth: '1400px', margin: '0 auto', paddingBottom: '32px'
-        }
-    }>
+    { maxWidth: '1400px', margin: '0 auto', paddingBottom: '32px'
+    }
+  }>
         <Outlet />
       </div>
     </AppLayout>
@@ -301,17 +301,17 @@ interface DropdownOptionProps {
 function DropdownOption({ opt, isSelected, onSelect, onEdit, onDelete, isEditing, editValue, onEditChange, onEditSave, onEditCancel
 }: DropdownOptionProps) {
   const [isHovered, setIsHovered
-    ] = useState(false);
+  ] = useState(false);
   return (
     <div
       onMouseEnter={() => setIsHovered(true)
-    }
+  }
       onMouseLeave={() => setIsHovered(false)
-    }
+  }
       onClick={onSelect
-    }
+  }
       style={
-        {
+    {
         height: '40px',
         padding: '10px 12px',
         borderRadius: '10px',
@@ -322,22 +322,22 @@ function DropdownOption({ opt, isSelected, onSelect, onEdit, onDelete, isEditing
         transition: 'background 150ms ease',
         cursor: 'pointer',
         color: isSelected ? '#FFFFFF' : '#111827'
-        }
     }
+  }
     >
       {isEditing ? (
         <input
           autoFocus
           value={editValue
-        }
+    }
           onChange={e => onEditChange?.(e.target.value)
-        }
+    }
           onClick={e => e.stopPropagation()
-        }
+    }
           onKeyDown={e => e.key === 'Enter' && onEditSave?.()
-        }
+    }
           style={
-            {
+      {
             flex: 1,
             marginRight: 8,
             height: '100%',
@@ -345,41 +345,41 @@ function DropdownOption({ opt, isSelected, onSelect, onEdit, onDelete, isEditing
             border: '1px solid #cbd5e1',
             padding: '8px 10px',
             fontSize: '0.9rem'
-            }
-        }
+      }
+    }
         />
       ) : (
         <span style={
-            { fontSize: '0.9rem', fontWeight: 500
-            }
-        }>{opt
-        }</span>
+      { fontSize: '0.9rem', fontWeight: 500
+      }
+    }>{opt
+    }</span>
       )
-    }
+  }
       <div style={
-        { display: 'flex', gap: '8px'
-        }
-    } onClick={e => e.stopPropagation()
-    }>
+    { display: 'flex', gap: '8px'
+    }
+  } onClick={e => e.stopPropagation()
+  }>
         {isEditing ? (
           <>
             <button
               type="button"
               onClick={onEditSave
-        }
+    }
               style={
-            { background: '#2563EB', border: 'none', color: '#FFFFFF', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', fontSize: '0.8rem'
-            }
-        }
+      { background: '#2563EB', border: 'none', color: '#FFFFFF', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', fontSize: '0.8rem'
+      }
+    }
             >Save</button>
             <button
               type="button"
               onClick={onEditCancel
-        }
+    }
               style={
-            { background: '#F1F5F9', border: '1px solid #CBD5E1', color: '#475569', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', fontSize: '0.8rem'
-            }
-        }
+      { background: '#F1F5F9', border: '1px solid #CBD5E1', color: '#475569', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', fontSize: '0.8rem'
+      }
+    }
             >Cancel</button>
           </>
         ) : isHovered ? (
@@ -388,41 +388,41 @@ function DropdownOption({ opt, isSelected, onSelect, onEdit, onDelete, isEditing
               type="button"
               aria-label="Edit option"
               onClick={onEdit
-        }
+    }
               style={
-            { background: 'transparent', border: 'none', cursor: 'pointer', color: isSelected ? '#BFDBFE' : '#64748B', padding: '4px', borderRadius: '4px'
-            }
-        }
+      { background: 'transparent', border: 'none', cursor: 'pointer', color: isSelected ? '#BFDBFE' : '#64748B', padding: '4px', borderRadius: '4px'
+      }
+    }
               onMouseOver={e => e.currentTarget.style.color = isSelected ? '#FFFFFF' : '#2563EB'
-        }
+    }
               onMouseOut={e => e.currentTarget.style.color = isSelected ? '#BFDBFE' : '#64748B'
-        }
+    }
             >
               <Edit2 size={
-            14
-        } />
+      14
+    } />
             </button>
             <button
               type="button"
               aria-label="Delete option"
               onClick={onDelete
-        }
+    }
               style={
-            { background: 'transparent', border: 'none', cursor: 'pointer', color: isSelected ? '#FECACA' : '#64748B', padding: '4px', borderRadius: '4px'
-            }
-        }
+      { background: 'transparent', border: 'none', cursor: 'pointer', color: isSelected ? '#FECACA' : '#64748B', padding: '4px', borderRadius: '4px'
+      }
+    }
               onMouseOver={e => e.currentTarget.style.color = isSelected ? '#FFFFFF' : '#EF4444'
-        }
+    }
               onMouseOut={e => e.currentTarget.style.color = isSelected ? '#FECACA' : '#64748B'
-        }
+    }
             >
               <Trash2 size={
-            14
-        } />
+      14
+    } />
             </button>
           </>
         ) : null
-    }
+  }
       </div>
     </div>
   );

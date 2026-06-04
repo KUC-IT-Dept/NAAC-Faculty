@@ -22,6 +22,16 @@ const ALLOWED_DROPDOWN_KEYS = [
   'document_type'
 ];
 
+router.get('/sections-config', async (req, res) => {
+  try {
+    const configs = await SectionConfig.find({}).sort('order');
+    res.json(configs);
+  } catch (err) {
+    console.error('Error fetching section configs:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 router.get('/dropdowns', async (req, res) => {
   try {
     const dropdowns = await DropdownConfig.find({ key: { $in: ALLOWED_DROPDOWN_KEYS } });

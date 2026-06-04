@@ -14,16 +14,16 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     if (!dateOfBirth) return '';
     const dob = new Date(dateOfBirth);
     const today = new Date();
-    
+
     // Check if date is valid
     if (isNaN(dob.getTime())) return '';
-    
+
     let age = today.getFullYear() - dob.getFullYear();
     const monthDiff = today.getMonth() - dob.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
       age--;
     }
-    
+
     // Ensure age is not negative
     return Math.max(0, age).toString();
   };
@@ -39,13 +39,13 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
     return dateStr;
   };
 
-  
+
   // Single edit state for entire form
   const [isEditing, setIsEditing] = useState(false);
 
-  // Debug: Log current data on every render
-  console.log('Current safeData:', safeData);
-  console.log('Date of birth value:', safeData.dateOfBirth);
+  // // Debug: Log current data on every render
+  // console.log('Current safeData:', safeData);
+  // console.log('Date of birth value:', safeData.dateOfBirth);
 
   // Auto-return to preview mode after save
   useEffect(() => {
@@ -218,10 +218,10 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
             <h4>Personal Information</h4>
             {isEditing ? (
               fg('Date of Birth', (
-                <input 
-                  className="form-input" 
-                  type="date" 
-                  value={safeData.dateOfBirth || ''} 
+                <input
+                  className="form-input"
+                  type="date"
+                  value={safeData.dateOfBirth || ''}
                   onChange={(e) => {
                     const value = e.target.value;
                     s('dateOfBirth', value);
@@ -305,7 +305,7 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
             ) : (
               renderPreview("Mother's Name", safeData.motherName)
             )}
-            
+
             {/* Show spouse fields only if marital status is married, widowed, or divorced */}
             {(safeData.maritalStatus === 'Married' || safeData.maritalStatus === 'Widowed' || safeData.maritalStatus === 'Divorced') && (
               <>

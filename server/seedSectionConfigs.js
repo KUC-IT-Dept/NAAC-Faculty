@@ -108,7 +108,7 @@ const sectionsData = [
     ]
   },
   {
-    id: 'fdp-workshops', title: '11 - FDP & Workshops', configs: [
+    id: 'fdp-workshops', title: '11 - Attended FDP & Workshops', configs: [
       { name: 'Programme Type', optionsKey: 'programmeTypeOptions' },
       { name: 'Sponsoring / Funding Agency', optionsKey: 'sponsoringAgencyOptions' },
       { name: 'Participation', optionsKey: 'participationOptions' }
@@ -208,7 +208,7 @@ async function seed() {
         inserted++;
       }
     }
-    
+
     console.log(`🎉 Done! Inserted: ${inserted}, Updated: ${updated}`);
     process.exit(0);
   } catch (err) {
