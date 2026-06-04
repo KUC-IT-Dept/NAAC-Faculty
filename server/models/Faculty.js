@@ -170,6 +170,126 @@ const internationalExpSchema = new mongoose.Schema({
   fundingSource: { type: String, default: '' },
 }, { _id: false });
 
+// Section 24: Extra-Institutional Activities (Unified schema for all charge types)
+const extraInstitutionalActivitySchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  institutionName: { type: String, default: '' },
+  universityName: { type: String, default: '' },
+  organizationName: { type: String, default: '' },
+  department: { type: String, default: '' },
+  facultyName: { type: String, default: '' },
+  specialization: { type: String, default: '' },
+  programName: { type: String, default: '' },
+  courseName: { type: String, default: '' },
+  role: { type: String, default: '' },
+  nominationType: { type: String, default: '' },
+  examinationType: { type: String, default: '' },
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
+  appointmentDate: { type: String, default: '' },
+  tenureStart: { type: String, default: '' },
+  tenureEnd: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+}, { _id: false });
+
+// Section 22: Departmental Charges (Unified schema for all charge types)
+const departmentalChargeSchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  institutionName: { type: String, default: '' },
+  departmentName: { type: String, default: '' },
+  committeeName: { type: String, default: '' },
+  libraryName: { type: String, default: '' },
+  role: { type: String, default: '' },
+  responsibilities: { type: String, default: '' },
+  activitiesCoordinated: { type: String, default: '' },
+  mentoringScheme: { type: String, default: '' },
+  numberOfStudents: { type: String, default: '' },
+  academicYear: { type: String, default: '' },
+  eventTitle: { type: String, default: '' },
+  eventType: { type: String, default: '' },
+  organizingDepartment: { type: String, default: '' },
+  eventDate: { type: String, default: '' },
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
+  appointmentDate: { type: String, default: '' },
+  tenureStart: { type: String, default: '' },
+  tenureEnd: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+}, { _id: false });
+
+// Section 23: Special Assignments (Unified schema for all charge types)
+const specialAssignmentSchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  organizationName: { type: String, default: '' },
+  programName: { type: String, default: '' },
+  cellName: { type: String, default: '' },
+  nssUnitNumber: { type: String, default: '' },
+  nccUnitName: { type: String, default: '' },
+  role: { type: String, default: '' },
+  roleDescription: { type: String, default: '' },
+  responsibilityArea: { type: String, default: '' },
+  activityType: { type: String, default: '' },
+  activitiesConducted: { type: String, default: '' },
+  placementActivities: { type: String, default: '' },
+  platformName: { type: String, default: '' },
+  communityPartner: { type: String, default: '' },
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
+  appointmentDate: { type: String, default: '' },
+  tenureStart: { type: String, default: '' },
+  tenureEnd: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+}, { _id: false });
+
+// Section 18: Quality Assurance (Unified schema for all charge types)
+const qualityAssuranceSchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  academicYear: { type: String, default: '' },
+  activityTitle: { type: String, default: '' },
+  activityDate: { type: String, default: '' },
+  activityCategory: { type: String, default: '' },
+  objective: { type: String, default: '' },
+  outcome: { type: String, default: '' },
+  supportingDocuments: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+  criteriaNumber: { type: String, default: '' },
+  criteriaName: { type: String, default: '' },
+  taskDescription: { type: String, default: '' },
+  evidenceAvailable: { type: String, default: '' },
+  status: { type: String, default: '' },
+  reportName: { type: String, default: '' },
+  reportingPeriod: { type: String, default: '' },
+  preparedBy: { type: String, default: '' },
+  criteriaCovered: { type: String, default: '' },
+  reviewDate: { type: String, default: '' },
+  reviewedBy: { type: String, default: '' },
+  reportStatus: { type: String, default: '' },
+  departmentName: { type: String, default: '' },
+  coordinatorName: { type: String, default: '' },
+  facultyDataSubmitted: { type: String, default: '' },
+  studentDataSubmitted: { type: String, default: '' },
+  researchDataSubmitted: { type: String, default: '' },
+  submissionStatus: { type: String, default: '' },
+  reportCycle: { type: String, default: '' },
+  dataCategory: { type: String, default: '' },
+  verifiedBy: { type: String, default: '' },
+  verificationDate: { type: String, default: '' },
+  studentStrength: { type: String, default: '' },
+  facultyStrength: { type: String, default: '' },
+  publicationCount: { type: String, default: '' },
+  placementDataSubmitted: { type: String, default: '' },
+  semester: { type: String, default: '' },
+  feedbackType: { type: String, default: '' },
+  feedbackSummary: { type: String, default: '' },
+  actionPlan: { type: String, default: '' },
+  responsiblePerson: { type: String, default: '' },
+  implementationStatus: { type: String, default: '' },
+  responsibilityTitle: { type: String, default: '' },
+  startDate: { type: String, default: '' },
+  endDate: { type: String, default: '' },
+  description: { type: String, default: '' },
+}, { _id: false });
+
 const studentDetailSchema = new mongoose.Schema({
   studentName: { type: String, default: '' },
   topic: { type: String, default: '' },
@@ -320,6 +440,18 @@ const facultySchema = new mongoose.Schema({
 
   // Section 14: International Experience
   internationalExperience: { type: [internationalExpSchema], default: [] },
+
+  // Section 18: Quality Assurance
+  qualityAssurance: { type: [qualityAssuranceSchema], default: [] },
+
+  // Section 22: Departmental Charges
+  departmentalCharges: { type: [departmentalChargeSchema], default: [] },
+
+  // Section 23: Special Assignments
+  specialAssignments: { type: [specialAssignmentSchema], default: [] },
+
+  // Section 24: Extra-Institutional Activities
+  extraInstitutionalActivities: { type: [extraInstitutionalActivitySchema], default: [] },
 
   // Section 15: Documents (stored as key → URL map)
   documents: {
