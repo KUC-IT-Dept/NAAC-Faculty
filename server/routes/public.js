@@ -2,6 +2,7 @@ const express = require('express');
 const Faculty = require('../models/Faculty');
 const User = require('../models/User');
 const DropdownConfig = require('../models/DropdownConfig');
+const SectionConfig = require('../models/SectionConfig');
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ const ALLOWED_DROPDOWN_KEYS = [
   'research_degree', 'scholar_gender', 'research_status', 'guidance_type', 'patent_status', 'patent_type', 'supervision_category',
   'committee_type', 'responsibility_role', 'course_level', 'semester_type', 'academic_session_type', 'teaching_category', 'responsibility_status',
   'admin_charge', 'academic_admin', 'quality_assurance', 'research_innovation', 'examination_evaluation', 'admin_support', 'departmental_charges', 'special_assignments', 'extra_institutional',
+  'country_visit', 'purpose_of_visit', 'funding_source', 'visit_category', 'collaboration_type', 'visit_status',
   'document_type'
 ];
 
@@ -26,6 +28,21 @@ router.get('/dropdowns', async (req, res) => {
     const response = {};
     dropdowns.forEach(dl => { response[dl.key] = dl.options; });
     res.json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/sections-config', async (req, res) => {
+  try {
+    const sections = await SectionConfig.find().sort({ sectionId: 1 });
+    res.json(sections.map(s => ({
+      id: s.sectionId,
+      sectionId: s.sectionId,
+      title: s.title,
+      configs: s.configs,
+    })));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

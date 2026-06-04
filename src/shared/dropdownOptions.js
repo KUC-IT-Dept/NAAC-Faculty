@@ -135,7 +135,7 @@ export const completionStatusOptions = ['Completed', 'Ongoing', 'In Progress', '
 export const certificationTypeOptions = ['Free Certificate', 'Paid Certificate', 'Verified Certificate', 'University Certificate'];
 export const learningModeOptions = ['Online', 'Hybrid', 'Self Paced', 'Instructor Led'];
 
-// International Experience
+// Academic International Experience
 export const countryVisitOptions = ['Singapore', 'USA', 'UK', 'Germany', 'Canada', 'Australia', 'Japan', 'France'];
 export const purposeOfVisitOptions = ['Conference', 'Research Collaboration', 'Faculty Exchange', 'Workshop', 'Seminar', 'Training Program'];
 export const fundingSourceOptions = ['DST Travel Grant', 'UGC', 'AICTE', 'Self Funded', 'International Fellowship', 'University Sponsorship'];
@@ -260,6 +260,7 @@ export const optionArrays = {
   researchDegreeOptions, scholarGenderOptions, researchStatusOptions, guidanceTypeOptions, patentStatusOptions, patentTypeOptions, supervisionCategoryOptions,
   committeeTypeOptions, responsibilityRoleOptions, courseLevelOptions, semesterTypeOptions, academicSessionTypeOptions, teachingCategoryOptions, responsibilityStatusOptions,
   adminChargeOptions, academicAdminOptions, qualityAssuranceOptions, researchInnovationOptions, examinationEvaluationOptions, adminSupportOptions, departmentalChargesOptions, specialAssignmentsOptions, extraInstitutionalOptions,
+  countryVisitOptions, purposeOfVisitOptions, fundingSourceOptions, visitCategoryOptions, collaborationTypeOptions, visitStatusOptions,
   documentTypeOptions
 };
 

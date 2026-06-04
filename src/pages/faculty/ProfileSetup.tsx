@@ -46,7 +46,7 @@ const STEPS = [
   { id: 10, label: 'Memberships',   title: 'Professional Memberships',       key: 'memberships' },
   { id: 11, label: 'FDP',           title: 'FDP & Workshops',               key: 'fdpWorkshops' },
   { id: 12, label: 'Online',        title: 'Online Courses & Certifications',key: 'onlineCourses' },
-  { id: 13, label: 'International', title: 'International Experience',       key: 'internationalExperience' },
+  { id: 13, label: 'Academic Intl.', title: 'Academic International Experience', key: 'internationalExperience' },
   { id: 14, label: 'Admin/Non-Acad', title: 'Administrative & Non-Academic Responsibilities', key: 'adminNonAcademicResponsibilities' },
   { id: 15, label: 'Acad. Admin',   title: 'Academic Administration',                        key: 'academicAdministration' },
   { id: 16, label: 'Quality Assur.',title: 'Quality Assurance',                              key: 'qualityAssurance' },

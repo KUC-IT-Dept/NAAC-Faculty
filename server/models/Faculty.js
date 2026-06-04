@@ -159,7 +159,7 @@ const membershipSchema = new mongoose.Schema({
   documentUrl: { type: String, default: '' },
 }, { _id: false });
 
-// Section 14: International Experience
+// Section 14: Academic International Experience
 const internationalExpSchema = new mongoose.Schema({
   country: { type: String, default: '' },
   purpose: { type: String, default: '' }, // Research / Teaching / Conference
@@ -318,7 +318,7 @@ const facultySchema = new mongoose.Schema({
   // Section 13: Professional Memberships
   memberships: { type: [membershipSchema], default: [] },
 
-  // Section 14: International Experience
+  // Section 14: Academic International Experience
   internationalExperience: { type: [internationalExpSchema], default: [] },
 
   // Section 15: Documents (stored as key → URL map)
