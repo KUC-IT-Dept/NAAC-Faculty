@@ -56,6 +56,13 @@ const workExpSchema = new mongoose.Schema({
   to: { type: String, default: '' },
   nature: { type: String, default: '' }, // Teaching / Research / Industry
   reasonForLeaving: { type: String, default: '' },
+  employeeId: { type: String, default: '' },
+  department: { type: String, default: '' },
+  institution: { type: String, default: '' },
+  affiliatedUniversity: { type: String, default: '' },
+  typeOfInstitution: { type: String, default: '' },
+  natureOfAppointment: { type: String, default: '' },
+  documentUrl: { type: String, default: '' },
 }, { _id: false });
 
 // Section 6: Publications

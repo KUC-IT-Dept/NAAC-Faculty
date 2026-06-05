@@ -19,7 +19,6 @@ const EMPTY = {
   serviceBookNumber: '',
   from: '',
   to: '',
-  reasonForLeaving: '',
   documentUrl: '',
   bankName: '',
   accountNumber: '',
@@ -76,7 +75,7 @@ const CustomSelect = ({ value, onChange, options, placeholder = "— Select —"
 );
 
 export default function EmploymentDetails({ data, onChange }: { data: any; onChange: (d: any) => void }) {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(-1);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +102,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
       'employeeId', 'designation', 'department', 'institution',
       'affiliatedUniversity', 'typeOfInstitution', 'natureOfAppointment',
       'dateOfJoining', 'dateOfConfirmation', 'payBand', 'pfNumber',
-      'serviceBookNumber', 'from', 'to', 'reasonForLeaving',
+      'serviceBookNumber', 'from', 'to',
       'documentUrl', 'bankName', 'accountNumber', 'ifscCode', 'branchName'
     ];
     const hasAnyData = keysToCheck.some(key => {
@@ -156,7 +155,8 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
   };
 
   const cancelEdit = () => {
-    setEditingIndex(null);
+    // If cancelling the always-visible new form, keep it open but reset fields
+    setEditingIndex(editingIndex === -1 ? -1 : null);
     setEditingData(EMPTY);
   };
 
@@ -253,10 +253,6 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Service Book Number', inp(editingData.serviceBookNumber, v => updateEditingData('serviceBookNumber', v)))}
       </div>
 
-      <div className="form-row form-row-1">
-        {fg('Reason for Leaving', inp(editingData.reasonForLeaving, v => updateEditingData('reasonForLeaving', v)))}
-      </div>
-
       <div className="form-group" style={{ marginTop: 15 }}>
         <label className="form-label" style={{ fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>
           Experience Document / Proof
@@ -272,34 +268,13 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
 
   return (
     <div>
-      <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-        <button
-          type="button"
-          onClick={addNewEntry}
-          style={{
-            padding: '8px 16px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            backgroundColor: '#4f46e5',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontWeight: 600
-          }}
-        >
-          <Plus size={16} /> Add Employment
-        </button>
-      </div>
 
       {editingIndex === -1 ? (
         <div key="new" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Briefcase size={20} color="#4f46e5" /> Add Employment Details
+                <Briefcase size={20} color="#4f46e5" /> Employment Details
               </h3>
               <div>
                 <button
@@ -489,7 +464,6 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                     })()}
                     {renderPreview('Provident Fund (PF) Number', e.pfNumber)}
                     {renderPreview('Service Book Number', e.serviceBookNumber)}
-                    {renderPreview('Reason for Leaving', e.reasonForLeaving)}
                     {e.documentUrl && (
                       <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
                         <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Experience Document</span>
