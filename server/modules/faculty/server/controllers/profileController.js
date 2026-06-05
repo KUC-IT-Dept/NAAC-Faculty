@@ -58,7 +58,7 @@ const getMyProfile = async (req, res) => {
 const updateMyProfile = async (req, res) => {
   const {
     name, bio, headline, photo, subjects, workExperiences, qualifications, publications,
-    projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests,
+    projects, internshipAndProjects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests,
     internationalExperiences, professionalMemberships, trainings, onlineCoursesCertifications,
     dob, gender, phoneNumber, address,
     mobileNumber, alternatePhone, officialEmail, personalEmail, aadhaar, passport, nationality, stateCity, permanentAddress, currentAddress, religion, category, subCategory, differentlyAbled, maritalStatus, spouse, emergencyContact, panNumber, bloodGroup
@@ -74,7 +74,7 @@ const updateMyProfile = async (req, res) => {
       {
         $set: {
           bio, headline, photo, subjects, workExperiences, qualifications, publications,
-          projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests,
+          projects, internshipAndProjects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests,
           internationalExperiences, professionalMemberships, trainings, onlineCoursesCertifications,
           dob, gender, phoneNumber, address,
           mobileNumber, alternatePhone, officialEmail, personalEmail, aadhaar, passport, nationality, stateCity, permanentAddress, currentAddress, religion, category, subCategory, differentlyAbled, maritalStatus, spouse, emergencyContact, panNumber, bloodGroup
@@ -258,6 +258,7 @@ const getPublicProfile = async (req, res) => {
       customDetails: vis.customDetails !== false ? profile.customDetails : undefined,
       professionalDetails: vis.professionalDetails !== false ? profile.professionalDetails : undefined,
       academicResponsibilities: profile.academicResponsibilities || undefined,
+      internshipAndProjects: vis.projects !== false ? profile.internshipAndProjects || undefined : undefined,
       entranceTests: vis.entranceTests !== false ? profile.entranceTests : undefined,
       media: vis.media === true ? profile.media : undefined,
       photo: vis.photo !== false ? profile.photo : undefined,

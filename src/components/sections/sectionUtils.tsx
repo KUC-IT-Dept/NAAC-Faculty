@@ -30,9 +30,12 @@ export const sel = (v: string, fn: (s: string) => void, opts: string[]) => (
 );
 
 /** Year dropdown */
-export const yearSel = (v: string, fn: (s: string) => void, startYear = 1970, endYear = new Date().getFullYear() + 10) => {
-  const years = [];
-  for (let y = endYear; y >= startYear; y--) {
+export const yearSel = (v: string, fn: (s: string) => void, startYear = 1970, endYear = new Date().getFullYear()) => {
+  const years: string[] = [];
+  const current = new Date().getFullYear();
+  // Ensure endYear does not exceed the current system year
+  const maxYear = Math.min(endYear, current);
+  for (let y = maxYear; y >= startYear; y--) {
     years.push(y.toString());
   }
   return (
