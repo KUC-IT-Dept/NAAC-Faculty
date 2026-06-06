@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../lib/api';
@@ -86,7 +87,79 @@ export default function PublicProfile() {
             <div className="profile-section-body">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead><tr><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Degree</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Specialization</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>University</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Grade</th></tr></thead>
-                <tbody>{profile.qualifications.map((q: any, i: number) => <tr key={i} style={{ borderTop: '1px solid var(--border)' }}><td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>{[q.degreeLevel, q.degreeName].filter(Boolean).join(' · ') || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.specialization || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{q.university || q.boardUniversity || q.institution || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.yearOfPassing || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.percentageCGPA || q.division || '—'}</td></tr>)}</tbody>
+                <tbody>{profile.qualifications.map((q: any, i: number) => (
+                  <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                    <td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>
+                      <div>{[q.degreeLevel, q.degreeName].filter(Boolean).join(' · ') || '—'}</div>
+                      {(q.documentUrl || q.phdCertificate) && (
+                        <a
+                          href={`${import.meta.env.VITE_API_URL || ''}${q.documentUrl || q.phdCertificate}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="preview-file-link"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.72rem', color: 'var(--navy)', fontWeight: 600, marginTop: 4 }}
+                        >
+                          <ExternalLink size={10} /> View Certificate
+                        </a>
+                      )}
+                    </td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.specialization || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{q.university || q.boardUniversity || q.institution || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.yearOfPassing || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.percentageCGPA || q.division || '—'}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Eligibility Tests */}
+        {profile.eligibilityTests?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><GraduationCap size={18} color="var(--navy)" /> Eligibility Tests</div>
+            <div className="profile-section-body">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Test Name</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Subject / Agency</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Details / Certificate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.eligibilityTests.map((et: any, i: number) => {
+                    const detailParts = [];
+                    if (et.certificateNo) detailParts.push(`Cert No: ${et.certificateNo}`);
+                    if (et.score) detailParts.push(`Score: ${et.score}`);
+                    if (et.state) detailParts.push(`State: ${et.state}`);
+
+                    return (
+                      <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>{et.examName || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{et.subject || et.fellowshipAgency || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{et.year || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span>{detailParts.join(' | ') || '—'}</span>
+                            {et.documentUrl && (
+                              <a
+                                href={`${import.meta.env.VITE_API_URL || ''}${et.documentUrl}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="preview-file-link"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: '8px', fontSize: '0.75rem', color: 'var(--navy)', fontWeight: 600 }}
+                              >
+                                <ExternalLink size={11} /> View Certificate
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
               </table>
             </div>
           </div>

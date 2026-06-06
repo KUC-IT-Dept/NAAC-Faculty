@@ -36,6 +36,7 @@ const qualificationSchema = new mongoose.Schema({
   countryAndState: { type: String, default: '' },
   phdCertificate: { type: String, default: '' },
   thesisTitle: { type: String, default: '' },
+  documentUrl: { type: String, default: '' },
 }, { _id: false });
 
 // Section 3: Eligibility Tests
@@ -46,6 +47,8 @@ const eligibilityTestSchema = new mongoose.Schema({
   certificateNo: { type: String, default: '' },
   score: { type: String, default: '' },
   state: { type: String, default: '' }, // for SET/SLET
+  fellowshipAgency: { type: String, default: '' },
+  documentUrl: { type: String, default: '' },
 }, { _id: false });
 
 // Section 5: Previous Work Experience
