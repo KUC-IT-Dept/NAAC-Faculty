@@ -4,11 +4,52 @@ import { fg, inp, dateInp, sel } from './sectionUtils';
 import { adminSupportOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
+const CHARGE_STUDENT_RECORDS = 'Maintaining student records';
+const CHARGE_STUDENT_ATTENDANCE = 'Maintaining student attendance';
+const CHARGE_FACULTY_WORKLOAD = 'Maintaining faculty workload';
+const CHARGE_ADMISSION = 'Supporting admission processes, counseling, and documentation';
+const CHARGE_ENFORCEMENT = 'Enforcing institutional rules and regulations';
+
+const WORKLOAD_TYPE_OPTIONS = ['Teaching', 'Non-teaching'];
+
 const EMPTY_RESPONSIBILITY = {
   administrativeCharge: '',
-  description: '',
-  from: '',
-  to: '',
+  departmentUnit: '',
+  roleResponsibility: '',
+  attendanceSystemMethod: '',
+  workloadType: '',
+  areaOfResponsibility: '',
+  areaOfEnforcement: '',
+  responsibilityTitle: '',
+  descriptionOfResponsibility: '',
+  appointmentDate: '',
+  tenureStart: '',
+  tenureEnd: '',
+  remarks: '',
+};
+
+const PREVIEW_LABELS: Record<string, string> = {
+  departmentUnit: 'Department / Unit',
+  roleResponsibility: 'Role / Responsibility',
+  attendanceSystemMethod: 'Attendance System / Method',
+  workloadType: 'Workload Type',
+  areaOfResponsibility: 'Area of Responsibility',
+  areaOfEnforcement: 'Area of Enforcement',
+  responsibilityTitle: 'Responsibility Title',
+  descriptionOfResponsibility: 'Description of Responsibility',
+  appointmentDate: 'Appointment Date',
+  tenureStart: 'From Date',
+  tenureEnd: 'To Date',
+  remarks: 'Remarks',
+};
+
+const REQUIRED_FIELDS: Record<string, string[]> = {
+  [CHARGE_STUDENT_RECORDS]: ['departmentUnit', 'appointmentDate', 'tenureStart'],
+  [CHARGE_STUDENT_ATTENDANCE]: ['departmentUnit', 'appointmentDate', 'tenureStart'],
+  [CHARGE_FACULTY_WORKLOAD]: ['departmentUnit', 'appointmentDate', 'tenureStart'],
+  [CHARGE_ADMISSION]: ['departmentUnit', 'appointmentDate', 'tenureStart'],
+  [CHARGE_ENFORCEMENT]: ['departmentUnit', 'appointmentDate', 'tenureStart'],
+  Other: ['responsibilityTitle', 'appointmentDate', 'tenureStart'],
 };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
@@ -16,6 +57,38 @@ const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'cent
 const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#be123c', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer' };
 const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#16a34a', color: '#fff', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', marginLeft: 8 };
 const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#9f1239', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
+
+function getTenureStart(r: any) {
+  return r.tenureStart || r.from || '';
+}
+
+function getTenureEnd(r: any) {
+  return r.tenureEnd || r.to || '';
+}
+
+function getSubtitle(r: any) {
+  return r.departmentUnit || r.responsibilityTitle || r.roleResponsibility
+    || r.areaOfResponsibility || r.descriptionOfResponsibility || r.description || '';
+}
+
+function isComplete(r: any) {
+  if (!r.administrativeCharge) return false;
+  const required = REQUIRED_FIELDS[r.administrativeCharge] || ['appointmentDate', 'tenureStart'];
+  return required.every(k => Boolean(r[k]));
+}
+
+function textArea(v: string, fn: (s: string) => void, ph = '') {
+  return (
+    <textarea
+      className="form-input"
+      rows={3}
+      value={v || ''}
+      onChange={e => fn(e.target.value)}
+      placeholder={ph}
+      style={{ resize: 'vertical' }}
+    />
+  );
+}
 
 function PreviewRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
@@ -27,8 +100,100 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
   );
 }
 
+function TenureFields({ item, onChange }: { item: any; onChange: (item: any) => void }) {
+  const set = (k: string, v: string) => onChange({ ...item, [k]: v });
+  return (
+    <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      {fg('From Date', dateInp(item.tenureStart, v => set('tenureStart', v)))}
+      {fg('To Date', dateInp(item.tenureEnd, v => set('tenureEnd', v)))}
+    </div>
+  );
+}
+
+function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (item: any) => void }) {
+  const set = (k: string, v: string) => onChange({ ...item, [k]: v });
+  const charge = item.administrativeCharge;
+
+  const appointmentDate = fg('Appointment Date', dateInp(item.appointmentDate, v => set('appointmentDate', v)));
+  const remarks = fg('Remarks', textArea(item.remarks, v => set('remarks', v), 'Optional notes'));
+
+  if (!charge) {
+    return <div className="empty-state" style={{ marginTop: 8 }}>Select a responsibility to see the form fields.</div>;
+  }
+
+  switch (charge) {
+    case CHARGE_STUDENT_RECORDS:
+      return (
+        <>
+          {fg('Department / Unit', inp(item.departmentUnit, v => set('departmentUnit', v)))}
+          {fg('Role / Responsibility', inp(item.roleResponsibility, v => set('roleResponsibility', v)))}
+          {appointmentDate}
+          <TenureFields item={item} onChange={onChange} />
+          {remarks}
+        </>
+      );
+    case CHARGE_STUDENT_ATTENDANCE:
+      return (
+        <>
+          {fg('Department / Unit', inp(item.departmentUnit, v => set('departmentUnit', v)))}
+          {fg('Attendance System / Method', inp(item.attendanceSystemMethod, v => set('attendanceSystemMethod', v), 'e.g. Manual register / LMS / ERP'))}
+          {appointmentDate}
+          <TenureFields item={item} onChange={onChange} />
+          {remarks}
+        </>
+      );
+    case CHARGE_FACULTY_WORKLOAD:
+      return (
+        <>
+          {fg('Department / Unit', inp(item.departmentUnit, v => set('departmentUnit', v)))}
+          {fg('Workload Type', sel(item.workloadType, v => set('workloadType', v), WORKLOAD_TYPE_OPTIONS))}
+          {appointmentDate}
+          <TenureFields item={item} onChange={onChange} />
+          {remarks}
+        </>
+      );
+    case CHARGE_ADMISSION:
+      return (
+        <>
+          {fg('Department / Unit', inp(item.departmentUnit, v => set('departmentUnit', v)))}
+          {fg('Area of Responsibility', inp(item.areaOfResponsibility, v => set('areaOfResponsibility', v), 'e.g. Counseling, documentation, verification'))}
+          {appointmentDate}
+          <TenureFields item={item} onChange={onChange} />
+          {remarks}
+        </>
+      );
+    case CHARGE_ENFORCEMENT:
+      return (
+        <>
+          {fg('Department / Unit', inp(item.departmentUnit, v => set('departmentUnit', v)))}
+          {fg('Area of Enforcement', inp(item.areaOfEnforcement, v => set('areaOfEnforcement', v), 'e.g. Discipline, dress code, attendance rules'))}
+          {appointmentDate}
+          <TenureFields item={item} onChange={onChange} />
+          {remarks}
+        </>
+      );
+    case 'Other':
+      return (
+        <>
+          {fg('Responsibility Title', inp(item.responsibilityTitle, v => set('responsibilityTitle', v)))}
+          {fg('Department / Unit', inp(item.departmentUnit, v => set('departmentUnit', v)))}
+          {fg('Description of Responsibility', textArea(item.descriptionOfResponsibility, v => set('descriptionOfResponsibility', v), 'Brief description of the role'))}
+          {appointmentDate}
+          <TenureFields item={item} onChange={onChange} />
+          {remarks}
+        </>
+      );
+    default:
+      return null;
+  }
+}
+
 function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: () => void; onDelete: () => void; disabled: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const tenureStart = getTenureStart(r);
+  const tenureEnd = getTenureEnd(r);
+  const subtitle = getSubtitle(r);
+
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -44,8 +209,12 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
               {r.administrativeCharge || 'Untitled Responsibility'}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              {r.from && <span className="badge badge-secondary">{r.from}{r.to ? ` — ${r.to}` : ' — Present'}</span>}
-              {r.description && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{r.description}</span>}
+              {tenureStart && (
+                <span className="badge badge-secondary">
+                  {tenureStart}{tenureEnd ? ` — ${tenureEnd}` : ' — Present'}
+                </span>
+              )}
+              {subtitle && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{subtitle}</span>}
             </div>
           </div>
         </div>
@@ -64,11 +233,54 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
       {expanded && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Administrative Charge" value={r.administrativeCharge} />
-          <PreviewRow label="Description" value={r.description} />
-          <PreviewRow label="From" value={r.from} />
-          <PreviewRow label="To" value={r.to} />
+          {Object.entries(PREVIEW_LABELS).map(([key, label]) => (
+            <PreviewRow key={key} label={label} value={r[key]} />
+          ))}
         </div>
       )}
+    </>
+  );
+}
+
+function ResponsibilityEditor({
+  item,
+  onChange,
+  onCancel,
+  onSave,
+  title,
+}: {
+  item: any;
+  onChange: (item: any) => void;
+  onCancel: () => void;
+  onSave: () => void;
+  title: string;
+}) {
+  const adminSupportOpts = useDropdownOptions(adminSupportOptions);
+
+  const handleChargeChange = (v: string) => {
+    onChange({ ...EMPTY_RESPONSIBILITY, administrativeCharge: v });
+  };
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{title}</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" onClick={onCancel} style={btnCancel}><X size={14} /> Cancel</button>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!isComplete(item)}
+            style={isComplete(item) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+          >
+            <Check size={14} /> Save
+          </button>
+        </div>
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Administrative Charge *', sel(item.administrativeCharge, handleChargeChange, adminSupportOpts))}
+      </div>
+      <ResponsibilityFormFields item={item} onChange={onChange} />
     </>
   );
 }
@@ -77,22 +289,20 @@ export default function AdministrativeSupport({ data, onChange }: { data: any; o
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
-  // Reactive dropdown options
-  const adminSupportOpts = useDropdownOptions(adminSupportOptions);
-
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
 
-  const updItem = (i: number, k: string, v: string) => {
+  const updItem = (i: number, item: any) => {
     const a = [...responsibilities];
-    a[i] = { ...a[i], [k]: v };
+    a[i] = item;
     update(a);
   };
 
-  const isComplete = (r: any) => !!r.administrativeCharge;
-
   const handleSavePending = (item: any) => {
-    if (isComplete(item)) { update([item, ...responsibilities]); setPending(null); }
+    if (isComplete(item)) {
+      update([item, ...responsibilities]);
+      setPending(null);
+    }
   };
 
   return (
@@ -117,30 +327,13 @@ export default function AdministrativeSupport({ data, onChange }: { data: any; o
         <div className="items-list">
           {pending && (
             <div key="pending-resp" className="list-item-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Responsibility</span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={() => setPending(null)} style={btnCancel}><X size={14} /> Cancel</button>
-                  <button
-                    type="button"
-                    onClick={() => handleSavePending(pending)}
-                    disabled={!isComplete(pending)}
-                    style={btnSave}
-                  >
-                    <Check size={14} /> Save
-                  </button>
-                </div>
-              </div>
-              <div className="form-row form-row-1">
-                {fg('Administrative Charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), adminSupportOpts))}
-              </div>
-              <div className="form-row form-row-1">
-                {fg('Description (optional)', inp(pending.description, v => setPending({ ...pending, description: v }), 'Brief description of the role'))}
-              </div>
-              <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                {fg('From', dateInp(pending.from, v => setPending({ ...pending, from: v })))}
-                {fg('To', dateInp(pending.to, v => setPending({ ...pending, to: v })))}
-              </div>
+              <ResponsibilityEditor
+                item={pending}
+                onChange={setPending}
+                onCancel={() => setPending(null)}
+                onSave={() => handleSavePending(pending)}
+                title="New Responsibility"
+              />
             </div>
           )}
 
@@ -149,25 +342,13 @@ export default function AdministrativeSupport({ data, onChange }: { data: any; o
             return (
               <div key={`r-${i}`} className="list-item-card">
                 {isEditing ? (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                      <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Responsibility</span>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" onClick={() => setEditingIndex(null)} style={btnCancel}><X size={14} /> Cancel</button>
-                        <button type="button" onClick={() => setEditingIndex(null)} style={btnSave}><Check size={14} /> Save</button>
-                      </div>
-                    </div>
-                    <div className="form-row form-row-1">
-                      {fg('Administrative Charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), adminSupportOpts))}
-                    </div>
-                    <div className="form-row form-row-1">
-                      {fg('Description (optional)', inp(r.description, v => updItem(i, 'description', v), 'Brief description of the role'))}
-                    </div>
-                    <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                      {fg('From', dateInp(r.from, v => updItem(i, 'from', v)))}
-                      {fg('To', dateInp(r.to, v => updItem(i, 'to', v)))}
-                    </div>
-                  </>
+                  <ResponsibilityEditor
+                    item={r}
+                    onChange={item => updItem(i, item)}
+                    onCancel={() => setEditingIndex(null)}
+                    onSave={() => setEditingIndex(null)}
+                    title="Editing Responsibility"
+                  />
                 ) : (
                   <RespPreviewCard
                     r={r}

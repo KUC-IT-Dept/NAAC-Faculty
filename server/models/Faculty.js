@@ -297,6 +297,117 @@ const qualityAssuranceSchema = new mongoose.Schema({
   description: { type: String, default: '' },
 }, { _id: false });
 
+// Section 16: Admin & Non-Academic Responsibilities
+const adminNonAcademicRespSchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  institutionName: { type: String, default: '' },
+  campusName: { type: String, default: '' },
+  universityName: { type: String, default: '' },
+  facultyName: { type: String, default: '' },
+  committeeName: { type: String, default: '' },
+  title: { type: String, default: '' },
+  organization: { type: String, default: '' },
+  nominationType: { type: String, default: '' },
+  reportingAuthority: { type: String, default: '' },
+  appointingAuthority: { type: String, default: '' },
+  responsibilities: { type: String, default: '' },
+  activitiesConducted: { type: String, default: '' },
+  departmentAssigned: { type: String, default: '' },
+  description: { type: String, default: '' },
+  admissionYear: { type: String, default: '' },
+  appointmentDate: { type: String, default: '' },
+  tenureStart: { type: String, default: '' },
+  tenureEnd: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+}, { _id: false });
+
+// Section 17: Academic Administration
+const academicAdministrationSchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  programDepartment: { type: String, default: '' },
+  constitutedBy: { type: String, default: '' },
+  syllabusCourse: { type: String, default: '' },
+  departmentProgram: { type: String, default: '' },
+  academicSession: { type: String, default: '' },
+  focusArea: { type: String, default: '' },
+  examRole: { type: String, default: '' },
+  examination: { type: String, default: '' },
+  board: { type: String, default: '' },
+  meetingDate: { type: String, default: '' },
+  councilBody: { type: String, default: '' },
+  department: { type: String, default: '' },
+  reviewType: { type: String, default: '' },
+  title: { type: String, default: '' },
+  departmentUnit: { type: String, default: '' },
+  description: { type: String, default: '' },
+  appointmentDate: { type: String, default: '' },
+  from: { type: String, default: '' },
+  to: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+}, { _id: false });
+
+// Section 19: Research and Innovation
+const researchAndInnovationSchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  departmentSchoolCenter: { type: String, default: '' },
+  departmentUnit: { type: String, default: '' },
+  organizingDepartmentUnit: { type: String, default: '' },
+  fundingAgencyOrganization: { type: String, default: '' },
+  typeOfProposal: { type: String, default: '' },
+  typeOfFunding: { type: String, default: '' },
+  projectSchemeName: { type: String, default: '' },
+  roleResponsibility: { type: String, default: '' },
+  areasOfResearchCoordinated: { type: String, default: '' },
+  conferenceEventName: { type: String, default: '' },
+  keyResponsibilities: { type: String, default: '' },
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
+  appointmentDate: { type: String, default: '' },
+  from: { type: String, default: '' },
+  to: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+}, { _id: false });
+
+// Section 20: Examination and Evaluation
+const examinationAndEvaluationSchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  institutionName: { type: String, default: '' },
+  departmentName: { type: String, default: '' },
+  boardName: { type: String, default: '' },
+  courseName: { type: String, default: '' },
+  subjectArea: { type: String, default: '' },
+  examinationSession: { type: String, default: '' },
+  activityType: { type: String, default: '' },
+  roleDescription: { type: String, default: '' },
+  coursesManaged: { type: String, default: '' },
+  examinationSessionsHandled: { type: String, default: '' },
+  responsibilities: { type: String, default: '' },
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
+  contributionDate: { type: String, default: '' },
+  appointmentDate: { type: String, default: '' },
+  tenureStart: { type: String, default: '' },
+  tenureEnd: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+}, { _id: false });
+
+// Section 21: Administrative Support
+const administrativeSupportSchema = new mongoose.Schema({
+  administrativeCharge: { type: String, default: '' },
+  departmentUnit: { type: String, default: '' },
+  roleResponsibility: { type: String, default: '' },
+  attendanceSystemMethod: { type: String, default: '' },
+  workloadType: { type: String, default: '' },
+  areaOfResponsibility: { type: String, default: '' },
+  areaOfEnforcement: { type: String, default: '' },
+  responsibilityTitle: { type: String, default: '' },
+  descriptionOfResponsibility: { type: String, default: '' },
+  appointmentDate: { type: String, default: '' },
+  tenureStart: { type: String, default: '' },
+  tenureEnd: { type: String, default: '' },
+  remarks: { type: String, default: '' },
+}, { _id: false });
+
 const studentDetailSchema = new mongoose.Schema({
   studentName: { type: String, default: '' },
   topic: { type: String, default: '' },
@@ -460,7 +571,22 @@ const facultySchema = new mongoose.Schema({
   // Section 24: Extra-Institutional Activities
   extraInstitutionalActivities: { type: [extraInstitutionalActivitySchema], default: [] },
 
-  // Section 15: Documents (stored as key → URL map)
+  // Section 16: Admin & Non-Academic Responsibilities
+  adminNonAcademicResponsibilities: { type: [adminNonAcademicRespSchema], default: [] },
+
+  // Section 17: Academic Administration
+  academicAdministration: { type: [academicAdministrationSchema], default: [] },
+
+  // Section 19: Research and Innovation
+  researchAndInnovation: { type: [researchAndInnovationSchema], default: [] },
+
+  // Section 20: Examination and Evaluation
+  examinationAndEvaluation: { type: [examinationAndEvaluationSchema], default: [] },
+
+  // Section 21: Administrative Support
+  administrativeSupport: { type: [administrativeSupportSchema], default: [] },
+
+  // Section 15: Documents (stored as key ? URL map)
   documents: {
     photo:          { type: String, default: '' },
     signature:      { type: String, default: '' },
