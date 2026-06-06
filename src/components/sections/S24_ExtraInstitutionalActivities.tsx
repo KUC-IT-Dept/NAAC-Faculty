@@ -1,14 +1,28 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { fg, inp, dateInp, sel } from './sectionUtils';
+import { fg, inp, dateInp, sel, ta } from './sectionUtils';
 import { extraInstitutionalOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
-const EMPTY_RESPONSIBILITY = {
+const EMPTY_RESPONSIBILITY: Record<string, string> = {
   administrativeCharge: '',
+  institutionName: '',
+  universityName: '',
+  organizationName: '',
+  department: '',
+  facultyName: '',
+  specialization: '',
+  programName: '',
+  courseName: '',
+  role: '',
+  nominationType: '',
+  examinationType: '',
+  title: '',
   description: '',
-  from: '',
-  to: '',
+  appointmentDate: '',
+  tenureStart: '',
+  tenureEnd: '',
+  remarks: '',
 };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
@@ -17,6 +31,132 @@ const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'ce
 const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#16a34a', color: '#fff', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#9f1239', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
 
+/** Returns a human-readable subtitle for the selected charge */
+function getChargeSubtitle(r: any): string {
+  const charge = (r.administrativeCharge || '').toLowerCase();
+  if (charge.includes('syndicate')) return r.universityName || '';
+  if (charge.includes('board of studies')) return [r.universityName, r.department].filter(Boolean).join(' · ');
+  if (charge.includes('visiting')) return [r.institutionName, r.department].filter(Boolean).join(' · ');
+  if (charge.includes('examiner')) return [r.universityName, r.courseName].filter(Boolean).join(' · ');
+  if (charge.includes('syllabus')) return [r.universityName, r.programName].filter(Boolean).join(' · ');
+  if (charge.includes('dean')) return [r.institutionName, r.facultyName].filter(Boolean).join(' · ');
+  // Other
+  return [r.title, r.organizationName].filter(Boolean).join(' · ');
+}
+
+/** Renders the charge-specific form fields */
+function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string, v: string) => void }) {
+  const charge = (item.administrativeCharge || '').toLowerCase();
+
+  if (charge.includes('syndicate')) {
+    return (
+      <>
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {fg('University Name', inp(item.universityName, v => setVal('universityName', v), 'Enter university name'))}
+          {fg('Nomination Type', sel(item.nominationType, v => setVal('nominationType', v), ['Elected', 'Nominated']))}
+        </div>
+      </>
+    );
+  }
+
+  if (charge.includes('board of studies')) {
+    return (
+      <>
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {fg('University Name', inp(item.universityName, v => setVal('universityName', v), 'Enter university name'))}
+          {fg('Department / Subject Area', inp(item.department, v => setVal('department', v), 'Enter department or subject area'))}
+        </div>
+        <div className="form-row form-row-1">
+          {fg('Role', sel(item.role, v => setVal('role', v), ['Chairman', 'Member']))}
+        </div>
+      </>
+    );
+  }
+
+  if (charge.includes('visiting')) {
+    return (
+      <>
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {fg('Institution Name', inp(item.institutionName, v => setVal('institutionName', v), 'Enter institution name'))}
+          {fg('Department', inp(item.department, v => setVal('department', v), 'Enter department'))}
+        </div>
+        <div className="form-row form-row-1">
+          {fg('Area of Specialization', inp(item.specialization, v => setVal('specialization', v), 'Enter area of specialization'))}
+        </div>
+      </>
+    );
+  }
+
+  if (charge.includes('examiner')) {
+    return (
+      <>
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {fg('University Name', inp(item.universityName, v => setVal('universityName', v), 'Enter university name'))}
+          {fg('Course / Subject', inp(item.courseName, v => setVal('courseName', v), 'Enter course or subject'))}
+        </div>
+        <div className="form-row form-row-1">
+          {fg('Examination Type', inp(item.examinationType, v => setVal('examinationType', v), 'e.g. Internal, External, Viva-voce'))}
+        </div>
+      </>
+    );
+  }
+
+  if (charge.includes('syllabus')) {
+    return (
+      <>
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {fg('University Name', inp(item.universityName, v => setVal('universityName', v), 'Enter university name'))}
+          {fg('Program / Course', inp(item.programName, v => setVal('programName', v), 'Enter program or course name'))}
+        </div>
+        <div className="form-row form-row-1">
+          {fg('Role', sel(item.role, v => setVal('role', v), ['Chairman', 'Member']))}
+        </div>
+      </>
+    );
+  }
+
+  if (charge.includes('dean')) {
+    return (
+      <>
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {fg('Institution Name', inp(item.institutionName, v => setVal('institutionName', v), 'Enter institution name'))}
+          {fg('Faculty / School', inp(item.facultyName, v => setVal('facultyName', v), 'Enter faculty or school name'))}
+        </div>
+      </>
+    );
+  }
+
+  // Other
+  return (
+    <>
+      <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {fg('Responsibility Title', inp(item.title, v => setVal('title', v), 'Enter responsibility title'))}
+        {fg('Organization / Institution', inp(item.organizationName, v => setVal('organizationName', v), 'Enter organization name'))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Description', ta(item.description, v => setVal('description', v), 'Describe the responsibility', 2))}
+      </div>
+    </>
+  );
+}
+
+/** Renders the common date + remarks fields */
+function CommonFields({ item, setVal }: { item: any; setVal: (k: string, v: string) => void }) {
+  return (
+    <>
+      <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+        {fg('Appointment Date', dateInp(item.appointmentDate, v => setVal('appointmentDate', v)))}
+        {fg('From Date', dateInp(item.tenureStart, v => setVal('tenureStart', v)))}
+        {fg('To Date', dateInp(item.tenureEnd, v => setVal('tenureEnd', v)))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Remarks', inp(item.remarks, v => setVal('remarks', v), 'Any additional remarks (optional)'))}
+      </div>
+    </>
+  );
+}
+
+/** Preview row for expanded detail view */
 function PreviewRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
@@ -27,8 +167,75 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
   );
 }
 
+/** Returns the preview rows specific to the charge type */
+function ChargePreviewRows({ r }: { r: any }) {
+  const charge = (r.administrativeCharge || '').toLowerCase();
+
+  if (charge.includes('syndicate')) {
+    return (
+      <>
+        <PreviewRow label="University Name" value={r.universityName} />
+        <PreviewRow label="Nomination Type" value={r.nominationType} />
+      </>
+    );
+  }
+  if (charge.includes('board of studies')) {
+    return (
+      <>
+        <PreviewRow label="University Name" value={r.universityName} />
+        <PreviewRow label="Department" value={r.department} />
+        <PreviewRow label="Role" value={r.role} />
+      </>
+    );
+  }
+  if (charge.includes('visiting')) {
+    return (
+      <>
+        <PreviewRow label="Institution Name" value={r.institutionName} />
+        <PreviewRow label="Department" value={r.department} />
+        <PreviewRow label="Specialization" value={r.specialization} />
+      </>
+    );
+  }
+  if (charge.includes('examiner')) {
+    return (
+      <>
+        <PreviewRow label="University Name" value={r.universityName} />
+        <PreviewRow label="Course / Subject" value={r.courseName} />
+        <PreviewRow label="Examination Type" value={r.examinationType} />
+      </>
+    );
+  }
+  if (charge.includes('syllabus')) {
+    return (
+      <>
+        <PreviewRow label="University Name" value={r.universityName} />
+        <PreviewRow label="Program / Course" value={r.programName} />
+        <PreviewRow label="Role" value={r.role} />
+      </>
+    );
+  }
+  if (charge.includes('dean')) {
+    return (
+      <>
+        <PreviewRow label="Institution Name" value={r.institutionName} />
+        <PreviewRow label="Faculty / School" value={r.facultyName} />
+      </>
+    );
+  }
+  // Other
+  return (
+    <>
+      <PreviewRow label="Title" value={r.title} />
+      <PreviewRow label="Organization" value={r.organizationName} />
+      <PreviewRow label="Description" value={r.description} />
+    </>
+  );
+}
+
 function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: () => void; onDelete: () => void; disabled: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const subtitle = getChargeSubtitle(r);
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -44,8 +251,8 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
               {r.administrativeCharge || 'Untitled Responsibility'}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              {r.from && <span className="badge badge-secondary">{r.from}{r.to ? ` — ${r.to}` : ' — Present'}</span>}
-              {r.description && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{r.description}</span>}
+              {r.tenureStart && <span className="badge badge-secondary">{r.tenureStart}{r.tenureEnd ? ` — ${r.tenureEnd}` : ' — Present'}</span>}
+              {subtitle && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{subtitle}</span>}
             </div>
           </div>
         </div>
@@ -64,9 +271,11 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
       {expanded && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Administrative charge" value={r.administrativeCharge} />
-          <PreviewRow label="Description" value={r.description} />
-          <PreviewRow label="From" value={r.from} />
-          <PreviewRow label="To" value={r.to} />
+          <ChargePreviewRows r={r} />
+          <PreviewRow label="Appointment Date" value={r.appointmentDate} />
+          <PreviewRow label="From" value={r.tenureStart} />
+          <PreviewRow label="To" value={r.tenureEnd} />
+          <PreviewRow label="Remarks" value={r.remarks} />
         </div>
       )}
     </>
@@ -93,6 +302,49 @@ export default function ExtraInstitutionalActivities({ data, onChange }: { data:
 
   const handleSavePending = (item: any) => {
     if (isComplete(item)) { update([item, ...responsibilities]); setPending(null); }
+  };
+
+  /** When charge type changes, reset charge-specific fields but keep common ones */
+  const handleChargeChange = (currentItem: any, newCharge: string, isPending: boolean, idx?: number) => {
+    const reset: Record<string, string> = {
+      ...EMPTY_RESPONSIBILITY,
+      administrativeCharge: newCharge,
+      appointmentDate: currentItem.appointmentDate || '',
+      tenureStart: currentItem.tenureStart || '',
+      tenureEnd: currentItem.tenureEnd || '',
+      remarks: currentItem.remarks || '',
+    };
+    if (isPending) {
+      setPending(reset);
+    } else if (idx !== undefined) {
+      const a = [...responsibilities];
+      a[idx] = reset;
+      update(a);
+    }
+  };
+
+  const renderForm = (item: any, isPending: boolean, idx?: number) => {
+    const setVal = (k: string, v: string) => {
+      if (isPending) {
+        setPending({ ...item, [k]: v });
+      } else if (idx !== undefined) {
+        updItem(idx, k, v);
+      }
+    };
+
+    return (
+      <>
+        <div className="form-row form-row-1">
+          {fg('Administrative Charge *', sel(item.administrativeCharge, v => handleChargeChange(item, v, isPending, idx), extraInstitutionalOpts))}
+        </div>
+        {item.administrativeCharge && (
+          <>
+            <ChargeSpecificFields item={item} setVal={setVal} />
+            <CommonFields item={item} setVal={setVal} />
+          </>
+        )}
+      </>
+    );
   };
 
   return (
@@ -131,16 +383,7 @@ export default function ExtraInstitutionalActivities({ data, onChange }: { data:
                   </button>
                 </div>
               </div>
-              <div className="form-row form-row-1">
-                {fg('Administrative charge', sel(pending.administrativeCharge, v => setPending({ ...pending, administrativeCharge: v }), extraInstitutionalOpts))}
-              </div>
-              <div className="form-row form-row-1">
-                {fg('Description (optional)', inp(pending.description, v => setPending({ ...pending, description: v }), 'Brief description of the role'))}
-              </div>
-              <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                {fg('From', dateInp(pending.from, v => setPending({ ...pending, from: v })))}
-                {fg('To', dateInp(pending.to, v => setPending({ ...pending, to: v })))}
-              </div>
+              {renderForm(pending, true)}
             </div>
           )}
 
@@ -158,16 +401,7 @@ export default function ExtraInstitutionalActivities({ data, onChange }: { data:
                         <button type="button" onClick={() => { update(responsibilities.filter((_: any, j: number) => j !== i)); setEditingIndex(null); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
                       </div>
                     </div>
-                    <div className="form-row form-row-1">
-                      {fg('Administrative charge', sel(r.administrativeCharge, v => updItem(i, 'administrativeCharge', v), extraInstitutionalOpts))}
-                    </div>
-                    <div className="form-row form-row-1">
-                      {fg('Description (optional)', inp(r.description, v => updItem(i, 'description', v), 'Brief description of the role'))}
-                    </div>
-                    <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                      {fg('From', dateInp(r.from, v => updItem(i, 'from', v)))}
-                      {fg('To', dateInp(r.to, v => updItem(i, 'to', v)))}
-                    </div>
+                    {renderForm(r, false, i)}
                   </>
                 ) : (
                   <RespPreviewCard
