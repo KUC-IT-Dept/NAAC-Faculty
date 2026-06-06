@@ -151,7 +151,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                     {fg('Student Name *', inp(st.studentName, v => updStudent(i, 'studentName', v), 'Enter student name'))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Degree *', sel(st.degree || 'Ph.D.', v => updStudent(i, 'degree', v), ['Ph.D.', 'M.Phil.']))}
+                    {fg('Degree *', sel(st.degree || 'Ph.D.', v => updStudent(i, 'degree', v), ['Ph.D.', 'M.Phil.', 'P.D.F']))}
                     {fg('Status *', sel(st.status || 'Ongoing', v => updStudent(i, 'status', v), ['Ongoing', 'Completed']))}
                   </div>
                   <div className="form-row form-row-1">

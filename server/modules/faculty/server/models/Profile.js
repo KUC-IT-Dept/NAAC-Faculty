@@ -268,6 +268,7 @@ const profileSchema = new mongoose.Schema(
     publications: [publicationSchema],
     awards: [awardSchema],
     projects: [projectSchema],
+    internshipAndProjects: [projectSchema],
     trainings: [trainingSchema],
     onlineCoursesCertifications: [onlineCourseCertificationSchema],
     researchSupervision: {

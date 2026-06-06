@@ -14,21 +14,22 @@ import Publications from '../../components/sections/S06_Publications';
 import Awards from '../../components/sections/S07_Awards';
 import ResearchProjects from '../../components/sections/S08_ResearchProjects';
 import ResearchSupervision from '../../components/sections/S09_ResearchSupervision';
-import AcademicResp from '../../components/sections/S10_AcademicResponsibilities';
-import Memberships from '../../components/sections/S11_Memberships';
-import FdpWorkshops from '../../components/sections/S12_FdpWorkshops';
-import OnlineCourses from '../../components/sections/S13_OnlineCourses';
-import InternationalExp from '../../components/sections/S14_InternationalExperience';
-import Documents from '../../components/sections/S15_Documents';
-import AdminNonAcademicResp from '../../components/sections/S16_AdminNonAcademicResponsibilities';
-import AcademicAdmin from '../../components/sections/S17_AcademicAdministration';
-import QualityAssurance from '../../components/sections/S18_QualityAssurance';
-import ResearchInnovation from '../../components/sections/S19_ResearchAndInnovation';
-import ExaminationAndEvaluation from '../../components/sections/S20_ExaminationAndEvaluation';
-import AdministrativeSupport from '../../components/sections/S21_AdministrativeSupport';
-import DepartmentalCharges from '../../components/sections/S22_DepartmentalCharges';
-import SpecialAssignments from '../../components/sections/S23_SpecialAssignments';
-import ExtraInstitutionalActivities from '../../components/sections/S24_ExtraInstitutionalActivities';
+import Internship from '../../components/sections/S10_InternshipAndProjects';
+import AcademicResp from '../../components/sections/S11_AcademicResponsibilities';
+import Memberships from '../../components/sections/S12_Memberships';
+import FdpWorkshops from '../../components/sections/S13_FdpWorkshops';
+import OnlineCourses from '../../components/sections/S14_OnlineCourses';
+import InternationalExp from '../../components/sections/S15_InternationalExperience';
+import Documents from '../../components/sections/S16_Documents';
+import AdminNonAcademicResp from '../../components/sections/S17_AdminNonAcademicResponsibilities';
+import AcademicAdmin from '../../components/sections/S18_AcademicAdministration';
+import QualityAssurance from '../../components/sections/S19_QualityAssurance';
+import ResearchInnovation from '../../components/sections/S20_ResearchAndInnovation';
+import ExaminationAndEvaluation from '../../components/sections/S21_ExaminationAndEvaluation';
+import AdministrativeSupport from '../../components/sections/S22_AdministrativeSupport';
+import DepartmentalCharges from '../../components/sections/S23_DepartmentalCharges';
+import SpecialAssignments from '../../components/sections/S24_SpecialAssignments';
+import ExtraInstitutionalActivities from '../../components/sections/S25_ExtraInstitutionalActivities';
 
 
 
@@ -44,6 +45,7 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'research-projects': { key: 'projects', label: 'Research Projects' },
   'research-supervision': { key: 'researchGuidance', label: 'Research Supervision' },
   'academic-responsibilities': { key: 'academicResponsibilities', label: 'Academic Responsibilities' },
+  'internship-projects': { key: 'internshipAndProjects', label: 'Internship & Projects' },
   'memberships': { key: 'memberships', label: 'Memberships' },
   'fdp-workshops': { key: 'fdpWorkshops', label: 'Attended FDP & Workshops' },
   'online-courses': { key: 'onlineCourses', label: 'Online Courses' },
@@ -72,6 +74,7 @@ const VIS_ITEMS = [
   { key: 'awards', label: 'Awards & Honours', desc: 'Recognition' },
   { key: 'researchGuidance', label: 'Research Supervision', desc: 'Ph.D / M.Phil scholars' },
   { key: 'academicResponsibilities', label: 'Academic Responsibilities', desc: 'Committees & courses' },
+  { key: 'internshipAndProjects', label: 'Internship & Projects', desc: 'Industrial internships & projects' },
   { key: 'memberships', label: 'Memberships', desc: 'Professional bodies' },
   { key: 'fdpWorkshops', label: 'FDP / Workshops', desc: 'Training programmes' },
   { key: 'onlineCourses', label: 'Online Courses', desc: 'Certifications' },
@@ -100,6 +103,7 @@ const EMPTY: any = {
     studentDetails: [],
   },
   academicResponsibilities: { responsibilities: [], coursesTaught: [] },
+  internshipAndProjects: [],
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
   adminNonAcademicResponsibilities: [],
   academicAdministration: [], qualityAssurance: [],
@@ -240,6 +244,7 @@ export default function ProfileEdit() {
               {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} onPersist={save} />}
               {tab === 'researchGuidance' && <ResearchSupervision data={profile.researchGuidance} onChange={v => set('researchGuidance', v)} onPersist={save} />}
               {tab === 'academicResponsibilities' && <AcademicResp data={profile.academicResponsibilities} onChange={v => set('academicResponsibilities', v)} />}
+              {tab === 'internshipAndProjects' && <Internship data={profile.internshipAndProjects} onChange={v => set('internshipAndProjects', v)} />}
               {tab === 'memberships' && <Memberships data={profile.memberships} onChange={v => set('memberships', v)} />}
               {tab === 'fdpWorkshops' && <FdpWorkshops data={profile.fdpWorkshops} onChange={v => set('fdpWorkshops', v)} />}
               {tab === 'onlineCourses' && <OnlineCourses data={profile.onlineCourses} onChange={v => set('onlineCourses', v)} />}

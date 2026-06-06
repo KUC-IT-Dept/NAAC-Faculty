@@ -180,6 +180,28 @@ export default function PublicProfile() {
           </div>
         )}
 
+        {/* Internships & Industry Projects */}
+        {profile.internshipAndProjects?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Briefcase size={18} color="var(--navy)" /> Internships & Industry Projects <span className="badge badge-navy" style={{ marginLeft: 8 }}>{profile.internshipAndProjects.length}</span></div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {profile.internshipAndProjects.map((p: any, i: number) => (
+                <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', flex: 1 }}>{p.title}</div>
+                    <span className={`badge ${p.status === 'Completed' ? 'badge-active' : 'badge-pending'}`}>{p.status || 'N/A'}</span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 6, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                    {p.organisation && <span>Organisation: <strong>{p.organisation}</strong></span>}
+                    {p.role && <span>Role: <strong>{p.role}</strong></span>}
+                    {p.duration && <span>Duration: <strong>{p.duration}</strong></span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Awards */}
         {profile.awards?.length > 0 && (
           <div className="profile-section">
