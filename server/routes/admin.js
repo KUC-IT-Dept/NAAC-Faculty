@@ -12,7 +12,7 @@ router.get('/faculty', async (req, res) => {
   try {
     const users = await User.find({ role: 'faculty' }).select('-password').sort({ createdAt: -1 });
     const profiles = await Faculty.find({ userId: { $in: users.map(u => u._id) } })
-      .select('userId personalInfo.fullName personalInfo.designation personalInfo.department personalInfo.photoUrl profileComplete completionPercentage');
+      .select('userId personalInfo.fullName personalInfo.designation personalInfo.department personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.userId.toString()] = p; });
     res.json(users.map(u => ({ ...u.toObject(), profile: profileMap[u._id.toString()] || null })));
@@ -69,6 +69,42 @@ router.patch('/faculty/:id/status', async (req, res) => {
     await user.save();
     res.json({ message: `Account ${user.isActive ? 'activated' : 'deactivated'}`, isActive: user.isActive });
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
+});
+
+// PATCH /api/admin/faculty/:id/make-hod
+router.patch('/faculty/:id/make-hod', async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id, role: 'faculty' });
+    if (!user) return res.status(404).json({ message: 'Faculty not found' });
+
+    const faculty = await Faculty.findOne({ userId: user._id });
+    if (!faculty) return res.status(404).json({ message: 'Faculty profile not found' });
+
+    const dept = faculty.employmentDetails?.department;
+    if (!dept) {
+      return res.status(400).json({ message: 'Department is not configured in Employment Details. Please edit the profile first.' });
+    }
+
+    // Demote any existing HOD in the same department
+    await Faculty.updateMany(
+      {
+        'employmentDetails.department': dept,
+        'employmentDetails.designation': 'HOD'
+      },
+      {
+        $set: { 'employmentDetails.designation': 'Professor' }
+      }
+    );
+
+    // Promote target to HOD
+    faculty.employmentDetails.designation = 'HOD';
+    await faculty.save();
+
+    res.json({ message: `Successfully promoted ${faculty.personalInfo?.fullName || user.username} to HOD of ${dept}` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // DELETE /api/admin/faculty/:id

@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye } from 'lucide-react';
+import OrgHierarchy from '../../components/admin/OrgHierarchy';
 
 interface FacultyUser {
   _id: string;
@@ -12,7 +14,8 @@ interface FacultyUser {
   isFirstLogin: boolean;
   createdAt: string;
   profile?: {
-    personalInfo?: { fullName?: string; designation?: string; department?: string };
+    personalInfo?: { fullName?: string; designation?: string; department?: string; photoUrl?: string };
+    employmentDetails?: { designation?: string; department?: string };
     profileComplete?: boolean;
     completionPercentage?: number;
   };
@@ -24,6 +27,7 @@ export default function AdminDashboard() {
   const [faculty, setFaculty] = useState<FacultyUser[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, inactive: 0, profilesComplete: 0 });
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'accounts' | 'hierarchy'>('accounts');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ email: '', fullName: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -77,106 +81,152 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <AppLayout title="Admin Dashboard">
-      {/* Stats */}
-      <div className="stat-grid" style={{ marginBottom: 20 }}>
-        {statCards.map(s => (
-          <div key={s.label} className="stat-card">
-            <div className="stat-card-icon" style={{ background: s.bg }}>
-              <span style={{ color: s.color }}>{s.icon}</span>
-            </div>
-            <div className="stat-card-value" style={{ color: s.color }}>{loading ? '—' : s.value}</div>
-            <div className="stat-card-label">{s.label}</div>
-          </div>
-        ))}
+    <AppLayout title={activeTab === 'accounts' ? 'Admin Dashboard' : 'Org Hierarchy'}>
+      {/* Tab Selector */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', background: '#e2e8f0', padding: '4px', borderRadius: '8px', width: 'fit-content' }}>
+        <button
+          onClick={() => setActiveTab('accounts')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            background: activeTab === 'accounts' ? '#ffffff' : 'transparent',
+            color: activeTab === 'accounts' ? '#0f172a' : '#64748b',
+            fontWeight: 600,
+            fontSize: '13px',
+            cursor: 'pointer',
+            boxShadow: activeTab === 'accounts' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          Faculty Accounts
+        </button>
+        <button
+          onClick={() => setActiveTab('hierarchy')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            background: activeTab === 'hierarchy' ? '#ffffff' : 'transparent',
+            color: activeTab === 'hierarchy' ? '#0f172a' : '#64748b',
+            fontWeight: 600,
+            fontSize: '13px',
+            cursor: 'pointer',
+            boxShadow: activeTab === 'hierarchy' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          Org Hierarchy
+        </button>
       </div>
 
-      {/* Faculty Table */}
-      <div className="card">
-        <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
-          <div>
-            <h2 style={{ fontSize: '1rem' }}>Faculty Accounts</h2>
-            <p className="text-muted text-sm">Manage all registered faculty members</p>
+      {activeTab === 'accounts' ? (
+        <>
+          {/* Stats */}
+          <div className="stat-grid" style={{ marginBottom: 20 }}>
+            {statCards.map(s => (
+              <div key={s.label} className="stat-card">
+                <div className="stat-card-icon" style={{ background: s.bg }}>
+                  <span style={{ color: s.color }}>{s.icon}</span>
+                </div>
+                <div className="stat-card-value" style={{ color: s.color }}>{loading ? '—' : s.value}</div>
+                <div className="stat-card-label">{s.label}</div>
+              </div>
+            ))}
           </div>
-          <button id="add-faculty-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>
-            <Plus size={14} /> Add Faculty
-          </button>
-        </div>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Faculty</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Profile Status</th>
-                <th>Completion</th>
-                <th>Account</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
-              ) : faculty.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No faculty accounts yet. Add one above.</td></tr>
-              ) : faculty.map(f => (
-                <tr key={f._id}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div className="avatar">
-                        {((f.profile?.personalInfo?.fullName || f.username || '').slice(0, 2)).toUpperCase()}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{f.profile?.personalInfo?.fullName || '—'}</div>
-                        <div className="text-xs text-muted">{f.profile?.personalInfo?.designation || 'Profile Incomplete'}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td><code style={{ background: 'var(--bg)', padding: '2px 6px', borderRadius: 4, fontSize: '0.8rem' }}>{f.username}</code></td>
-                  <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{f.email}</td>
-                  <td>
-                    <span className={`badge ${f.profile?.profileComplete ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
-                      {f.profile?.profileComplete ? 'Complete' : f.isFirstLogin ? 'First Login' : 'Incomplete'}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 80 }}>
-                      <div className="progress-bar-wrap" style={{ flex: 1 }}>
-                        <div className="progress-bar" style={{ width: `${f.profile?.completionPercentage || 0}%` }} />
-                      </div>
-                      <span className="text-xs text-muted" style={{ fontSize: '0.7rem' }}>{f.profile?.completionPercentage || 0}%</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`badge ${f.isActive ? 'badge-active' : 'badge-inactive'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
-                      {f.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button className="btn btn-ghost btn-sm" title="View public profile" onClick={() => window.open(`/profile/${f.username}`, '_blank')} style={{ padding: '6px' }}>
-                        <Eye size={12} />
-                      </button>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        title={f.isActive ? 'Deactivate' : 'Activate'}
-                        onClick={() => toggleStatus(f._id)}
-                        style={{ padding: '6px' }}
-                      >
-                        {f.isActive ? <ToggleRight size={14} color="var(--success)" /> : <ToggleLeft size={14} />}
-                      </button>
-                      <button className="btn btn-ghost btn-sm" title="Delete" onClick={() => deleteFaculty(f._id, f.username)} style={{ padding: '6px' }}>
-                        <Trash2 size={12} color="var(--danger)" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+
+          {/* Faculty Table */}
+          <div className="card">
+            <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
+              <div>
+                <h2 style={{ fontSize: '1rem' }}>Faculty Accounts</h2>
+                <p className="text-muted text-sm">Manage all registered faculty members</p>
+              </div>
+              <button id="add-faculty-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>
+                <Plus size={14} /> Add Faculty
+              </button>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Faculty</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Profile Status</th>
+                    <th>Completion</th>
+                    <th>Account</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
+                  ) : faculty.length === 0 ? (
+                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No faculty accounts yet. Add one above.</td></tr>
+                  ) : faculty.map(f => (
+                    <tr key={f._id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div className="avatar">
+                            {((f.profile?.personalInfo?.fullName || f.username || '').slice(0, 2)).toUpperCase()}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{f.profile?.personalInfo?.fullName || '—'}</div>
+                            <div className="text-xs text-muted">
+                              {f.profile?.employmentDetails?.designation || f.profile?.personalInfo?.designation || 'Profile Incomplete'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td><code style={{ background: 'var(--bg)', padding: '2px 6px', borderRadius: 4, fontSize: '0.8rem' }}>{f.username}</code></td>
+                      <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{f.email}</td>
+                      <td>
+                        <span className={`badge ${f.profile?.profileComplete ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
+                          {f.profile?.profileComplete ? 'Complete' : f.isFirstLogin ? 'First Login' : 'Incomplete'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 80 }}>
+                          <div className="progress-bar-wrap" style={{ flex: 1 }}>
+                            <div className="progress-bar" style={{ width: `${f.profile?.completionPercentage || 0}%` }} />
+                          </div>
+                          <span className="text-xs text-muted" style={{ fontSize: '0.7rem' }}>{f.profile?.completionPercentage || 0}%</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`badge ${f.isActive ? 'badge-active' : 'badge-inactive'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
+                          {f.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button className="btn btn-ghost btn-sm" title="View public profile" onClick={() => window.open(`/profile/${f.username}`, '_blank')} style={{ padding: '6px' }}>
+                            <Eye size={12} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            title={f.isActive ? 'Deactivate' : 'Activate'}
+                            onClick={() => toggleStatus(f._id)}
+                            style={{ padding: '6px' }}
+                          >
+                            {f.isActive ? <ToggleRight size={14} color="var(--success)" /> : <ToggleLeft size={14} />}
+                          </button>
+                          <button className="btn btn-ghost btn-sm" title="Delete" onClick={() => deleteFaculty(f._id, f.username)} style={{ padding: '6px' }}>
+                            <Trash2 size={12} color="var(--danger)" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
+        <OrgHierarchy />
+      )}
 
       {/* Add Faculty Modal */}
       {showModal && (
