@@ -18,7 +18,7 @@ import api from '../../lib/api';
 import toast from 'react-hot-toast';
 
 // Custom node styling and rendering logic
-const OrgNode = ({ data }: NodeProps<any>) => {
+const OrgNode = ({ data }: any) => {
   const isPlaceholder = data.isPlaceholder;
   const isFaculty = data.role === 'FACULTY';
   const role = data.role || 'FACULTY';
