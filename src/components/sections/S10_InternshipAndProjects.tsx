@@ -1,8 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2, Check, X } from 'lucide-react';
-import { fg, inp, ta, Sub } from './sectionUtils';
+import { fg, inp, sel, Sub } from './sectionUtils';
 
 const emptyStudent = { studentName: '', program: '', status: 'Ongoing', title: '', organisation: '', role: '', fromDate: '', toDate: '' };
+const statusOptions = ['Ongoing', 'Completed'];
+const roleOptions = ['Intern', 'Trainee', 'Project Member'];
+
+const summaryBoxStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '10px 12px',
+  border: '1px solid var(--border-color, #d1d5db)',
+  borderRadius: 8,
+  backgroundColor: '#f8fafc',
+  color: 'var(--text-color, #0f172a)',
+  display: 'flex',
+  alignItems: 'center',
+  fontSize: 14,
+  fontWeight: 600,
+};
+
+const summaryListStyle: React.CSSProperties = {
+  margin: 0,
+  paddingLeft: 18,
+  display: 'grid',
+  gap: 6,
+  width: '100%',
+};
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 8, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: '#fff1f2', color: '#e11d48', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
@@ -14,11 +37,21 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
 
-  // Local summary fields (not persisted back to parent to avoid changing data shape)
-  const [totalCompleted, setTotalCompleted] = useState<string>('0');
-  const [ongoingCount, setOngoingCount] = useState<string>('0');
-  const [completedNames, setCompletedNames] = useState<string>('');
-  const [numberStudents, setNumberStudents] = useState<string>('0');
+  useEffect(() => {
+    setStudents(Array.isArray(data) ? data : []);
+  }, [data]);
+
+  const summary = useMemo(() => {
+    const completed = students.filter(student => (student?.status || '').toLowerCase() === 'completed');
+    const ongoing = students.filter(student => (student?.status || '').toLowerCase() === 'ongoing');
+
+    return {
+      totalCompleted: String(completed.length),
+      ongoingCount: String(ongoing.length),
+      numberStudents: String(students.length),
+      completedNames: completed.map(student => student?.title).filter(Boolean) as string[],
+    };
+  }, [students]);
 
   const refreshParent = (arr: any[]) => { setStudents(arr); try { onChange(arr); } catch { /* ignore */ } };
 
@@ -36,16 +69,27 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-        {fg('TOTAL NUMBER OF INTERNSHIPS / PROJECTS COMPLETED', inp(totalCompleted, setTotalCompleted, '0'))}
-        {fg('NUMBER OF ONGOING INTERNSHIPS / PROJECTS', inp(ongoingCount, setOngoingCount, '0'))}
+        {fg('TOTAL NUMBER OF INTERNSHIPS / PROJECTS COMPLETED', <div style={summaryBoxStyle}>{summary.totalCompleted}</div>)}
+        {fg('NUMBER OF ONGOING INTERNSHIPS / PROJECTS', <div style={summaryBoxStyle}>{summary.ongoingCount}</div>)}
       </div>
 
       <div style={{ marginBottom: 12 }}>
-        {fg('NAMES OF COMPLETED INTERNSHIPS / PROJECTS', ta(completedNames, setCompletedNames, 'No completed internships / projects added yet...', 3))}
+        {fg(
+          'NAMES OF COMPLETED INTERNSHIPS / PROJECTS',
+          <div style={{ ...summaryBoxStyle, alignItems: 'stretch', padding: '10px 12px' }}>
+            {summary.completedNames.length ? (
+              <ul style={summaryListStyle}>
+                {summary.completedNames.map((name, index) => <li key={`${name}-${index}`}>{name}</li>)}
+              </ul>
+            ) : (
+              <span style={{ color: 'var(--text-muted)' }}>No completed internships / projects added yet...</span>
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 18 }}>
-        {fg('NUMBER OF STUDENTS INVOLVED (COMPLETED)', inp(numberStudents, setNumberStudents, '0'))}
+        {fg('NUMBER OF STUDENTS INVOLVED (COMPLETED)', <div style={summaryBoxStyle}>{summary.numberStudents}</div>)}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -70,11 +114,11 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
           </div>
           <div className="form-row form-row-2">
             {fg('INTERNSHIP / PROJECT TITLE *', inp(pending.title, v => setPending({ ...pending, title: v }), 'Enter internship / project title'))}
-            {fg('STATUS *', inp(pending.status, v => setPending({ ...pending, status: v }), 'Ongoing'))}
+            {fg('STATUS *', sel(pending.status, v => setPending({ ...pending, status: v }), statusOptions))}
           </div>
           <div className="form-row form-row-2">
             {fg('ORGANIZATION / COMPANY *', inp(pending.organisation, v => setPending({ ...pending, organisation: v }), 'Enter organization / company'))}
-            {fg('ROLE *', inp(pending.role, v => setPending({ ...pending, role: v }), 'Enter role (e.g. Intern / Trainee / Project Member)'))}
+            {fg('ROLE *', sel(pending.role, v => setPending({ ...pending, role: v }), roleOptions))}
           </div>
           <div className="form-row form-row-2">
             {fg('FROM DATE *', <input type="date" className="form-input" value={pending.fromDate || ''} onChange={e => setPending({ ...pending, fromDate: e.target.value })} />)}
@@ -106,11 +150,11 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
                 </div>
                 <div className="form-row form-row-2">
                   {fg('INTERNSHIP / PROJECT TITLE *', inp(s.title, v => updateStudent(i, 'title', v)))}
-                  {fg('STATUS *', inp(s.status, v => updateStudent(i, 'status', v)))}
+                  {fg('STATUS *', sel(s.status, v => updateStudent(i, 'status', v), statusOptions))}
                 </div>
                 <div className="form-row form-row-2">
                   {fg('ORGANIZATION / COMPANY *', inp(s.organisation, v => updateStudent(i, 'organisation', v)))}
-                  {fg('ROLE *', inp(s.role, v => updateStudent(i, 'role', v)))}
+                  {fg('ROLE *', sel(s.role, v => updateStudent(i, 'role', v), roleOptions))}
                 </div>
                 <div className="form-row form-row-2">
                   {fg('FROM DATE *', <input type="date" className="form-input" value={s.fromDate || ''} onChange={e => updateStudent(i, 'fromDate', e.target.value)} />)}
