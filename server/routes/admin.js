@@ -2,6 +2,7 @@ const express = require('express');
 const User = require('../models/User');
 const Faculty = require('../models/Faculty');
 const DropdownConfig = require('../models/DropdownConfig');
+const OptionRequest = require('../models/OptionRequest');
 const { auth, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
@@ -171,6 +172,150 @@ router.patch('/dropdowns/:key', async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/admin/option-requests
+router.get('/option-requests', async (req, res) => {
+  try {
+    const requests = await OptionRequest.find({})
+      .populate('user', 'username email')
+      .sort({ createdAt: -1 });
+    res.json(requests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/admin/option-requests/:id/approve
+router.patch('/option-requests/:id/approve', async (req, res) => {
+  try {
+    const { adminMessage } = req.body;
+    const request = await OptionRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    if (request.status !== 'PENDING') return res.status(400).json({ message: 'Request is not pending' });
+
+    request.status = 'APPROVED';
+    if (adminMessage) request.adminMessage = adminMessage;
+    await request.save();
+
+    // Push to DropdownConfig
+    const serverKey = request.dropdownKey.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+    if (ALLOWED_DROPDOWN_KEYS.includes(serverKey)) {
+      const config = await DropdownConfig.findOne({ key: serverKey });
+      if (config) {
+        if (!config.options.includes(request.requestedValue)) {
+          config.options.push(request.requestedValue);
+          await config.save();
+        }
+      } else {
+        // Find default from somewhere? Or just create with this one.
+        await DropdownConfig.create({ key: serverKey, options: [request.requestedValue] });
+      }
+    }
+    
+    res.json(request);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/admin/option-requests/:id/reject
+router.patch('/option-requests/:id/reject', async (req, res) => {
+  try {
+    const { adminMessage } = req.body;
+    const request = await OptionRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    if (request.status !== 'PENDING') return res.status(400).json({ message: 'Request is not pending' });
+
+    request.status = 'REJECTED';
+    if (adminMessage) request.adminMessage = adminMessage;
+    await request.save();
+
+    // Revert the value in the user's profile
+    const faculty = await Faculty.findOne({ userId: request.user });
+    if (faculty) {
+      let modified = false;
+      let raw = faculty.toObject();
+      const replaceDeep = (obj) => {
+        for (let key in obj) {
+          if (typeof obj[key] === 'string' && obj[key] === request.requestedValue) {
+            obj[key] = request.previousValue || '';
+            modified = true;
+          } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            replaceDeep(obj[key]);
+          }
+        }
+      };
+      replaceDeep(raw);
+      if (modified) {
+        await Faculty.updateOne({ _id: faculty._id }, { $set: raw });
+      }
+    }
+    
+    res.json(request);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/admin/option-requests/:id/undo
+router.patch('/option-requests/:id/undo', async (req, res) => {
+  try {
+    const request = await OptionRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    if (request.status === 'PENDING') return res.status(400).json({ message: 'Request is already pending' });
+
+    const prevStatus = request.status;
+    request.status = 'PENDING';
+    request.adminMessage = '';
+    await request.save();
+
+    if (prevStatus === 'APPROVED') {
+      // Revert from DropdownConfig
+      const serverKey = request.dropdownKey.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+      if (ALLOWED_DROPDOWN_KEYS.includes(serverKey)) {
+        const config = await DropdownConfig.findOne({ key: serverKey });
+        if (config && config.options.includes(request.requestedValue)) {
+          config.options = config.options.filter(o => o !== request.requestedValue);
+          await config.save();
+        }
+      }
+    } else if (prevStatus === 'REJECTED') {
+      // Revert the value in the user's profile back to the requested value
+      // Note: This is an approximation. If the user changed it in the meantime, this might overwrite it.
+      // A more robust implementation would check if it's still previousValue.
+      const faculty = await Faculty.findOne({ userId: request.user });
+      if (faculty && request.previousValue !== undefined) {
+        let modified = false;
+        let raw = faculty.toObject();
+        const replaceDeep = (obj) => {
+          for (let key in obj) {
+            if (typeof obj[key] === 'string' && obj[key] === request.previousValue) {
+              obj[key] = request.requestedValue;
+              modified = true;
+            } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+              replaceDeep(obj[key]);
+            }
+          }
+        };
+        // Only revert if previousValue was not empty, to avoid changing all empty fields
+        if (request.previousValue !== '') {
+          replaceDeep(raw);
+          if (modified) {
+            await Faculty.updateOne({ _id: faculty._id }, { $set: raw });
+          }
+        }
+      }
+    }
+
+    res.json(request);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

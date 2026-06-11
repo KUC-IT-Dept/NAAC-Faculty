@@ -28,6 +28,7 @@ const qualificationSchema = new mongoose.Schema({
   university: { type: String, default: '' },
   boardUniversity: { type: String, default: '' },
   yearOfPassing: { type: String, default: '' },
+  gradeType: { type: String, default: '' },
   percentageCGPA: { type: String, default: '' },
   division: { type: String, default: '' }, // First / Second / Third
   mode: { type: String, default: '' }, // Regular / Distance / Full time / Part time (Ph.D)
@@ -48,6 +49,7 @@ const eligibilityTestSchema = new mongoose.Schema({
   score: { type: String, default: '' },
   state: { type: String, default: '' }, // for SET/SLET
   fellowshipAgency: { type: String, default: '' },
+  validityStatus: { type: String, default: '' },
   documentUrl: { type: String, default: '' },
 }, { _id: false });
 
@@ -75,6 +77,7 @@ const publicationSchema = new mongoose.Schema({
   authors: { type: String, default: '' },
   authorRole: { type: String, default: '' }, // Principal / Co-Author
   journal: { type: String, default: '' }, // journal name / publisher / conference name
+  journalCategory: { type: String, default: '' },
   year: { type: String, default: '' },
   volume: { type: String, default: '' },
   issue: { type: String, default: '' },
@@ -100,6 +103,8 @@ const publicationSchema = new mongoose.Schema({
 const projectSchema = new mongoose.Schema({
   title: { type: String, default: '' },
   fundingAgency: { type: String, default: '' },
+  projectCategory: { type: String, default: '' },
+  fundingType: { type: String, default: '' },
   amountSanctioned: { type: String, default: '' },
   startDate: { type: String, default: '' },
   endDate: { type: String, default: '' },
@@ -115,6 +120,9 @@ const awardSchema = new mongoose.Schema({
   dateOfAward: { type: String, default: '' },
   yearReceived: { type: String, default: '' },
   level: { type: String, default: '' }, // International / National / State / University
+  awardCategory: { type: String, default: '' },
+  honourType: { type: String, default: '' },
+  recognitionStatus: { type: String, default: '' },
 }, { _id: false });
 
 // Section 9: Patents
@@ -123,6 +131,7 @@ const patentSchema = new mongoose.Schema({
   patentNumber: { type: String, default: '' },
   dateOfFiling: { type: String, default: '' },
   status: { type: String, default: '' }, // Filed / Published / Granted
+  patentType: { type: String, default: '' },
 }, { _id: false });
 
 // Section 11: Admin Responsibilities
@@ -158,6 +167,7 @@ const onlineCourseSchema = new mongoose.Schema({
   certificateId: { type: String, default: '' },
   certificateUrl: { type: String, default: '' },
   score: { type: String, default: '' },
+  courseLevel: { type: String, default: '' },
 }, { _id: false });
 
 // Section 13: Memberships
@@ -418,6 +428,9 @@ const studentDetailSchema = new mongoose.Schema({
   fellowship: { type: String, default: '' },
   degree: { type: String, default: '' }, // Ph.D. / M.Phil.
   status: { type: String, default: '' }, // Ongoing / Completed
+  scholarGender: { type: String, default: '' },
+  guidanceType: { type: String, default: '' },
+  supervisionCategory: { type: String, default: '' },
 }, { _id: false });
 
 const facultySchema = new mongoose.Schema({

@@ -1,7 +1,8 @@
-import { fg, inp, dateInp, FileInp } from './sectionUtils';
+import { fg, inp, dateInp, FileInp, sel } from './sectionUtils';
 import { useState } from 'react';
 import { Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, Edit2, ExternalLink } from 'lucide-react';
-import { departmentOptions, affiliatedUniversityOptions } from '../../shared/dropdownOptions';
+import { departmentOptions, affiliatedUniversityOptions, designationPostOptions, institutionTypeWorkOptions, natureOfAppointmentOptions, reasonForLeavingOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = {
   employeeId: '',
@@ -16,14 +17,6 @@ const EMPTY = {
   reasonForLeaving: '',
   documentUrl: '',
 };
-
-const designationOptions = ['Assistant Professor', 'Associate Professor', 'Professor', 'Lecturer', 'HOD'];
-const institutionTypeOptions = ['Government', 'Aided', 'Private', 'Deemed', 'Central University'];
-const natureOfAppointmentOptions = [
-  'Regular', 'Contract', 'Guest', 'Adjunct', 'Visiting',
-  'Assistant Professor', 'Associate Professor', 'Professor', 'Senior Professor'
-];
-const reasonForLeavingOptions = ['Better opportunity', 'Promotion', 'Resigned', 'Retired', 'Contract Completed', 'Other'];
 
 interface WorkExperienceEntry {
   employeeId?: string;
@@ -41,17 +34,7 @@ interface WorkExperienceEntry {
   dateOfConfirmation?: string;
 }
 
-const CustomSelect = ({ value, onChange, options, placeholder = '— Select —' }: { value: string; onChange: (v: string) => void; options: string[]; placeholder?: string }) => (
-  <select
-    className="form-select"
-    value={value || ''}
-    onChange={(e) => onChange(e.target.value)}
-    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#1e293b' }}
-  >
-    <option value="">{placeholder}</option>
-    {options.map((o: string) => <option key={o} value={o}>{o}</option>)}
-  </select>
-);
+const CustomSelect = ({ value, onChange, options, placeholder = '— Select —' }: { value: string; onChange: (v: string) => void; options: string[]; placeholder?: string }) => sel(value, onChange, options, placeholder);
 
 const getDurationText = (from: string, to?: string) => {
   if (!from) return '—';
@@ -89,6 +72,13 @@ const getDurationText = (from: string, to?: string) => {
 };
 
 export default function WorkExperience({ data, onChange }: { data: WorkExperienceEntry[]; onChange: (d: WorkExperienceEntry[]) => void }) {
+  const dynamicDepartmentOptions = useDropdownOptions(departmentOptions);
+  const dynamicAffiliatedUniversityOptions = useDropdownOptions(affiliatedUniversityOptions);
+  const dynamicDesignationPostOptions = useDropdownOptions(designationPostOptions);
+  const dynamicInstitutionTypeWorkOptions = useDropdownOptions(institutionTypeWorkOptions);
+  const dynamicNatureOfAppointmentOptions = useDropdownOptions(natureOfAppointmentOptions);
+  const dynamicReasonForLeavingOptions = useDropdownOptions(reasonForLeavingOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<WorkExperienceEntry>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
@@ -175,23 +165,23 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
     <>
       <div className="form-row form-row-2">
         {fg('Employee ID / Staff Code', inp(editingData.employeeId || '', v => updateField('employeeId', v)))}
-        {fg('Designation', <CustomSelect value={editingData.designation || ''} onChange={(v: string) => updateField('designation', v)} options={designationOptions} />)}
+        {fg('Designation', <CustomSelect value={editingData.designation || ''} onChange={(v: string) => updateField('designation', v)} options={dynamicDesignationPostOptions} />)}
       </div>
       <div className="form-row form-row-2">
-        {fg('Department', <CustomSelect value={editingData.department || ''} onChange={(v: string) => updateField('department', v)} options={departmentOptions} />)}
+        {fg('Department', <CustomSelect value={editingData.department || ''} onChange={(v: string) => updateField('department', v)} options={dynamicDepartmentOptions} />)}
         {fg('College / Institution Name', inp(editingData.institution || '', v => updateField('institution', v)))}
       </div>
       <div className="form-row form-row-2">
-        {fg('University Affiliated to', <CustomSelect value={editingData.affiliatedUniversity || ''} onChange={(v: string) => updateField('affiliatedUniversity', v)} options={affiliatedUniversityOptions} />)}
-        {fg('Type of Institution', <CustomSelect value={editingData.typeOfInstitution || ''} onChange={(v: string) => updateField('typeOfInstitution', v)} options={institutionTypeOptions} />)}
+        {fg('University Affiliated to', <CustomSelect value={editingData.affiliatedUniversity || ''} onChange={(v: string) => updateField('affiliatedUniversity', v)} options={dynamicAffiliatedUniversityOptions} />)}
+        {fg('Type of Institution', <CustomSelect value={editingData.typeOfInstitution || ''} onChange={(v: string) => updateField('typeOfInstitution', v)} options={dynamicInstitutionTypeWorkOptions} />)}
       </div>
       <div className="form-row form-row-3">
-        {fg('Nature of Appointment', <CustomSelect value={editingData.natureOfAppointment || ''} onChange={(v: string) => updateField('natureOfAppointment', v)} options={natureOfAppointmentOptions} />)}
+        {fg('Nature of Appointment', <CustomSelect value={editingData.natureOfAppointment || ''} onChange={(v: string) => updateField('natureOfAppointment', v)} options={dynamicNatureOfAppointmentOptions} />)}
         {fg('From Date', dateInp(editingData.from || '', v => updateField('from', v)))}
         {fg('To Date', dateInp(editingData.to || '', v => updateField('to', v)))}
       </div>
       <div className="form-row form-row-1">
-        {fg('Reason for Leaving', <CustomSelect value={editingData.reasonForLeaving || ''} onChange={(v: string) => updateField('reasonForLeaving', v)} options={reasonForLeavingOptions} />)}
+        {fg('Reason for Leaving', <CustomSelect value={editingData.reasonForLeaving || ''} onChange={(v: string) => updateField('reasonForLeaving', v)} options={dynamicReasonForLeavingOptions} />)}
       </div>
       <div className="form-group" style={{ marginTop: 15 }}>
         <label className="form-label" style={{ fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>

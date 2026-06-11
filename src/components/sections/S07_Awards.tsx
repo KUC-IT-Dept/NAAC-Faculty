@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, ta, FileInp } from './sectionUtils';
-import { awardLevelOptions } from '../../shared/dropdownOptions';
+import { awardLevelOptions, awardCategoryOptions, awardingAgencyTypeOptions, honourTypeOptions, recognitionStatusOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
-const EMPTY = { name: '', awardingAgency: '', dateOfAward: '', yearReceived: '', level: '', description: '', documentUrl: '' };
+const EMPTY = { name: '', awardingAgency: '', awardCategory: '', honourType: '', recognitionStatus: '', dateOfAward: '', yearReceived: '', level: '', description: '', documentUrl: '' };
 
 const currentYear = new Date().getFullYear();
 const YEAR_OPTS: string[] = [];
@@ -87,6 +87,9 @@ function AwardPreviewCard({
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Award Name" value={a.name} />
           <PreviewRow label="Awarding Agency" value={a.awardingAgency} />
+          <PreviewRow label="Award Category" value={a.awardCategory} />
+          <PreviewRow label="Honour Type" value={a.honourType} />
+          <PreviewRow label="Recognition Status" value={a.recognitionStatus} />
           <PreviewRow label="Date of Award" value={a.dateOfAward} />
           <PreviewRow label="Year Received" value={a.yearReceived} />
           <PreviewRow label="Level" value={a.level} />
@@ -107,6 +110,10 @@ function AwardPreviewCard({
 export default function Awards({ data, onChange, onPersist }: { data: any[]; onChange: (d: any[]) => void; onPersist?: (updatedAwards: any[]) => Promise<void> | void }) {
   // Reactive dropdown options
   const levels = useDropdownOptions(awardLevelOptions);
+  const dynamicAwardCategoryOptions = useDropdownOptions(awardCategoryOptions);
+  const dynamicAwardingAgencyTypeOptions = useDropdownOptions(awardingAgencyTypeOptions);
+  const dynamicHonourTypeOptions = useDropdownOptions(honourTypeOptions);
+  const dynamicRecognitionStatusOptions = useDropdownOptions(recognitionStatusOptions);
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
@@ -194,7 +201,12 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
             </div>
             <div className="form-row form-row-2">
               {fg('Award / Fellowship / Honour Name *', inp(pendingNewItem.name, v => setPendingNewItem({ ...pendingNewItem, name: v })))}
-              {fg('Awarding Body / Agency *', sel(pendingNewItem.awardingAgency, v => setPendingNewItem({ ...pendingNewItem, awardingAgency: v }), ['UGC', 'AICTE', 'DST', 'CSIR', 'ICMR']))}
+              {fg('Awarding Body / Agency *', sel(pendingNewItem.awardingAgency, v => setPendingNewItem({ ...pendingNewItem, awardingAgency: v }), dynamicAwardingAgencyTypeOptions, "Select..."))}
+            </div>
+            <div className="form-row form-row-3">
+              {fg('Award Category', sel(pendingNewItem.awardCategory, v => setPendingNewItem({ ...pendingNewItem, awardCategory: v }), dynamicAwardCategoryOptions, "Select..."))}
+              {fg('Honour Type', sel(pendingNewItem.honourType, v => setPendingNewItem({ ...pendingNewItem, honourType: v }), dynamicHonourTypeOptions, "Select..."))}
+              {fg('Recognition Status', sel(pendingNewItem.recognitionStatus, v => setPendingNewItem({ ...pendingNewItem, recognitionStatus: v }), dynamicRecognitionStatusOptions, "Select..."))}
             </div>
             <div className="form-row form-row-2">
               {fg('Date / Year of Award', <input type="date" value={pendingNewItem.dateOfAward} onChange={e => setPendingNewItem({ ...pendingNewItem, dateOfAward: e.target.value })} className="form-input" />)}
@@ -232,7 +244,12 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
                   </div>
                   <div className="form-row form-row-2">
                     {fg('Award / Fellowship / Honour Name *', inp(a.name, v => upd(originalIndex, 'name', v)))}
-                    {fg('Awarding Body / Agency *', sel(a.awardingAgency, v => upd(originalIndex, 'awardingAgency', v), ['UGC', 'AICTE', 'DST', 'CSIR', 'ICMR']))}
+                    {fg('Awarding Body / Agency *', sel(a.awardingAgency, v => upd(originalIndex, 'awardingAgency', v), dynamicAwardingAgencyTypeOptions, "Select..."))}
+                  </div>
+                  <div className="form-row form-row-3">
+                    {fg('Award Category', sel(a.awardCategory, v => upd(originalIndex, 'awardCategory', v), dynamicAwardCategoryOptions, "Select..."))}
+                    {fg('Honour Type', sel(a.honourType, v => upd(originalIndex, 'honourType', v), dynamicHonourTypeOptions, "Select..."))}
+                    {fg('Recognition Status', sel(a.recognitionStatus, v => upd(originalIndex, 'recognitionStatus', v), dynamicRecognitionStatusOptions, "Select..."))}
                   </div>
                   <div className="form-row form-row-2">
                     {fg('Date / Year of Award', <input type="date" value={a.dateOfAward} onChange={e => upd(originalIndex, 'dateOfAward', e.target.value)} className="form-input" />)}

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { fg, inp, sel, ta, yearSel } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { researchDegreeOptions, scholarGenderOptions, researchStatusOptions, guidanceTypeOptions, supervisionCategoryOptions } from '../../shared/dropdownOptions';
 
 const saveBtnStyle: React.CSSProperties = {
   padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
@@ -21,6 +23,12 @@ const NUM_OPTS_100 = Array.from({ length: 100 }, (_, i) => String(i + 1));
 const NUM_OPTS_10 = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
 export default function ResearchSupervision({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any) => Promise<void> | void }) {
+  const degrees = useDropdownOptions(researchDegreeOptions);
+  const statuses = useDropdownOptions(researchStatusOptions);
+  const genders = useDropdownOptions(scholarGenderOptions);
+  const guidanceTypes = useDropdownOptions(guidanceTypeOptions);
+  const categories = useDropdownOptions(supervisionCategoryOptions);
+
   const studentDetails = data.studentDetails || [];
 
   const persist = async (updated: any) => {
@@ -86,7 +94,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
 
   const addRow = () => {
     update('studentDetails', [
-      { studentName: '', topic: '', year: '', fellowship: '', degree: 'Ph.D.', status: 'Ongoing', isEditing: true },
+      { studentName: '', topic: '', year: '', fellowship: '', degree: 'Ph.D.', status: 'Ongoing', scholarGender: '', guidanceType: '', supervisionCategory: '', isEditing: true },
       ...studentDetails
     ]);
   };
@@ -147,12 +155,17 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                     </div>
                   </div>
 
-                  <div className="form-row form-row-1">
+                  <div className="form-row form-row-2">
                     {fg('Student Name *', inp(st.studentName, v => updStudent(i, 'studentName', v), 'Enter student name'))}
+                    {fg('Scholar Gender', sel(st.scholarGender, v => updStudent(i, 'scholarGender', v), genders, "Select..."))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Degree *', sel(st.degree || 'Ph.D.', v => updStudent(i, 'degree', v), ['Ph.D.', 'M.Phil.', 'P.D.F']))}
-                    {fg('Status *', sel(st.status || 'Ongoing', v => updStudent(i, 'status', v), ['Ongoing', 'Completed']))}
+                    {fg('Degree *', sel(st.degree || 'Ph.D.', v => updStudent(i, 'degree', v), degrees, "Select..."))}
+                    {fg('Status *', sel(st.status || 'Ongoing', v => updStudent(i, 'status', v), statuses, "Select..."))}
+                  </div>
+                  <div className="form-row form-row-2">
+                    {fg('Guidance Type', sel(st.guidanceType, v => updStudent(i, 'guidanceType', v), guidanceTypes, "Select..."))}
+                    {fg('Supervision Category', sel(st.supervisionCategory, v => updStudent(i, 'supervisionCategory', v), categories, "Select..."))}
                   </div>
                   <div className="form-row form-row-1">
                     {fg('Topic', inp(st.topic, v => updStudent(i, 'topic', v), 'Enter research topic'))}
@@ -179,6 +192,9 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                         {st.topic ? `Topic: ${st.topic}` : 'No topic'}
                         {st.year ? ` • Year: ${st.year}` : ''}
                         {st.fellowship ? ` • Fellowship: ${st.fellowship}` : ''}
+                        {st.scholarGender ? ` • Gender: ${st.scholarGender}` : ''}
+                        {st.guidanceType ? ` • Guidance: ${st.guidanceType}` : ''}
+                        {st.supervisionCategory ? ` • Category: ${st.supervisionCategory}` : ''}
                       </div>
                     </div>
                   </div>

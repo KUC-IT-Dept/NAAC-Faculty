@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, DropdownWithCustom } from './sectionUtils';
-import { publicationLevelOptions, peerReviewedStatusOptions } from '../../shared/dropdownOptions';
+import { publicationLevelOptions, peerReviewedStatusOptions, indexedInOptions, publicationTypeOptions, authorRoleOptions, journalCategoryOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 /* --- Types --- */
@@ -11,6 +11,7 @@ type Publication = {
   authors: string;
   authorRole: string;
   journal: string;
+  journalCategory: string;
   year: string;
   volume: string;
   issue: string;
@@ -34,7 +35,7 @@ type Publication = {
 };
 
 const EMPTY: Publication = {
-  type: 'Journal Articles', title: '', authors: '', authorRole: '', journal: '',
+  type: 'Journal Articles', title: '', authors: '', authorRole: '', journal: '', journalCategory: '',
   year: '', volume: '', issue: '', issn: '', isbn: '', pages: '',
   impactFactor: '', indexedIn: '', peerReviewed: '', doi: '', level: '',
   presentationType: '', venue: '', conferenceDates: '', documentUrl: '',
@@ -48,7 +49,6 @@ const PUB_TABS = [
   { id: 'Conference Papers', label: 'Conference Papers' },
 ];
 
-const INDEX_OPTS = ['SCI', 'Scopus', 'UGC-CARE', 'Web of Science', 'Others'];
 const BOOK_TYPES = ['Authored', 'Edited', 'Co-authored'];
 
 const currentYear = new Date().getFullYear();
@@ -60,11 +60,14 @@ const ISSUE_OPTS: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1))
 const PAGES_OPTS: string[] = ['1-5', '1-8', '1-10', '1-12', '1-15', '1-20', '100-110'];
 
 /* --- Form --- */
-function PubForm({ item, onChange, levels, yesNo }: {
+function PubForm({ item, onChange, levels, yesNo, indexedInOpts, authorRoleOpts, journalCategoryOpts }: {
   item: Publication;
   onChange: (k: keyof Publication, v: string) => void;
   levels: string[];
   yesNo: string[];
+  indexedInOpts: string[];
+  authorRoleOpts: string[];
+  journalCategoryOpts: string[];
 }) {
   const t = item.type;
 
@@ -85,7 +88,10 @@ function PubForm({ item, onChange, levels, yesNo }: {
               </select>
             )}
             {fg('Indexed In',
-              <DropdownWithCustom v={item.indexedIn} fn={v => onChange('indexedIn', v)} opts={INDEX_OPTS} ph="Select..." />
+              sel(item.indexedIn, v => onChange('indexedIn', v), indexedInOpts, "Select...")
+            )}
+            {fg('Journal Category',
+              sel(item.journalCategory, v => onChange('journalCategory', v), journalCategoryOpts, "Select...")
             )}
           </div>
           <div className="form-row form-row-4">
@@ -94,8 +100,9 @@ function PubForm({ item, onChange, levels, yesNo }: {
             {fg('Pages', <DropdownWithCustom v={item.pages} fn={v => onChange('pages', v)} opts={PAGES_OPTS} ph="Pages" />)}
             {fg('Impact Factor', inp(item.impactFactor, v => onChange('impactFactor', v)))}
           </div>
-          <div className="form-row form-row-2">
+          <div className="form-row form-row-3">
             {fg('Co-authors', inp(item.authors, v => onChange('authors', v)))}
+            {fg('Author Role', sel(item.authorRole, v => onChange('authorRole', v), authorRoleOpts, "Select..."))}
             {fg('DOI / Link', inp(item.doi, v => onChange('doi', v)))}
           </div>
         </>
@@ -257,6 +264,8 @@ function PreviewDetails({ p }: { p: Publication }) {
           <PreviewRow label="Indexed In" value={p.indexedIn} />
           <PreviewRow label="Impact Factor" value={p.impactFactor} />
           <PreviewRow label="Co-authors" value={p.authors} />
+          <PreviewRow label="Author Role" value={p.authorRole} />
+          <PreviewRow label="Journal Category" value={p.journalCategory} />
           <PreviewRow label="DOI / Link" value={p.doi} />
         </>
       )}
@@ -417,6 +426,10 @@ export default function Publications({
   // Reactive dropdown options
   const levels = useDropdownOptions(publicationLevelOptions);
   const yesNo = useDropdownOptions(peerReviewedStatusOptions);
+  const dynamicIndexedInOptions = useDropdownOptions(indexedInOptions);
+  const dynamicPublicationTypeOptions = useDropdownOptions(publicationTypeOptions);
+  const dynamicAuthorRoleOptions = useDropdownOptions(authorRoleOptions);
+  const dynamicJournalCategoryOptions = useDropdownOptions(journalCategoryOptions);
 
   const [pendingNewItem, setPendingNewItem] = useState<Publication | null>(null);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -506,7 +519,7 @@ export default function Publications({
               {fg('Publication Type *',
                 <select className="form-select" value={pendingNewItem.type} onChange={e => setPendingNewItem({ ...pendingNewItem, type: e.target.value })}>
                   <option value="">— Select Publication Type —</option>
-                  {PUB_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
+                  {dynamicPublicationTypeOptions.map(tab => <option key={tab} value={tab}>{tab}</option>)}
                 </select>
               )}
             </div>
@@ -516,6 +529,9 @@ export default function Publications({
               onChange={(k, v) => setPendingNewItem({ ...pendingNewItem, [k]: v })} 
               levels={levels}
               yesNo={yesNo}
+              indexedInOpts={dynamicIndexedInOptions}
+              authorRoleOpts={dynamicAuthorRoleOptions}
+              journalCategoryOpts={dynamicJournalCategoryOptions}
             />
           </div>
         )}
@@ -554,12 +570,12 @@ export default function Publications({
                     {fg('Publication Type *',
                       <select className="form-select" value={p.type} onChange={e => upd(i, 'type', e.target.value)}>
                         <option value="">— Select Publication Type —</option>
-                        {PUB_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
+                        {dynamicPublicationTypeOptions.map(tab => <option key={tab} value={tab}>{tab}</option>)}
                       </select>
                     )}
                   </div>
 
-                  <PubForm item={p} onChange={(k, v) => upd(i, k, v)} levels={levels} yesNo={yesNo} />
+                  <PubForm item={p} onChange={(k, v) => upd(i, k, v)} levels={levels} yesNo={yesNo} indexedInOpts={dynamicIndexedInOptions} authorRoleOpts={dynamicAuthorRoleOptions} journalCategoryOpts={dynamicJournalCategoryOptions} />
                 </>
               ) : (
                 <PreviewCard

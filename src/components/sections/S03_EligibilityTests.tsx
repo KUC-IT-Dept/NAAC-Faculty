@@ -2,6 +2,8 @@
 import { Plus, Trash2, Edit2, CheckCircle, ChevronDown, ChevronUp, Check, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { fg, sel, yearSel, FileInp } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions } from '../../shared/dropdownOptions';
 
 /* ─── Constants ─────────────────────────────────────────── */
 
@@ -13,6 +15,7 @@ const EMPTY = {
   state: '',
   score: '',
   fellowshipAgency: '',
+  validityStatus: '',
   documentUrl: '',
 };
 
@@ -71,6 +74,11 @@ const cancelBtnStyle: React.CSSProperties = {
 
 /* ─── Component ─────────────────────────────────────────── */
 export default function EligibilityTests({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const dynamicExamNameOptions = useDropdownOptions(examNameOptions);
+  const dynamicSubjectPaperOptions = useDropdownOptions(subjectPaperOptions);
+  const dynamicStateForSetOptions = useDropdownOptions(stateForSetOptions);
+  const dynamicValidityStatusOptions = useDropdownOptions(validityStatusOptions);
+  
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
@@ -126,14 +134,17 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
       <div className="form-row form-row-2">
         {fg('Eligibility Test *',
           sel(editingData.examName, v => { upd('examName', v); upd('subject', ''); upd('state', ''); },
-            ['NET', 'SET / SLET', 'GATE', 'JRF'])
+            dynamicExamNameOptions)
         )}
         {fg('Year', yearSel(editingData.year, v => upd('year', v)))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Validity Status', sel(editingData.validityStatus, v => upd('validityStatus', v), dynamicValidityStatusOptions))}
       </div>
 
       {editingData.examName === 'NET' && (
         <div className="form-row form-row-2">
-          {fg('Subject', sel(editingData.subject, v => upd('subject', v), SUBJECT_OPTIONS))}
+          {fg('Subject', sel(editingData.subject, v => upd('subject', v), dynamicSubjectPaperOptions))}
           {fg('Certificate No.', (
             <input className="form-input" value={editingData.certificateNo || ''} onChange={e => upd('certificateNo', e.target.value)} placeholder="Certificate number" />
           ))}
@@ -142,8 +153,8 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
 
       {editingData.examName === 'SET / SLET' && (
         <div className="form-row form-row-2">
-          {fg('Subject', sel(editingData.subject, v => upd('subject', v), SUBJECT_OPTIONS))}
-          {fg('State', sel(editingData.state, v => upd('state', v), INDIAN_STATES))}
+          {fg('Subject', sel(editingData.subject, v => upd('subject', v), dynamicSubjectPaperOptions))}
+          {fg('State', sel(editingData.state, v => upd('state', v), dynamicStateForSetOptions))}
         </div>
       )}
 
@@ -284,6 +295,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                 <div style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
                   {renderPreview('Eligibility Test', e.examName)}
                   {renderPreview('Year', e.year)}
+                  {renderPreview('Validity Status', e.validityStatus)}
                   {(e.examName === 'NET' || e.examName === 'SET / SLET') && renderPreview('Subject', e.subject)}
                   {e.examName === 'NET' && renderPreview('Certificate No.', e.certificateNo)}
                   {e.examName === 'SET / SLET' && renderPreview('State', e.state)}

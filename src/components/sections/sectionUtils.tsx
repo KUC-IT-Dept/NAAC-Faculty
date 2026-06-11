@@ -21,12 +21,75 @@ export const dateInp = (v: string, fn: (s: string) => void) => (
   <input className="form-input" type="date" value={v || ''} onChange={e => fn(e.target.value)} />
 );
 
+/** Requestable Select handles + Other requests */
+export const RequestableSelect = ({ v, fn, opts, ph = '— Select —' }: { v: string, fn: (s: string) => void, opts: string[], ph?: string }) => {
+  const [isCustom, setIsCustom] = useState(false);
+  const [customValue, setCustomValue] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const dropdownKey = (opts as any).dropdownKey;
+
+  const handleSubmit = async () => {
+    if (!customValue.trim()) return;
+    if (dropdownKey) {
+      setSubmitting(true);
+      try {
+        await api.post('/faculty/requests', { 
+          dropdownKey, 
+          requestedValue: customValue.trim(),
+          previousValue: v || '' 
+        });
+        toast.success('Request sent for approval. You can continue saving.');
+      } catch (err) {
+        toast.error('Failed to submit request');
+        setSubmitting(false);
+        return;
+      }
+      setSubmitting(false);
+    }
+    fn(customValue.trim());
+    setIsCustom(false);
+  };
+
+  // If a value is selected that is not in the options and not empty, it means it's a custom value (maybe pending approval).
+  // We should still display it.
+  const isValueNotInOptions = v && !opts.includes(v);
+
+  if (isCustom) {
+    return (
+      <div style={{ display: 'flex', gap: 4 }}>
+        <input className="form-input" value={customValue} onChange={e => setCustomValue(e.target.value)} placeholder="Type custom value..." />
+        <button type="button" onClick={handleSubmit} disabled={submitting} style={{ background: 'var(--primary, #2563eb)', color: 'white', border: 'none', padding: '0 12px', borderRadius: 4, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+          {submitting ? '...' : 'Add'}
+        </button>
+        <button type="button" onClick={() => { setIsCustom(false); setCustomValue(''); }} style={{ background: '#f1f5f9', color: '#64748b', border: 'none', padding: '0 8px', borderRadius: 4, cursor: 'pointer' }}>
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <select className="form-select" value={isValueNotInOptions ? 'CUSTOM_VAL' : (v || '')} onChange={e => {
+      if (e.target.value === 'CUSTOM_ADD') {
+        setIsCustom(true);
+        setCustomValue('');
+      } else if (e.target.value === 'CUSTOM_VAL') {
+        // Do nothing, just re-selecting the custom value
+      } else {
+        fn(e.target.value);
+      }
+    }}>
+      <option value="">{ph}</option>
+      {opts.map(o => <option key={o} value={o}>{o}</option>)}
+      {isValueNotInOptions && <option value="CUSTOM_VAL">{v} (Pending/Custom)</option>}
+      {dropdownKey && <option value="CUSTOM_ADD" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>+ Add Other...</option>}
+    </select>
+  );
+};
+
 /** Select */
-export const sel = (v: string, fn: (s: string) => void, opts: string[]) => (
-  <select className="form-select" value={v || ''} onChange={e => fn(e.target.value)}>
-    <option value="">— Select —</option>
-    {opts.map(o => <option key={o} value={o}>{o}</option>)}
-  </select>
+export const sel = (v: string, fn: (s: string) => void, opts: string[], ph?: string) => (
+  <RequestableSelect v={v} fn={fn} opts={opts} ph={ph} />
 );
 
 /** Year dropdown */

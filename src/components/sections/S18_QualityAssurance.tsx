@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel, ta } from './sectionUtils';
-import { qualityAssuranceOptions } from '../../shared/dropdownOptions';
+import { qualityAssuranceOptions, semesterTypeOptions, responsibilityStatusOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY_RESPONSIBILITY: Record<string, string> = {
@@ -75,6 +75,8 @@ function getChargeSubtitle(r: any): string {
 /** Renders the charge-specific form fields */
 function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string, v: string) => void }) {
   const charge = (item.administrativeCharge || '').toLowerCase();
+  const semesterOpts = (item as any)._semesterOpts || [];
+  const statusOpts = (item as any)._statusOpts || [];
 
   if (charge.includes('director iqac')) {
     return (
@@ -110,7 +112,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
         </div>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {fg('Evidence Available', sel(item.evidenceAvailable, v => setVal('evidenceAvailable', v), ['Yes', 'No', 'Partial']))}
-          {fg('Status', sel(item.status, v => setVal('status', v), ['Ongoing', 'Completed']))}
+          {fg('Status', sel(item.status, v => setVal('status', v), statusOpts, "Select..."))}
         </div>
       </>
     );
@@ -199,7 +201,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
       <>
         <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
           {fg('Academic Year', inp(item.academicYear, v => setVal('academicYear', v), 'e.g. 2023-2024'))}
-          {fg('Semester', inp(item.semester, v => setVal('semester', v), 'Enter semester'))}
+          {fg('Semester', sel(item.semester, v => setVal('semester', v), semesterOpts, "Select..."))}
           {fg('Feedback Type', inp(item.feedbackType, v => setVal('feedbackType', v), 'Enter feedback type'))}
         </div>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -226,7 +228,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
         {fg('Description', ta(item.description, v => setVal('description', v), 'Describe the responsibility', 2))}
       </div>
       <div className="form-row form-row-1">
-        {fg('Status', sel(item.status, v => setVal('status', v), ['Ongoing', 'Completed']))}
+        {fg('Status', sel(item.status, v => setVal('status', v), statusOpts, "Select..."))}
       </div>
     </>
   );
@@ -430,6 +432,8 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
 
   // Reactive dropdown options
   const qualityAssuranceOpts = useDropdownOptions(qualityAssuranceOptions);
+  const semesterOpts = useDropdownOptions(semesterTypeOptions);
+  const statusOpts = useDropdownOptions(responsibilityStatusOptions);
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
@@ -479,7 +483,7 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
         </div>
         {item.administrativeCharge && (
           <>
-            <ChargeSpecificFields item={item} setVal={setVal} />
+            <ChargeSpecificFields item={{...item, _semesterOpts: semesterOpts, _statusOpts: statusOpts}} setVal={setVal} />
             <CommonFields item={item} setVal={setVal} />
           </>
         )}

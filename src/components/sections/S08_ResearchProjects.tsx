@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { fg, inp, sel } from './sectionUtils';
-import { fundingAgencyOptions, projectStatusOptions, roleInProjectOptions } from '../../shared/dropdownOptions';
+import { fundingAgencyOptions, projectStatusOptions, roleInProjectOptions, projectCategoryOptions, fundingTypeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = { 
   title: '', 
   fundingAgency: '', 
+  projectCategory: '',
+  fundingType: '',
   amountSanctioned: '', 
   startDate: '', 
   endDate: '', 
@@ -26,6 +28,8 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
   const fundingAgencies = useDropdownOptions(fundingAgencyOptions);
   const statuses = useDropdownOptions(projectStatusOptions);
   const roles = useDropdownOptions(roleInProjectOptions);
+  const categories = useDropdownOptions(projectCategoryOptions);
+  const fundingTypes = useDropdownOptions(fundingTypeOptions);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
 
@@ -88,17 +92,19 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
       <>
         <div className="form-row form-row-2">
           {fg('Project Title *', inp(item.title, v => setVal('title', v), 'Project title...'))}
-          {fg('Project Reference Number', inp(item.referenceNumber, v => setVal('referenceNumber', v), 'e.g. PRJ-2023-01'))}
+          {fg('Project Category', sel(item.projectCategory, v => setVal('projectCategory', v), categories, "Select..."))}
         </div>
         <div className="form-row form-row-2">
-          {fg('Funding Agency *', sel(item.fundingAgency, v => setVal('fundingAgency', v), fundingAgencies))}
-          {fg('Role', sel(item.role, v => setVal('role', v), roles))}
+          {fg('Funding Agency *', sel(item.fundingAgency, v => setVal('fundingAgency', v), fundingAgencies, "Select..."))}
+          {fg('Funding Type', sel(item.fundingType, v => setVal('fundingType', v), fundingTypes, "Select..."))}
         </div>
-        <div className="form-row form-row-2">
+        <div className="form-row form-row-3">
+          {fg('Role', sel(item.role, v => setVal('role', v), roles, "Select..."))}
           {fg('Sanctioned Amount (₹)', inp(item.amountSanctioned, v => setVal('amountSanctioned', v), 'e.g. 5,00,000'))}
-          {fg('Status', sel(item.status, v => setVal('status', v), statuses))}
+          {fg('Status', sel(item.status, v => setVal('status', v), statuses, "Select..."))}
         </div>
-        <div className="form-row form-row-2">
+        <div className="form-row form-row-3">
+          {fg('Project Reference Number', inp(item.referenceNumber, v => setVal('referenceNumber', v), 'e.g. PRJ-2023-01'))}
           {fg('Duration (From)', <input type="date" className="form-input" value={item.startDate || ''} onChange={e => setVal('startDate', e.target.value)} />)}
           {fg('Duration (To)', <input type="date" className="form-input" value={item.endDate || ''} onChange={e => setVal('endDate', e.target.value)} />)}
         </div>
@@ -171,7 +177,9 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
                 <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                   <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', whiteSpace: 'nowrap' }}>SR. NO.</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569' }}>Project Title</th>
+                  <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569' }}>Category</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569' }}>Funding Agency</th>
+                  <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569' }}>Funding Type</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569' }}>Role</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', whiteSpace: 'nowrap' }}>Sanctioned Amount (₹)</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', whiteSpace: 'nowrap' }}>Duration (From – To)</th>
@@ -187,7 +195,9 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
                     <tr key={i} style={{ borderBottom: i !== sortedData.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
                       <td style={{ padding: '12px 16px', color: '#64748b' }}>{i + 1}</td>
                       <td style={{ padding: '12px 16px', color: '#0f172a', fontWeight: 600, minWidth: '150px' }}>{p.title || '—'}</td>
+                      <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.projectCategory || '—'}</td>
                       <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.fundingAgency || '—'}</td>
+                      <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.fundingType || '—'}</td>
                       <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.role || '—'}</td>
                       <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>{p.amountSanctioned ? `₹${p.amountSanctioned}` : '—'}</td>
                       <td style={{ padding: '12px 16px', color: '#334155', whiteSpace: 'nowrap' }}>

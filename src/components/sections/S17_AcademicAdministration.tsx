@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel } from './sectionUtils';
-import { academicAdminOptions } from '../../shared/dropdownOptions';
+import { academicAdminOptions, academicSessionTypeOptions, responsibilityStatusOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const BOS_CHARGES = [
@@ -171,7 +171,7 @@ function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (it
       return (
         <>
           {fg('Department / Program', inp(item.departmentProgram, v => set('departmentProgram', v)))}
-          {fg('Academic Session', inp(item.academicSession, v => set('academicSession', v), 'e.g. 2024–25 Odd Semester'))}
+          {fg('Academic Session', sel(item.academicSession, v => set('academicSession', v), (item as any)._sessionOpts || [], "Select..."))}
           {appointmentDate}
           <TenureFields item={item} onChange={onChange} />
           {remarks}
@@ -306,6 +306,8 @@ function ResponsibilityEditor({
   onCancel: () => void;
   onSave: () => void;
   title: string;
+  sessionOpts?: string[];
+  statusOpts?: string[];
 }) {
   const academicAdminOpts = useDropdownOptions(academicAdminOptions);
 
@@ -334,12 +336,15 @@ function ResponsibilityEditor({
       <div className="form-row form-row-1">
         {fg('Administrative Charge *', sel(item.administrativeCharge, handleChargeChange, academicAdminOpts))}
       </div>
-      <ResponsibilityFormFields item={item} onChange={onChange} />
+      <ResponsibilityFormFields item={{...item, _sessionOpts: sessionOpts, _statusOpts: statusOpts}} onChange={onChange} />
     </>
   );
 }
 
 export default function AcademicAdministration({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+  const sessionOpts = useDropdownOptions(academicSessionTypeOptions);
+  const statusOpts = useDropdownOptions(responsibilityStatusOptions);
+
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
@@ -387,6 +392,8 @@ export default function AcademicAdministration({ data, onChange }: { data: any; 
                 onCancel={() => setPending(null)}
                 onSave={() => handleSavePending(pending)}
                 title="New Responsibility"
+                sessionOpts={sessionOpts}
+                statusOpts={statusOpts}
               />
             </div>
           )}
@@ -402,6 +409,8 @@ export default function AcademicAdministration({ data, onChange }: { data: any; 
                     onCancel={() => setEditingIndex(null)}
                     onSave={() => setEditingIndex(null)}
                     title="Editing Responsibility"
+                    sessionOpts={sessionOpts}
+                    statusOpts={statusOpts}
                   />
                 ) : (
                   <RespPreviewCard

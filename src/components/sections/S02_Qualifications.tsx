@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, prefer-const */
 import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, FileInp } from './sectionUtils';
+import { fg, inp, FileInp, sel } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { degreeLevelOptions, divisionOptions, studyModeOptions, countryOptions, stateOptions, degreeNameOptions, specializationOptions, gradeTypeOptions } from '../../shared/dropdownOptions';
 
 const EMPTY = {
   degreeLevel: '',
@@ -11,6 +13,7 @@ const EMPTY = {
   university: '',
   yearOfPassing: '',
   percentageCGPA: '',
+  gradeType: '',
   division: '',
   mode: '',
   country: '',
@@ -180,6 +183,15 @@ const parseCountryState = (countryAndState: string) => {
 };
 
 export default function Qualifications({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const dynamicDegreeLevelOptions = useDropdownOptions(degreeLevelOptions);
+  const dynamicDivisionOptions = useDropdownOptions(divisionOptions);
+  const dynamicStudyModeOptions = useDropdownOptions(studyModeOptions);
+  const dynamicCountryOptions = useDropdownOptions(countryOptions);
+  const dynamicStateOptions = useDropdownOptions(stateOptions);
+  const dynamicDegreeNameOptions = useDropdownOptions(degreeNameOptions);
+  const dynamicSpecializationOptions = useDropdownOptions(specializationOptions);
+  const dynamicGradeTypeOptions = useDropdownOptions(gradeTypeOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
@@ -193,17 +205,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
 
 
 
-  const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
-    <select
-      className="form-select"
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#1e293b' }}
-    >
-      <option value="">{placeholder}</option>
-      {options.map((o: string) => <option key={o} value={o}>{o}</option>)}
-    </select>
-  );
+  const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => sel(value, onChange, options, placeholder);
 
   const startEdit = (index: number) => {
     const item = sortedData[index] || {};
@@ -249,6 +251,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             : editingData.country || '',
           university: '',
           percentageCGPA: '',
+          gradeType: '',
           division: '',
         }
       : {
@@ -320,7 +323,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             {fg('Qualification Level *', <CustomSelect
               value={editingData.degreeLevel}
               onChange={(v: string) => updateEditingData('degreeLevel', v)}
-              options={QUALIFICATION_LEVELS}
+              options={dynamicDegreeLevelOptions}
             />)}
           </div>
 
@@ -359,7 +362,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 <CustomSelect
                   value={editingData.country}
                   onChange={(v: string) => updateEditingData('country', v)}
-                  options={COUNTRY_OPTIONS}
+                  options={dynamicCountryOptions}
                   placeholder="Select Country"
                 />
                 <CustomSelect
@@ -395,10 +398,20 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           {fg('Qualification Level *', <CustomSelect
             value={editingData.degreeLevel}
             onChange={(v: string) => updateEditingData('degreeLevel', v)}
-            options={QUALIFICATION_LEVELS}
+            options={dynamicDegreeLevelOptions}
           />)}
-          {showName && fg('Degree / Qualification Name', inp(editingData.degreeName, v => updateEditingData('degreeName', v), 'e.g., B.Sc / M.Tech'))}
-          {showSpec && fg('Specialization / Subject', inp(editingData.specialization, v => updateEditingData('specialization', v), 'e.g., Computer Science'))}
+          {showName && fg('Degree / Qualification Name', <CustomSelect
+            value={editingData.degreeName}
+            onChange={(v: string) => updateEditingData('degreeName', v)}
+            options={dynamicDegreeNameOptions}
+            placeholder="Select Degree Name"
+          />)}
+          {showSpec && fg('Specialization / Subject', <CustomSelect
+            value={editingData.specialization}
+            onChange={(v: string) => updateEditingData('specialization', v)}
+            options={dynamicSpecializationOptions}
+            placeholder="Select Specialization"
+          />)}
         </div>
 
         <div className="form-row form-row-2">
@@ -418,16 +431,22 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             options={YEAR_OPTIONS}
             placeholder="Select Year"
           />)}
-          {fg('Percentage / CGPA', inp(editingData.percentageCGPA, v => updateEditingData('percentageCGPA', v), '85% / 8.5'))}
+          {fg('Grade Type', <CustomSelect
+            value={editingData.gradeType}
+            onChange={(v: string) => updateEditingData('gradeType', v)}
+            options={dynamicGradeTypeOptions}
+            placeholder="Select Grade Type"
+          />)}
+          {fg('Score (Percentage / CGPA)', inp(editingData.percentageCGPA, v => updateEditingData('percentageCGPA', v), '85 / 8.5'))}
           {fg('Division', <CustomSelect
             value={editingData.division}
             onChange={(v: string) => updateEditingData('division', v)}
-            options={DIVISION_OPTIONS}
+            options={dynamicDivisionOptions}
           />)}
           {fg('Mode', <CustomSelect
             value={editingData.mode}
             onChange={(v: string) => updateEditingData('mode', v)}
-            options={MODE_OPTIONS}
+            options={dynamicStudyModeOptions}
           />)}
         </div>
 
@@ -435,7 +454,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           {fg('Country', <CustomSelect
             value={editingData.country}
             onChange={(v: string) => updateEditingData('country', v)}
-            options={COUNTRY_OPTIONS}
+            options={dynamicCountryOptions}
             placeholder="Select Country"
           />)}
           {fg('State', <CustomSelect
@@ -499,7 +518,8 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
         {renderPreview('Institution / University Name', q.institution)}
         {renderPreview('Board / University', q.university)}
         {renderPreview('Year of Passing', q.yearOfPassing)}
-        {renderPreview('Percentage / CGPA', q.percentageCGPA)}
+        {renderPreview('Grade Type', q.gradeType)}
+        {renderPreview('Score (Percentage / CGPA)', q.percentageCGPA)}
         {renderPreview('Division', q.division)}
         {renderPreview('Mode', q.mode)}
         {renderPreview('Country', q.country)}

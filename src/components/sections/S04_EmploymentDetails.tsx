@@ -1,7 +1,8 @@
-import { fg, inp, dateInp, FileInp } from './sectionUtils';
+import { fg, inp, dateInp, FileInp, sel } from './sectionUtils';
 import { useState, useRef } from 'react';
 import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, ExternalLink, FileText } from 'lucide-react';
-import { departmentOptions, affiliatedUniversityOptions, payScaleOptions } from '../../shared/dropdownOptions';
+import { departmentOptions, affiliatedUniversityOptions, payScaleOptions, designationOptions, institutionTypeOptions, approvalStatusOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
 const EMPTY = {
   employeeId: '',
@@ -13,6 +14,7 @@ const EMPTY = {
   natureOfAppointment: '',
   dateOfJoining: '',
   dateOfConfirmation: '',
+  approvalOfAppointment: '',
   payBand: '',
   bankAccountDetails: '',
   pfNumber: '',
@@ -26,8 +28,7 @@ const EMPTY = {
   branchName: ''
 };
 
-const designationOptionsCustom = ['Assistant Professor', 'Associate Professor', 'Professor'];
-const institutionTypeOptionsCustom = ['Government', 'Aided', 'Private', 'Deemed', 'Central University'];
+// Options removed since they are now dynamic
 const natureOfAppointmentOptionsCustom = [
   'Regular',
   'Contract',
@@ -62,19 +63,16 @@ const parseBankDetails = (str: string) => {
   };
 };
 
-const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
-  <select
-    className="form-select"
-    value={value || ''}
-    onChange={(e) => onChange(e.target.value)}
-    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#1e293b' }}
-  >
-    <option value="">{placeholder}</option>
-    {options.map((o: string) => <option key={o} value={o}>{o}</option>)}
-  </select>
-);
+const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => sel(value, onChange, options, placeholder);
 
 export default function EmploymentDetails({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+  const dynamicDepartmentOptions = useDropdownOptions(departmentOptions);
+  const dynamicAffiliatedUniversityOptions = useDropdownOptions(affiliatedUniversityOptions);
+  const dynamicPayScaleOptions = useDropdownOptions(payScaleOptions);
+  const dynamicDesignationOptions = useDropdownOptions(designationOptions);
+  const dynamicInstitutionTypeOptions = useDropdownOptions(institutionTypeOptions);
+  const dynamicApprovalStatusOptions = useDropdownOptions(approvalStatusOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(-1);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
@@ -101,7 +99,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
     const keysToCheck = [
       'employeeId', 'designation', 'department', 'institution',
       'affiliatedUniversity', 'typeOfInstitution', 'natureOfAppointment',
-      'dateOfJoining', 'dateOfConfirmation', 'payBand', 'pfNumber',
+      'dateOfJoining', 'dateOfConfirmation', 'approvalOfAppointment', 'payBand', 'pfNumber',
       'serviceBookNumber', 'from', 'to',
       'documentUrl', 'bankName', 'accountNumber', 'ifscCode', 'branchName'
     ];
@@ -199,14 +197,14 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Designation', <CustomSelect
           value={editingData.designation}
           onChange={(v: string) => updateEditingData('designation', v)}
-          options={designationOptionsCustom}
+          options={dynamicDesignationOptions}
         />)}
       </div>
       <div className="form-row form-row-2">
         {fg('Department', <CustomSelect
           value={editingData.department}
           onChange={(v: string) => updateEditingData('department', v)}
-          options={departmentOptions}
+          options={dynamicDepartmentOptions}
         />)}
         {fg('College / Institution Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
       </div>
@@ -214,12 +212,12 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('University Affiliated to', <CustomSelect
           value={editingData.affiliatedUniversity}
           onChange={(v: string) => updateEditingData('affiliatedUniversity', v)}
-          options={affiliatedUniversityOptions}
+          options={dynamicAffiliatedUniversityOptions}
         />)}
         {fg('Type of Institution', <CustomSelect
           value={editingData.typeOfInstitution}
           onChange={(v: string) => updateEditingData('typeOfInstitution', v)}
-          options={institutionTypeOptionsCustom}
+          options={dynamicInstitutionTypeOptions}
         />)}
       </div>
 
@@ -232,11 +230,16 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
         {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v)))}
         {fg('Date of Confirmation / Regularization', dateInp(editingData.dateOfConfirmation, v => updateEditingData('dateOfConfirmation', v)))}
       </div>
-      <div className="form-row form-row-1">
+      <div className="form-row form-row-2">
+        {fg('Approval of Appointment', <CustomSelect
+          value={editingData.approvalOfAppointment}
+          onChange={(v: string) => updateEditingData('approvalOfAppointment', v)}
+          options={dynamicApprovalStatusOptions}
+        />)}
         {fg('Pay Band / Pay Scale / CTC', <CustomSelect
           value={editingData.payBand}
           onChange={(v: string) => updateEditingData('payBand', v)}
-          options={payScaleOptions}
+          options={dynamicPayScaleOptions}
         />)}
       </div>
 
@@ -444,6 +447,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
                     {renderPreview('Nature of Appointment', e.natureOfAppointment)}
                     {renderPreview('Date of Joining', e.dateOfJoining)}
                     {renderPreview('Date of Confirmation', e.dateOfConfirmation)}
+                    {renderPreview('Approval of Appointment', e.approvalOfAppointment)}
                     {renderPreview('Pay Band / Pay Scale / CTC', e.payBand)}
                     {(() => {
                       const bankInfo = parseBankDetails(e.bankAccountDetails);

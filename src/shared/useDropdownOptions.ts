@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { optionArrays } from './dropdownOptions';
 
 /**
  * useDropdownOptions
@@ -27,5 +28,16 @@ export function useDropdownOptions(optionArray: string[]): string[] {
     return () => window.removeEventListener('dropdownOptionsUpdated', handleUpdate);
   }, [optionArray]);
 
-  return options;
+  let dropdownKey = '';
+  for (const [k, arr] of Object.entries(optionArrays)) {
+    if (arr === optionArray) {
+      dropdownKey = k;
+      break;
+    }
+  }
+
+  const result = [...options];
+  (result as any).dropdownKey = dropdownKey;
+
+  return result;
 }
