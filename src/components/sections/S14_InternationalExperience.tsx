@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
-import { countryVisitOptions, purposeOfVisitOptions } from '../../shared/dropdownOptions';
+import { countryVisitOptions, purposeOfVisitOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY = { country: '', purpose: '', institution: '', from: '', to: '', fundingSource: '' };
 
@@ -75,6 +76,7 @@ export default function InternationalExperience({ data, onChange }: { data: any[
   // Reactive dropdown options
   const countryOpts = useDropdownOptions(countryVisitOptions);
   const purposeOpts = useDropdownOptions(purposeOfVisitOptions);
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
@@ -138,7 +140,7 @@ export default function InternationalExperience({ data, onChange }: { data: any[
               {fg('Visited Country *', sel(pendingNewItem.country, v => setPendingNewItem({ ...pendingNewItem, country: v }), countryOpts))}
               {fg('Purpose *', sel(pendingNewItem.purpose, v => setPendingNewItem({ ...pendingNewItem, purpose: v }), purposeOpts))}
             </div>
-            {fg('Institution / University *', inp(pendingNewItem.institution, v => setPendingNewItem({ ...pendingNewItem, institution: v })))}
+            {fg('Institution / University *', <SearchableSelect value={pendingNewItem.institution || ''} onChange={(v: string) => setPendingNewItem({ ...pendingNewItem, institution: v })} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
             <div className="form-row form-row-3">
               {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
               {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
@@ -168,7 +170,7 @@ export default function InternationalExperience({ data, onChange }: { data: any[
                     {fg('Visited Country *', sel(item.country, v => upd(i, 'country', v), countryOpts))}
                     {fg('Purpose *', sel(item.purpose, v => upd(i, 'purpose', v), purposeOpts))}
                   </div>
-                  {fg('Institution / University *', inp(item.institution, v => upd(i, 'institution', v)))}
+                  {fg('Institution / University *', <SearchableSelect value={item.institution || ''} onChange={(v: string) => upd(i, 'institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
                   <div className="form-row form-row-3">
                     {fg('From Date *', dateInp(item.from, v => upd(i, 'from', v)))}
                     {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}

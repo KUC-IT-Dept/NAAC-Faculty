@@ -1,8 +1,9 @@
 import { fg, inp, dateInp, FileInp, sel } from './sectionUtils';
 import { useState } from 'react';
 import { Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, Edit2, ExternalLink } from 'lucide-react';
-import { departmentOptions, affiliatedUniversityOptions, designationPostOptions, institutionTypeWorkOptions, natureOfAppointmentOptions, reasonForLeavingOptions } from '../../shared/dropdownOptions';
+import { departmentOptions, affiliatedUniversityOptions, designationPostOptions, institutionTypeWorkOptions, natureOfAppointmentOptions, reasonForLeavingOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY = {
   employeeId: '',
@@ -82,6 +83,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<WorkExperienceEntry>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   const dataArray = (Array.isArray(data) ? data : []).filter(Boolean);
 
@@ -169,7 +171,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
       </div>
       <div className="form-row form-row-2">
         {fg('Department', <CustomSelect value={editingData.department || ''} onChange={(v: string) => updateField('department', v)} options={dynamicDepartmentOptions} />)}
-        {fg('College / Institution Name', inp(editingData.institution || '', v => updateField('institution', v)))}
+        {fg('College / Institution Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateField('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
       </div>
       <div className="form-row form-row-2">
         {fg('University Affiliated to', <CustomSelect value={editingData.affiliatedUniversity || ''} onChange={(v: string) => updateField('affiliatedUniversity', v)} options={dynamicAffiliatedUniversityOptions} />)}

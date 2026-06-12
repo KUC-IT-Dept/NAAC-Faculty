@@ -1,4 +1,5 @@
 // Type declarations for dropdownOptions.js
+export declare const institutionsOptions: string[];
 export declare const genderOptions: string[];
 export declare const bloodGroupOptions: string[];
 export declare const nationalityOptions: string[];
