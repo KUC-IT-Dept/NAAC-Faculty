@@ -56,29 +56,39 @@ const getMyProfile = async (req, res) => {
 
 /** PUT /api/profile/me */
 const updateMyProfile = async (req, res) => {
-  const {
-    name, bio, headline, photo, subjects, workExperiences, qualifications, publications,
-    projects, internshipAndProjects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests,
-    internationalExperiences, professionalMemberships, trainings, onlineCoursesCertifications,
-    dob, gender, phoneNumber, address,
-    mobileNumber, alternatePhone, officialEmail, personalEmail, aadhaar, passport, nationality, stateCity, permanentAddress, currentAddress, religion, category, subCategory, differentlyAbled, maritalStatus, spouse, emergencyContact, panNumber, bloodGroup
-  } = req.body;
   try {
+    const body = req.body || {};
     // Update User document if name is provided
-    if (name || photo) {
-      await User.findByIdAndUpdate(req.user.id, { name, photo }, { runValidators: true, new: true });
+    const userUpdate = {};
+    if (Object.prototype.hasOwnProperty.call(body, 'name')) userUpdate.name = body.name;
+    if (Object.prototype.hasOwnProperty.call(body, 'photo')) userUpdate.photo = body.photo;
+    if (Object.keys(userUpdate).length > 0) {
+      await User.findByIdAndUpdate(req.user.id, userUpdate, { runValidators: true, new: true });
     }
+
+    const updateFields = {};
+    const profileKeys = [
+      'bio', 'headline', 'photo', 'subjects', 'workExperiences', 'qualifications', 'publications',
+      'projects', 'internshipAndProjects', 'awards', 'customDetails', 'professionalDetails', 'entranceTests',
+      'academicResponsibilities', 'researchSupervision', 'media', 'documents', 'interests',
+      'internationalExperiences', 'professionalMemberships', 'trainings', 'onlineCoursesCertifications',
+      'dob', 'gender', 'phoneNumber', 'address', 'mobileNumber', 'alternatePhone', 'officialEmail',
+      'personalEmail', 'aadhaar', 'passport', 'nationality', 'stateCity', 'permanentAddress',
+      'currentAddress', 'religion', 'category', 'subCategory', 'differentlyAbled', 'maritalStatus',
+      'spouse', 'emergencyContact', 'panNumber', 'bloodGroup'
+    ];
+
+    profileKeys.forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(body, key)) {
+        updateFields[key] = body[key];
+      }
+    });
+
     // Update Profile document
     let profile = await Profile.findOneAndUpdate(
       { user: req.user.id },
       {
-        $set: {
-          bio, headline, photo, subjects, workExperiences, qualifications, publications,
-          projects, internshipAndProjects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests,
-          internationalExperiences, professionalMemberships, trainings, onlineCoursesCertifications,
-          dob, gender, phoneNumber, address,
-          mobileNumber, alternatePhone, officialEmail, personalEmail, aadhaar, passport, nationality, stateCity, permanentAddress, currentAddress, religion, category, subCategory, differentlyAbled, maritalStatus, spouse, emergencyContact, panNumber, bloodGroup
-        }
+        $set: updateFields
       },
       { new: true, upsert: true, runValidators: true }
     );
