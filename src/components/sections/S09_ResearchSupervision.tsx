@@ -22,7 +22,7 @@ const cancelBtnStyle: React.CSSProperties = {
 const NUM_OPTS_100 = Array.from({ length: 100 }, (_, i) => String(i + 1));
 const NUM_OPTS_10 = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
-export default function ResearchSupervision({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any) => Promise<void> | void }) {
+export default function ResearchSupervision({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any, showToast?: boolean) => Promise<void> | void }) {
   const degrees = useDropdownOptions(researchDegreeOptions);
   const statuses = useDropdownOptions(researchStatusOptions);
   const genders = useDropdownOptions(scholarGenderOptions);
@@ -31,9 +31,9 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
 
   const studentDetails = data.studentDetails || [];
 
-  const persist = async (updated: any) => {
+  const persist = async (updated: any, showToast = false) => {
     if (!onPersist) return;
-    try { await onPersist(updated); }
+    try { await onPersist(updated, showToast); }
     catch (err) { console.error('Failed to persist research guidance', err); }
   };
 
@@ -46,7 +46,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
     .map((s: any) => s.studentName.trim())
     .join(', ');
 
-  const update = (k: string, v: any) => {
+  const update = (k: string, v: any, showToast = false) => {
     const updatedDetails = k === 'studentDetails' ? v : studentDetails;
 
     const newPhdCompleted = String(updatedDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
@@ -73,7 +73,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
 
     onChange(updated);
     // Persist asynchronously if handler provided
-    void persist(updated);
+    void persist(updated, showToast);
   };
 
   const updStudent = (i: number, k: string, v: string) => {
@@ -85,7 +85,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
   const toggleEdit = (i: number, state: boolean) => {
     const arr = [...studentDetails];
     arr[i] = { ...arr[i], isEditing: state };
-    update('studentDetails', arr);
+    update('studentDetails', arr, !state);
   };
 
   const deleteRow = (i: number) => {

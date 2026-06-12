@@ -183,15 +183,19 @@ export default function ProfileEdit() {
 
   const tab = section?.key;
 
-  const save = async (payload?: any) => {
+  const save = async (payload?: any, showToast = true) => {
     if (!tab) return;
-    setSaving(true);
+    if (showToast) setSaving(true);
     try {
       if (tab === 'visibility') await api.patch('/faculty/me/visibility', profile.visibility);
       else await api.put('/faculty/me', { [tab]: payload !== undefined ? payload : profile[tab] });
-      toast.success('Saved!');
-    } catch { toast.error('Save failed'); }
-    finally { setSaving(false); }
+      if (showToast) toast.success('Saved!');
+    } catch { 
+      if (showToast) toast.error('Save failed'); 
+    }
+    finally { 
+      if (showToast) setSaving(false); 
+    }
   };
 
   // Auto-save to localStorage on every section change so data survives refresh

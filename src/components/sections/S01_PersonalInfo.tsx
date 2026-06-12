@@ -5,7 +5,7 @@ import { genderOptions, bloodGroupOptions, nationalityOptions, maritalStatusOpti
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { Save } from 'lucide-react';
 
-export default function PersonalInfo({ data, onChange, onPersist, saving }: { data: any; onChange: (d: any) => void; onPersist?: () => void; saving?: boolean }) {
+export default function PersonalInfo({ data, onChange, onPersist, saving }: { data: any; onChange: (d: any) => void; onPersist?: (payload?: any, showToast?: boolean) => void; saving?: boolean }) {
   // Ensure data is an object
   const safeData = data || {};
   const s = (k: string, v: string) => onChange({ ...safeData, [k]: v });

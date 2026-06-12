@@ -23,7 +23,7 @@ const btnDelete: React.CSSProperties = { display: 'inline-flex', alignItems: 'ce
 const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#16a34a', color: '#fff', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#9f1239', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
 
-export default function ResearchProjects({ data, onChange, onPersist }: { data: any[]; onChange: (d: any[]) => void; onPersist?: (updatedProjects: any[]) => Promise<void> | void }) {
+export default function ResearchProjects({ data, onChange, onPersist }: { data: any[]; onChange: (d: any[]) => void; onPersist?: (updatedProjects: any[], showToast?: boolean) => Promise<void> | void }) {
   // Reactive dropdown options
   const fundingAgencies = useDropdownOptions(fundingAgencyOptions);
   const statuses = useDropdownOptions(projectStatusOptions);
@@ -33,10 +33,10 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
 
-  const persist = async (updatedProjects: any[]) => {
+  const persist = async (updatedProjects: any[], showToast = false) => {
     if (!onPersist) return;
     try {
-      await onPersist(updatedProjects);
+      await onPersist(updatedProjects, showToast);
     } catch (err) {
       console.error('Failed to persist research projects', err);
     }
@@ -67,7 +67,7 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
       });
       onChange(updated);
       setPendingNewItem(null);
-      await persist(updated);
+      await persist(updated, true);
     }
   };
 
@@ -155,7 +155,7 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Project</span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={async () => { setEditingItemIndex(null); await persist(data); }} style={btnSave}>
+                <button type="button" onClick={async () => { setEditingItemIndex(null); await persist(data, true); }} style={btnSave}>
                   <Check size={14} /> Done
                 </button>
               </div>
@@ -233,7 +233,7 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
                             onClick={async () => {
                               const updated = data.filter((_, j) => j !== originalIndex);
                               onChange(updated);
-                              await persist(updated);
+                              await persist(updated, false);
                             }} 
                             style={{ ...btnDelete, padding: '6px' }} 
                             disabled={pendingNewItem !== null || editingItemIndex !== null}
