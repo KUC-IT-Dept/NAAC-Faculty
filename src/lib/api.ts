@@ -6,6 +6,13 @@ const apiBaseUrl = rawBaseUrl.startsWith('http')
   : rawBaseUrl;
 const api = axios.create({ baseURL: apiBaseUrl });
 
+export const getFileUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  const backendBase = apiBaseUrl.replace(/\/api\/?$/, '');
+  return `${backendBase}${url.startsWith('/') ? url : '/' + url}`;
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('iqac_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;

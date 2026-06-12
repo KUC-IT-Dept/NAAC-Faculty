@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../lib/api';
+import api, { getFileUrl } from '../lib/api';
 import { GraduationCap, Briefcase, BookOpen, FlaskConical, Award, Users, Shield, Mail, Phone, Globe, Link2, ExternalLink } from 'lucide-react';
 
 export default function PublicProfile() {
@@ -50,7 +50,7 @@ export default function PublicProfile() {
         <div className="public-container">
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 28, flexWrap: 'wrap' }}>
             <div className="avatar avatar-xl" style={{ border: '4px solid rgba(201,162,39,0.6)', background: 'rgba(255,255,255,0.12)', fontSize: '2.5rem', flexShrink: 0 }}>
-              {pi.photoUrl ? <img src={pi.photoUrl} alt={pi.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : initials}
+              {pi.photoUrl ? <img src={getFileUrl(pi.photoUrl)} alt={pi.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : initials}
             </div>
             <div style={{ flex: 1, minWidth: 220 }}>
               <div style={{ fontSize: '0.72rem', color: 'rgba(201,162,39,0.9)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>

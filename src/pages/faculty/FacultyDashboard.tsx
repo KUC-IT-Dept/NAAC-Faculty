@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../lib/api';
+import api, { getFileUrl } from '../../lib/api';
 import toast from 'react-hot-toast';
 import { Edit3, Eye, Share2, BookOpen, Award, Briefcase, GraduationCap, FlaskConical, CheckCircle2, AlertCircle, Settings, Globe, ClipboardCheck, Bell, X } from 'lucide-react';
 
@@ -93,7 +93,7 @@ export default function FacultyDashboard() {
               {/* Avatar */}
               <div className="avatar avatar-xl" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)', border: '4px solid #fff', boxShadow: 'var(--shadow-md)', overflow: 'hidden' }}>
                 {profile?.personalInfo?.photoUrl ? (
-                  <img src={profile.personalInfo.photoUrl} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={getFileUrl(profile.personalInfo.photoUrl)} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (displayName || 'F').slice(0, 2).toUpperCase()}
               </div>
 
