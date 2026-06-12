@@ -3,8 +3,9 @@ import { fg, inp, ta, sel } from './sectionUtils';
 import ProfilePictureUpload from '../ProfilePictureUpload';
 import { genderOptions, bloodGroupOptions, nationalityOptions, maritalStatusOptions, disabilityStatusOptions, religionOptions, categoryOptions, subCategoryOptions, disabilityTypeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { Save } from 'lucide-react';
 
-export default function PersonalInfo({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+export default function PersonalInfo({ data, onChange, onPersist, saving }: { data: any; onChange: (d: any) => void; onPersist?: () => void; saving?: boolean }) {
   // Ensure data is an object
   const safeData = data || {};
   const s = (k: string, v: string) => onChange({ ...safeData, [k]: v });
@@ -134,6 +135,17 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
             className="btn btn-outline"
           >
             Edit
+          </button>
+        </div>
+      )}
+      {isEditing && (
+        <div style={{ textAlign: 'right', marginBottom: '16px' }}>
+          <button 
+            className="btn btn-primary btn-sm" 
+            onClick={() => { setIsEditing(false); onPersist && onPersist(); }} 
+            disabled={saving}
+          >
+            {saving ? <><span className="spinner" style={{ width: 13, height: 13 }} /> Saving…</> : <><Save size={14} /> Save</>}
           </button>
         </div>
       )}
