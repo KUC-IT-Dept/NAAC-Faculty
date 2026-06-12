@@ -55,16 +55,21 @@ const publicationSchema = new mongoose.Schema({
 
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  studentName: String,
+  program: String,
   description: String,
   year: String,
   url: String,
+  organisation: String,
   fundingAgency: String,
-  role: { type: String, enum: ['Principal Investigator', 'Co-PI'] },
+  role: { type: String, enum: ['Principal Investigator', 'Co-PI', 'Intern', 'Trainee', 'Project Member'] },
   amount: String,
   sanctionedAmount: String,
   duration: String,
   durationFrom: String,
   durationTo: String,
+  fromDate: String,
+  toDate: String,
   status: { type: String, enum: ['Ongoing', 'Completed'] },
   referenceNumber: String
 });

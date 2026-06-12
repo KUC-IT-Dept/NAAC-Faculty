@@ -261,13 +261,17 @@ export default function PublicProfile() {
               {profile.internshipAndProjects.map((p: any, i: number) => (
                 <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.9rem', flex: 1 }}>{p.title}</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', flex: 1 }}>{p.title || p.studentName || p.program || 'Internship / Project'}</div>
                     <span className={`badge ${p.status === 'Completed' ? 'badge-active' : 'badge-pending'}`}>{p.status || 'N/A'}</span>
                   </div>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 6, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                    {p.studentName && <span>Student: <strong>{p.studentName}</strong></span>}
+                    {p.program && <span>Program: <strong>{p.program}</strong></span>}
                     {p.organisation && <span>Organisation: <strong>{p.organisation}</strong></span>}
+                    {p.fundingAgency && !p.organisation && <span>Organisation: <strong>{p.fundingAgency}</strong></span>}
                     {p.role && <span>Role: <strong>{p.role}</strong></span>}
                     {p.duration && <span>Duration: <strong>{p.duration}</strong></span>}
+                    {!p.duration && (p.fromDate || p.toDate) && <span>Duration: <strong>{p.fromDate || '—'} to {p.toDate || '—'}</strong></span>}
                   </div>
                 </div>
               ))}
