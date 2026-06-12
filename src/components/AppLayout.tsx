@@ -8,6 +8,7 @@ interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolea
 const adminNav: NavItem[] = [
   { label: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={18} />, exact: true },
   { label: 'Edit Profile', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
+  { label: 'General', path: '/admin/general', icon: <Globe size={18} /> },
 ];
 
 const facultyNav: NavItem[] = [

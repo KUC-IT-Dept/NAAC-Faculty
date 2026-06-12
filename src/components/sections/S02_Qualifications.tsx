@@ -1,6 +1,9 @@
 import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check } from 'lucide-react';
 import { useState } from 'react';
 import { fg, inp, FileInp } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { institutionsOptions } from '../../shared/dropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY = {
   degreeLevel: '',
@@ -181,6 +184,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   // Sort data by yearOfPassing descending (latest year at the top)
   const sortedData = [...data].sort((a, b) => {
@@ -324,7 +328,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           </div>
 
           <div className="form-row form-row-2">
-            {fg('Institution / University Name', inp(editingData.institution, v => updateEditingData('institution', v), 'Name of awarding institution'))}
+            {fg('Institution / University Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
             {fg('Year of Completion', <CustomSelect
               value={editingData.yearOfPassing}
               onChange={(v: string) => updateEditingData('yearOfPassing', v)}
@@ -387,7 +391,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
         </div>
 
         <div className="form-row form-row-2">
-          {fg('Institution / University Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
+          {fg('Institution / University Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {fg('Board / University', <CustomSelect
             value={editingData.university}
             onChange={(v: string) => updateEditingData('university', v)}

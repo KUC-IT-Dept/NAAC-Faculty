@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminGeneral from './pages/admin/AdminGeneral';
 import { EditProfileLayout, AdminProfileSection } from './pages/admin/AdminProfileManagement';
 import FacultyDashboard from './pages/faculty/FacultyDashboard';
 import ProfileSetup from './pages/faculty/ProfileSetup';
@@ -42,6 +43,7 @@ function AppRoutes() {
 
       {/* Admin */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/general" element={<ProtectedRoute role="admin"><AdminGeneral /></ProtectedRoute>} />
       <Route path="/admin/edit-profile" element={<ProtectedRoute role="admin"><EditProfileLayout /></ProtectedRoute>}>
         <Route index element={
           <div style={{ padding: '48px 24px', color: '#64748B', fontSize: '0.95rem', lineHeight: 1.7 }}>

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, dateInp } from './sectionUtils';
-import { programmeTypeOptions, learningModeOptions } from '../../shared/dropdownOptions';
+import { programmeTypeOptions, learningModeOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY = { programTitle: '', type: '', organizingInstitution: '', from: '', to: '', mode: '' };
 
@@ -78,6 +79,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
   // Reactive dropdown options
   const programmeTypes = useDropdownOptions(programmeTypeOptions);
   const learningModes = useDropdownOptions(learningModeOptions);
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
@@ -140,7 +142,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
             {fg('Program Name *', inp(pendingNewItem.programTitle, v => setPendingNewItem({ ...pendingNewItem, programTitle: v })))}
             <div className="form-row form-row-2">
               {fg('Type *', sel(pendingNewItem.type, v => setPendingNewItem({ ...pendingNewItem, type: v }), programmeTypes))}
-              {fg('Organized by', inp(pendingNewItem.organizingInstitution, v => setPendingNewItem({ ...pendingNewItem, organizingInstitution: v })))}
+              {fg('Organized by', <SearchableSelect value={pendingNewItem.organizingInstitution || ''} onChange={(v: string) => setPendingNewItem({ ...pendingNewItem, organizingInstitution: v })} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
             </div>
             <div className="form-row form-row-2">
               {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
@@ -172,7 +174,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
                   {fg('Program Name *', inp(item.programTitle, v => upd(i, 'programTitle', v)))}
                   <div className="form-row form-row-2">
                     {fg('Type *', sel(item.type, v => upd(i, 'type', v), programmeTypes))}
-                    {fg('Organized by', inp(item.organizingInstitution, v => upd(i, 'organizingInstitution', v)))}
+                    {fg('Organized by', <SearchableSelect value={item.organizingInstitution || ''} onChange={(v: string) => upd(i, 'organizingInstitution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
                   </div>
                   <div className="form-row form-row-2">
                     {fg('From Date *', dateInp(item.from, v => upd(i, 'from', v)))}
