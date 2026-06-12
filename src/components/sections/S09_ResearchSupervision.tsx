@@ -107,7 +107,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
         {fg('Number of Ph.D. students Awarded (Completed)', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={phdAwardedCount} readOnly />)}
         {fg('Number of Ph.D. students Ongoing', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={phdOngoingCount} readOnly />)}
       </div>
-      
+
       <div className="form-row form-row-1">
         {fg('Names of completed Ph.D. students', <textarea className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed', minHeight: 60 }} value={completedStudentsNames} readOnly placeholder="No completed Ph.D. students added yet..." />)}
       </div>
@@ -128,7 +128,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
             borderRadius: '6px', display: 'inline-flex', alignItems: 'center',
             gap: '8px', fontWeight: 600,
           }}>
-            <Plus size={16} /> Add Row
+            <Plus size={16} /> Add Student
           </button>
         </div>
 
@@ -143,8 +143,8 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                       <button type="button" onClick={() => deleteRow(i)} style={cancelBtnStyle}>
                         <X size={14} /> Delete
                       </button>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => toggleEdit(i, false)}
                         disabled={!isComplete(st)}
                         title={!isComplete(st) ? 'Please enter student name, degree and status' : 'Save'}
@@ -182,7 +182,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                       <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
                         {st.studentName || 'Untitled Student'}
                         <span style={{ marginLeft: '8px', fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>{st.degree || 'Ph.D.'}</span>
-                        <span style={{ 
+                        <span style={{
                           marginLeft: '4px', fontSize: '0.72rem', padding: '2px 8px', borderRadius: 4, fontWeight: 600,
                           background: (st.status || 'Ongoing') === 'Completed' ? '#dcfce7' : '#fef3c7',
                           color: (st.status || 'Ongoing') === 'Completed' ? '#15803d' : '#b45309'

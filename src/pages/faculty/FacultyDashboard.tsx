@@ -336,8 +336,9 @@ export default function FacultyDashboard() {
                           )}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text)', marginTop: 4, lineHeight: 1.4 }}>
-                          Your request to add <strong>"{r.requestedValue}"</strong>.
-                          {r.adminMessage && <div style={{ marginTop: 4, padding: 6, background: 'rgba(255,255,255,0.5)', borderRadius: 4, fontStyle: 'italic', fontSize: '0.75rem' }}>"{r.adminMessage}"</div>}
+                          Your request to add <strong>"{r.requestedValue}"</strong>
+                          {r.status === 'APPROVED' ? ' was approved.' : r.status === 'REJECTED' ? ' was rejected. Please edit your profile and update this field, leaving it blank or choosing another option.' : ' is pending.'}
+                          {r.adminMessage && <div style={{ marginTop: 4, padding: 6, background: 'rgba(255,255,255,0.5)', borderRadius: 4, fontStyle: 'italic', fontSize: '0.75rem' }}><strong>Admin Message:</strong> "{r.adminMessage}"</div>}
                         </div>
                       </div>
                     ))}

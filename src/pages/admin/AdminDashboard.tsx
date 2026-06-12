@@ -6,6 +6,100 @@ import toast from 'react-hot-toast';
 import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye, Check, XCircle, MessageSquare, RefreshCw, Search, Clock3 } from 'lucide-react';
 import OrgHierarchy from '../../components/admin/OrgHierarchy';
 
+const dropdownKeyToFormMap: Record<string, string> = {
+  genderOptions: '01 - Personal Information',
+  bloodGroupOptions: '01 - Personal Information',
+  nationalityOptions: '01 - Personal Information',
+  religionOptions: '01 - Personal Information',
+  categoryOptions: '01 - Personal Information',
+  subCategoryOptions: '01 - Personal Information',
+  maritalStatusOptions: '01 - Personal Information',
+  disabilityStatusOptions: '01 - Personal Information',
+  disabilityTypeOptions: '01 - Personal Information',
+  stateOptions: '01 - Personal Information',
+  countryOptions: '01 - Personal Information',
+  degreeLevelOptions: '02 - Qualifications',
+  degreeNameOptions: '02 - Qualifications',
+  specializationOptions: '02 - Qualifications',
+  divisionOptions: '02 - Qualifications',
+  studyModeOptions: '02 - Qualifications',
+  gradeTypeOptions: '02 - Qualifications',
+  examNameOptions: '03 - Eligibility Tests',
+  subjectPaperOptions: '03 - Eligibility Tests',
+  stateForSetOptions: '03 - Eligibility Tests',
+  validityStatusOptions: '03 - Eligibility Tests',
+  designationOptions: '04 - Employment Details',
+  departmentOptions: '04 - Employment Details',
+  institutionTypeOptions: '04 - Employment Details',
+  affiliatedUniversityOptions: '04 - Employment Details',
+  natureOfAppointmentOptions: '04 - Employment Details',
+  approvalStatusOptions: '04 - Employment Details',
+  payScaleOptions: '04 - Employment Details',
+  publicationTypeOptions: '05 - Research & Publications',
+  publicationLevelOptions: '05 - Research & Publications',
+  authorRoleOptions: '05 - Research & Publications',
+  indexedInOptions: '05 - Research & Publications',
+  peerReviewedStatusOptions: '05 - Research & Publications',
+  journalCategoryOptions: '05 - Research & Publications',
+  awardCategoryOptions: '06 - Awards & Honours',
+  awardLevelOptions: '06 - Awards & Honours',
+  awardingAgencyTypeOptions: '06 - Awards & Honours',
+  honourTypeOptions: '06 - Awards & Honours',
+  recognitionStatusOptions: '06 - Awards & Honours',
+  fundingAgencyOptions: '07 - Research Projects',
+  projectStatusOptions: '07 - Research Projects',
+  roleInProjectOptions: '07 - Research Projects',
+  projectCategoryOptions: '07 - Research Projects',
+  fundingTypeOptions: '07 - Research Projects',
+  researchDegreeOptions: '08 - Research Supervision',
+  scholarGenderOptions: '08 - Research Supervision',
+  researchStatusOptions: '08 - Research Supervision',
+  guidanceTypeOptions: '08 - Research Supervision',
+  patentStatusOptions: '08 - Research Supervision',
+  patentTypeOptions: '08 - Research Supervision',
+  supervisionCategoryOptions: '08 - Research Supervision',
+  committeeTypeOptions: '09 - Academic Responsibilities',
+  responsibilityRoleOptions: '09 - Academic Responsibilities',
+  courseLevelOptions: '09 - Academic Responsibilities',
+  semesterTypeOptions: '09 - Academic Responsibilities',
+  academicSessionTypeOptions: '09 - Academic Responsibilities',
+  teachingCategoryOptions: '09 - Academic Responsibilities',
+  responsibilityStatusOptions: '09 - Academic Responsibilities',
+  organisationOptions: '10 - Internship and Projects',
+  internRoleOptions: '10 - Internship and Projects',
+  projectTypeOptions: '10 - Internship and Projects',
+  professionalBodyOptions: '11 - Memberships',
+  membershipTypeOptions: '11 - Memberships',
+  membershipCategoryOptions: '11 - Memberships',
+  membershipStatusOptions: '11 - Memberships',
+  membershipLevelOptions: '11 - Memberships',
+  organizationTypeOptions: '11 - Memberships',
+  programmeTypeOptions: '12 - Attended FDP & Workshops',
+  sponsoringAgencyOptions: '12 - Attended FDP & Workshops',
+  participationOptions: '12 - Attended FDP & Workshops',
+  coursePlatformOptions: '13 - Online Courses',
+  courseTypeOptions: '13 - Online Courses',
+  completionStatusOptions: '13 - Online Courses',
+  certificationTypeOptions: '13 - Online Courses',
+  learningModeOptions: '13 - Online Courses',
+  countryVisitOptions: '14 - Academic International Experience',
+  purposeOfVisitOptions: '14 - Academic International Experience',
+  fundingSourceOptions: '14 - Academic International Experience',
+  visitCategoryOptions: '14 - Academic International Experience',
+  collaborationTypeOptions: '14 - Academic International Experience',
+  visitStatusOptions: '14 - Academic International Experience',
+  adminChargeOptions: '15 - Admin & Non-Academic Responsibilities',
+  academicAdminOptions: '16 - Academic Administration',
+  qualityAssuranceOptions: '17 - Quality Assurance',
+  researchInnovationOptions: '18 - Research and Innovation',
+  examinationEvaluationOptions: '19 - Examination and Evaluation',
+  adminSupportOptions: '20 - Administrative Support',
+  departmentalChargesOptions: '21 - Departmental Charges',
+  specialAssignmentsOptions: '22 - Special Assignments',
+  extraInstitutionalOptions: '23 - Activities - Extra Institutional',
+  documentTypeOptions: '24 - Documents'
+};
+
 interface FacultyUser {
   _id: string;
   username: string;
@@ -354,7 +448,12 @@ export default function AdminDashboard() {
                       <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{r.user?.username}</div>
                       <div className="text-xs text-muted">{r.user?.email}</div>
                     </td>
-                    <td><span className="badge badge-secondary">{r.dropdownKey}</span></td>
+                    <td>
+                      <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 4, fontSize: '0.85rem' }}>
+                        {dropdownKeyToFormMap[r.dropdownKey] || 'Unknown Form'}
+                      </div>
+                      <span className="badge badge-secondary">{r.dropdownKey}</span>
+                    </td>
                     <td><strong style={{ color: 'var(--primary)' }}>{r.requestedValue}</strong></td>
                     <td className="text-sm text-muted">{new Date(r.createdAt).toLocaleDateString()}</td>
                     <td>

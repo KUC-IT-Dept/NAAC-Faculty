@@ -237,7 +237,7 @@ router.patch('/option-requests/:id/reject', async (req, res) => {
     if (adminMessage) request.adminMessage = adminMessage;
     await request.save();
 
-    // Revert the value in the user's profile
+    // Revert the value in the user's profile to blank
     const faculty = await Faculty.findOne({ userId: request.user });
     if (faculty) {
       let modified = false;
@@ -245,7 +245,7 @@ router.patch('/option-requests/:id/reject', async (req, res) => {
       const replaceDeep = (obj) => {
         for (let key in obj) {
           if (typeof obj[key] === 'string' && obj[key] === request.requestedValue) {
-            obj[key] = request.previousValue || '';
+            obj[key] = '';
             modified = true;
           } else if (typeof obj[key] === 'object' && obj[key] !== null) {
             replaceDeep(obj[key]);

@@ -95,7 +95,7 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <Sub>Student Details</Sub>
         <div>
-          <button type="button" onClick={handleAddRow} style={btnAdd}><Plus size={14} /> Add Row</button>
+          <button type="button" onClick={handleAddRow} style={btnAdd}><Plus size={14} /> Add Student</button>
         </div>
       </div>
 

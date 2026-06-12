@@ -300,6 +300,8 @@ function ResponsibilityEditor({
   onCancel,
   onSave,
   title,
+  sessionOpts,
+  statusOpts,
 }: {
   item: any;
   onChange: (item: any) => void;
@@ -336,7 +338,7 @@ function ResponsibilityEditor({
       <div className="form-row form-row-1">
         {fg('Administrative Charge *', sel(item.administrativeCharge, handleChargeChange, academicAdminOpts))}
       </div>
-      <ResponsibilityFormFields item={{...item, _sessionOpts: sessionOpts, _statusOpts: statusOpts}} onChange={onChange} />
+      <ResponsibilityFormFields item={{ ...item, _sessionOpts: sessionOpts, _statusOpts: statusOpts }} onChange={onChange} />
     </>
   );
 }
