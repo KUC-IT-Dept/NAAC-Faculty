@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Camera, Upload } from 'lucide-react';
+import { getFileUrl } from '../lib/api';
 
 interface ProfilePictureUploadProps {
   currentPicture?: string;
@@ -63,7 +64,7 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
       <div className="profile-picture-display">
         {currentPicture ? (
           <img
-            src={currentPicture}
+            src={getFileUrl(currentPicture)}
             alt="Profile"
             className="profile-picture-img"
           />
@@ -81,7 +82,7 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
       <div className="profile-picture-container">
         {currentPicture ? (
           <img
-            src={currentPicture}
+            src={getFileUrl(currentPicture)}
             alt="Profile"
             className="profile-picture-img"
           />

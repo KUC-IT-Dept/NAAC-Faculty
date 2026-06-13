@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { fg, inp, sel, ta, yearSel } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { researchDegreeOptions, scholarGenderOptions, researchStatusOptions, guidanceTypeOptions, supervisionCategoryOptions } from '../../shared/dropdownOptions';
 
 const saveBtnStyle: React.CSSProperties = {
   padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
@@ -20,12 +22,18 @@ const cancelBtnStyle: React.CSSProperties = {
 const NUM_OPTS_100 = Array.from({ length: 100 }, (_, i) => String(i + 1));
 const NUM_OPTS_10 = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
-export default function ResearchSupervision({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any) => Promise<void> | void }) {
+export default function ResearchSupervision({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any, showToast?: boolean) => Promise<void> | void }) {
+  const degrees = useDropdownOptions(researchDegreeOptions);
+  const statuses = useDropdownOptions(researchStatusOptions);
+  const genders = useDropdownOptions(scholarGenderOptions);
+  const guidanceTypes = useDropdownOptions(guidanceTypeOptions);
+  const categories = useDropdownOptions(supervisionCategoryOptions);
+
   const studentDetails = data.studentDetails || [];
 
-  const persist = async (updated: any) => {
+  const persist = async (updated: any, showToast = false) => {
     if (!onPersist) return;
-    try { await onPersist(updated); }
+    try { await onPersist(updated, showToast); }
     catch (err) { console.error('Failed to persist research guidance', err); }
   };
 
@@ -38,7 +46,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
     .map((s: any) => s.studentName.trim())
     .join(', ');
 
-  const update = (k: string, v: any) => {
+  const update = (k: string, v: any, showToast = false) => {
     const updatedDetails = k === 'studentDetails' ? v : studentDetails;
 
     const newPhdCompleted = String(updatedDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
@@ -65,7 +73,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
 
     onChange(updated);
     // Persist asynchronously if handler provided
-    void persist(updated);
+    void persist(updated, showToast);
   };
 
   const updStudent = (i: number, k: string, v: string) => {
@@ -77,7 +85,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
   const toggleEdit = (i: number, state: boolean) => {
     const arr = [...studentDetails];
     arr[i] = { ...arr[i], isEditing: state };
-    update('studentDetails', arr);
+    update('studentDetails', arr, !state);
   };
 
   const deleteRow = (i: number) => {
@@ -86,7 +94,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
 
   const addRow = () => {
     update('studentDetails', [
-      { studentName: '', topic: '', year: '', fellowship: '', degree: 'Ph.D.', status: 'Ongoing', isEditing: true },
+      { studentName: '', topic: '', year: '', fellowship: '', degree: 'Ph.D.', status: 'Ongoing', scholarGender: '', guidanceType: '', supervisionCategory: '', isEditing: true },
       ...studentDetails
     ]);
   };
@@ -99,7 +107,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
         {fg('Number of Ph.D. students Awarded (Completed)', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={phdAwardedCount} readOnly />)}
         {fg('Number of Ph.D. students Ongoing', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={phdOngoingCount} readOnly />)}
       </div>
-      
+
       <div className="form-row form-row-1">
         {fg('Names of completed Ph.D. students', <textarea className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed', minHeight: 60 }} value={completedStudentsNames} readOnly placeholder="No completed Ph.D. students added yet..." />)}
       </div>
@@ -120,7 +128,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
             borderRadius: '6px', display: 'inline-flex', alignItems: 'center',
             gap: '8px', fontWeight: 600,
           }}>
-            <Plus size={16} /> Add Row
+            <Plus size={16} /> Add Student
           </button>
         </div>
 
@@ -135,8 +143,8 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                       <button type="button" onClick={() => deleteRow(i)} style={cancelBtnStyle}>
                         <X size={14} /> Delete
                       </button>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => toggleEdit(i, false)}
                         disabled={!isComplete(st)}
                         title={!isComplete(st) ? 'Please enter student name, degree and status' : 'Save'}
@@ -147,12 +155,17 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                     </div>
                   </div>
 
-                  <div className="form-row form-row-1">
+                  <div className="form-row form-row-2">
                     {fg('Student Name *', inp(st.studentName, v => updStudent(i, 'studentName', v), 'Enter student name'))}
+                    {fg('Scholar Gender', sel(st.scholarGender, v => updStudent(i, 'scholarGender', v), genders, "Select..."))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Degree *', sel(st.degree || 'Ph.D.', v => updStudent(i, 'degree', v), ['Ph.D.', 'M.Phil.']))}
-                    {fg('Status *', sel(st.status || 'Ongoing', v => updStudent(i, 'status', v), ['Ongoing', 'Completed']))}
+                    {fg('Degree *', sel(st.degree || 'Ph.D.', v => updStudent(i, 'degree', v), degrees, "Select..."))}
+                    {fg('Status *', sel(st.status || 'Ongoing', v => updStudent(i, 'status', v), statuses, "Select..."))}
+                  </div>
+                  <div className="form-row form-row-2">
+                    {fg('Guidance Type', sel(st.guidanceType, v => updStudent(i, 'guidanceType', v), guidanceTypes, "Select..."))}
+                    {fg('Supervision Category', sel(st.supervisionCategory, v => updStudent(i, 'supervisionCategory', v), categories, "Select..."))}
                   </div>
                   <div className="form-row form-row-1">
                     {fg('Topic', inp(st.topic, v => updStudent(i, 'topic', v), 'Enter research topic'))}
@@ -169,7 +182,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                       <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
                         {st.studentName || 'Untitled Student'}
                         <span style={{ marginLeft: '8px', fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>{st.degree || 'Ph.D.'}</span>
-                        <span style={{ 
+                        <span style={{
                           marginLeft: '4px', fontSize: '0.72rem', padding: '2px 8px', borderRadius: 4, fontWeight: 600,
                           background: (st.status || 'Ongoing') === 'Completed' ? '#dcfce7' : '#fef3c7',
                           color: (st.status || 'Ongoing') === 'Completed' ? '#15803d' : '#b45309'
@@ -179,6 +192,9 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                         {st.topic ? `Topic: ${st.topic}` : 'No topic'}
                         {st.year ? ` • Year: ${st.year}` : ''}
                         {st.fellowship ? ` • Fellowship: ${st.fellowship}` : ''}
+                        {st.scholarGender ? ` • Gender: ${st.scholarGender}` : ''}
+                        {st.guidanceType ? ` • Guidance: ${st.guidanceType}` : ''}
+                        {st.supervisionCategory ? ` • Category: ${st.supervisionCategory}` : ''}
                       </div>
                     </div>
                   </div>

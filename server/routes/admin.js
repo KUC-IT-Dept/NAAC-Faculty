@@ -2,6 +2,8 @@ const express = require('express');
 const User = require('../models/User');
 const Faculty = require('../models/Faculty');
 const DropdownConfig = require('../models/DropdownConfig');
+const OptionRequest = require('../models/OptionRequest');
+const Department = require('../models/Department');
 const { auth, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
@@ -12,7 +14,7 @@ router.get('/faculty', async (req, res) => {
   try {
     const users = await User.find({ role: 'faculty' }).select('-password').sort({ createdAt: -1 });
     const profiles = await Faculty.find({ userId: { $in: users.map(u => u._id) } })
-      .select('userId personalInfo.fullName personalInfo.designation personalInfo.department personalInfo.photoUrl profileComplete completionPercentage');
+      .select('userId personalInfo.fullName personalInfo.designation personalInfo.department personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.userId.toString()] = p; });
     res.json(users.map(u => ({ ...u.toObject(), profile: profileMap[u._id.toString()] || null })));
@@ -71,6 +73,60 @@ router.patch('/faculty/:id/status', async (req, res) => {
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
+// PATCH /api/admin/faculty/:id/make-hod
+router.patch('/faculty/:id/make-hod', async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id, role: 'faculty' });
+    if (!user) return res.status(404).json({ message: 'Faculty not found' });
+
+    const faculty = await Faculty.findOne({ userId: user._id });
+    if (!faculty) return res.status(404).json({ message: 'Faculty profile not found' });
+
+    const dept = faculty.employmentDetails?.department;
+    if (!dept) {
+      return res.status(400).json({ message: 'Department is not configured in Employment Details. Please edit the profile first.' });
+    }
+
+    // Demote any existing HOD in the same department
+    await Faculty.updateMany(
+      {
+        'employmentDetails.department': dept,
+        'employmentDetails.designation': 'HOD',
+        userId: { $ne: user._id }
+      },
+      {
+        $set: { 'employmentDetails.designation': 'Professor' }
+      }
+    );
+
+    // Also demote their role back to faculty if they were HOD
+    const previousHodFaculty = await Faculty.findOne({ 'employmentDetails.department': dept, 'employmentDetails.designation': 'Professor', userId: { $ne: user._id } });
+    if(previousHodFaculty) {
+       await User.updateOne({ _id: previousHodFaculty.userId }, { role: 'faculty' });
+    }
+
+    // Promote target to HOD
+    faculty.employmentDetails.designation = 'HOD';
+    await faculty.save();
+    
+    // Update User Role
+    user.role = 'hod';
+    await user.save();
+
+    // Upsert Department model
+    await Department.findOneAndUpdate(
+      { name: dept },
+      { hod: user._id },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.json({ message: `Successfully promoted ${faculty.personalInfo?.fullName || user.username} to HOD of ${dept}` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // DELETE /api/admin/faculty/:id
 router.delete('/faculty/:id', async (req, res) => {
   try {
@@ -104,7 +160,8 @@ const ALLOWED_DROPDOWN_KEYS = [
   'research_degree', 'scholar_gender', 'research_status', 'guidance_type', 'patent_status', 'patent_type', 'supervision_category',
   'committee_type', 'responsibility_role', 'course_level', 'semester_type', 'academic_session_type', 'teaching_category', 'responsibility_status',
   'admin_charge', 'academic_admin', 'quality_assurance', 'research_innovation', 'examination_evaluation', 'admin_support', 'departmental_charges', 'special_assignments', 'extra_institutional',
-  'document_type'
+  'country_visit', 'purpose_of_visit', 'funding_source', 'visit_category', 'collaboration_type', 'visit_status',
+  'document_type', 'institutions'
 ];
 
 // GET /api/admin/dropdowns
@@ -134,6 +191,150 @@ router.patch('/dropdowns/:key', async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/admin/option-requests
+router.get('/option-requests', async (req, res) => {
+  try {
+    const requests = await OptionRequest.find({})
+      .populate('user', 'username email')
+      .sort({ createdAt: -1 });
+    res.json(requests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/admin/option-requests/:id/approve
+router.patch('/option-requests/:id/approve', async (req, res) => {
+  try {
+    const { adminMessage } = req.body;
+    const request = await OptionRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    if (request.status !== 'PENDING') return res.status(400).json({ message: 'Request is not pending' });
+
+    request.status = 'APPROVED';
+    if (adminMessage) request.adminMessage = adminMessage;
+    await request.save();
+
+    // Push to DropdownConfig
+    const serverKey = request.dropdownKey.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+    if (ALLOWED_DROPDOWN_KEYS.includes(serverKey)) {
+      const config = await DropdownConfig.findOne({ key: serverKey });
+      if (config) {
+        if (!config.options.includes(request.requestedValue)) {
+          config.options.push(request.requestedValue);
+          await config.save();
+        }
+      } else {
+        // Find default from somewhere? Or just create with this one.
+        await DropdownConfig.create({ key: serverKey, options: [request.requestedValue] });
+      }
+    }
+    
+    res.json(request);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/admin/option-requests/:id/reject
+router.patch('/option-requests/:id/reject', async (req, res) => {
+  try {
+    const { adminMessage } = req.body;
+    const request = await OptionRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    if (request.status !== 'PENDING') return res.status(400).json({ message: 'Request is not pending' });
+
+    request.status = 'REJECTED';
+    if (adminMessage) request.adminMessage = adminMessage;
+    await request.save();
+
+    // Revert the value in the user's profile to blank
+    const faculty = await Faculty.findOne({ userId: request.user });
+    if (faculty) {
+      let modified = false;
+      let raw = faculty.toObject();
+      const replaceDeep = (obj) => {
+        for (let key in obj) {
+          if (typeof obj[key] === 'string' && obj[key] === request.requestedValue) {
+            obj[key] = '';
+            modified = true;
+          } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            replaceDeep(obj[key]);
+          }
+        }
+      };
+      replaceDeep(raw);
+      if (modified) {
+        await Faculty.updateOne({ _id: faculty._id }, { $set: raw });
+      }
+    }
+    
+    res.json(request);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/admin/option-requests/:id/undo
+router.patch('/option-requests/:id/undo', async (req, res) => {
+  try {
+    const request = await OptionRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    if (request.status === 'PENDING') return res.status(400).json({ message: 'Request is already pending' });
+
+    const prevStatus = request.status;
+    request.status = 'PENDING';
+    request.adminMessage = '';
+    await request.save();
+
+    if (prevStatus === 'APPROVED') {
+      // Revert from DropdownConfig
+      const serverKey = request.dropdownKey.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+      if (ALLOWED_DROPDOWN_KEYS.includes(serverKey)) {
+        const config = await DropdownConfig.findOne({ key: serverKey });
+        if (config && config.options.includes(request.requestedValue)) {
+          config.options = config.options.filter(o => o !== request.requestedValue);
+          await config.save();
+        }
+      }
+    } else if (prevStatus === 'REJECTED') {
+      // Revert the value in the user's profile back to the requested value
+      // Note: This is an approximation. If the user changed it in the meantime, this might overwrite it.
+      // A more robust implementation would check if it's still previousValue.
+      const faculty = await Faculty.findOne({ userId: request.user });
+      if (faculty && request.previousValue !== undefined) {
+        let modified = false;
+        let raw = faculty.toObject();
+        const replaceDeep = (obj) => {
+          for (let key in obj) {
+            if (typeof obj[key] === 'string' && obj[key] === request.previousValue) {
+              obj[key] = request.requestedValue;
+              modified = true;
+            } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+              replaceDeep(obj[key]);
+            }
+          }
+        };
+        // Only revert if previousValue was not empty, to avoid changing all empty fields
+        if (request.previousValue !== '') {
+          replaceDeep(raw);
+          if (modified) {
+            await Faculty.updateOne({ _id: faculty._id }, { $set: raw });
+          }
+        }
+      }
+    }
+
+    res.json(request);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

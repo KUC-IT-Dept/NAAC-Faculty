@@ -98,7 +98,14 @@ const sectionsData = [
     ]
   },
   {
-    id: 'memberships', title: '10 - Memberships', configs: [
+    id: 'internship-projects', title: '10 - Internship and Projects', configs: [
+      { name: 'Organisation / Company', optionsKey: 'organisationOptions' },
+      { name: 'Role', optionsKey: 'internRoleOptions' },
+      { name: 'Project Type', optionsKey: 'projectTypeOptions' }
+    ]
+  },
+  {
+    id: 'memberships', title: '11 - Memberships', configs: [
       { name: 'Professional Body / Society', optionsKey: 'professionalBodyOptions' },
       { name: 'Membership Type', optionsKey: 'membershipTypeOptions' },
       { name: 'Membership Category', optionsKey: 'membershipCategoryOptions' },
@@ -108,14 +115,14 @@ const sectionsData = [
     ]
   },
   {
-    id: 'fdp-workshops', title: '11 - FDP & Workshops', configs: [
+    id: 'fdp-workshops', title: '12 - Attended FDP & Workshops', configs: [
       { name: 'Programme Type', optionsKey: 'programmeTypeOptions' },
       { name: 'Sponsoring / Funding Agency', optionsKey: 'sponsoringAgencyOptions' },
       { name: 'Participation', optionsKey: 'participationOptions' }
     ]
   },
   {
-    id: 'online-courses', title: '12 - Online Courses', configs: [
+    id: 'online-courses', title: '13 - Online Courses', configs: [
       { name: 'Course Platform / Provider', optionsKey: 'coursePlatformOptions' },
       { name: 'Course Type', optionsKey: 'courseTypeOptions' },
       { name: 'Completion Status', optionsKey: 'completionStatusOptions' },
@@ -124,8 +131,8 @@ const sectionsData = [
     ]
   },
   {
-    id: 'international-experience', title: '13 - International Experience', configs: [
-      { name: 'Country', optionsKey: 'countryVisitOptions' },
+    id: 'international-experience', title: '14 - Academic International Experience', configs: [
+      { name: 'Visited Country', optionsKey: 'countryVisitOptions' },
       { name: 'Purpose of Visit', optionsKey: 'purposeOfVisitOptions' },
       { name: 'Funding Source', optionsKey: 'fundingSourceOptions' },
       { name: 'Visit Category', optionsKey: 'visitCategoryOptions' },
@@ -134,52 +141,52 @@ const sectionsData = [
     ]
   },
   {
-    id: 'admin-non-academic', title: '14 - Admin & Non-Academic Responsibilities', configs: [
+    id: 'admin-non-academic', title: '15 - Admin & Non-Academic Responsibilities', configs: [
       { name: 'Administrative Charge', optionsKey: 'adminChargeOptions' }
     ]
   },
   {
-    id: 'academic-administration', title: '15 - Academic Administration', configs: [
+    id: 'academic-administration', title: '16 - Academic Administration', configs: [
       { name: 'Administrative Charge', optionsKey: 'academicAdminOptions' }
     ]
   },
   {
-    id: 'quality-assurance', title: '16 - Quality Assurance', configs: [
+    id: 'quality-assurance', title: '17 - Quality Assurance', configs: [
       { name: 'Administrative Charge', optionsKey: 'qualityAssuranceOptions' }
     ]
   },
   {
-    id: 'research-innovation', title: '17 - Research and Innovation', configs: [
+    id: 'research-innovation', title: '18 - Research and Innovation', configs: [
       { name: 'Administrative Charge', optionsKey: 'researchInnovationOptions' }
     ]
   },
   {
-    id: 'examination-evaluation', title: '18 - Examination and Evaluation', configs: [
+    id: 'examination-evaluation', title: '19 - Examination and Evaluation', configs: [
       { name: 'Administrative Charge', optionsKey: 'examinationEvaluationOptions' }
     ]
   },
   {
-    id: 'admin-support', title: '19 - Administrative Support', configs: [
+    id: 'admin-support', title: '20 - Administrative Support', configs: [
       { name: 'Administrative Charge', optionsKey: 'adminSupportOptions' }
     ]
   },
   {
-    id: 'dept-charges', title: '20 - Departmental Charges', configs: [
+    id: 'dept-charges', title: '21 - Departmental Charges', configs: [
       { name: 'Administrative charge', optionsKey: 'departmentalChargesOptions' }
     ]
   },
   {
-    id: 'special-assignments', title: '21 - Special Assignments', configs: [
+    id: 'special-assignments', title: '22 - Special Assignments', configs: [
       { name: 'Administrative charge', optionsKey: 'specialAssignmentsOptions' }
     ]
   },
   {
-    id: 'extra-institutional', title: '22 - Activities - Extra Institutional', configs: [
+    id: 'extra-institutional', title: '23 - Activities - Extra Institutional', configs: [
       { name: 'Administrative charge', optionsKey: 'extraInstitutionalOptions' }
     ]
   },
   {
-    id: 'documents', title: '23 - Documents', configs: [
+    id: 'documents', title: '24 - Documents', configs: [
       { name: 'Document Type', optionsKey: 'documentTypeOptions' }
     ]
   },
@@ -208,7 +215,7 @@ async function seed() {
         inserted++;
       }
     }
-    
+
     console.log(`🎉 Done! Inserted: ${inserted}, Updated: ${updated}`);
     process.exit(0);
   } catch (err) {

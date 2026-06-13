@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, sel, yearSel } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions } from '../../shared/dropdownOptions';
 
-const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'UG & PG', 'UG, PG & Ph.D.', 'Other'];
-const ADMIN_ROLES = ['HOD', 'Dean', 'IQAC Coordinator', 'Warden', 'Principal', 'Director', 'Department Coordinator', 'Exam Coordinator', 'Other'];
-const COMMITTEES = ['Academic Council', 'Board of Studies (BOS)', 'Anti-Ragging Committee', 'Disciplinary Committee', 'Research Committee', 'Other'];
 const COURSE_NAMES = ['Advanced Algorithms', 'Database Systems', 'Operating Systems', 'Computer Networks', 'Software Engineering', 'Data Structures', 'Machine Learning', 'Artificial Intelligence', 'Web Development', 'Other'];
 const PROGRAMMES_LIST = ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M.A.', 'B.Com', 'M.Com', 'BBA', 'MBA', 'BCA', 'MCA', 'Other'];
 const SUBJECTS_LIST = ['Computer Science', 'Physics', 'Mathematics', 'Chemistry', 'Biology', 'Electronics Engineering', 'Mechanical Engineering', 'Civil Engineering', 'English', 'Management', 'Other'];
+const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
 const EMPTY_COURSE = { courseName: '', year: '', programmes: '', subject: '' };
-const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '' };
+const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -104,6 +104,7 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
       {expanded && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Classes Handled" value={r.classesHandled} />
+          { (r.fromYear || r.toYear) && <PreviewRow label="Duration" value={`${r.fromYear || '—'} - ${r.toYear || '—'}`} /> }
           <PreviewRow label="Administrative Roles" value={r.administrativeRoles} />
           <PreviewRow label="Committee Memberships" value={r.committeeMemberships} />
         </div>
@@ -113,6 +114,10 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
 }
 
 export default function AcademicResponsibilities({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+  const adminRoles = useDropdownOptions(responsibilityRoleOptions);
+  const committees = useDropdownOptions(committeeTypeOptions);
+  const teachingCategories = useDropdownOptions(teachingCategoryOptions);
+
   const courses = data.courses || [];
   const otherResponsibilities = data.otherResponsibilities || [];
   const update = (k: string, v: any) => onChange({ ...data, [k]: v });
@@ -141,6 +146,8 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
   };
 
   const handleSavePendingResp = (item: any) => {
+    const validYears = !item.fromYear || !item.toYear || (parseInt(item.fromYear) <= parseInt(item.toYear));
+    if (!validYears) return;
     if (isRespComplete(item)) {
       update('otherResponsibilities', [item, ...otherResponsibilities]);
       setPendingResp(null);
@@ -275,21 +282,39 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                   <button
                     type="button"
                     onClick={() => handleSavePendingResp(pendingResp)}
-                    disabled={!isRespComplete(pendingResp)}
-                    style={isRespComplete(pendingResp) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                    disabled={!isRespComplete(pendingResp) || (pendingResp && pendingResp.fromYear && pendingResp.toYear && parseInt(pendingResp.fromYear) > parseInt(pendingResp.toYear))}
+                    style={!pendingResp || !isRespComplete(pendingResp) || (pendingResp && pendingResp.fromYear && pendingResp.toYear && parseInt(pendingResp.fromYear) > parseInt(pendingResp.toYear)) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
                   >
                     <Check size={14} /> Save
                   </button>
                 </div>
               </div>
               <div className="form-row form-row-1">
-                {fg('Classes Handled (UG / PG / Ph.D.)', sel(pendingResp.classesHandled, v => setPendingResp({ ...pendingResp, classesHandled: v }), CLASSES_HANDLED))}
+                {fg('', (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ flex: '0 0 40%' }}>
+                      <label className="form-label">Classes Handled (UG / PG / Ph.D.)</label>
+                      {sel(pendingResp.classesHandled, v => setPendingResp({ ...pendingResp, classesHandled: v }), CLASSES_HANDLED)}
+                    </div>
+                    <div style={{ flex: '0 0 28%' }}>
+                      <label className="form-label">From Year</label>
+                      {yearSel(pendingResp.fromYear, v => setPendingResp({ ...pendingResp, fromYear: v }))}
+                    </div>
+                    <div style={{ flex: '0 0 28%' }}>
+                      <label className="form-label">To Year</label>
+                      {yearSel(pendingResp.toYear, v => setPendingResp({ ...pendingResp, toYear: v }))}
+                    </div>
+                  </div>
+                ))}
+                {pendingResp.fromYear && pendingResp.toYear && parseInt(pendingResp.fromYear) > parseInt(pendingResp.toYear) && (
+                  <div style={{ marginTop: 8, color: '#b91c1c', fontSize: 13 }}>From Year cannot be greater than To Year.</div>
+                )}
               </div>
               <div className="form-row form-row-1">
-                {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(pendingResp.administrativeRoles, v => setPendingResp({ ...pendingResp, administrativeRoles: v }), ADMIN_ROLES))}
+                {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(pendingResp.administrativeRoles, v => setPendingResp({ ...pendingResp, administrativeRoles: v }), adminRoles, "Select..."))}
               </div>
               <div className="form-row form-row-1">
-                {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(pendingResp.committeeMemberships, v => setPendingResp({ ...pendingResp, committeeMemberships: v }), COMMITTEES))}
+                {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(pendingResp.committeeMemberships, v => setPendingResp({ ...pendingResp, committeeMemberships: v }), committees, "Select..."))}
               </div>
             </div>
           )}
@@ -306,19 +331,42 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                         <button type="button" onClick={() => setEditingRespIndex(null)} style={btnCancel}>
                           <X size={14} /> Cancel
                         </button>
-                        <button type="button" onClick={() => setEditingRespIndex(null)} style={btnSave}>
+                        <button
+                          type="button"
+                          onClick={() => setEditingRespIndex(null)}
+                          disabled={r && r.fromYear && r.toYear && parseInt(r.fromYear) > parseInt(r.toYear)}
+                          style={r && r.fromYear && r.toYear && parseInt(r.fromYear) > parseInt(r.toYear) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                        >
                           <Check size={14} /> Save
                         </button>
                       </div>
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Classes Handled (UG / PG / Ph.D.)', sel(r.classesHandled, v => updResp(i, 'classesHandled', v), CLASSES_HANDLED))}
+                      {fg('', (
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <div style={{ flex: '0 0 40%' }}>
+                            <label className="form-label">Classes Handled (UG / PG / Ph.D.)</label>
+                            {sel(r.classesHandled, v => updResp(i, 'classesHandled', v), CLASSES_HANDLED)}
+                          </div>
+                          <div style={{ flex: '0 0 28%' }}>
+                            <label className="form-label">From Year</label>
+                            {yearSel(r.fromYear, v => updResp(i, 'fromYear', v))}
+                          </div>
+                          <div style={{ flex: '0 0 28%' }}>
+                            <label className="form-label">To Year</label>
+                            {yearSel(r.toYear, v => updResp(i, 'toYear', v))}
+                          </div>
+                        </div>
+                      ))}
+                      {r.fromYear && r.toYear && parseInt(r.fromYear) > parseInt(r.toYear) && (
+                        <div style={{ marginTop: 8, color: '#b91c1c', fontSize: 13 }}>From Year cannot be greater than To Year.</div>
+                      )}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(r.administrativeRoles, v => updResp(i, 'administrativeRoles', v), ADMIN_ROLES))}
+                      {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(r.administrativeRoles, v => updResp(i, 'administrativeRoles', v), adminRoles, "Select..."))}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(r.committeeMemberships, v => updResp(i, 'committeeMemberships', v), COMMITTEES))}
+                      {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(r.committeeMemberships, v => updResp(i, 'committeeMemberships', v), committees, "Select..."))}
                     </div>
                   </>
                 ) : (

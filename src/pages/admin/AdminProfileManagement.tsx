@@ -242,6 +242,7 @@ const FIELD_STORAGE_KEYS: Record<string, string> = {
   'dept-charges::Administrative charge': 'departmentalChargesOptions',
   'special-assignments::Administrative charge': 'specialAssignmentsOptions',
   'extra-institutional::Administrative charge': 'extraInstitutionalOptions',
+  'international-experience::Visited Country': 'countryVisitOptions',
   'Reason for Leaving': 'reasonForLeavingOptions'
 };
 

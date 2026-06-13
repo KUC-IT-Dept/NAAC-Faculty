@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../lib/api';
+import api, { getFileUrl } from '../lib/api';
 import { GraduationCap, Briefcase, BookOpen, FlaskConical, Award, Users, Shield, Mail, Phone, Globe, Link2, ExternalLink } from 'lucide-react';
 
 export default function PublicProfile() {
@@ -49,7 +50,7 @@ export default function PublicProfile() {
         <div className="public-container">
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 28, flexWrap: 'wrap' }}>
             <div className="avatar avatar-xl" style={{ border: '4px solid rgba(201,162,39,0.6)', background: 'rgba(255,255,255,0.12)', fontSize: '2.5rem', flexShrink: 0 }}>
-              {pi.photoUrl ? <img src={pi.photoUrl} alt={pi.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : initials}
+              {pi.photoUrl ? <img src={getFileUrl(pi.photoUrl)} alt={pi.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : initials}
             </div>
             <div style={{ flex: 1, minWidth: 220 }}>
               <div style={{ fontSize: '0.72rem', color: 'rgba(201,162,39,0.9)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -86,7 +87,79 @@ export default function PublicProfile() {
             <div className="profile-section-body">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead><tr><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Degree</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Specialization</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>University</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Grade</th></tr></thead>
-                <tbody>{profile.qualifications.map((q: any, i: number) => <tr key={i} style={{ borderTop: '1px solid var(--border)' }}><td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>{[q.degreeLevel, q.degreeName].filter(Boolean).join(' · ') || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.specialization || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{q.university || q.boardUniversity || q.institution || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.yearOfPassing || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.percentageCGPA || q.division || '—'}</td></tr>)}</tbody>
+                <tbody>{profile.qualifications.map((q: any, i: number) => (
+                  <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                    <td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>
+                      <div>{[q.degreeLevel, q.degreeName].filter(Boolean).join(' · ') || '—'}</div>
+                      {(q.documentUrl || q.phdCertificate) && (
+                        <a
+                          href={`${import.meta.env.VITE_API_URL || ''}${q.documentUrl || q.phdCertificate}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="preview-file-link"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.72rem', color: 'var(--navy)', fontWeight: 600, marginTop: 4 }}
+                        >
+                          <ExternalLink size={10} /> View Certificate
+                        </a>
+                      )}
+                    </td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.specialization || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{q.university || q.boardUniversity || q.institution || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.yearOfPassing || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.percentageCGPA || q.division || '—'}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Eligibility Tests */}
+        {profile.eligibilityTests?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><GraduationCap size={18} color="var(--navy)" /> Eligibility Tests</div>
+            <div className="profile-section-body">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Test Name</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Subject / Agency</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Details / Certificate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.eligibilityTests.map((et: any, i: number) => {
+                    const detailParts = [];
+                    if (et.certificateNo) detailParts.push(`Cert No: ${et.certificateNo}`);
+                    if (et.score) detailParts.push(`Score: ${et.score}`);
+                    if (et.state) detailParts.push(`State: ${et.state}`);
+
+                    return (
+                      <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>{et.examName || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{et.subject || et.fellowshipAgency || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{et.year || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span>{detailParts.join(' | ') || '—'}</span>
+                            {et.documentUrl && (
+                              <a
+                                href={`${import.meta.env.VITE_API_URL || ''}${et.documentUrl}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="preview-file-link"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: '8px', fontSize: '0.75rem', color: 'var(--navy)', fontWeight: 600 }}
+                              >
+                                <ExternalLink size={11} /> View Certificate
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
               </table>
             </div>
           </div>
@@ -180,6 +253,32 @@ export default function PublicProfile() {
           </div>
         )}
 
+        {/* Internships & Industry Projects */}
+        {profile.internshipAndProjects?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><Briefcase size={18} color="var(--navy)" /> Internships & Industry Projects <span className="badge badge-navy" style={{ marginLeft: 8 }}>{profile.internshipAndProjects.length}</span></div>
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {profile.internshipAndProjects.map((p: any, i: number) => (
+                <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', flex: 1 }}>{p.title || p.studentName || p.program || 'Internship / Project'}</div>
+                    <span className={`badge ${p.status === 'Completed' ? 'badge-active' : 'badge-pending'}`}>{p.status || 'N/A'}</span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 6, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                    {p.studentName && <span>Student: <strong>{p.studentName}</strong></span>}
+                    {p.program && <span>Program: <strong>{p.program}</strong></span>}
+                    {p.organisation && <span>Organisation: <strong>{p.organisation}</strong></span>}
+                    {p.fundingAgency && !p.organisation && <span>Organisation: <strong>{p.fundingAgency}</strong></span>}
+                    {p.role && <span>Role: <strong>{p.role}</strong></span>}
+                    {p.duration && <span>Duration: <strong>{p.duration}</strong></span>}
+                    {!p.duration && (p.fromDate || p.toDate) && <span>Duration: <strong>{p.fromDate || '—'} to {p.toDate || '—'}</strong></span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Awards */}
         {profile.awards?.length > 0 && (
           <div className="profile-section">
@@ -236,10 +335,16 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.institutionName || r.campusName || r.universityName || r.facultyName || r.committeeName || r.title) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.institutionName || r.campusName || r.universityName || r.facultyName || r.committeeName || r.title}
+                      </span>
+                    )}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  {(r.tenureStart || r.tenureEnd || r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>
+                      {r.tenureStart || r.from || '—'} – {r.tenureEnd || r.to || 'Present'}
+                    </span>
                   )}
                 </div>
               ))}
@@ -256,7 +361,11 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.programDepartment || r.departmentProgram || r.syllabusCourse || r.examRole || r.board || r.councilBody || r.department || r.title) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.programDepartment || r.departmentProgram || r.syllabusCourse || r.examRole || r.board || r.councilBody || r.department || r.title}
+                      </span>
+                    )}
                   </div>
                   {(r.from || r.to) && (
                     <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
@@ -271,18 +380,61 @@ export default function PublicProfile() {
         {profile.qualityAssurance?.length > 0 && (
           <div className="profile-section">
             <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Quality Assurance</div>
-            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {profile.qualityAssurance.map((r: any, i: number) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
-                  <div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {profile.qualityAssurance.map((r: any, i: number) => {
+                const charge = (r.administrativeCharge || '').toLowerCase();
+                const detailParts: string[] = [];
+
+                if (charge.includes('director iqac')) {
+                  if (r.activityTitle) detailParts.push(r.activityTitle);
+                  if (r.academicYear) detailParts.push(r.academicYear);
+                } else if (charge.includes('convener naac')) {
+                  if (r.criteriaName) detailParts.push(r.criteriaName);
+                  if (r.academicYear) detailParts.push(r.academicYear);
+                } else if (charge.includes('reports for accreditation naac')) {
+                  if (r.reportName) detailParts.push(r.reportName);
+                  if (r.reportingPeriod) detailParts.push(r.reportingPeriod);
+                } else if (charge.includes('naac department')) {
+                  if (r.departmentName) detailParts.push(r.departmentName);
+                  if (r.academicYear) detailParts.push(r.academicYear);
+                } else if (charge.includes('reports for nirf')) {
+                  if (r.reportCycle) detailParts.push(r.reportCycle);
+                  if (r.academicYear) detailParts.push(r.academicYear);
+                } else if (charge.includes('nirf department')) {
+                  if (r.departmentName) detailParts.push(r.departmentName);
+                  if (r.academicYear) detailParts.push(r.academicYear);
+                } else if (charge.includes('feedback')) {
+                  if (r.feedbackType) detailParts.push(r.feedbackType);
+                  if (r.academicYear) detailParts.push(r.academicYear);
+                } else {
+                  if (r.responsibilityTitle) detailParts.push(r.responsibilityTitle);
+                  if (r.startDate) detailParts.push(`Started ${r.startDate}`);
+                }
+
+                return (
+                  <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8, borderLeft: '3px solid var(--navy)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                      <div>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                        {detailParts.length > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{detailParts.join(' · ')}</span>}
+                      </div>
+                      {r.status && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.status}</span>
+                      )}
+                      {r.reportStatus && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.reportStatus}</span>
+                      )}
+                      {r.submissionStatus && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.submissionStatus}</span>
+                      )}
+                      {r.implementationStatus && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.implementationStatus}</span>
+                      )}
+                    </div>
+                    {r.remarks && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 6, fontStyle: 'italic' }}>{r.remarks}</div>}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -296,7 +448,11 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.departmentSchoolCenter || r.departmentUnit || r.fundingAgencyOrganization || r.projectSchemeName || r.conferenceEventName || r.title) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.departmentSchoolCenter || r.departmentUnit || r.fundingAgencyOrganization || r.projectSchemeName || r.conferenceEventName || r.title}
+                      </span>
+                    )}
                   </div>
                   {(r.from || r.to) && (
                     <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
@@ -316,10 +472,16 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.institutionName || r.examinationSession || r.boardName || r.courseName || r.departmentName || r.title) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.institutionName || r.examinationSession || r.boardName || r.courseName || r.departmentName || r.title}
+                      </span>
+                    )}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  {(r.tenureStart || r.tenureEnd || r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>
+                      {r.tenureStart || r.from || '—'} – {r.tenureEnd || r.to || 'Present'}
+                    </span>
                   )}
                 </div>
               ))}
@@ -336,10 +498,16 @@ export default function PublicProfile() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+                    {(r.departmentUnit || r.responsibilityTitle || r.roleResponsibility) && (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
+                        {r.departmentUnit || r.responsibilityTitle || r.roleResponsibility}
+                      </span>
+                    )}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
+                  {(r.tenureStart || r.tenureEnd || r.from || r.to) && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>
+                      {r.tenureStart || r.from || '—'} – {r.tenureEnd || r.to || 'Present'}
+                    </span>
                   )}
                 </div>
               ))}
@@ -351,18 +519,53 @@ export default function PublicProfile() {
         {profile.departmentalCharges?.length > 0 && (
           <div className="profile-section">
             <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Departmental Charges</div>
-            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {profile.departmentalCharges.map((r: any, i: number) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
-                  <div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {profile.departmentalCharges.map((r: any, i: number) => {
+                const charge = (r.administrativeCharge || '').toLowerCase();
+                const detailParts: string[] = [];
+                const hasTenure = !charge.includes('coordinating seminars');
+
+                if (charge.includes('head of the department')) {
+                  if (r.departmentName) detailParts.push(r.departmentName);
+                  if (r.institutionName) detailParts.push(r.institutionName);
+                } else if (charge.includes('co-ordinator cultural')) {
+                  if (r.committeeName) detailParts.push(r.committeeName);
+                  if (r.academicYear) detailParts.push(r.academicYear);
+                } else if (charge.includes('serving as librarian')) {
+                  if (r.libraryName) detailParts.push(r.libraryName);
+                } else if (charge.includes('serving on library') || charge.includes('serving on sports') || charge.includes('serving on cultural') || charge.includes('serving on grievance')) {
+                  if (r.committeeName) detailParts.push(r.committeeName);
+                  if (r.role) detailParts.push(r.role);
+                } else if (charge.includes('guiding students')) {
+                  if (r.mentoringScheme) detailParts.push(r.mentoringScheme);
+                  if (r.numberOfStudents) detailParts.push(`${r.numberOfStudents} students`);
+                } else if (charge.includes('coordinating seminars')) {
+                  if (r.eventTitle) detailParts.push(r.eventTitle);
+                  if (r.organizingDepartment) detailParts.push(r.organizingDepartment);
+                } else {
+                  if (r.title) detailParts.push(r.title);
+                  if (r.departmentName) detailParts.push(r.departmentName);
+                  if (r.description) detailParts.push(r.description);
+                }
+
+                return (
+                  <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8, borderLeft: '3px solid var(--navy)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                      <div>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                        {detailParts.length > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{detailParts.join(' · ')}</span>}
+                      </div>
+                      {hasTenure && (r.tenureStart || r.tenureEnd) && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.tenureStart || '—'} – {r.tenureEnd || 'Present'}</span>
+                      )}
+                      {!hasTenure && r.eventDate && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.eventDate}</span>
+                      )}
+                    </div>
+                    {r.remarks && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 6, fontStyle: 'italic' }}>{r.remarks}</div>}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -371,18 +574,56 @@ export default function PublicProfile() {
         {profile.specialAssignments?.length > 0 && (
           <div className="profile-section">
             <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Special Assignments</div>
-            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {profile.specialAssignments.map((r: any, i: number) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
-                  <div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {profile.specialAssignments.map((r: any, i: number) => {
+                const charge = (r.administrativeCharge || '').toLowerCase();
+                const detailParts: string[] = [];
+
+                if (charge.includes('community service')) {
+                  if (r.programName) detailParts.push(r.programName);
+                  if (r.communityPartner) detailParts.push(r.communityPartner);
+                } else if (charge.includes('coordinating nss')) {
+                  if (r.nssUnitNumber) detailParts.push(r.nssUnitNumber);
+                  if (r.role) detailParts.push(r.role);
+                } else if (charge.includes('coordinating ncc')) {
+                  if (r.nccUnitName) detailParts.push(r.nccUnitName);
+                  if (r.role) detailParts.push(r.role);
+                } else if (charge.includes('industry linkages')) {
+                  if (r.activityType) detailParts.push(r.activityType);
+                  if (r.organizationName) detailParts.push(r.organizationName);
+                } else if (charge.includes('managing lms')) {
+                  if (r.platformName) detailParts.push(r.platformName);
+                  if (r.responsibilityArea) detailParts.push(r.responsibilityArea);
+                } else if (charge.includes('pro') || charge.includes('public relations')) {
+                  if (r.organizationName) detailParts.push(r.organizationName);
+                  if (r.responsibilityArea) detailParts.push(r.responsibilityArea);
+                } else if (charge.includes('coordinator job') || charge.includes('coordinator - job')) {
+                  if (r.cellName) detailParts.push(r.cellName);
+                  if (r.roleDescription) detailParts.push(r.roleDescription);
+                } else if (charge.includes('member job') || charge.includes('member - job')) {
+                  if (r.cellName) detailParts.push(r.cellName);
+                  if (r.responsibilityArea) detailParts.push(r.responsibilityArea);
+                } else {
+                  if (r.title) detailParts.push(r.title);
+                  if (r.organizationName) detailParts.push(r.organizationName);
+                  if (r.description) detailParts.push(r.description);
+                }
+
+                return (
+                  <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8, borderLeft: '3px solid var(--navy)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                      <div>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                        {detailParts.length > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{detailParts.join(' · ')}</span>}
+                      </div>
+                      {(r.tenureStart || r.tenureEnd) && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.tenureStart || '—'} – {r.tenureEnd || 'Present'}</span>
+                      )}
+                    </div>
+                    {r.remarks && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 6, fontStyle: 'italic' }}>{r.remarks}</div>}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -391,18 +632,52 @@ export default function PublicProfile() {
         {profile.extraInstitutionalActivities?.length > 0 && (
           <div className="profile-section">
             <div className="profile-section-title"><Shield size={18} color="var(--navy)" /> Activities – Extra Institutional</div>
-            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {profile.extraInstitutionalActivities.map((r: any, i: number) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
-                  <div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
-                    {r.description && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{r.description}</span>}
+            <div className="profile-section-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {profile.extraInstitutionalActivities.map((r: any, i: number) => {
+                const charge = (r.administrativeCharge || '').toLowerCase();
+                const detailParts: string[] = [];
+                if (charge.includes('syndicate')) {
+                  if (r.universityName) detailParts.push(r.universityName);
+                  if (r.nominationType) detailParts.push(r.nominationType);
+                } else if (charge.includes('board of studies')) {
+                  if (r.universityName) detailParts.push(r.universityName);
+                  if (r.department) detailParts.push(r.department);
+                  if (r.role) detailParts.push(r.role);
+                } else if (charge.includes('visiting')) {
+                  if (r.institutionName) detailParts.push(r.institutionName);
+                  if (r.department) detailParts.push(r.department);
+                  if (r.specialization) detailParts.push(r.specialization);
+                } else if (charge.includes('examiner')) {
+                  if (r.universityName) detailParts.push(r.universityName);
+                  if (r.courseName) detailParts.push(r.courseName);
+                  if (r.examinationType) detailParts.push(r.examinationType);
+                } else if (charge.includes('syllabus')) {
+                  if (r.universityName) detailParts.push(r.universityName);
+                  if (r.programName) detailParts.push(r.programName);
+                  if (r.role) detailParts.push(r.role);
+                } else if (charge.includes('dean')) {
+                  if (r.institutionName) detailParts.push(r.institutionName);
+                  if (r.facultyName) detailParts.push(r.facultyName);
+                } else {
+                  if (r.title) detailParts.push(r.title);
+                  if (r.organizationName) detailParts.push(r.organizationName);
+                  if (r.description) detailParts.push(r.description);
+                }
+                return (
+                  <div key={i} style={{ padding: '14px 16px', background: 'var(--bg)', borderRadius: 8, borderLeft: '3px solid var(--navy)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                      <div>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.administrativeCharge}</span>
+                        {detailParts.length > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>{detailParts.join(' · ')}</span>}
+                      </div>
+                      {(r.tenureStart || r.tenureEnd) && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.tenureStart || '—'} – {r.tenureEnd || 'Present'}</span>
+                      )}
+                    </div>
+                    {r.remarks && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 6, fontStyle: 'italic' }}>{r.remarks}</div>}
                   </div>
-                  {(r.from || r.to) && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--navy)', fontWeight: 600 }}>{r.from || '—'} – {r.to || 'Present'}</span>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

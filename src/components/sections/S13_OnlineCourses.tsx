@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
-import { coursePlatformOptions } from '../../shared/dropdownOptions';
+import { coursePlatformOptions, courseLevelOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
-const EMPTY = { courseName: '', platform: '', from: '', to: '', certificateId: '', certificateUrl: '', score: '' };
+const EMPTY = { courseName: '', platform: '', from: '', to: '', certificateId: '', certificateUrl: '', score: '', courseLevel: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -60,6 +60,7 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Course Name" value={item.courseName} />
           <PreviewRow label="Platform" value={item.platform} />
+          <PreviewRow label="Course Level" value={item.courseLevel} />
           {item.from && <PreviewRow label="From Date" value={item.from} />}
           {item.to && <PreviewRow label="To Date" value={item.to} />}
           {!item.from && !item.to && <PreviewRow label="Duration" value={item.duration} />}
@@ -82,6 +83,7 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
 export default function OnlineCourses({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
   // Reactive dropdown options
   const platformOpts = useDropdownOptions(coursePlatformOptions);
+  const levelOpts = useDropdownOptions(courseLevelOptions);
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
@@ -142,8 +144,11 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
               </div>
             </div>
             {fg('Course / Certification Name *', inp(pendingNewItem.courseName, v => setPendingNewItem({ ...pendingNewItem, courseName: v })))}
-            <div className="form-row form-row-3">
-              {fg('Platform / Provider *', sel(pendingNewItem.platform, v => setPendingNewItem({ ...pendingNewItem, platform: v }), platformOpts))}
+            <div className="form-row form-row-2">
+              {fg('Platform / Provider *', sel(pendingNewItem.platform, v => setPendingNewItem({ ...pendingNewItem, platform: v }), platformOpts, "Select..."))}
+              {fg('Course Level', sel(pendingNewItem.courseLevel, v => setPendingNewItem({ ...pendingNewItem, courseLevel: v }), levelOpts, "Select..."))}
+            </div>
+            <div className="form-row form-row-2">
               {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
               {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
             </div>
@@ -173,8 +178,11 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                     </div>
                   </div>
                   {fg('Course / Certification Name *', inp(item.courseName, v => upd(i, 'courseName', v)))}
-                  <div className="form-row form-row-3">
-                    {fg('Platform / Provider *', sel(item.platform, v => upd(i, 'platform', v), platformOpts))}
+                  <div className="form-row form-row-2">
+                    {fg('Platform / Provider *', sel(item.platform, v => upd(i, 'platform', v), platformOpts, "Select..."))}
+                    {fg('Course Level', sel(item.courseLevel, v => upd(i, 'courseLevel', v), levelOpts, "Select..."))}
+                  </div>
+                  <div className="form-row form-row-2">
                     {fg('From Date *', dateInp(item.from, v => upd(i, 'from', v)))}
                     {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}
                   </div>

@@ -2,6 +2,8 @@ import api from '../lib/api';
 
 // Shared dropdown options for Admin and Faculty panels
 
+export const institutionsOptions = [];
+
 // Personal Information
 export const genderOptions = ['Male', 'Female', 'Transgender', 'Other'];
 export const bloodGroupOptions = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -123,7 +125,7 @@ export const membershipStatusOptions = ['Active', 'Expired', 'Pending', 'Suspend
 export const membershipLevelOptions = ['Member', 'Senior Member', 'Fellow', 'Associate Member', 'Student Member'];
 export const organizationTypeOptions = ['Technical Society', 'Research Organization', 'Academic Association', 'Professional Council', 'Scientific Community'];
 
-// FDP & Workshops
+// Attended FDP & Workshops
 export const programmeTypeOptions = ['FDP', 'Workshop', 'Seminar', 'Conference', 'Short Term Course', 'Refresher Course', 'Orientation Programme', 'Training Programme'];
 export const sponsoringAgencyOptions = ['AICTE', 'UGC', 'TEQIP', 'MHRD', 'DST', 'Self-Funded', 'University Funded', 'Institutional'];
 export const participationOptions = ['Attended', 'Organized', 'Resource Person', 'Presented', 'Chaired Session'];
@@ -133,9 +135,9 @@ export const coursePlatformOptions = ['Coursera', 'NPTEL', 'SWAYAM', 'Udemy', 'e
 export const courseTypeOptions = ['Certification', 'Diploma', 'Skill Development', 'Faculty Development', 'Professional Training'];
 export const completionStatusOptions = ['Completed', 'Ongoing', 'In Progress', 'Certified'];
 export const certificationTypeOptions = ['Free Certificate', 'Paid Certificate', 'Verified Certificate', 'University Certificate'];
-export const learningModeOptions = ['Online', 'Hybrid', 'Self Paced', 'Instructor Led'];
+export const learningModeOptions = ['Online', 'Offline', 'Hybrid', 'Self Paced', 'Instructor Led'];
 
-// International Experience
+// Academic International Experience
 export const countryVisitOptions = ['Singapore', 'USA', 'UK', 'Germany', 'Canada', 'Australia', 'Japan', 'France'];
 export const purposeOfVisitOptions = ['Conference', 'Research Collaboration', 'Faculty Exchange', 'Workshop', 'Seminar', 'Training Program'];
 export const fundingSourceOptions = ['DST Travel Grant', 'UGC', 'AICTE', 'Self Funded', 'International Fellowship', 'University Sponsorship'];
@@ -249,6 +251,7 @@ export const extraInstitutionalOptions = [
 ];
 
 export const optionArrays = {
+  institutionsOptions,
   genderOptions, bloodGroupOptions, nationalityOptions, religionOptions, categoryOptions, subCategoryOptions, maritalStatusOptions, disabilityStatusOptions, disabilityTypeOptions, stateOptions, countryOptions,
   degreeLevelOptions, degreeNameOptions, specializationOptions, divisionOptions, studyModeOptions, gradeTypeOptions,
   examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions, fellowshipAgencyOptions,
@@ -260,11 +263,15 @@ export const optionArrays = {
   researchDegreeOptions, scholarGenderOptions, researchStatusOptions, guidanceTypeOptions, patentStatusOptions, patentTypeOptions, supervisionCategoryOptions,
   committeeTypeOptions, responsibilityRoleOptions, courseLevelOptions, semesterTypeOptions, academicSessionTypeOptions, teachingCategoryOptions, responsibilityStatusOptions,
   adminChargeOptions, academicAdminOptions, qualityAssuranceOptions, researchInnovationOptions, examinationEvaluationOptions, adminSupportOptions, departmentalChargesOptions, specialAssignmentsOptions, extraInstitutionalOptions,
+  countryVisitOptions, purposeOfVisitOptions, fundingSourceOptions, visitCategoryOptions, collaborationTypeOptions, visitStatusOptions,
   documentTypeOptions
 };
 
 const clientToServerKeyMap = Object.fromEntries(
-  Object.keys(optionArrays).map((key) => [key, key.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '')])
+  Object.keys(optionArrays).map((key) => {
+    if (key === 'institutionsOptions') return [key, 'institutions'];
+    return [key, key.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '')];
+  })
 );
 
 const serverToClientKeyMap = Object.fromEntries(

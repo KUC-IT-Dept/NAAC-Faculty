@@ -1,368 +1,412 @@
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { fg, inp, sel, dateInp } from './sectionUtils';
-import { designationPostOptions, departmentOptions, natureOfAppointmentOptions, reasonForLeavingOptions, loadDropdownOptionsFromServer } from '../../shared/dropdownOptions';
+import { fg, inp, dateInp, FileInp, sel } from './sectionUtils';
+import { useState } from 'react';
+import { Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, Edit2, ExternalLink } from 'lucide-react';
+import { departmentOptions, affiliatedUniversityOptions, designationPostOptions, institutionTypeWorkOptions, natureOfAppointmentOptions, reasonForLeavingOptions, institutionsOptions } from '../../shared/dropdownOptions';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
-type UploadedFile = {
-  name: string;
-  url?: string;
-};
-
-type WorkExp = {
-  organization: string;
-  designation: string;
-  department?: string;
-  from: string;
-  to: string;
-  nature: string;
-  reasonForLeaving: string;
-  files: UploadedFile[];
-  isEditing?: boolean;
-};
-
-const EMPTY: WorkExp = {
-  organization: '',
+const EMPTY = {
+  employeeId: '',
   designation: '',
   department: '',
+  institution: '',
+  affiliatedUniversity: '',
+  typeOfInstitution: '',
+  natureOfAppointment: '',
   from: '',
   to: '',
-  nature: '',
   reasonForLeaving: '',
-  files: [],
-  isEditing: true,
+  documentUrl: '',
 };
 
+interface WorkExperienceEntry {
+  employeeId?: string;
+  designation?: string;
+  department?: string;
+  institution?: string;
+  affiliatedUniversity?: string;
+  typeOfInstitution?: string;
+  natureOfAppointment?: string;
+  from?: string;
+  to?: string;
+  reasonForLeaving?: string;
+  documentUrl?: string;
+  dateOfJoining?: string;
+  dateOfConfirmation?: string;
+}
 
-/* ─── Shared Button Styles ───────────────────────────────────── */
-const btnStyles = {
-  add: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#4f46e5', color: '#ffffff',
-    padding: '8px 16px', borderRadius: '6px',
-    fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer'
-  } as React.CSSProperties,
-  edit: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#f8fafc', color: '#334155',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer'
-  } as React.CSSProperties,
-  delete: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#fff1f2', color: '#be123c',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '13px', fontWeight: 600, border: '1px solid #ffe4e6', cursor: 'pointer'
-  } as React.CSSProperties,
-  save: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#16a34a', color: '#ffffff',
-    padding: '7px 20px', borderRadius: '8px',
-    fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer',
-    marginLeft: '8px',
-  } as React.CSSProperties,
-  saveDisabled: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#bbf7d0', color: '#86efac',
-    padding: '7px 20px', borderRadius: '8px',
-    fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'not-allowed',
-    marginLeft: '8px',
-  } as React.CSSProperties,
-  cancel: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    backgroundColor: '#fff1f2', color: '#9f1239',
-    padding: '7px 20px', borderRadius: '8px',
-    fontSize: '14px', fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer'
-  } as React.CSSProperties,
+const CustomSelect = ({ value, onChange, options, placeholder = '— Select —' }: { value: string; onChange: (v: string) => void; options: string[]; placeholder?: string }) => sel(value, onChange, options, placeholder);
+
+const getDurationText = (from: string, to?: string) => {
+  if (!from) return '—';
+  const start = new Date(from);
+  if (isNaN(start.getTime())) return '—';
+  
+  const end = to ? new Date(to) : new Date();
+  if (isNaN(end.getTime()) || end < start) return '—';
+  
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  let days = end.getDate() - start.getDate();
+  
+  if (days < 0) {
+    months--;
+    const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+  
+  const parts = [];
+  if (years > 0) parts.push(`${years} Year${years > 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} Month${months > 1 ? 's' : ''}`);
+  if (years === 0 && months === 0) {
+    if (days > 0) parts.push(`${days} Day${days > 1 ? 's' : ''}`);
+    else return '0 Days';
+  }
+  
+  const durationStr = parts.join(', ');
+  return to ? durationStr : `${durationStr} (to Present)`;
 };
 
-/* ─── Structured Preview Row ─────────────────────────────────── */
-function PreviewRow({ label, value }: { label: string; value?: string | null }) {
-  if (!value) return null;
-  return (
-    <div style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border-light, #f1f5f9)' }}>
-      <span style={{ minWidth: 160, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>
-        {label}
-      </span>
-      <span style={{ fontSize: 13, color: 'var(--text-primary, #1e293b)', wordBreak: 'break-word' }}>
-        {value}
-      </span>
+export default function WorkExperience({ data, onChange }: { data: WorkExperienceEntry[]; onChange: (d: WorkExperienceEntry[]) => void }) {
+  const dynamicDepartmentOptions = useDropdownOptions(departmentOptions);
+  const dynamicAffiliatedUniversityOptions = useDropdownOptions(affiliatedUniversityOptions);
+  const dynamicDesignationPostOptions = useDropdownOptions(designationPostOptions);
+  const dynamicInstitutionTypeWorkOptions = useDropdownOptions(institutionTypeWorkOptions);
+  const dynamicNatureOfAppointmentOptions = useDropdownOptions(natureOfAppointmentOptions);
+  const dynamicReasonForLeavingOptions = useDropdownOptions(reasonForLeavingOptions);
+
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingData, setEditingData] = useState<WorkExperienceEntry>(EMPTY);
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
+
+  const dataArray = (Array.isArray(data) ? data : []).filter(Boolean);
+
+  const startEdit = (index: number) => {
+    setEditingIndex(index);
+    const base = index === -1 ? { ...EMPTY } : { ...dataArray[index] };
+    if (base.dateOfJoining && !base.from) base.from = base.dateOfJoining;
+    if (base.dateOfConfirmation && !base.to) base.to = base.dateOfConfirmation;
+    setEditingData({ ...base });
+  };
+
+  const saveEdit = () => {
+    const keysToCheck: (keyof WorkExperienceEntry)[] = [
+      'employeeId', 'designation', 'department', 'institution',
+      'affiliatedUniversity', 'typeOfInstitution', 'natureOfAppointment',
+      'from', 'to',
+      'reasonForLeaving', 'documentUrl'
+    ];
+    const hasAnyData = keysToCheck.some(key => {
+      const val = editingData[key];
+      return val && typeof val === 'string' && val.trim() !== '';
+    });
+
+    if (!hasAnyData) {
+      alert('Please fill in at least one field to save.');
+      return;
+    }
+
+    const newData = [...dataArray];
+    if (editingIndex === -1) {
+      newData.push({ ...editingData });
+    } else if (editingIndex !== null) {
+      newData[editingIndex] = { ...editingData };
+    }
+
+    // Sort by from descending
+    newData.sort((a, b) => {
+      const dateA = new Date(a.from || '1900-01-01').getTime();
+      const dateB = new Date(b.from || '1900-01-01').getTime();
+      return dateB - dateA;
+    });
+
+    onChange(newData);
+    setEditingIndex(null);
+    setEditingData(EMPTY);
+  };
+
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditingData(EMPTY);
+  };
+
+  const updateField = (key: keyof WorkExperienceEntry, value: string) => {
+    setEditingData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const toggleCard = (index: number) => {
+    setExpandedCards(prev => {
+      const s = new Set(prev);
+      if (s.has(index)) {
+        s.delete(index);
+      } else {
+        s.add(index);
+      }
+      return s;
+    });
+  };
+
+  const removeEntry = (index: number) => {
+    onChange(dataArray.filter((_: unknown, i: number) => i !== index));
+  };
+
+  const renderPreview = (label: string, value: string | undefined | null) => (
+    <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+      <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>{label}</span>
+      <span style={{ color: '#1f2937', fontSize: '14px', fontWeight: 500 }}>{value || '-'}</span>
     </div>
   );
-}
 
-/* ─── Preview Card with toggle ───────────────────────────────── */
-function PreviewCard({
-  e,
-  i,
-  data,
-  onChange,
-  toggleEdit,
-  calculateDuration,
-}: {
-  e: WorkExp;
-  i: number;
-  data: WorkExp[];
-  onChange: (d: WorkExp[]) => void;
-  toggleEdit: (i: number, state: boolean) => void;
-  calculateDuration: (from: string, to: string) => string;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
+  const renderFormFields = () => (
     <>
-      {/* ── Collapsed header row ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
-          {/* Year / duration badge */}
-          <div style={{
-            minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8,
-            background: 'var(--primary, #2563eb)', flexShrink: 0,
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>
-              {e.from ? new Date(e.from).getFullYear() : '—'}
-            </div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>From</div>
-          </div>
-
-          {/* Summary */}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, color: 'var(--text-primary, #1e293b)', fontSize: 15, marginBottom: 4 }}>
-              {e.organization || 'Untitled Organisation'}
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              {e.designation && (
-                <span className="badge badge-secondary">{e.designation}</span>
-              )}
-              {e.nature && (
-                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{e.nature}</span>
-              )}
-              {e.from && e.to && (
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  {calculateDuration(e.from, e.to)}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
-          <button type="button" style={btnStyles.edit} onClick={() => setExpanded(!expanded)}>
-            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            {expanded ? 'Hide' : 'View'}
-          </button>
-          <button type="button" style={btnStyles.edit} onClick={(ev) => { ev.stopPropagation(); toggleEdit(i, true); }}>
-            <Edit2 size={14} /> Edit
-          </button>
-          <button type="button" style={btnStyles.delete} onClick={(ev) => { ev.stopPropagation(); onChange(data.filter((_, idx) => idx !== i)); }}>
-            <Trash2 size={14} /> Delete
-          </button>
-        </div>
+      <div className="form-row form-row-2">
+        {fg('Employee ID / Staff Code', inp(editingData.employeeId || '', v => updateField('employeeId', v)))}
+        {fg('Designation', <CustomSelect value={editingData.designation || ''} onChange={(v: string) => updateField('designation', v)} options={dynamicDesignationPostOptions} />)}
       </div>
-
-      {/* ── Expanded details ── */}
-      {expanded && (
-        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <PreviewRow label="Institution Name" value={e.organization} />
-            <PreviewRow label="Designation" value={e.designation} />
-            <PreviewRow label="Department" value={e.department} />
-            <PreviewRow label="From Date" value={e.from ? new Date(e.from).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'} />
-            <PreviewRow label="To Date" value={e.to ? new Date(e.to).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'} />
-            <PreviewRow label="Total Duration" value={calculateDuration(e.from, e.to)} />
-            <PreviewRow label="Nature of Appointment" value={e.nature} />
-            <PreviewRow label="Reason for Leaving" value={e.reasonForLeaving} />
-          </div>
-
-          {e.files?.length > 0 && (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Documents</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {e.files.map((f, idx) => (
-                  <a key={idx} href={f.url} target="_blank" rel="noreferrer" className="preview-file-link" style={{ fontSize: 12 }}>
-                    <ExternalLink size={12} /> {f.name}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      <div className="form-row form-row-2">
+        {fg('Department', <CustomSelect value={editingData.department || ''} onChange={(v: string) => updateField('department', v)} options={dynamicDepartmentOptions} />)}
+        {fg('College / Institution Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateField('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
+      </div>
+      <div className="form-row form-row-2">
+        {fg('University Affiliated to', <CustomSelect value={editingData.affiliatedUniversity || ''} onChange={(v: string) => updateField('affiliatedUniversity', v)} options={dynamicAffiliatedUniversityOptions} />)}
+        {fg('Type of Institution', <CustomSelect value={editingData.typeOfInstitution || ''} onChange={(v: string) => updateField('typeOfInstitution', v)} options={dynamicInstitutionTypeWorkOptions} />)}
+      </div>
+      <div className="form-row form-row-3">
+        {fg('Nature of Appointment', <CustomSelect value={editingData.natureOfAppointment || ''} onChange={(v: string) => updateField('natureOfAppointment', v)} options={dynamicNatureOfAppointmentOptions} />)}
+        {fg('From Date', dateInp(editingData.from || '', v => updateField('from', v)))}
+        {fg('To Date', dateInp(editingData.to || '', v => updateField('to', v)))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Reason for Leaving', <CustomSelect value={editingData.reasonForLeaving || ''} onChange={(v: string) => updateField('reasonForLeaving', v)} options={dynamicReasonForLeavingOptions} />)}
+      </div>
+      <div className="form-group" style={{ marginTop: 15 }}>
+        <label className="form-label" style={{ fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>
+          Experience Document / Proof
+        </label>
+        <FileInp
+          v={editingData.documentUrl || ''}
+          fn={(v) => updateField('documentUrl', v)}
+          accept=".pdf,image/*"
+        />
+      </div>
     </>
   );
-}
-
-/* ─── Main Component ─────────────────────────────────────────── */
-export default function WorkExperience({ data, onChange }: { data: WorkExp[]; onChange: (d: WorkExp[]) => void; }) {
-  const [designationOptionsState, setDesignationOptionsState] = useState<string[]>(designationPostOptions);
-  const [departmentOptionsState, setDepartmentOptionsState] = useState<string[]>(departmentOptions);
-  const [natureOptionsState, setNatureOptionsState] = useState<string[]>(natureOfAppointmentOptions);
-  const [reasonOptionsState, setReasonOptionsState] = useState<string[]>(reasonForLeavingOptions);
-
-  useEffect(() => {
-    const refresh = () => {
-      setDesignationOptionsState([...designationPostOptions]);
-      setDepartmentOptionsState([...departmentOptions]);
-      setNatureOptionsState([...natureOfAppointmentOptions]);
-      setReasonOptionsState([...reasonForLeavingOptions]);
-    };
-
-    refresh();
-    window.addEventListener('dropdownOptionsUpdated', refresh);
-    loadDropdownOptionsFromServer().catch(() => {});
-
-    return () => window.removeEventListener('dropdownOptionsUpdated', refresh);
-  }, []);
-
-  const upd = (i: number, k: keyof WorkExp, v: string) => {
-    const arr = [...data];
-    arr[i] = { ...arr[i], [k]: v };
-    onChange(arr);
-  };
-
-  const toggleEdit = (i: number, state: boolean) => {
-    const arr = [...data];
-    arr[i] = { ...arr[i], isEditing: state };
-    onChange(arr);
-  };
-
-  const handleFileUpload = (i: number, files: FileList | null) => {
-    if (!files) return;
-    const uploadedFiles = Array.from(files).map((file: File) => ({
-      name: file.name,
-      url: URL.createObjectURL(file),
-    }));
-    const arr = [...data];
-    arr[i].files = [...(arr[i].files || []), ...uploadedFiles];
-    onChange(arr);
-  };
-
-  const calculateDuration = (from: string, to: string) => {
-    if (!from || !to) return '-';
-    const start = new Date(from);
-    const end = new Date(to);
-    let years = end.getFullYear() - start.getFullYear();
-    let months = end.getMonth() - start.getMonth();
-    if (months < 0) { years--; months += 12; }
-    if (years < 0) return '-';
-    return `${years} year${years !== 1 ? 's' : ''} ${months} month${months !== 1 ? 's' : ''}`;
-  };
-
-  const isComplete = (e: WorkExp) => !!(e.organization?.trim());
 
   return (
-    <>
-      <div className="section-header-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
+    <div>
+      {/* ── Add button ── */}
+      <div style={{ textAlign: 'right', marginBottom: '16px' }}>
         <button
           type="button"
-          style={btnStyles.add}
-          onClick={() => onChange([{ ...EMPTY }, ...data])}
+          onClick={() => startEdit(-1)}
+          style={{
+            padding: '8px 16px', fontSize: '14px', cursor: 'pointer',
+            backgroundColor: '#4f46e5', color: 'white', border: 'none',
+            borderRadius: '6px', display: 'inline-flex', alignItems: 'center',
+            gap: '8px', fontWeight: 600
+          }}
         >
           <Plus size={16} /> Add Work Experience
         </button>
       </div>
 
-      {data.length === 0 && (
+      {/* ── New entry form ── */}
+      {editingIndex === -1 && (
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Briefcase size={20} color="#4f46e5" /> Add Work Experience
+            </h3>
+            <div>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                style={{
+                  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+                  backgroundColor: '#fff1f2', color: '#9f1239',
+                  border: '1px solid #fecdd3', borderRadius: '8px',
+                  marginRight: '8px', fontWeight: 600,
+                  display: 'inline-flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                <X size={14} /> Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveEdit}
+                style={{
+                  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+                  backgroundColor: '#16a34a', color: 'white', border: 'none',
+                  borderRadius: '8px', fontWeight: 600,
+                  display: 'inline-flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                <Check size={14} /> Save
+              </button>
+            </div>
+          </div>
+          {renderFormFields()}
+        </div>
+      )}
+
+      {/* ── Empty state ── */}
+      {dataArray.length === 0 && editingIndex !== -1 && (
         <div className="empty-state">
           No work experience added yet. Click <strong>Add Work Experience</strong> to get started.
         </div>
       )}
 
-      <div className="items-list">
-        {data.map((e, i) => (
-          <div key={i} className={`item-card ${e.isEditing ? 'is-editing' : 'is-preview'}`}>
-
-            {e.isEditing ? (
-              <>
-                {/* ── Edit mode header ── */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>
-                    {!e.organization ? 'New Entry' : 'Editing Entry'}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <button
-                      type="button"
-                      style={btnStyles.cancel}
-                      onClick={() => onChange(data.filter((_, idx) => idx !== i))}
-                    >
-                      <X size={14} /> Cancel
-                    </button>
-                    <button
-                      type="button"
-                      style={isComplete(e) ? btnStyles.save : btnStyles.saveDisabled}
-                      disabled={!isComplete(e)}
-                      title={!isComplete(e) ? 'Please fill in the Institution Name' : 'Save entry'}
-                      onClick={() => toggleEdit(i, false)}
-                    >
-                      <Check size={14} /> Save
-                    </button>
+      {/* ── Saved entries ── */}
+      {dataArray.map((e: WorkExperienceEntry, i: number) => (
+        <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+          {editingIndex === i ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Briefcase size={20} color="#111827" /> Edit Work Experience
+                </h3>
+                <div>
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    style={{
+                      padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+                      backgroundColor: '#fff1f2', color: '#9f1239',
+                      border: '1px solid #fecdd3', borderRadius: '8px',
+                      marginRight: '8px', fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', gap: '6px'
+                    }}
+                  >
+                    <X size={14} /> Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveEdit}
+                    style={{
+                      padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+                      backgroundColor: '#16a34a', color: 'white', border: 'none',
+                      borderRadius: '8px', fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', gap: '6px'
+                    }}
+                  >
+                    <Check size={14} /> Save
+                  </button>
+                </div>
+              </div>
+              {renderFormFields()}
+            </>
+          ) : (
+            <>
+              {/* Card header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: expandedCards.has(i) ? '16px' : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', flex: 1 }} onClick={() => toggleCard(i)}>
+                  {/* Year badge */}
+                  <div style={{ minWidth: 52, textAlign: 'center', padding: '6px 4px', borderRadius: '8px', background: '#2563eb', flexShrink: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>
+                      {(() => {
+                        const dateStr = e.from || e.dateOfJoining;
+                        return dateStr ? new Date(dateStr).getFullYear() : '—';
+                      })()}
+                    </div>
+                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Year</div>
+                  </div>
+                  {/* Title */}
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
+                      {e.designation || `Work Experience ${i + 1}`}
+                    </h3>
+                    {e.institution && (
+                      <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748b' }}>{e.institution}</p>
+                    )}
+                    {(e.from || e.dateOfJoining) && (
+                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>
+                        Duration: {getDurationText(e.from || e.dateOfJoining || '', e.to || e.dateOfConfirmation)}
+                      </p>
+                    )}
                   </div>
                 </div>
-
-                {/* ── Form fields ── */}
-                <div className="form-row form-row-3">
-                  {fg('Institution Name *', inp(e.organization, v => upd(i, 'organization', v)))}
-                  {fg('Designation / Post', sel(e.designation, v => upd(i, 'designation', v), designationOptionsState))}
-                  {fg('Department', sel(e.department || '', v => upd(i, 'department', v), departmentOptionsState))}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleCard(i)}
+                    style={{
+                      padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+                      backgroundColor: expandedCards.has(i) ? '#eff6ff' : '#f1f5f9',
+                      color: expandedCards.has(i) ? '#2563eb' : '#475569',
+                      border: expandedCards.has(i) ? '1px solid #bfdbfe' : '1px solid #cbd5e1',
+                      borderRadius: '6px', fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', gap: '4px'
+                    }}
+                  >
+                    {expandedCards.has(i) ? <><ChevronUp size={14} /> Hide</> : <><ChevronDown size={14} /> View</>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => startEdit(i)}
+                    style={{
+                      padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+                      backgroundColor: '#f1f5f9', color: '#475569',
+                      border: '1px solid #cbd5e1', borderRadius: '6px',
+                      fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px'
+                    }}
+                  >
+                    <Edit2 size={12} /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeEntry(i)}
+                    style={{
+                      padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+                      backgroundColor: '#fff1f2', color: '#e11d48',
+                      border: '1px solid #fecdd3', borderRadius: '6px',
+                      fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px'
+                    }}
+                  >
+                    <Trash2 size={12} /> Delete
+                  </button>
                 </div>
+              </div>
 
-                <div className="form-row form-row-3">
-                  {fg('From Date', dateInp(e.from, v => upd(i, 'from', v)))}
-                  {fg('To Date', dateInp(e.to, v => upd(i, 'to', v)))}
-                  {fg('Nature of Appointment', sel(e.nature, v => upd(i, 'nature', v), natureOptionsState))}
-                </div>
-
-                <div style={{ marginBottom: 12, fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>
-                  Total Duration: <span style={{ color: 'var(--primary)' }}>{calculateDuration(e.from, e.to)}</span>
-                </div>
-
-                <div className="form-row form-row-2">
-                  {fg('Reason for Leaving', sel(e.reasonForLeaving, v => upd(i, 'reasonForLeaving', v), reasonOptionsState))}
-                </div>
-
-                <div className="form-group" style={{ marginTop: 10 }}>
-                  <label>Documents / Experience Proof</label>
-                  <input type="file" multiple className="form-input" onChange={ev => handleFileUpload(i, ev.target.files)} />
-                  {e.files?.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                      {e.files.map((f, idx) => (
-                        <div key={idx} style={{
-                          background: 'var(--surface-alt, #f1f5f9)', padding: '4px 8px', borderRadius: 4,
-                          display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, border: '1px solid var(--border-light, #e2e8f0)'
-                        }}>
-                          <a href={f.url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
-                            {f.name}
-                          </a>
-                          <button
-                            type="button"
-                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}
-                            onClick={() => {
-                              const arr = [...data];
-                              arr[i].files = arr[i].files.filter((_, x) => x !== idx);
-                              onChange(arr);
-                            }}
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      ))}
+              {/* Expanded preview */}
+              {expandedCards.has(i) && (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {renderPreview('Employee ID / Staff Code', e.employeeId)}
+                  {renderPreview('Designation', e.designation)}
+                  {renderPreview('Department', e.department)}
+                  {renderPreview('College / Institution Name', e.institution)}
+                  {renderPreview('University Affiliated to', e.affiliatedUniversity)}
+                  {renderPreview('Type of Institution', e.typeOfInstitution)}
+                  {renderPreview('Nature of Appointment', e.natureOfAppointment)}
+                  {renderPreview('From Date', e.from || e.dateOfJoining)}
+                  {renderPreview('To Date', e.to || e.dateOfConfirmation)}
+                  {(e.from || e.dateOfJoining) && renderPreview('Calculated Duration', getDurationText(e.from || e.dateOfJoining || '', e.to || e.dateOfConfirmation))}
+                  {renderPreview('Reason for Leaving', e.reasonForLeaving)}
+                  {e.documentUrl && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+                      <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Experience Document</span>
+                      <a
+                        href={`${import.meta.env.VITE_API_URL || ''}${e.documentUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="preview-file-link"
+                        style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                      >
+                        <ExternalLink size={12} /> View Document
+                      </a>
                     </div>
                   )}
                 </div>
-              </>
-            ) : (
-              <PreviewCard
-                e={e}
-                i={i}
-                data={data}
-                onChange={onChange}
-                toggleEdit={toggleEdit}
-                calculateDuration={calculateDuration}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-    </>
+              )}
+            </>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }

@@ -1,4 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
+import { useDropdownOptions } from '../shared/useDropdownOptions';
+import { patentStatusOptions, patentTypeOptions } from '../shared/dropdownOptions';
 
 const fg = (label: string, children: React.ReactNode) => (
   <div className="form-group"><label className="form-label">{label}</label>{children}</div>
@@ -111,8 +113,10 @@ export function ProjectsForm({ data, onChange }: { data: any[]; onChange: (d: an
 }
 
 // ── Section 9: Patents ─────────────────────────────────────────
-const PT = { title: '', patentNumber: '', dateOfFiling: '', status: '' };
+const PT = { title: '', patentNumber: '', dateOfFiling: '', status: '', patentType: '' };
 export function PatentsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const statuses = useDropdownOptions(patentStatusOptions);
+  const types = useDropdownOptions(patentTypeOptions);
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
   return (
     <div>
@@ -120,10 +124,13 @@ export function PatentsForm({ data, onChange }: { data: any[]; onChange: (d: any
         <div key={i} className="list-item-card">
           <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
           {fg('Patent Title', inp(p.title, v => u(i, 'title', v)))}
-          <div className="form-row form-row-3">
+          <div className="form-row form-row-2">
+            {fg('Patent Type', sel(p.patentType, v => u(i, 'patentType', v), types))}
+            {fg('Status', sel(p.status, v => u(i, 'status', v), statuses))}
+          </div>
+          <div className="form-row form-row-2">
             {fg('Application / Patent No.', inp(p.patentNumber, v => u(i, 'patentNumber', v), 'IN202021012345'))}
             {fg('Date of Filing', inp(p.dateOfFiling, v => u(i, 'dateOfFiling', v), 'DD/MM/YYYY'))}
-            {fg('Status', sel(p.status, v => u(i, 'status', v), ['Filed', 'Published', 'Granted']))}
           </div>
         </div>
       ))}

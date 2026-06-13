@@ -5,7 +5,7 @@ interface AuthUser {
   id: string;
   username: string;
   email: string;
-  role: 'admin' | 'faculty';
+  role: 'admin' | 'faculty' | 'vc' | 'hod';
   isFirstLogin: boolean;
   isActive: boolean;
 }
@@ -40,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await api.post('/auth/login', { username: email, password });
     localStorage.setItem('iqac_token', data.token);
     localStorage.setItem('iqac_user', JSON.stringify(data.user));
+    if (data.faculty) localStorage.setItem('iqac_faculty', JSON.stringify(data.faculty));
     setToken(data.token);
     setUser(data.user);
     return { faculty: data.faculty };
@@ -52,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.removeItem('iqac_token');
     localStorage.removeItem('iqac_user');
+    localStorage.removeItem('iqac_faculty');
     setToken(null);
     setUser(null);
   };
@@ -60,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data } = await api.get('/auth/me');
       localStorage.setItem('iqac_user', JSON.stringify(data.user));
+      if (data.faculty) localStorage.setItem('iqac_faculty', JSON.stringify(data.faculty));
       setUser(data.user);
     } catch { /* silent */ }
   };

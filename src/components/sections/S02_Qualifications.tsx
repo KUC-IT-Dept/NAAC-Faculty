@@ -1,6 +1,10 @@
-import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check } from 'lucide-react';
+/* eslint-disable @typescript-eslint/no-explicit-any, prefer-const */
+import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, FileInp } from './sectionUtils';
+import { fg, inp, FileInp, sel } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { degreeLevelOptions, divisionOptions, studyModeOptions, countryOptions, stateOptions, degreeNameOptions, specializationOptions, gradeTypeOptions, institutionsOptions } from '../../shared/dropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY = {
   degreeLevel: '',
@@ -10,6 +14,7 @@ const EMPTY = {
   university: '',
   yearOfPassing: '',
   percentageCGPA: '',
+  gradeType: '',
   division: '',
   mode: '',
   country: '',
@@ -17,6 +22,7 @@ const EMPTY = {
   countryAndState: '',
   phdCertificate: '',
   thesisTitle: '',
+  documentUrl: '',
 };
 
 const QUALIFICATION_LEVELS = ['10th', '12th', 'UG', 'PG', 'Ph.D', 'M.Phil'];
@@ -178,9 +184,19 @@ const parseCountryState = (countryAndState: string) => {
 };
 
 export default function Qualifications({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const dynamicDegreeLevelOptions = useDropdownOptions(degreeLevelOptions);
+  const dynamicDivisionOptions = useDropdownOptions(divisionOptions);
+  const dynamicStudyModeOptions = useDropdownOptions(studyModeOptions);
+  const dynamicCountryOptions = useDropdownOptions(countryOptions);
+  const dynamicStateOptions = useDropdownOptions(stateOptions);
+  const dynamicDegreeNameOptions = useDropdownOptions(degreeNameOptions);
+  const dynamicSpecializationOptions = useDropdownOptions(specializationOptions);
+  const dynamicGradeTypeOptions = useDropdownOptions(gradeTypeOptions);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   // Sort data by yearOfPassing descending (latest year at the top)
   const sortedData = [...data].sort((a, b) => {
@@ -191,22 +207,14 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
 
 
 
-  const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => (
-    <select
-      className="form-select"
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#1e293b' }}
-    >
-      <option value="">{placeholder}</option>
-      {options.map((o: string) => <option key={o} value={o}>{o}</option>)}
-    </select>
-  );
+  const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => sel(value, onChange, options, placeholder);
 
   const startEdit = (index: number) => {
-    const item = data[index] || {};
+    const item = sortedData[index] || {};
+    const originalIndex = data.indexOf(item);
+    if (originalIndex === -1) return;
     const parsed = parseCountryState(item.countryAndState || '');
-    setEditingIndex(index);
+    setEditingIndex(originalIndex);
     setEditingData({
       ...item,
       country: item.country || parsed.country,
@@ -236,7 +244,8 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           yearOfPassing: editingData.yearOfPassing || '',
           thesisTitle: editingData.thesisTitle || '',
           mode: editingData.mode || '',
-          phdCertificate: editingData.phdCertificate || '',
+          phdCertificate: editingData.phdCertificate || editingData.documentUrl || '',
+          documentUrl: editingData.documentUrl || editingData.phdCertificate || '',
           country: editingData.country || '',
           state: editingData.state || '',
           countryAndState: editingData.country && editingData.state
@@ -244,6 +253,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             : editingData.country || '',
           university: '',
           percentageCGPA: '',
+          gradeType: '',
           division: '',
         }
       : {
@@ -252,6 +262,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           specialization: showSpecialization(level) ? editingData.specialization : '',
           thesisTitle: '',
           phdCertificate: '',
+          documentUrl: editingData.documentUrl || '',
           countryAndState: editingData.country && editingData.state
             ? `${editingData.country}, ${editingData.state}`
             : editingData.countryAndState || `${editingData.country || ''}${editingData.state ? `, ${editingData.state}` : ''}`,
@@ -291,7 +302,10 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
   };
 
   const removeQualification = (index: number) => {
-    onChange(data.filter((_, j) => j !== index));
+    const item = sortedData[index];
+    const originalIndex = data.indexOf(item);
+    if (originalIndex === -1) return;
+    onChange(data.filter((_, j) => j !== originalIndex));
   };
 
   const updateEditingData = (key: string, value: string) => {
@@ -311,20 +325,12 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             {fg('Qualification Level *', <CustomSelect
               value={editingData.degreeLevel}
               onChange={(v: string) => updateEditingData('degreeLevel', v)}
-              options={QUALIFICATION_LEVELS}
-            />)}
-          </div>
-
-          <div className="form-row form-row-1">
-            {fg('PhD certificate', <FileInp
-              v={editingData.phdCertificate}
-              fn={v => updateEditingData('phdCertificate', v)}
-              label="Upload PhD Certificate"
+              options={dynamicDegreeLevelOptions}
             />)}
           </div>
 
           <div className="form-row form-row-2">
-            {fg('Institution / University Name', inp(editingData.institution, v => updateEditingData('institution', v), 'Name of awarding institution'))}
+            {fg('Institution / University Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
             {fg('Year of Completion', <CustomSelect
               value={editingData.yearOfPassing}
               onChange={(v: string) => updateEditingData('yearOfPassing', v)}
@@ -358,7 +364,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 <CustomSelect
                   value={editingData.country}
                   onChange={(v: string) => updateEditingData('country', v)}
-                  options={COUNTRY_OPTIONS}
+                  options={dynamicCountryOptions}
                   placeholder="Select Country"
                 />
                 <CustomSelect
@@ -370,6 +376,20 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
               </div>
             </>)}
           </div>
+
+          <div className="form-row form-row-1" style={{ marginTop: '15px' }}>
+            {fg('PhD Certificate', (
+              <FileInp
+                v={editingData.documentUrl || editingData.phdCertificate || ''}
+                fn={v => {
+                  updateEditingData('documentUrl', v);
+                  updateEditingData('phdCertificate', v);
+                }}
+                label="Upload PhD Certificate (PDF / Image)"
+                accept=".pdf,image/*"
+              />
+            ))}
+          </div>
         </>
       );
     }
@@ -380,14 +400,24 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           {fg('Qualification Level *', <CustomSelect
             value={editingData.degreeLevel}
             onChange={(v: string) => updateEditingData('degreeLevel', v)}
-            options={QUALIFICATION_LEVELS}
+            options={dynamicDegreeLevelOptions}
           />)}
-          {showName && fg('Degree / Qualification Name', inp(editingData.degreeName, v => updateEditingData('degreeName', v), 'e.g., B.Sc / M.Tech'))}
-          {showSpec && fg('Specialization / Subject', inp(editingData.specialization, v => updateEditingData('specialization', v), 'e.g., Computer Science'))}
+          {showName && fg('Degree / Qualification Name', <CustomSelect
+            value={editingData.degreeName}
+            onChange={(v: string) => updateEditingData('degreeName', v)}
+            options={dynamicDegreeNameOptions}
+            placeholder="Select Degree Name"
+          />)}
+          {showSpec && fg('Specialization / Subject', <CustomSelect
+            value={editingData.specialization}
+            onChange={(v: string) => updateEditingData('specialization', v)}
+            options={dynamicSpecializationOptions}
+            placeholder="Select Specialization"
+          />)}
         </div>
 
         <div className="form-row form-row-2">
-          {fg('Institution / University Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
+          {fg('Institution / University Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {fg('Board / University', <CustomSelect
             value={editingData.university}
             onChange={(v: string) => updateEditingData('university', v)}
@@ -403,16 +433,22 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             options={YEAR_OPTIONS}
             placeholder="Select Year"
           />)}
-          {fg('Percentage / CGPA', inp(editingData.percentageCGPA, v => updateEditingData('percentageCGPA', v), '85% / 8.5'))}
+          {fg('Grade Type', <CustomSelect
+            value={editingData.gradeType}
+            onChange={(v: string) => updateEditingData('gradeType', v)}
+            options={dynamicGradeTypeOptions}
+            placeholder="Select Grade Type"
+          />)}
+          {fg('Score (Percentage / CGPA)', inp(editingData.percentageCGPA, v => updateEditingData('percentageCGPA', v), '85 / 8.5'))}
           {fg('Division', <CustomSelect
             value={editingData.division}
             onChange={(v: string) => updateEditingData('division', v)}
-            options={DIVISION_OPTIONS}
+            options={dynamicDivisionOptions}
           />)}
           {fg('Mode', <CustomSelect
             value={editingData.mode}
             onChange={(v: string) => updateEditingData('mode', v)}
-            options={MODE_OPTIONS}
+            options={dynamicStudyModeOptions}
           />)}
         </div>
 
@@ -420,7 +456,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           {fg('Country', <CustomSelect
             value={editingData.country}
             onChange={(v: string) => updateEditingData('country', v)}
-            options={COUNTRY_OPTIONS}
+            options={dynamicCountryOptions}
             placeholder="Select Country"
           />)}
           {fg('State', <CustomSelect
@@ -430,6 +466,19 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             placeholder="Select State"
           />)}
         </div>
+
+        {editingData.degreeLevel && (
+          <div className="form-row form-row-1" style={{ marginTop: '15px' }}>
+            {fg('Certificate / Document', (
+              <FileInp
+                v={editingData.documentUrl || ''}
+                fn={v => updateEditingData('documentUrl', v)}
+                label="Upload Certificate (PDF / Image)"
+                accept=".pdf,image/*"
+              />
+            ))}
+          </div>
+        )}
       </>
     );
   };
@@ -440,16 +489,16 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
       return (
         <>
           {renderPreview('Qualification Level', q.degreeLevel)}
-          {q.phdCertificate && (
+          {(q.phdCertificate || q.documentUrl) && (
             <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
-              <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>PhD certificate</span>
+              <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>PhD Certificate</span>
               <a
-                href={`${import.meta.env.VITE_API_URL || ''}${q.phdCertificate}`}
+                href={`${import.meta.env.VITE_API_URL || ''}${q.phdCertificate || q.documentUrl}`}
                 target="_blank"
                 rel="noreferrer"
-                style={{ color: '#2563eb', fontSize: '14px', fontWeight: 500 }}
+                style={{ color: '#2563eb', fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               >
-                View certificate
+                <ExternalLink size={14} /> View Certificate
               </a>
             </div>
           )}
@@ -471,11 +520,25 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
         {renderPreview('Institution / University Name', q.institution)}
         {renderPreview('Board / University', q.university)}
         {renderPreview('Year of Passing', q.yearOfPassing)}
-        {renderPreview('Percentage / CGPA', q.percentageCGPA)}
+        {renderPreview('Grade Type', q.gradeType)}
+        {renderPreview('Score (Percentage / CGPA)', q.percentageCGPA)}
         {renderPreview('Division', q.division)}
         {renderPreview('Mode', q.mode)}
         {renderPreview('Country', q.country)}
         {renderPreview('State', q.state)}
+        {q.documentUrl && (
+          <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+            <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Certificate / Document</span>
+            <a
+              href={`${import.meta.env.VITE_API_URL || ''}${q.documentUrl}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: '#2563eb', fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            >
+              <ExternalLink size={14} /> View Certificate
+            </a>
+          </div>
+        )}
       </>
     );
   };
@@ -552,100 +615,123 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           </>
         </div>
       ) : (
-        sortedData.map((q, i) => (
-          <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-            {editingIndex === i ? (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <GraduationCap size={20} color="#111827" /> Edit Qualification
-                </h3>
-                <div>
-                  <button
-                    type="button"
-                    onClick={cancelEdit}
-                    style={cancelBtnStyle}
-                  >
-                    <X size={14} /> Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={saveEdit}
-                    style={saveBtnStyle}
-                  >
-                    <Check size={14} /> Save
-                  </button>
-                </div>
-              </div>
-
-              {renderQualificationFormFields()}
-            </>
-          ) : (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => toggleCard(i)}>
+        sortedData.map((q, i) => {
+          const originalIndex = data.indexOf(q);
+          return (
+            <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              {editingIndex === originalIndex ? (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <GraduationCap size={20} color="#111827" /> Edit Qualification
+                  </h3>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
-                      {q.degreeName || q.degreeLevel || `Qualification ${i + 1}`}
-                      {q.yearOfPassing && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({q.yearOfPassing})</span>}
-                    </h3>
-                    {(q.degreeLevel && q.degreeName && q.degreeLevel !== q.degreeName) && (
-                      <div style={{ fontSize: '14px', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
-                        Level: {q.degreeLevel}
-                      </div>
-                    )}
-                    {q.specialization && (
-                      <div style={{ fontSize: '14px', color: '#111827', fontWeight: 600, marginTop: '2px' }}>
-                        {isPhDLevel(q.degreeLevel) ? 'Subject' : 'Specialization'}: {q.specialization}
-                      </div>
-                    )}
-                    {isPhDLevel(q.degreeLevel) && q.thesisTitle && (
-                      <div style={{ fontSize: '14px', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
-                        Thesis: {q.thesisTitle}
-                      </div>
-                    )}
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      style={cancelBtnStyle}
+                    >
+                      <X size={14} /> Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveEdit}
+                      style={saveBtnStyle}
+                    >
+                      <Check size={14} /> Save
+                    </button>
                   </div>
-                  {expandedCards.has(i) ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
                 </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => startEdit(i)}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      backgroundColor: '#f1f5f9',
-                      color: '#475569',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <Edit2 size={12} /> Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeQualification(i)}
-                    style={deleteBtnStyle}
-                  >
-                    <Trash2 size={12} /> Delete
-                  </button>
-                </div>
-              </div>
 
-              {expandedCards.has(i) && (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {renderQualificationPreview(q)}
+                {renderQualificationFormFields()}
+              </>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: expandedCards.has(i) ? '16px' : 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', flex: 1 }} onClick={() => toggleCard(i)}>
+                    {/* Year badge (blue box) */}
+                    <div style={{ minWidth: 52, textAlign: 'center', padding: '6px 4px', borderRadius: '8px', background: '#2563eb', flexShrink: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>
+                        {q.yearOfPassing || '—'}
+                      </div>
+                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Year</div>
+                    </div>
+                    {/* Title details */}
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
+                        {q.degreeName || q.degreeLevel || `Qualification ${i + 1}`}
+                      </h3>
+                      {(q.degreeLevel && q.degreeName && q.degreeLevel !== q.degreeName) && (
+                        <div style={{ fontSize: '14px', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
+                          Level: {q.degreeLevel}
+                        </div>
+                      )}
+                      {q.specialization && (
+                        <div style={{ fontSize: '14px', color: '#111827', fontWeight: 600, marginTop: '2px' }}>
+                          {isPhDLevel(q.degreeLevel) ? 'Subject' : 'Specialization'}: {q.specialization}
+                        </div>
+                      )}
+                      {isPhDLevel(q.degreeLevel) && q.thesisTitle && (
+                        <div style={{ fontSize: '14px', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
+                          Thesis: {q.thesisTitle}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => toggleCard(i)}
+                      style={{
+                        padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+                        backgroundColor: expandedCards.has(i) ? '#f8fafc' : '#f1f5f9',
+                        color: expandedCards.has(i) ? '#000000' : '#475569',
+                        border: expandedCards.has(i) ? '1px solid #cbd5e1' : '1px solid #cbd5e1',
+                        borderRadius: '6px', fontWeight: 600,
+                        display: 'inline-flex', alignItems: 'center', gap: '4px'
+                      }}
+                    >
+                      {expandedCards.has(i) ? <><ChevronUp size={14} /> Hide</> : <><ChevronDown size={14} /> View</>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => startEdit(i)}
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        backgroundColor: '#f1f5f9',
+                        color: '#475569',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        fontWeight: 600,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <Edit2 size={12} /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeQualification(i)}
+                      style={deleteBtnStyle}
+                    >
+                      <Trash2 size={12} /> Delete
+                    </button>
+                  </div>
                 </div>
+
+                {expandedCards.has(i) && (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {renderQualificationPreview(q)}
+                  </div>
+                )}
+              </>
               )}
-            </>
-            )}
-          </div>
-        ))
+            </div>
+          );
+        })
       )}
     </div>
   );

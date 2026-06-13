@@ -10,25 +10,27 @@ import PersonalInfo from '../../components/sections/S01_PersonalInfo';
 import Qualifications from '../../components/sections/S02_Qualifications';
 import EligibilityTests from '../../components/sections/S03_EligibilityTests';
 import EmploymentDetails from '../../components/sections/S04_EmploymentDetails';
+import WorkExperience from '../../components/sections/S05_WorkExperience';
 import Publications from '../../components/sections/S06_Publications';
 import Awards from '../../components/sections/S07_Awards';
 import ResearchProjects from '../../components/sections/S08_ResearchProjects';
 import ResearchSupervision from '../../components/sections/S09_ResearchSupervision';
-import AcademicResp from '../../components/sections/S10_AcademicResponsibilities';
-import Memberships from '../../components/sections/S11_Memberships';
-import FdpWorkshops from '../../components/sections/S12_FdpWorkshops';
-import OnlineCourses from '../../components/sections/S13_OnlineCourses';
-import InternationalExp from '../../components/sections/S14_InternationalExperience';
-import Documents from '../../components/sections/S15_Documents';
-import AdminNonAcademicResp from '../../components/sections/S16_AdminNonAcademicResponsibilities';
-import AcademicAdmin from '../../components/sections/S17_AcademicAdministration';
-import QualityAssurance from '../../components/sections/S18_QualityAssurance';
-import ResearchInnovation from '../../components/sections/S19_ResearchAndInnovation';
-import ExaminationAndEvaluation from '../../components/sections/S20_ExaminationAndEvaluation';
-import AdministrativeSupport from '../../components/sections/S21_AdministrativeSupport';
-import DepartmentalCharges from '../../components/sections/S22_DepartmentalCharges';
-import SpecialAssignments from '../../components/sections/S23_SpecialAssignments';
-import ExtraInstitutionalActivities from '../../components/sections/S24_ExtraInstitutionalActivities';
+import Internship from '../../components/sections/S10_InternshipAndProjects';
+import AcademicResp from '../../components/sections/S11_AcademicResponsibilities';
+import Memberships from '../../components/sections/S12_Memberships';
+import FdpWorkshops from '../../components/sections/S13_FdpWorkshops';
+import OnlineCourses from '../../components/sections/S14_OnlineCourses';
+import InternationalExp from '../../components/sections/S15_InternationalExperience';
+import Documents from '../../components/sections/S16_Documents';
+import AdminNonAcademicResp from '../../components/sections/S17_AdminNonAcademicResponsibilities';
+import AcademicAdmin from '../../components/sections/S18_AcademicAdministration';
+import QualityAssurance from '../../components/sections/S19_QualityAssurance';
+import ResearchInnovation from '../../components/sections/S20_ResearchAndInnovation';
+import ExaminationAndEvaluation from '../../components/sections/S21_ExaminationAndEvaluation';
+import AdministrativeSupport from '../../components/sections/S22_AdministrativeSupport';
+import DepartmentalCharges from '../../components/sections/S23_DepartmentalCharges';
+import SpecialAssignments from '../../components/sections/S24_SpecialAssignments';
+import ExtraInstitutionalActivities from '../../components/sections/S25_ExtraInstitutionalActivities';
 
 
 
@@ -39,15 +41,17 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'qualifications': { key: 'qualifications', label: 'Qualifications' },
   'eligibility-tests': { key: 'eligibilityTests', label: 'Eligibility Tests' },
   'employment-details': { key: 'employmentDetails', label: 'Employment Details' },
+  'work-experience': { key: 'workExperience', label: 'Work Experience' },
   'research-publications': { key: 'publications', label: 'Research & Publications' },
   'awards-honours': { key: 'awards', label: 'Awards & Honours' },
   'research-projects': { key: 'projects', label: 'Research Projects' },
   'research-supervision': { key: 'researchGuidance', label: 'Research Supervision' },
   'academic-responsibilities': { key: 'academicResponsibilities', label: 'Academic Responsibilities' },
+  'internship-projects': { key: 'internshipAndProjects', label: 'Internship & Projects' },
   'memberships': { key: 'memberships', label: 'Memberships' },
-  'fdp-workshops': { key: 'fdpWorkshops', label: 'FDP & Workshops' },
+  'fdp-workshops': { key: 'fdpWorkshops', label: 'Attended FDP & Workshops' },
   'online-courses': { key: 'onlineCourses', label: 'Online Courses' },
-  'international-experience': { key: 'internationalExperience', label: 'International Experience' },
+  'international-experience': { key: 'internationalExperience', label: 'Academic International Experience' },
   'admin-non-academic': { key: 'adminNonAcademicResponsibilities', label: 'Admin & Non-Academic Responsibilities' },
   'academic-administration': { key: 'academicAdministration', label: 'Academic Administration' },
   'quality-assurance': { key: 'qualityAssurance', label: 'Quality Assurance' },
@@ -72,10 +76,11 @@ const VIS_ITEMS = [
   { key: 'awards', label: 'Awards & Honours', desc: 'Recognition' },
   { key: 'researchGuidance', label: 'Research Supervision', desc: 'Ph.D / M.Phil scholars' },
   { key: 'academicResponsibilities', label: 'Academic Responsibilities', desc: 'Committees & courses' },
+  { key: 'internshipAndProjects', label: 'Internship & Projects', desc: 'Industrial internships & projects' },
   { key: 'memberships', label: 'Memberships', desc: 'Professional bodies' },
   { key: 'fdpWorkshops', label: 'FDP / Workshops', desc: 'Training programmes' },
   { key: 'onlineCourses', label: 'Online Courses', desc: 'Certifications' },
-  { key: 'internationalExperience', label: 'International Experience', desc: 'Research visits abroad' },
+  { key: 'internationalExperience', label: 'Academic International Experience', desc: 'Research visits abroad' },
   { key: 'adminNonAcademicResponsibilities', label: 'Admin & Non-Academic', desc: 'Administrative charges' },
   { key: 'academicAdministration', label: 'Academic Administration', desc: 'Board & committee roles' },
   { key: 'qualityAssurance', label: 'Quality Assurance', desc: 'Accreditation, ranking & feedback' },
@@ -89,6 +94,7 @@ const VIS_ITEMS = [
 
 const EMPTY: any = {
   personalInfo: {}, qualifications: [], eligibilityTests: [], employmentDetails: {},
+  workExperience: [],
   publications: [], awards: [], projects: [],
   researchGuidance: {
     phdCompleted: '',
@@ -100,6 +106,7 @@ const EMPTY: any = {
     studentDetails: [],
   },
   academicResponsibilities: { responsibilities: [], coursesTaught: [] },
+  internshipAndProjects: [],
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
   adminNonAcademicResponsibilities: [],
   academicAdministration: [], qualityAssurance: [],
@@ -176,15 +183,19 @@ export default function ProfileEdit() {
 
   const tab = section?.key;
 
-  const save = async (payload?: any) => {
+  const save = async (payload?: any, showToast = true) => {
     if (!tab) return;
-    setSaving(true);
+    if (showToast) setSaving(true);
     try {
       if (tab === 'visibility') await api.patch('/faculty/me/visibility', profile.visibility);
       else await api.put('/faculty/me', { [tab]: payload !== undefined ? payload : profile[tab] });
-      toast.success('Saved!');
-    } catch { toast.error('Save failed'); }
-    finally { setSaving(false); }
+      if (showToast) toast.success('Saved!');
+    } catch { 
+      if (showToast) toast.error('Save failed'); 
+    }
+    finally { 
+      if (showToast) setSaving(false); 
+    }
   };
 
   // Auto-save to localStorage on every section change so data survives refresh
@@ -223,23 +234,21 @@ export default function ProfileEdit() {
                 <p className="text-xs text-muted" style={{ marginTop: 2 }}>Changes are saved per section.</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-
-                <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
-                  {saving ? <><span className="spinner" style={{ width: 13, height: 13 }} /> Saving…</> : <><Save size={14} /> Save</>}
-                </button>
               </div>
             </div>
 
             <div className="card-body animate-fadeIn">
-              {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} />}
+              {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} onPersist={save} saving={saving} />}
               {tab === 'qualifications' && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
               {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
               {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} />}
+              {tab === 'workExperience' && <WorkExperience data={profile.workExperience} onChange={v => set('workExperience', v)} />}
               {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
               {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} onPersist={save} />}
               {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} onPersist={save} />}
               {tab === 'researchGuidance' && <ResearchSupervision data={profile.researchGuidance} onChange={v => set('researchGuidance', v)} onPersist={save} />}
               {tab === 'academicResponsibilities' && <AcademicResp data={profile.academicResponsibilities} onChange={v => set('academicResponsibilities', v)} />}
+              {tab === 'internshipAndProjects' && <Internship data={profile.internshipAndProjects} onChange={v => set('internshipAndProjects', v)} />}
               {tab === 'memberships' && <Memberships data={profile.memberships} onChange={v => set('memberships', v)} />}
               {tab === 'fdpWorkshops' && <FdpWorkshops data={profile.fdpWorkshops} onChange={v => set('fdpWorkshops', v)} />}
               {tab === 'onlineCourses' && <OnlineCourses data={profile.onlineCourses} onChange={v => set('onlineCourses', v)} />}

@@ -2,19 +2,36 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../lib/api';
+import api, { getFileUrl } from '../../lib/api';
 import toast from 'react-hot-toast';
-import { Edit3, Eye, Share2, BookOpen, Award, Briefcase, GraduationCap, FlaskConical, CheckCircle2, AlertCircle, Settings, Globe, ClipboardCheck } from 'lucide-react';
+import { Edit3, Eye, Share2, BookOpen, Award, Briefcase, GraduationCap, FlaskConical, CheckCircle2, AlertCircle, Settings, Globe, ClipboardCheck, Bell, X } from 'lucide-react';
 
 export default function FacultyDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
+  const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/faculty/me').then(r => setProfile(r.data)).catch(() => toast.error('Failed to load profile')).finally(() => setLoading(false));
+    Promise.all([
+      api.get('/faculty/me'),
+      api.get('/faculty/requests')
+    ]).then(([pRes, rRes]) => {
+      setProfile(pRes.data);
+      setRequests(rRes.data);
+    }).catch(() => toast.error('Failed to load dashboard data'))
+      .finally(() => setLoading(false));
   }, []);
+
+  const dismissRequest = async (id: string) => {
+    try {
+      await api.patch(`/faculty/requests/${id}/dismiss`);
+      setRequests(prev => prev.filter(r => r._id !== id));
+    } catch (err) {
+      toast.error('Failed to dismiss notification');
+    }
+  };
 
   if (loading) return <AppLayout title="Faculty Dashboard"><div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div className="spinner" style={{ width: 40, height: 40, borderWidth: 3 }} /></div></AppLayout>;
 
@@ -76,7 +93,7 @@ export default function FacultyDashboard() {
               {/* Avatar */}
               <div className="avatar avatar-xl" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)', border: '4px solid #fff', boxShadow: 'var(--shadow-md)', overflow: 'hidden' }}>
                 {profile?.personalInfo?.photoUrl ? (
-                  <img src={profile.personalInfo.photoUrl} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={getFileUrl(profile.personalInfo.photoUrl)} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (displayName || 'F').slice(0, 2).toUpperCase()}
               </div>
 
@@ -292,6 +309,44 @@ export default function FacultyDashboard() {
 
           {/* Right Sidebar */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Notifications */}
+            {requests.length > 0 && (
+              <div className="card" style={{ border: '1px solid var(--primary-light)' }}>
+                <div className="card-body">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '12px' }}>
+                    <Bell size={16} color="var(--primary)" />
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
+                      Notifications
+                    </h4>
+                    <span style={{ background: 'var(--danger)', color: 'white', fontSize: '0.65rem', padding: '2px 6px', borderRadius: 10, fontWeight: 'bold' }}>
+                      {requests.length}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {requests.map(r => (
+                      <div key={r._id} style={{ position: 'relative', padding: '10px', background: r.status === 'APPROVED' ? '#ECFDF5' : r.status === 'REJECTED' ? '#FEF2F2' : '#FFFBEB', borderRadius: 8, border: '1px solid', borderColor: r.status === 'APPROVED' ? '#A7F3D0' : r.status === 'REJECTED' ? '#FECACA' : '#FDE68A' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: r.status === 'APPROVED' ? '#059669' : r.status === 'REJECTED' ? '#DC2626' : '#D97706' }}>
+                            {r.status === 'APPROVED' ? 'Approved' : r.status === 'REJECTED' ? 'Rejected' : 'Pending'}
+                          </span>
+                          {r.status !== 'PENDING' && (
+                            <button onClick={() => dismissRequest(r._id)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94A3B8' }} title="Dismiss">
+                              <X size={12} />
+                            </button>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text)', marginTop: 4, lineHeight: 1.4 }}>
+                          Your request to add <strong>"{r.requestedValue}"</strong>
+                          {r.status === 'APPROVED' ? ' was approved.' : r.status === 'REJECTED' ? ' was rejected. Please edit your profile and update this field, leaving it blank or choosing another option.' : ' is pending.'}
+                          {r.adminMessage && <div style={{ marginTop: 4, padding: 6, background: 'rgba(255,255,255,0.5)', borderRadius: 4, fontStyle: 'italic', fontSize: '0.75rem' }}><strong>Admin Message:</strong> "{r.adminMessage}"</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Public Profile URL */}
             <div className="card">
               <div className="card-body">

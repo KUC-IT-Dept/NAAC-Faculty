@@ -2,6 +2,8 @@ import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Upload, X, FileText, ExternalLink, RefreshCw, ChevronDown, Search, Check } from 'lucide-react';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
+import imageCompression from 'browser-image-compression';
+import { PDFDocument } from 'pdf-lib';
 
 /** Shared label helper */
 export const fg = (label: string, node: ReactNode) => (
@@ -21,18 +23,84 @@ export const dateInp = (v: string, fn: (s: string) => void) => (
   <input className="form-input" type="date" value={v || ''} onChange={e => fn(e.target.value)} />
 );
 
+/** Requestable Select handles + Other requests */
+export const RequestableSelect = ({ v, fn, opts, ph = '— Select —' }: { v: string, fn: (s: string) => void, opts: string[], ph?: string }) => {
+  const [isCustom, setIsCustom] = useState(false);
+  const [customValue, setCustomValue] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const dropdownKey = (opts as any).dropdownKey;
+
+  const handleSubmit = async () => {
+    if (!customValue.trim()) return;
+    if (dropdownKey) {
+      setSubmitting(true);
+      try {
+        await api.post('/faculty/requests', { 
+          dropdownKey, 
+          requestedValue: customValue.trim(),
+          previousValue: v || '' 
+        });
+        toast.success('Request sent for approval. You can continue saving.');
+      } catch (err) {
+        toast.error('Failed to submit request');
+        setSubmitting(false);
+        return;
+      }
+      setSubmitting(false);
+    }
+    fn(customValue.trim());
+    setIsCustom(false);
+  };
+
+  // If a value is selected that is not in the options and not empty, it means it's a custom value (maybe pending approval).
+  // We should still display it.
+  const isValueNotInOptions = v && !opts.includes(v);
+
+  if (isCustom) {
+    return (
+      <div style={{ display: 'flex', gap: 4 }}>
+        <input className="form-input" value={customValue} onChange={e => setCustomValue(e.target.value)} placeholder="Type custom value..." />
+        <button type="button" onClick={handleSubmit} disabled={submitting} style={{ background: 'var(--primary, #2563eb)', color: 'white', border: 'none', padding: '0 12px', borderRadius: 4, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+          {submitting ? '...' : 'Add'}
+        </button>
+        <button type="button" onClick={() => { setIsCustom(false); setCustomValue(''); }} style={{ background: '#f1f5f9', color: '#64748b', border: 'none', padding: '0 8px', borderRadius: 4, cursor: 'pointer' }}>
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <select className="form-select" value={isValueNotInOptions ? 'CUSTOM_VAL' : (v || '')} onChange={e => {
+      if (e.target.value === 'CUSTOM_ADD') {
+        setIsCustom(true);
+        setCustomValue('');
+      } else if (e.target.value === 'CUSTOM_VAL') {
+        // Do nothing, just re-selecting the custom value
+      } else {
+        fn(e.target.value);
+      }
+    }}>
+      <option value="">{ph}</option>
+      {opts.map(o => <option key={o} value={o}>{o}</option>)}
+      {isValueNotInOptions && <option value="CUSTOM_VAL">{v} (Pending/Custom)</option>}
+      {dropdownKey && <option value="CUSTOM_ADD" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>+ Add Other...</option>}
+    </select>
+  );
+};
+
 /** Select */
-export const sel = (v: string, fn: (s: string) => void, opts: string[]) => (
-  <select className="form-select" value={v || ''} onChange={e => fn(e.target.value)}>
-    <option value="">— Select —</option>
-    {opts.map(o => <option key={o} value={o}>{o}</option>)}
-  </select>
+export const sel = (v: string, fn: (s: string) => void, opts: string[], ph?: string) => (
+  <RequestableSelect v={v} fn={fn} opts={opts} ph={ph} />
 );
 
 /** Year dropdown */
-export const yearSel = (v: string, fn: (s: string) => void, startYear = 1970, endYear = new Date().getFullYear() + 10) => {
-  const years = [];
-  for (let y = endYear; y >= startYear; y--) {
+export const yearSel = (v: string, fn: (s: string) => void, startYear = 1970, endYear = new Date().getFullYear()) => {
+  const years: string[] = [];
+  const current = new Date().getFullYear();
+  // Ensure endYear does not exceed the current system year
+  const maxYear = Math.min(endYear, current);
+  for (let y = maxYear; y >= startYear; y--) {
     years.push(y.toString());
   }
   return (
@@ -83,16 +151,48 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size exceeds 10MB limit.');
+    // Check file size (25MB limit before compression to allow large files to be compressed)
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('Original file size exceeds 25MB limit.');
+      return;
+    }
+
+    setUploading(true);
+    let finalFile: File | Blob = file;
+
+    try {
+      if (file.type.startsWith('image/')) {
+        const options = {
+          maxSizeMB: 0.5, // 500KB
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        };
+        finalFile = await imageCompression(file, options);
+      } else if (file.type === 'application/pdf') {
+        // Optimize PDF using pdf-lib
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+        // Saving the PDF without preserving object streams often reduces the size of poorly optimized PDFs
+        const pdfBytes = await pdfDoc.save({ useObjectStreams: false });
+        finalFile = new Blob([pdfBytes], { type: 'application/pdf' });
+      }
+    } catch (err) {
+      console.error('Compression failed:', err);
+      // Fallback to original file if compression fails
+      finalFile = file;
+    }
+
+    // Final check before upload
+    if (finalFile.size > 10 * 1024 * 1024) {
+      toast.error('Compressed file still exceeds 10MB limit. Please upload a smaller file.');
+      setUploading(false);
       return;
     }
 
     const fd = new FormData();
-    fd.append('file', file);
-
-    setUploading(true);
+    // Re-create a File object to ensure the filename is preserved
+    const uploadFile = new File([finalFile], file.name, { type: file.type });
+    fd.append('file', uploadFile);
     try {
       const r = await api.post('/faculty/upload', fd);
       fn(r.data.url);
