@@ -2,6 +2,8 @@ import api from '../lib/api';
 
 // Shared dropdown options for Admin and Faculty panels
 
+export const institutionsOptions = [];
+
 // Personal Information
 export const genderOptions = ['Male', 'Female', 'Transgender', 'Other'];
 export const bloodGroupOptions = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -249,6 +251,7 @@ export const extraInstitutionalOptions = [
 ];
 
 export const optionArrays = {
+  institutionsOptions,
   genderOptions, bloodGroupOptions, nationalityOptions, religionOptions, categoryOptions, subCategoryOptions, maritalStatusOptions, disabilityStatusOptions, disabilityTypeOptions, stateOptions, countryOptions,
   degreeLevelOptions, degreeNameOptions, specializationOptions, divisionOptions, studyModeOptions, gradeTypeOptions,
   examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions, fellowshipAgencyOptions,
@@ -265,7 +268,10 @@ export const optionArrays = {
 };
 
 const clientToServerKeyMap = Object.fromEntries(
-  Object.keys(optionArrays).map((key) => [key, key.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '')])
+  Object.keys(optionArrays).map((key) => {
+    if (key === 'institutionsOptions') return [key, 'institutions'];
+    return [key, key.replace(/Options$/, '').replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '')];
+  })
 );
 
 const serverToClientKeyMap = Object.fromEntries(

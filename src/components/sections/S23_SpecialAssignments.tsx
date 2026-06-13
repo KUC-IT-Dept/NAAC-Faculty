@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel, ta } from './sectionUtils';
-import { specialAssignmentsOptions } from '../../shared/dropdownOptions';
+import { specialAssignmentsOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY_RESPONSIBILITY: Record<string, string> = {
   administrativeCharge: '',
@@ -51,6 +52,7 @@ function getChargeSubtitle(r: any): string {
 /** Renders the charge-specific form fields */
 function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string, v: string) => void }) {
   const charge = (item.administrativeCharge || '').toLowerCase();
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   if (charge.includes('community service')) {
     return (
@@ -99,7 +101,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
       <>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {fg('Activity Type', inp(item.activityType, v => setVal('activityType', v), 'Enter activity type'))}
-          {fg('Industry / Organization Name', inp(item.organizationName, v => setVal('organizationName', v), 'Enter organization name'))}
+          {fg('Industry / Organization Name', <SearchableSelect value={item.organizationName || ''} onChange={(v: string) => setVal('organizationName', v)} options={institutionsOpts} placeholder="Search or Enter Organization" />)}
         </div>
         <div className="form-row form-row-1">
           {fg('Role Description', ta(item.roleDescription, v => setVal('roleDescription', v), 'Describe role', 2))}
@@ -123,7 +125,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     return (
       <>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {fg('Institution / Organization', inp(item.organizationName, v => setVal('organizationName', v), 'Enter organization name'))}
+          {fg('Institution / Organization', <SearchableSelect value={item.organizationName || ''} onChange={(v: string) => setVal('organizationName', v)} options={institutionsOpts} placeholder="Search or Enter Organization" />)}
           {fg('Responsibility Area', inp(item.responsibilityArea, v => setVal('responsibilityArea', v), 'Enter responsibility area'))}
         </div>
       </>
@@ -160,7 +162,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     <>
       <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {fg('Responsibility Title', inp(item.title, v => setVal('title', v), 'Enter responsibility title'))}
-        {fg('Organization / Unit', inp(item.organizationName, v => setVal('organizationName', v), 'Enter organization name'))}
+        {fg('Organization / Unit', <SearchableSelect value={item.organizationName || ''} onChange={(v: string) => setVal('organizationName', v)} options={institutionsOpts} placeholder="Search or Enter Organization" />)}
       </div>
       <div className="form-row form-row-1">
         {fg('Description', ta(item.description, v => setVal('description', v), 'Describe the responsibility', 2))}

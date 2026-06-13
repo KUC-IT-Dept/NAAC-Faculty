@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Faculty = require('../models/Faculty');
 const DropdownConfig = require('../models/DropdownConfig');
 const OptionRequest = require('../models/OptionRequest');
+const Department = require('../models/Department');
 const { auth, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
@@ -90,16 +91,34 @@ router.patch('/faculty/:id/make-hod', async (req, res) => {
     await Faculty.updateMany(
       {
         'employmentDetails.department': dept,
-        'employmentDetails.designation': 'HOD'
+        'employmentDetails.designation': 'HOD',
+        userId: { $ne: user._id }
       },
       {
         $set: { 'employmentDetails.designation': 'Professor' }
       }
     );
 
+    // Also demote their role back to faculty if they were HOD
+    const previousHodFaculty = await Faculty.findOne({ 'employmentDetails.department': dept, 'employmentDetails.designation': 'Professor', userId: { $ne: user._id } });
+    if(previousHodFaculty) {
+       await User.updateOne({ _id: previousHodFaculty.userId }, { role: 'faculty' });
+    }
+
     // Promote target to HOD
     faculty.employmentDetails.designation = 'HOD';
     await faculty.save();
+    
+    // Update User Role
+    user.role = 'hod';
+    await user.save();
+
+    // Upsert Department model
+    await Department.findOneAndUpdate(
+      { name: dept },
+      { hod: user._id },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     res.json({ message: `Successfully promoted ${faculty.personalInfo?.fullName || user.username} to HOD of ${dept}` });
   } catch (err) {
@@ -142,7 +161,7 @@ const ALLOWED_DROPDOWN_KEYS = [
   'committee_type', 'responsibility_role', 'course_level', 'semester_type', 'academic_session_type', 'teaching_category', 'responsibility_status',
   'admin_charge', 'academic_admin', 'quality_assurance', 'research_innovation', 'examination_evaluation', 'admin_support', 'departmental_charges', 'special_assignments', 'extra_institutional',
   'country_visit', 'purpose_of_visit', 'funding_source', 'visit_category', 'collaboration_type', 'visit_status',
-  'document_type'
+  'document_type', 'institutions'
 ];
 
 // GET /api/admin/dropdowns

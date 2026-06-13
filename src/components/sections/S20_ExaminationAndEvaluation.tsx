@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel } from './sectionUtils';
-import { examinationEvaluationOptions } from '../../shared/dropdownOptions';
+import { examinationEvaluationOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const CHARGE_SCHEDULING = 'Assisting the Controller of Examinations in scheduling, seating, and logistics';
 const CHARGE_TABULATION = 'Helping with tabulation, moderation, and publication of results';
@@ -126,6 +127,7 @@ function TenureFields({ item, onChange }: { item: any; onChange: (item: any) => 
 function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (item: any) => void }) {
   const set = (k: string, v: string) => onChange({ ...item, [k]: v });
   const charge = item.administrativeCharge;
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   const appointmentDate = fg('Appointment Date', dateInp(item.appointmentDate, v => set('appointmentDate', v)));
   const remarks = fg('Remarks', textArea(item.remarks, v => set('remarks', v), 'Optional notes'));
@@ -138,7 +140,7 @@ function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (it
     case 'Controller of Examination':
       return (
         <>
-          {fg('Institution Name', inp(item.institutionName, v => set('institutionName', v)))}
+          {fg('Institution Name', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => set('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {appointmentDate}
           <TenureFields item={item} onChange={onChange} />
           {fg('Examination Sessions Handled', inp(item.examinationSessionsHandled, v => set('examinationSessionsHandled', v), 'e.g. Dec 2024, May 2025'))}

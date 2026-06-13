@@ -19,7 +19,7 @@ const ALLOWED_DROPDOWN_KEYS = [
   'committee_type', 'responsibility_role', 'course_level', 'semester_type', 'academic_session_type', 'teaching_category', 'responsibility_status',
   'admin_charge', 'academic_admin', 'quality_assurance', 'research_innovation', 'examination_evaluation', 'admin_support', 'departmental_charges', 'special_assignments', 'extra_institutional',
   'country_visit', 'purpose_of_visit', 'funding_source', 'visit_category', 'collaboration_type', 'visit_status',
-  'document_type'
+  'document_type', 'institutions'
 ];
 
 router.get('/sections-config', async (req, res) => {

@@ -267,7 +267,7 @@ function CompletionCircle({ percentage }: { percentage: number }) {
 // ─── Dept branch (node + expandable HOD + faculty) ───────────────────────────────
 function DeptBranch({ dept, onOpenDrawer }: { dept: DeptInfo; onOpenDrawer: (m: FacultyUser, c: string) => void }) {
   const [open, setOpen] = useState(false);
-  const total = (dept.hod ? 1 : 0) + dept.faculty.length;
+  const total = dept.faculty.length;
   const [hov, setHov] = useState(false);
 
   return (
@@ -311,18 +311,7 @@ function DeptBranch({ dept, onOpenDrawer }: { dept: DeptInfo; onOpenDrawer: (m: 
       {/* Expanded content */}
       {open && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', animation: 'expandIn 0.18s ease' }}>
-          {/* HOD */}
-          {dept.hod ? (
-            <>
-              <VLine height={16} color="#fca5a5" />
-              <MemberBubble member={dept.hod} isHod color="#ef4444" onClick={() => onOpenDrawer(dept.hod!, '#ef4444')} />
-            </>
-          ) : (
-            <>
-              <VLine height={14} />
-              <div style={{ fontSize: 9, color: '#fca5a5', background: '#fff5f5', border: '1px dashed #fca5a5', borderRadius: 8, padding: '4px 10px', fontWeight: 600 }}>No HOD</div>
-            </>
-          )}
+          {/* HOD display removed as requested */}
 
           {/* Faculty */}
           {dept.faculty.length > 0 && (
@@ -386,14 +375,29 @@ export default function OrgHierarchy() {
   const load = async () => {
     setLoading(true);
     try {
-      const [facRes, dropRes] = await Promise.all([
-        api.get('/admin/faculty'),
-        api.get('/profile/dropdowns').catch(() => null)
-      ]);
+      const user = JSON.parse(localStorage.getItem('iqac_user') || '{}');
+      const role = user.role;
+      const endpoint = role === 'vc' ? '/vc/faculty' : role === 'hod' ? '/hod/faculty' : '/admin/faculty';
+      
+      const reqs = [api.get(endpoint)];
+      if (role === 'admin' || role === 'vc') {
+        reqs.push(api.get('/departments'));
+      }
+      
+      const res = await Promise.all(reqs);
+      const facRes = res[0];
+      const deptRes = res.length > 1 ? res[1] : null;
 
-      let allDeptNames = departmentOptions;
-      if (dropRes?.data?.department && Array.isArray(dropRes.data.department)) {
-        allDeptNames = dropRes.data.department;
+      let allDeptNames: string[] = [];
+      if (deptRes && Array.isArray(deptRes.data)) {
+        allDeptNames = deptRes.data.map((d: any) => d.name);
+      } else {
+        // Fallback for HOD: just extract from their own faculty list
+        const depts = new Set<string>();
+        facRes.data.forEach((f: any) => {
+          if (f.profile?.employmentDetails?.department) depts.add(f.profile.employmentDetails.department);
+        });
+        allDeptNames = Array.from(depts);
       }
 
       setDepts(build(facRes.data, allDeptNames));
@@ -414,16 +418,13 @@ export default function OrgHierarchy() {
       if (designation === 'Vice Chancellor' || designation === 'Super Admin') return;
 
       const d = f.profile?.employmentDetails?.department;
-      if (d) {
-        if (!map[d]) {
-          map[d] = [];
-        }
+      if (d && map[d] !== undefined) {
         map[d].push(f);
+      } else if (d) {
+        map[d] = [f];
       } else {
         const key = 'Other / Unassigned';
-        if (!map[key]) {
-          map[key] = [];
-        }
+        if (!map[key]) map[key] = [];
         map[key].push(f);
       }
     });
@@ -466,7 +467,7 @@ export default function OrgHierarchy() {
     return matchesSearch && matchesCompletion;
   });
   const NFiltered = filteredDepts.length;
-  const totalMembers = depts.reduce((a, d) => a + (d.hod ? 1 : 0) + d.faculty.length, 0);
+  const totalMembers = depts.reduce((a, d) => a + d.faculty.length, 0);
 
   return (
     <div>

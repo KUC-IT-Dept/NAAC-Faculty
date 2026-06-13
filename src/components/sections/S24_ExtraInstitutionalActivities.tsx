@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel, ta } from './sectionUtils';
-import { extraInstitutionalOptions } from '../../shared/dropdownOptions';
+import { extraInstitutionalOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY_RESPONSIBILITY: Record<string, string> = {
   administrativeCharge: '',
@@ -47,12 +48,13 @@ function getChargeSubtitle(r: any): string {
 /** Renders the charge-specific form fields */
 function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string, v: string) => void }) {
   const charge = (item.administrativeCharge || '').toLowerCase();
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   if (charge.includes('syndicate')) {
     return (
       <>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {fg('University Name', inp(item.universityName, v => setVal('universityName', v), 'Enter university name'))}
+          {fg('University Name', <SearchableSelect value={item.universityName || ''} onChange={(v: string) => setVal('universityName', v)} options={institutionsOpts} placeholder="Search or Enter University" />)}
           {fg('Nomination Type', sel(item.nominationType, v => setVal('nominationType', v), ['Elected', 'Nominated']))}
         </div>
       </>
@@ -63,7 +65,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     return (
       <>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {fg('University Name', inp(item.universityName, v => setVal('universityName', v), 'Enter university name'))}
+          {fg('University Name', <SearchableSelect value={item.universityName || ''} onChange={(v: string) => setVal('universityName', v)} options={institutionsOpts} placeholder="Search or Enter University" />)}
           {fg('Department / Subject Area', inp(item.department, v => setVal('department', v), 'Enter department or subject area'))}
         </div>
         <div className="form-row form-row-1">
@@ -77,7 +79,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     return (
       <>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {fg('Institution Name', inp(item.institutionName, v => setVal('institutionName', v), 'Enter institution name'))}
+          {fg('Institution Name', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => setVal('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {fg('Department', inp(item.department, v => setVal('department', v), 'Enter department'))}
         </div>
         <div className="form-row form-row-1">
@@ -91,7 +93,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     return (
       <>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {fg('University Name', inp(item.universityName, v => setVal('universityName', v), 'Enter university name'))}
+          {fg('University Name', <SearchableSelect value={item.universityName || ''} onChange={(v: string) => setVal('universityName', v)} options={institutionsOpts} placeholder="Search or Enter University" />)}
           {fg('Course / Subject', inp(item.courseName, v => setVal('courseName', v), 'Enter course or subject'))}
         </div>
         <div className="form-row form-row-1">
@@ -105,7 +107,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     return (
       <>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {fg('University Name', inp(item.universityName, v => setVal('universityName', v), 'Enter university name'))}
+          {fg('University Name', <SearchableSelect value={item.universityName || ''} onChange={(v: string) => setVal('universityName', v)} options={institutionsOpts} placeholder="Search or Enter University" />)}
           {fg('Program / Course', inp(item.programName, v => setVal('programName', v), 'Enter program or course name'))}
         </div>
         <div className="form-row form-row-1">
@@ -119,7 +121,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     return (
       <>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {fg('Institution Name', inp(item.institutionName, v => setVal('institutionName', v), 'Enter institution name'))}
+          {fg('Institution Name', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => setVal('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {fg('Faculty / School', inp(item.facultyName, v => setVal('facultyName', v), 'Enter faculty or school name'))}
         </div>
       </>
@@ -131,7 +133,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     <>
       <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {fg('Responsibility Title', inp(item.title, v => setVal('title', v), 'Enter responsibility title'))}
-        {fg('Organization / Institution', inp(item.organizationName, v => setVal('organizationName', v), 'Enter organization name'))}
+        {fg('Organization / Institution', <SearchableSelect value={item.organizationName || ''} onChange={(v: string) => setVal('organizationName', v)} options={institutionsOpts} placeholder="Search or Enter Organization" />)}
       </div>
       <div className="form-row form-row-1">
         {fg('Description', ta(item.description, v => setVal('description', v), 'Describe the responsibility', 2))}

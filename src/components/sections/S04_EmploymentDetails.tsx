@@ -1,8 +1,9 @@
 import { fg, inp, dateInp, FileInp, sel } from './sectionUtils';
 import { useState, useRef } from 'react';
 import { Edit2, Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, ExternalLink, FileText } from 'lucide-react';
-import { departmentOptions, affiliatedUniversityOptions, payScaleOptions, designationOptions, institutionTypeOptions, approvalStatusOptions } from '../../shared/dropdownOptions';
+import { departmentOptions, affiliatedUniversityOptions, payScaleOptions, designationOptions, institutionTypeOptions, approvalStatusOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY = {
   employeeId: '',
@@ -80,6 +81,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
 
   // Convert object to array for internal use
   const dataArray = Array.isArray(data) ? data : [];
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
@@ -206,7 +208,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           onChange={(v: string) => updateEditingData('department', v)}
           options={dynamicDepartmentOptions}
         />)}
-        {fg('College / Institution Name', inp(editingData.institution, v => updateEditingData('institution', v)))}
+        {fg('College / Institution Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
       </div>
       <div className="form-row form-row-2">
         {fg('University Affiliated to', <CustomSelect

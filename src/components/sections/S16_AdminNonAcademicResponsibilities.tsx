@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, dateInp, sel, yearSel } from './sectionUtils';
-import { adminChargeOptions } from '../../shared/dropdownOptions';
+import { adminChargeOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const EMPTY_RESPONSIBILITY = {
   administrativeCharge: '',
@@ -123,6 +124,7 @@ function TenureFields({ item, onChange }: { item: any; onChange: (item: any) => 
 function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (item: any) => void }) {
   const set = (k: string, v: string) => onChange({ ...item, [k]: v });
   const charge = item.administrativeCharge;
+  const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   const appointmentDate = fg('Appointment Date', dateInp(item.appointmentDate, v => set('appointmentDate', v)));
   const remarks = fg('Remarks', inp(item.remarks, v => set('remarks', v), 'Optional notes'));
@@ -135,7 +137,7 @@ function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (it
     case 'Principal':
       return (
         <>
-          {fg('Institution Name', inp(item.institutionName, v => set('institutionName', v)))}
+          {fg('Institution Name', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => set('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {appointmentDate}
           <TenureFields item={item} onChange={onChange} />
           {fg('Appointing Authority', inp(item.appointingAuthority, v => set('appointingAuthority', v)))}
@@ -155,7 +157,7 @@ function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (it
     case 'Registrar':
       return (
         <>
-          {fg('Institution', inp(item.institutionName, v => set('institutionName', v)))}
+          {fg('Institution', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => set('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {fg('Responsibilities', textArea(item.responsibilities, v => set('responsibilities', v), 'Key responsibilities handled'))}
           {appointmentDate}
           <TenureFields item={item} onChange={onChange} />
@@ -165,7 +167,7 @@ function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (it
     case 'Vice Principal':
       return (
         <>
-          {fg('Institution', inp(item.institutionName, v => set('institutionName', v)))}
+          {fg('Institution', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => set('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {fg('Department/Area Assigned', inp(item.departmentAssigned, v => set('departmentAssigned', v)))}
           {appointmentDate}
           <TenureFields item={item} onChange={onChange} />
@@ -185,7 +187,7 @@ function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (it
     case 'Admission Director':
       return (
         <>
-          {fg('Institution', inp(item.institutionName, v => set('institutionName', v)))}
+          {fg('Institution', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => set('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {fg('Admission Year', yearSel(item.admissionYear, v => set('admissionYear', v)))}
           {appointmentDate}
           <TenureFields item={item} onChange={onChange} />
@@ -196,7 +198,7 @@ function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (it
     case 'Syndicate Member':
       return (
         <>
-          {fg('University Name', inp(item.universityName, v => set('universityName', v)))}
+          {fg('University Name', <SearchableSelect value={item.universityName || ''} onChange={(v: string) => set('universityName', v)} options={institutionsOpts} placeholder="Search or Enter University" />)}
           {fg('Nomination Type', inp(item.nominationType, v => set('nominationType', v), 'e.g. Elected, Nominated'))}
           {appointmentDate}
           <TenureFields item={item} onChange={onChange} />
@@ -207,7 +209,7 @@ function ResponsibilityFormFields({ item, onChange }: { item: any; onChange: (it
       return (
         <>
           {fg('Faculty/School', inp(item.facultyName, v => set('facultyName', v)))}
-          {fg('Institution', inp(item.institutionName, v => set('institutionName', v)))}
+          {fg('Institution', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => set('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {appointmentDate}
           <TenureFields item={item} onChange={onChange} />
           {remarks}

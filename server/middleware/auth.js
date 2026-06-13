@@ -33,4 +33,25 @@ const facultyOnly = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, adminOnly, facultyOnly };
+const hodOnly = (req, res, next) => {
+  if (req.user.role !== 'hod') {
+    return res.status(403).json({ message: 'HOD access required' });
+  }
+  next();
+};
+
+const vcOnly = (req, res, next) => {
+  if (req.user.role !== 'vc') {
+    return res.status(403).json({ message: 'VC access required' });
+  }
+  next();
+};
+
+const adminOrVc = (req, res, next) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'vc') {
+    return res.status(403).json({ message: 'Admin or VC access required' });
+  }
+  next();
+};
+
+module.exports = { auth, adminOnly, facultyOnly, hodOnly, vcOnly, adminOrVc };
