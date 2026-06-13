@@ -1,6 +1,9 @@
-import { Plus, Trash2, Edit2, CheckCircle, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
+/* eslint-disable @typescript-eslint/no-explicit-any, prefer-const, @typescript-eslint/no-unused-expressions */
+import { Plus, Trash2, Edit2, CheckCircle, ChevronDown, ChevronUp, Check, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
-import { fg, sel, yearSel } from './sectionUtils';
+import { fg, sel, yearSel, FileInp } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions } from '../../shared/dropdownOptions';
 
 /* ─── Constants ─────────────────────────────────────────── */
 
@@ -12,6 +15,8 @@ const EMPTY = {
   state: '',
   score: '',
   fellowshipAgency: '',
+  validityStatus: '',
+  documentUrl: '',
 };
 
 const SUBJECT_OPTIONS = [
@@ -69,6 +74,11 @@ const cancelBtnStyle: React.CSSProperties = {
 
 /* ─── Component ─────────────────────────────────────────── */
 export default function EligibilityTests({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const dynamicExamNameOptions = useDropdownOptions(examNameOptions);
+  const dynamicSubjectPaperOptions = useDropdownOptions(subjectPaperOptions);
+  const dynamicStateForSetOptions = useDropdownOptions(stateForSetOptions);
+  const dynamicValidityStatusOptions = useDropdownOptions(validityStatusOptions);
+  
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
@@ -124,14 +134,17 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
       <div className="form-row form-row-2">
         {fg('Eligibility Test *',
           sel(editingData.examName, v => { upd('examName', v); upd('subject', ''); upd('state', ''); },
-            ['NET', 'SET / SLET', 'GATE', 'JRF'])
+            dynamicExamNameOptions)
         )}
         {fg('Year', yearSel(editingData.year, v => upd('year', v)))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Validity Status', sel(editingData.validityStatus, v => upd('validityStatus', v), dynamicValidityStatusOptions))}
       </div>
 
       {editingData.examName === 'NET' && (
         <div className="form-row form-row-2">
-          {fg('Subject', sel(editingData.subject, v => upd('subject', v), SUBJECT_OPTIONS))}
+          {fg('Subject', sel(editingData.subject, v => upd('subject', v), dynamicSubjectPaperOptions))}
           {fg('Certificate No.', (
             <input className="form-input" value={editingData.certificateNo || ''} onChange={e => upd('certificateNo', e.target.value)} placeholder="Certificate number" />
           ))}
@@ -140,8 +153,8 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
 
       {editingData.examName === 'SET / SLET' && (
         <div className="form-row form-row-2">
-          {fg('Subject', sel(editingData.subject, v => upd('subject', v), SUBJECT_OPTIONS))}
-          {fg('State', sel(editingData.state, v => upd('state', v), INDIAN_STATES))}
+          {fg('Subject', sel(editingData.subject, v => upd('subject', v), dynamicSubjectPaperOptions))}
+          {fg('State', sel(editingData.state, v => upd('state', v), dynamicStateForSetOptions))}
         </div>
       )}
 
@@ -160,7 +173,18 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
         </div>
       )}
 
-
+      {editingData.examName && (
+        <div className="form-row form-row-1" style={{ marginTop: '15px' }}>
+          {fg('Upload Certificate / Proof', (
+            <FileInp
+              v={editingData.documentUrl || ''}
+              fn={v => upd('documentUrl', v)}
+              label="Upload Certificate (PDF / Image)"
+              accept=".pdf,image/*"
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 
@@ -215,20 +239,40 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
           ) : (
             <>
               {/* Preview header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => toggleCard(i)}>
-                  <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: expandedCards.has(i) ? '16px' : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', flex: 1 }} onClick={() => toggleCard(i)}>
+                  {/* Year badge (blue box) */}
+                  <div style={{ minWidth: 52, textAlign: 'center', padding: '6px 4px', borderRadius: '8px', background: '#2563eb', flexShrink: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>
+                      {e.year || '—'}
+                    </div>
+                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Year</div>
+                  </div>
+                  {/* Title details */}
+                  <div style={{ flex: 1 }}>
                     <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
                       {e.examName || `Eligibility Test ${i + 1}`}
-                      {e.year && <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: 500, fontSize: '14px' }}>({e.year})</span>}
                     </h3>
                     {e.subject && (
-                      <div style={{ fontSize: '13px', color: '#475569', marginTop: '2px' }}>Subject: {e.subject}</div>
+                      <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748b' }}>Subject: {e.subject}</p>
                     )}
                   </div>
-                  {expandedCards.has(i) ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
                 </div>
-                <div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleCard(i)}
+                    style={{
+                      padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+                      backgroundColor: expandedCards.has(i) ? '#f8fafc' : '#f1f5f9',
+                      color: expandedCards.has(i) ? '#000000' : '#475569',
+                      border: expandedCards.has(i) ? '1px solid #cbd5e1' : '1px solid #cbd5e1',
+                      borderRadius: '6px', fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', gap: '4px'
+                    }}
+                  >
+                    {expandedCards.has(i) ? <><ChevronUp size={14} /> Hide</> : <><ChevronDown size={14} /> View</>}
+                  </button>
                   <button type="button" onClick={() => startEdit(i)} style={{
                     padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
                     backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1',
@@ -237,7 +281,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                     <Edit2 size={12} /> Edit
                   </button>
                   <button type="button" onClick={() => removeTest(i)} style={{
-                    marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
+                    padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
                     backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3',
                     borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px',
                   }}>
@@ -251,12 +295,26 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                 <div style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
                   {renderPreview('Eligibility Test', e.examName)}
                   {renderPreview('Year', e.year)}
+                  {renderPreview('Validity Status', e.validityStatus)}
                   {(e.examName === 'NET' || e.examName === 'SET / SLET') && renderPreview('Subject', e.subject)}
                   {e.examName === 'NET' && renderPreview('Certificate No.', e.certificateNo)}
                   {e.examName === 'SET / SLET' && renderPreview('State', e.state)}
                   {e.examName === 'GATE' && renderPreview('Score', e.score)}
                   {e.examName === 'JRF' && renderPreview('Fellowship Agency', e.fellowshipAgency)}
-
+                  {e.documentUrl && (
+                    <div style={{ display: 'flex', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                      <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '13px', width: '220px', flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.03em' }}>Certificate</span>
+                      <a
+                        href={`${import.meta.env.VITE_API_URL || ''}${e.documentUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="preview-file-link"
+                        style={{ fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#4f46e5' }}
+                      >
+                        <ExternalLink size={14} /> View Certificate
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
             </>

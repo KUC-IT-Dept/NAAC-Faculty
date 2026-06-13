@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../lib/api';
+import api, { getFileUrl } from '../lib/api';
 import { GraduationCap, Briefcase, BookOpen, FlaskConical, Award, Users, Shield, Mail, Phone, Globe, Link2, ExternalLink } from 'lucide-react';
 
 export default function PublicProfile() {
@@ -49,7 +50,7 @@ export default function PublicProfile() {
         <div className="public-container">
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 28, flexWrap: 'wrap' }}>
             <div className="avatar avatar-xl" style={{ border: '4px solid rgba(201,162,39,0.6)', background: 'rgba(255,255,255,0.12)', fontSize: '2.5rem', flexShrink: 0 }}>
-              {pi.photoUrl ? <img src={pi.photoUrl} alt={pi.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : initials}
+              {pi.photoUrl ? <img src={getFileUrl(pi.photoUrl)} alt={pi.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : initials}
             </div>
             <div style={{ flex: 1, minWidth: 220 }}>
               <div style={{ fontSize: '0.72rem', color: 'rgba(201,162,39,0.9)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -86,7 +87,79 @@ export default function PublicProfile() {
             <div className="profile-section-body">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead><tr><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Degree</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Specialization</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>University</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Grade</th></tr></thead>
-                <tbody>{profile.qualifications.map((q: any, i: number) => <tr key={i} style={{ borderTop: '1px solid var(--border)' }}><td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>{[q.degreeLevel, q.degreeName].filter(Boolean).join(' · ') || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.specialization || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{q.university || q.boardUniversity || q.institution || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.yearOfPassing || '—'}</td><td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.percentageCGPA || q.division || '—'}</td></tr>)}</tbody>
+                <tbody>{profile.qualifications.map((q: any, i: number) => (
+                  <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                    <td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>
+                      <div>{[q.degreeLevel, q.degreeName].filter(Boolean).join(' · ') || '—'}</div>
+                      {(q.documentUrl || q.phdCertificate) && (
+                        <a
+                          href={`${import.meta.env.VITE_API_URL || ''}${q.documentUrl || q.phdCertificate}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="preview-file-link"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.72rem', color: 'var(--navy)', fontWeight: 600, marginTop: 4 }}
+                        >
+                          <ExternalLink size={10} /> View Certificate
+                        </a>
+                      )}
+                    </td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.specialization || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{q.university || q.boardUniversity || q.institution || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.yearOfPassing || '—'}</td>
+                    <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{q.percentageCGPA || q.division || '—'}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Eligibility Tests */}
+        {profile.eligibilityTests?.length > 0 && (
+          <div className="profile-section">
+            <div className="profile-section-title"><GraduationCap size={18} color="var(--navy)" /> Eligibility Tests</div>
+            <div className="profile-section-body">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Test Name</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Subject / Agency</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Details / Certificate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.eligibilityTests.map((et: any, i: number) => {
+                    const detailParts = [];
+                    if (et.certificateNo) detailParts.push(`Cert No: ${et.certificateNo}`);
+                    if (et.score) detailParts.push(`Score: ${et.score}`);
+                    if (et.state) detailParts.push(`State: ${et.state}`);
+
+                    return (
+                      <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600, fontSize: '0.875rem' }}>{et.examName || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>{et.subject || et.fellowshipAgency || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{et.year || '—'}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '0.875rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span>{detailParts.join(' | ') || '—'}</span>
+                            {et.documentUrl && (
+                              <a
+                                href={`${import.meta.env.VITE_API_URL || ''}${et.documentUrl}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="preview-file-link"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: '8px', fontSize: '0.75rem', color: 'var(--navy)', fontWeight: 600 }}
+                              >
+                                <ExternalLink size={11} /> View Certificate
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
               </table>
             </div>
           </div>

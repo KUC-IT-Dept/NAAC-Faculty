@@ -1,5 +1,6 @@
 const express = require('express');
 const Faculty = require('../models/Faculty');
+const OptionRequest = require('../models/OptionRequest');
 const { auth, facultyOnly } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
@@ -123,6 +124,53 @@ router.post('/upload', facultyOnly, upload.single('file'), (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Upload failed' });
+  }
+});
+
+// POST /api/faculty/requests
+router.post('/requests', facultyOnly, async (req, res) => {
+  try {
+    const { dropdownKey, requestedValue, previousValue } = req.body;
+    if (!dropdownKey || !requestedValue) return res.status(400).json({ message: 'Missing required fields' });
+    
+    // Create new request
+    const newRequest = await OptionRequest.create({
+      user: req.user._id,
+      dropdownKey,
+      requestedValue,
+      previousValue: previousValue || ''
+    });
+    
+    res.status(201).json(newRequest);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/faculty/requests
+router.get('/requests', facultyOnly, async (req, res) => {
+  try {
+    const requests = await OptionRequest.find({ user: req.user._id, dismissed: false }).sort({ createdAt: -1 });
+    res.json(requests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/faculty/requests/:id/dismiss
+router.patch('/requests/:id/dismiss', facultyOnly, async (req, res) => {
+  try {
+    const request = await OptionRequest.findOne({ _id: req.params.id, user: req.user._id });
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    
+    request.dismissed = true;
+    await request.save();
+    res.json({ message: 'Dismissed successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

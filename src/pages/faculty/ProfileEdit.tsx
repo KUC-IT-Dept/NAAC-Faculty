@@ -183,15 +183,19 @@ export default function ProfileEdit() {
 
   const tab = section?.key;
 
-  const save = async (payload?: any) => {
+  const save = async (payload?: any, showToast = true) => {
     if (!tab) return;
-    setSaving(true);
+    if (showToast) setSaving(true);
     try {
       if (tab === 'visibility') await api.patch('/faculty/me/visibility', profile.visibility);
       else await api.put('/faculty/me', { [tab]: payload !== undefined ? payload : profile[tab] });
-      toast.success('Saved!');
-    } catch { toast.error('Save failed'); }
-    finally { setSaving(false); }
+      if (showToast) toast.success('Saved!');
+    } catch { 
+      if (showToast) toast.error('Save failed'); 
+    }
+    finally { 
+      if (showToast) setSaving(false); 
+    }
   };
 
   // Auto-save to localStorage on every section change so data survives refresh
@@ -230,15 +234,11 @@ export default function ProfileEdit() {
                 <p className="text-xs text-muted" style={{ marginTop: 2 }}>Changes are saved per section.</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-
-                <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
-                  {saving ? <><span className="spinner" style={{ width: 13, height: 13 }} /> Saving…</> : <><Save size={14} /> Save</>}
-                </button>
               </div>
             </div>
 
             <div className="card-body animate-fadeIn">
-              {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} />}
+              {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} onPersist={save} saving={saving} />}
               {tab === 'qualifications' && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
               {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
               {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} />}

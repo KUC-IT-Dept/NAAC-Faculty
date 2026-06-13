@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, sel, yearSel } from './sectionUtils';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions } from '../../shared/dropdownOptions';
 
-const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'UG & PG', 'UG, PG & Ph.D.', 'Other'];
-const ADMIN_ROLES = ['HOD', 'Dean', 'IQAC Coordinator', 'Warden', 'Principal', 'Director', 'Department Coordinator', 'Exam Coordinator', 'Other'];
-const COMMITTEES = ['Academic Council', 'Board of Studies (BOS)', 'Anti-Ragging Committee', 'Disciplinary Committee', 'Research Committee', 'Other'];
 const COURSE_NAMES = ['Advanced Algorithms', 'Database Systems', 'Operating Systems', 'Computer Networks', 'Software Engineering', 'Data Structures', 'Machine Learning', 'Artificial Intelligence', 'Web Development', 'Other'];
 const PROGRAMMES_LIST = ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M.A.', 'B.Com', 'M.Com', 'BBA', 'MBA', 'BCA', 'MCA', 'Other'];
 const SUBJECTS_LIST = ['Computer Science', 'Physics', 'Mathematics', 'Chemistry', 'Biology', 'Electronics Engineering', 'Mechanical Engineering', 'Civil Engineering', 'English', 'Management', 'Other'];
+const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
 const EMPTY_COURSE = { courseName: '', year: '', programmes: '', subject: '' };
 const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '' };
@@ -114,6 +114,10 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
 }
 
 export default function AcademicResponsibilities({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+  const adminRoles = useDropdownOptions(responsibilityRoleOptions);
+  const committees = useDropdownOptions(committeeTypeOptions);
+  const teachingCategories = useDropdownOptions(teachingCategoryOptions);
+
   const courses = data.courses || [];
   const otherResponsibilities = data.otherResponsibilities || [];
   const update = (k: string, v: any) => onChange({ ...data, [k]: v });
@@ -307,10 +311,10 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                 )}
               </div>
               <div className="form-row form-row-1">
-                {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(pendingResp.administrativeRoles, v => setPendingResp({ ...pendingResp, administrativeRoles: v }), ADMIN_ROLES))}
+                {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(pendingResp.administrativeRoles, v => setPendingResp({ ...pendingResp, administrativeRoles: v }), adminRoles, "Select..."))}
               </div>
               <div className="form-row form-row-1">
-                {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(pendingResp.committeeMemberships, v => setPendingResp({ ...pendingResp, committeeMemberships: v }), COMMITTEES))}
+                {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(pendingResp.committeeMemberships, v => setPendingResp({ ...pendingResp, committeeMemberships: v }), committees, "Select..."))}
               </div>
             </div>
           )}
@@ -359,10 +363,10 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                       )}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(r.administrativeRoles, v => updResp(i, 'administrativeRoles', v), ADMIN_ROLES))}
+                      {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(r.administrativeRoles, v => updResp(i, 'administrativeRoles', v), adminRoles, "Select..."))}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(r.committeeMemberships, v => updResp(i, 'committeeMemberships', v), COMMITTEES))}
+                      {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(r.committeeMemberships, v => updResp(i, 'committeeMemberships', v), committees, "Select..."))}
                     </div>
                   </>
                 ) : (

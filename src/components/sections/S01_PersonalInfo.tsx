@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { fg, inp, ta } from './sectionUtils';
+import { fg, inp, ta, sel } from './sectionUtils';
 import ProfilePictureUpload from '../ProfilePictureUpload';
-import { genderOptions, bloodGroupOptions, nationalityOptions, maritalStatusOptions, disabilityStatusOptions, religionOptions, categoryOptions } from '../../shared/dropdownOptions';
+import { genderOptions, bloodGroupOptions, nationalityOptions, maritalStatusOptions, disabilityStatusOptions, religionOptions, categoryOptions, subCategoryOptions, disabilityTypeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { Save } from 'lucide-react';
 
-export default function PersonalInfo({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+export default function PersonalInfo({ data, onChange, onPersist, saving }: { data: any; onChange: (d: any) => void; onPersist?: (payload?: any, showToast?: boolean) => void; saving?: boolean }) {
   // Ensure data is an object
   const safeData = data || {};
   const s = (k: string, v: string) => onChange({ ...safeData, [k]: v });
@@ -107,20 +108,11 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
   const disabilityStatuses = useDropdownOptions(disabilityStatusOptions);
   const religions = useDropdownOptions(religionOptions);
   const categories = useDropdownOptions(categoryOptions);
+  const subCategories = useDropdownOptions(subCategoryOptions);
+  const disabilityTypes = useDropdownOptions(disabilityTypeOptions);
 
   // Simple select without custom option
-  const SimpleSelect = ({ value, onChange, options, placeholder = "— Select —" }: { value: any, onChange: (val: string) => void, options: any[], placeholder?: string }) => {
-    return (
-      <select
-        className="form-select"
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">{placeholder}</option>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-    );
-  };
+  const SimpleSelect = ({ value, onChange, options }: { value: string, onChange: (v: string) => void, options: string[] }) => sel(value, onChange, options);
 
   // Preview display helper
   const renderPreview = (label: string, value: any) => (
@@ -143,6 +135,17 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
             className="btn btn-outline"
           >
             Edit
+          </button>
+        </div>
+      )}
+      {isEditing && (
+        <div style={{ textAlign: 'right', marginBottom: '16px' }}>
+          <button 
+            className="btn btn-primary btn-sm" 
+            onClick={() => { setIsEditing(false); onPersist && onPersist(); }} 
+            disabled={saving}
+          >
+            {saving ? <><span className="spinner" style={{ width: 13, height: 13 }} /> Saving…</> : <><Save size={14} /> Save</>}
           </button>
         </div>
       )}
@@ -266,7 +269,7 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
             )}
             {safeData.differentlyAbled === 'Yes' && (
               isEditing ? (
-                fg('Type of Disability', inp(data.disabilityType, v => s('disabilityType', v), 'E.g., Visually Impaired...'))
+                fg('Type of Disability', <SimpleSelect value={data.disabilityType} onChange={v => s('disabilityType', v)} options={disabilityTypes} />)
               ) : (
                 renderPreview('Type of Disability', safeData.disabilityType)
               )
@@ -282,7 +285,7 @@ export default function PersonalInfo({ data, onChange }: { data: any; onChange: 
               renderPreview('Category', safeData.category)
             )}
             {isEditing ? (
-              fg('Sub Category', inp(data.subCategory, v => s('subCategory', v), 'Specify sub-category if any'))
+              fg('Sub Category', <SimpleSelect value={data.subCategory} onChange={v => s('subCategory', v)} options={subCategories} />)
             ) : (
               renderPreview('Sub Category', safeData.subCategory)
             )}
