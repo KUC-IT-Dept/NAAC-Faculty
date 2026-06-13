@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
+import { useParams } from 'react-router-dom';
 import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye, Check, XCircle, MessageSquare, RefreshCw, Search, Clock3 } from 'lucide-react';
 import OrgHierarchy from '../../components/admin/OrgHierarchy';
 
@@ -122,11 +123,16 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, inactive: 0, profilesComplete: 0 });
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'accounts' | 'hierarchy' | 'requests'>('accounts');
+  const { tabId } = useParams();
+  const activeTab = tabId || 'accounts';
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ email: '', fullName: '' });
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [facultySearchQuery, setFacultySearchQuery] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('All');
+  const [sortBy, setSortBy] = useState<'name' | 'username' | 'email' | 'completion'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showHistory, setShowHistory] = useState(false);
   
   // For action modals
@@ -209,6 +215,37 @@ export default function AdminDashboard() {
     { label: 'Profiles Complete', value: stats.profilesComplete, icon: <BookOpen size={20} />, color: 'var(--accent)', bg: 'rgba(232,160,32,0.12)' },
   ];
 
+  const departments = ['All', ...Array.from(new Set(faculty.map(f => f.profile?.employmentDetails?.department).filter(Boolean)))];
+
+  const filteredFaculty = faculty.filter(f => {
+    const q = facultySearchQuery.toLowerCase();
+    const name = (f.profile?.personalInfo?.fullName || '').toLowerCase();
+    const username = f.username.toLowerCase();
+    const email = f.email.toLowerCase();
+    const matchesSearch = name.includes(q) || username.includes(q) || email.includes(q);
+    const matchesDept = departmentFilter === 'All' || f.profile?.employmentDetails?.department === departmentFilter;
+    return matchesSearch && matchesDept;
+  }).sort((a, b) => {
+    let valA: any = '';
+    let valB: any = '';
+    if (sortBy === 'name') {
+      valA = (a.profile?.personalInfo?.fullName || '').toLowerCase();
+      valB = (b.profile?.personalInfo?.fullName || '').toLowerCase();
+    } else if (sortBy === 'username') {
+      valA = a.username.toLowerCase();
+      valB = b.username.toLowerCase();
+    } else if (sortBy === 'email') {
+      valA = a.email.toLowerCase();
+      valB = b.email.toLowerCase();
+    } else if (sortBy === 'completion') {
+      valA = a.profile?.completionPercentage || 0;
+      valB = b.profile?.completionPercentage || 0;
+    }
+    if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+    if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   const filteredRequests = requests.filter(r => {
     const matchesStatus = showHistory ? (r.status !== 'PENDING') : (r.status === 'PENDING');
     if (!matchesStatus) return false;
@@ -225,69 +262,7 @@ export default function AdminDashboard() {
   });
 
   return (
-    <AppLayout title={activeTab === 'accounts' ? 'Admin Dashboard' : 'Org Hierarchy'}>
-      {/* Tab Selector */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', background: '#e2e8f0', padding: '4px', borderRadius: '8px', width: 'fit-content' }}>
-        <button
-          onClick={() => setActiveTab('accounts')}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '6px',
-            border: 'none',
-            background: activeTab === 'accounts' ? '#ffffff' : 'transparent',
-            color: activeTab === 'accounts' ? '#0f172a' : '#64748b',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-            boxShadow: activeTab === 'accounts' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          Faculty Accounts
-        </button>
-        <button
-          onClick={() => setActiveTab('hierarchy')}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '6px',
-            border: 'none',
-            background: activeTab === 'hierarchy' ? '#ffffff' : 'transparent',
-            color: activeTab === 'hierarchy' ? '#0f172a' : '#64748b',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-            boxShadow: activeTab === 'hierarchy' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          Org Hierarchy
-        </button>
-        <button
-          onClick={() => setActiveTab('requests')}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '6px',
-            border: 'none',
-            background: activeTab === 'requests' ? '#ffffff' : 'transparent',
-            color: activeTab === 'requests' ? '#0f172a' : '#64748b',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-            boxShadow: activeTab === 'requests' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            transition: 'all 0.15s ease',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6
-          }}
-        >
-          Notifications
-          {requests.filter(r => r.status === 'PENDING').length > 0 && (
-            <span style={{ background: 'var(--danger)', color: 'white', borderRadius: 10, padding: '2px 6px', fontSize: 10 }}>
-              {requests.filter(r => r.status === 'PENDING').length}
-            </span>
-          )}
-        </button>
-      </div>
+    <AppLayout title={activeTab === 'accounts' ? 'Faculty Accounts' : activeTab === 'hierarchy' ? 'Org Hierarchy' : 'Notifications'}>
 
       {activeTab === 'accounts' ? (
         <>
@@ -311,9 +286,48 @@ export default function AdminDashboard() {
                 <h2 style={{ fontSize: '1rem' }}>Faculty Accounts</h2>
                 <p className="text-muted text-sm">Manage all registered faculty members</p>
               </div>
-              <button id="add-faculty-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>
-                <Plus size={14} /> Add Faculty
-              </button>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{ position: 'relative', width: 200 }}>
+                  <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                  <input 
+                    type="text" 
+                    placeholder="Search faculty..." 
+                    value={facultySearchQuery}
+                    onChange={e => setFacultySearchQuery(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
+                  />
+                </div>
+                <select
+                  value={departmentFilter}
+                  onChange={e => setDepartmentFilter(e.target.value)}
+                  className="form-input"
+                  style={{ height: 32, fontSize: '13px', minWidth: 120, padding: '0 8px' }}
+                >
+                  {departments.map(d => <option key={d as string} value={d as string}>{d as string}</option>)}
+                </select>
+                <select
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value as any)}
+                  className="form-input"
+                  style={{ height: 32, fontSize: '13px', minWidth: 100, padding: '0 8px' }}
+                >
+                  <option value="name">Sort: Name</option>
+                  <option value="username">Sort: Username</option>
+                  <option value="email">Sort: Email</option>
+                  <option value="completion">Sort: Completion</option>
+                </select>
+                <button 
+                  className="btn btn-sm"
+                  onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
+                  style={{ height: 32, padding: '0 8px', background: '#e2e8f0', color: '#334155', border: '1px solid #cbd5e1' }}
+                >
+                  {sortOrder === 'asc' ? '↑' : '↓'}
+                </button>
+                <button id="add-faculty-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>
+                  <Plus size={14} /> Add Faculty
+                </button>
+              </div>
             </div>
             <div className="table-wrap">
               <table>
@@ -331,9 +345,9 @@ export default function AdminDashboard() {
                 <tbody>
                   {loading ? (
                     <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
-                  ) : faculty.length === 0 ? (
-                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No faculty accounts yet. Add one above.</td></tr>
-                  ) : faculty.map(f => (
+                  ) : filteredFaculty.length === 0 ? (
+                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No faculty found.</td></tr>
+                  ) : filteredFaculty.map(f => (
                     <tr key={f._id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -497,9 +511,9 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'hierarchy' ? (
         <OrgHierarchy />
-      )}
+      ) : null}
 
       {/* Add Faculty Modal */}
       {showModal && (

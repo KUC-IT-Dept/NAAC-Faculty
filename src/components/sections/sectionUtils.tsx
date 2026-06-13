@@ -2,6 +2,8 @@ import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Upload, X, FileText, ExternalLink, RefreshCw, ChevronDown, Search, Check } from 'lucide-react';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
+import imageCompression from 'browser-image-compression';
+import { PDFDocument } from 'pdf-lib';
 
 /** Shared label helper */
 export const fg = (label: string, node: ReactNode) => (
@@ -149,16 +151,48 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size exceeds 10MB limit.');
+    // Check file size (25MB limit before compression to allow large files to be compressed)
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('Original file size exceeds 25MB limit.');
+      return;
+    }
+
+    setUploading(true);
+    let finalFile: File | Blob = file;
+
+    try {
+      if (file.type.startsWith('image/')) {
+        const options = {
+          maxSizeMB: 0.5, // 500KB
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        };
+        finalFile = await imageCompression(file, options);
+      } else if (file.type === 'application/pdf') {
+        // Optimize PDF using pdf-lib
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+        // Saving the PDF without preserving object streams often reduces the size of poorly optimized PDFs
+        const pdfBytes = await pdfDoc.save({ useObjectStreams: false });
+        finalFile = new Blob([pdfBytes], { type: 'application/pdf' });
+      }
+    } catch (err) {
+      console.error('Compression failed:', err);
+      // Fallback to original file if compression fails
+      finalFile = file;
+    }
+
+    // Final check before upload
+    if (finalFile.size > 10 * 1024 * 1024) {
+      toast.error('Compressed file still exceeds 10MB limit. Please upload a smaller file.');
+      setUploading(false);
       return;
     }
 
     const fd = new FormData();
-    fd.append('file', file);
-
-    setUploading(true);
+    // Re-create a File object to ensure the filename is preserved
+    const uploadFile = new File([finalFile], file.name, { type: file.type });
+    fd.append('file', uploadFile);
     try {
       const r = await api.post('/faculty/upload', fd);
       fn(r.data.url);

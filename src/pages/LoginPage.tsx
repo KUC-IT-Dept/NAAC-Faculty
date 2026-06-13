@@ -27,6 +27,12 @@ export default function LoginPage() {
       if (u.role === 'admin') {
         toast.success('Welcome back, Admin!');
         navigate('/admin');
+      } else if (u.role === 'vc') {
+        toast.success('Welcome back, Vice Chancellor!');
+        navigate('/vc');
+      } else if (u.role === 'hod') {
+        toast.success('Welcome back, HOD!');
+        navigate('/hod');
       } else if (u.isFirstLogin) {
         navigate('/faculty/setup');
       } else {
@@ -129,7 +135,9 @@ export default function LoginPage() {
           <p style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Demo Credentials</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[
+              { label: 'Vice Chancellor', email: 'vc@iqac.edu.in', pass: 'VC@IQAC2024' },
               { label: 'Admin', email: 'admin@iqac.edu.in', pass: 'Admin@IQAC2024' },
+              { label: 'HOD (Computer Science)', email: 'hod.cs@university.edu.in', pass: 'password123' },
               { label: 'Faculty (Dr. Priya)', email: 'dr.priya.sharma@university.edu.in', pass: 'password123' },
               { label: 'Faculty (Prof. Ajay)', email: 'prof.ajay.kumar@university.edu.in', pass: 'password123' },
             ].map(c => (

@@ -8,6 +8,9 @@ const adminRoutes = require('./routes/admin');
 const facultyRoutes = require('./routes/faculty');
 const publicRoutes = require('./routes/public');
 const uploadRoutes = require('./routes/upload');
+const departmentsRoutes = require('./routes/departments');
+const vcRoutes = require('./routes/vc');
+const hodRoutes = require('./routes/hod');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +28,9 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/faculty', facultyRoutes);
 app.use('/api/profile', publicRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/departments', departmentsRoutes);
+app.use('/api/vc', vcRoutes);
+app.use('/api/hod', hodRoutes);
 
 // Serve static files (uploaded photos)
 app.use('/uploads', express.static('server/uploads'));

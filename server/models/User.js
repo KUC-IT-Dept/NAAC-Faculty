@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true, lowercase: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['admin', 'faculty'], default: 'faculty' },
+  role: { type: String, enum: ['admin', 'faculty', 'student', 'hod', 'vc'], default: 'faculty' },
   isActive: { type: Boolean, default: true },
   isFirstLogin: { type: Boolean, default: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

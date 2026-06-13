@@ -1,12 +1,14 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2 } from 'lucide-react';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
 const adminNav: NavItem[] = [
-  { label: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={18} />, exact: true },
+  { label: 'Faculty Accounts', path: '/admin/accounts', icon: <Users size={18} /> },
+  { label: 'Org Hierarchy', path: '/admin/hierarchy', icon: <GraduationCap size={18} /> },
+  { label: 'Notifications', path: '/admin/requests', icon: <Bell size={18} /> },
   { label: 'Edit Profile', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
   { label: 'General', path: '/admin/general', icon: <Globe size={18} /> },
 ];
@@ -16,7 +18,18 @@ const facultyNav: NavItem[] = [
   { label: 'Edit Profile', path: '/faculty/profile/edit', icon: <UserPen size={18} /> },
 ];
 
-const profileDropdownItems = (role?: 'admin' | 'faculty') => {
+const vcNav: NavItem[] = [
+  { label: 'Org Hierarchy', path: '/vc/hierarchy', icon: <GraduationCap size={18} /> },
+  { label: 'Departments', path: '/vc/departments', icon: <Building2 size={18} /> },
+];
+
+const hodNav: NavItem[] = [
+  { label: 'Org Hierarchy', path: '/hod/hierarchy', icon: <GraduationCap size={18} /> },
+  { label: 'Department Faculty', path: '/hod/faculty', icon: <Users size={18} /> },
+  { label: 'Notifications', path: '/hod/notifications', icon: <Bell size={18} /> },
+];
+
+const profileDropdownItems = (role?: 'admin' | 'faculty' | 'vc' | 'hod') => {
   const base = role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   return [
     { id: 'personal-information', label: '01 - Personal Information', path: `${base}/personal-information` },
@@ -53,10 +66,11 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const facultyProfile = JSON.parse(localStorage.getItem('iqac_faculty') || 'null');
 
-  const navItems = user?.role === 'admin' ? adminNav : facultyNav;
-  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : 'Faculty User');
-  const displayRole = user?.role === 'admin' ? 'Administrator' : 'Faculty User';
+  const navItems = user?.role === 'admin' ? adminNav : user?.role === 'vc' ? vcNav : user?.role === 'hod' ? hodNav : facultyNav;
+  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : 'Faculty User');
+  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : 'Faculty User';
   const initials = displayName.slice(0, 2).toUpperCase();
   const editProfileBase = user?.role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   const isActive = (item: NavItem) => item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
@@ -89,7 +103,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         </div>
 
         <nav className="sidebar-nav">
-          {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : 'My Account'}</div>}
+          {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : user?.role === 'vc' ? 'University Overview' : user?.role === 'hod' ? (facultyProfile?.employmentDetails?.department || 'Department Panel') : 'My Account'}</div>}
           {navItems.map(item => {
             if (item.label === 'Edit Profile') {
               return (
@@ -137,9 +151,9 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
 
         <div className="sidebar-footer">
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '12px', paddingTop: '4px' }}>
-            {!collapsed && <div className="sidebar-section-label" style={{ padding: '0 0 6px' }}>Public</div>}
+            {user?.role === 'faculty' && !collapsed && <div className="sidebar-section-label" style={{ padding: '0 0 6px' }}>Public</div>}
 
-            {user?.role !== 'admin' && (
+            {user?.role === 'faculty' && (
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '10px' }}>
                 <button
                   className="nav-item"
@@ -185,7 +199,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
           <span className="top-bar-title">{title}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
-              {user?.role === 'admin' ? '⚡ Administrator' : '👤 Faculty'}
+              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Vice Chancellor' : user?.role === 'hod' ? '⭐ HOD' : '👤 Faculty'}
             </span>
           </div>
         </header>

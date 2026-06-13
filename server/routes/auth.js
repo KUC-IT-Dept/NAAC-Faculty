@@ -33,8 +33,8 @@ router.post('/login', async (req, res) => {
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
     let facultyProfile = null;
-    if (user.role === 'faculty') {
-      facultyProfile = await Faculty.findOne({ userId: user._id }).select('profileComplete completionPercentage personalInfo.fullName personalInfo.photoUrl');
+    if (user.role === 'faculty' || user.role === 'hod') {
+      facultyProfile = await Faculty.findOne({ userId: user._id }).select('profileComplete completionPercentage personalInfo.fullName personalInfo.photoUrl employmentDetails.department');
     }
 
     const token = generateToken(user);
@@ -87,8 +87,8 @@ router.get('/me', auth, async (req, res) => {
   try {
     const user = req.user;
     let facultyProfile = null;
-    if (user.role === 'faculty') {
-      facultyProfile = await Faculty.findOne({ userId: user._id });
+    if (user.role === 'faculty' || user.role === 'hod') {
+      facultyProfile = await Faculty.findOne({ userId: user._id }).select('profileComplete completionPercentage personalInfo.fullName personalInfo.photoUrl employmentDetails.department');
     }
     res.json({ user, faculty: facultyProfile });
   } catch (err) {

@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Faculty = require('../models/Faculty');
 const DropdownConfig = require('../models/DropdownConfig');
 const OptionRequest = require('../models/OptionRequest');
+const Department = require('../models/Department');
 const { auth, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
@@ -90,16 +91,34 @@ router.patch('/faculty/:id/make-hod', async (req, res) => {
     await Faculty.updateMany(
       {
         'employmentDetails.department': dept,
-        'employmentDetails.designation': 'HOD'
+        'employmentDetails.designation': 'HOD',
+        userId: { $ne: user._id }
       },
       {
         $set: { 'employmentDetails.designation': 'Professor' }
       }
     );
 
+    // Also demote their role back to faculty if they were HOD
+    const previousHodFaculty = await Faculty.findOne({ 'employmentDetails.department': dept, 'employmentDetails.designation': 'Professor', userId: { $ne: user._id } });
+    if(previousHodFaculty) {
+       await User.updateOne({ _id: previousHodFaculty.userId }, { role: 'faculty' });
+    }
+
     // Promote target to HOD
     faculty.employmentDetails.designation = 'HOD';
     await faculty.save();
+    
+    // Update User Role
+    user.role = 'hod';
+    await user.save();
+
+    // Upsert Department model
+    await Department.findOneAndUpdate(
+      { name: dept },
+      { hod: user._id },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     res.json({ message: `Successfully promoted ${faculty.personalInfo?.fullName || user.username} to HOD of ${dept}` });
   } catch (err) {
