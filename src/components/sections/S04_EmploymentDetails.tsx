@@ -273,6 +273,29 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
 
   return (
     <div>
+      {editingIndex !== -1 && (
+        <div style={{ textAlign: 'right', marginBottom: '16px' }}>
+          <button
+            type="button"
+            onClick={addNewEntry}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              backgroundColor: '#4f46e5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontWeight: 600
+            }}
+          >
+            <Plus size={16} /> Add Employment
+          </button>
+        </div>
+      )}
 
       {editingIndex === -1 ? (
         <div key="new" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
