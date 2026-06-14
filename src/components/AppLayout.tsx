@@ -26,6 +26,7 @@ const vcNav: NavItem[] = [
 const hodNav: NavItem[] = [
   { label: 'Org Hierarchy', path: '/hod/hierarchy', icon: <GraduationCap size={18} /> },
   { label: 'Department Faculty', path: '/hod/faculty', icon: <Users size={18} /> },
+  { label: 'Department Students', path: '/hod/students', icon: <Users size={18} /> },
   { label: 'Notifications', path: '/hod/notifications', icon: <Bell size={18} /> },
 ];
 
