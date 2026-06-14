@@ -4,8 +4,10 @@ import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
-import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye, Check, XCircle, MessageSquare, RefreshCw, Search, Clock3 } from 'lucide-react';
+import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye, Check, XCircle, MessageSquare, RefreshCw, Search, Clock3, Building2, UserPlus } from 'lucide-react';
 import OrgHierarchy from '../../components/admin/OrgHierarchy';
+import SearchableSelect from '../../components/SearchableSelect';
+import axios from 'axios';
 
 const dropdownKeyToFormMap: Record<string, string> = {
   genderOptions: '01 - Personal Information',
@@ -122,11 +124,30 @@ export default function AdminDashboard() {
   const [faculty, setFaculty] = useState<FacultyUser[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, inactive: 0, profilesComplete: 0 });
   const [requests, setRequests] = useState<any[]>([]);
+  const [departmentsList, setDepartmentsList] = useState<any[]>([]);
+  const [departmentFaculty, setDepartmentFaculty] = useState<FacultyUser[]>([]);
+
   const [loading, setLoading] = useState(true);
   const { tabId } = useParams();
   const activeTab = tabId || 'accounts';
+  
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ email: '', fullName: '' });
+
+  const [showDeptModal, setShowDeptModal] = useState(false);
+  const [deptForm, setDeptForm] = useState({ name: '', hodEmail: '', hodFullName: '' });
+  
+  const [showStudentModal, setShowStudentModal] = useState(false);
+  const [studentForm, setStudentForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    department: '',
+    tutorName: '',
+    tutorEmail: ''
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [facultySearchQuery, setFacultySearchQuery] = useState('');
@@ -140,15 +161,31 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const [fRes, sRes, rRes] = await Promise.all([api.get('/admin/faculty'), api.get('/admin/stats'), api.get('/admin/option-requests')]);
+      const [fRes, sRes, rRes, dRes] = await Promise.all([
+        api.get('/admin/faculty'), 
+        api.get('/admin/stats'), 
+        api.get('/admin/option-requests'),
+        api.get('/departments')
+      ]);
       setFaculty(fRes.data);
       setStats(sRes.data);
       setRequests(rRes.data);
+      setDepartmentsList(dRes.data);
     } catch { toast.error('Failed to load data'); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  useEffect(() => {
+    if (studentForm.department) {
+      api.get(`/departments/${encodeURIComponent(studentForm.department)}/faculty`)
+        .then(res => setDepartmentFaculty(res.data))
+        .catch(() => setDepartmentFaculty([]));
+    } else {
+      setDepartmentFaculty([]);
+    }
+  }, [studentForm.department]);
 
   const toggleStatus = async (id: string) => {
     try {
@@ -178,6 +215,38 @@ export default function AdminDashboard() {
       fetchData();
     } catch (e: any) { toast.error(e.response?.data?.message || 'Creation failed'); }
     finally { setSubmitting(false); }
+  };
+
+  const handleCreateDept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.post('/departments', deptForm);
+      toast.success(`Department ${deptForm.name} created successfully!`);
+      setShowDeptModal(false);
+      setDeptForm({ name: '', hodEmail: '', hodFullName: '' });
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Creation failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreateStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const payload = { ...studentForm, role: 'student' };
+      await axios.post('https://kuc-backend.onrender.com/api/auth/register', payload);
+      toast.success(`Student account created for ${studentForm.email}`);
+      setShowStudentModal(false);
+      setStudentForm({ name: '', email: '', phone: '', password: '', department: '', tutorName: '', tutorEmail: '' });
+    } catch (e: any) { 
+      toast.error(e.response?.data?.message || 'Student creation failed'); 
+    } finally { 
+      setSubmitting(false); 
+    }
   };
 
   const handleRequestAction = async (e?: React.FormEvent, overrideId?: string, overrideType?: 'undo') => {
@@ -513,7 +582,242 @@ export default function AdminDashboard() {
         </div>
       ) : activeTab === 'hierarchy' ? (
         <OrgHierarchy />
+      ) : activeTab === 'departments' ? (
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
+            <div>
+              <h2 style={{ fontSize: '1rem' }}>University Departments</h2>
+              <p className="text-muted text-sm">Manage academic departments and assign HODs</p>
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button className="btn btn-primary" onClick={() => setShowDeptModal(true)}>
+                <Plus size={14} /> Add Department
+              </button>
+            </div>
+          </div>
+          
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Department Name</th>
+                  <th>HOD Assigned</th>
+                  <th>HOD Email</th>
+                  <th>Added On</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
+                ) : departmentsList.length === 0 ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No departments configured.</td></tr>
+                ) : departmentsList.map(d => (
+                  <tr key={d._id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.1)', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Building2 size={16} />
+                        </div>
+                        <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{d.name}</span>
+                      </div>
+                    </td>
+                    <td>
+                      {d.hod ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div className="avatar" style={{ width: 24, height: 24, fontSize: '0.6rem' }}>
+                            {d.hod.username.substring(0, 2).toUpperCase()}
+                          </div>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{d.hod.username}</span>
+                        </div>
+                      ) : (
+                        <span className="badge badge-inactive">No HOD</span>
+                      )}
+                    </td>
+                    <td className="text-sm text-muted">{d.hod?.email || '—'}</td>
+                    <td className="text-sm text-muted">{new Date(d.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button 
+                        className="btn btn-sm btn-ghost" 
+                        title="Add student to this department"
+                        onClick={() => { setStudentForm(f => ({ ...f, department: d.name })); setShowStudentModal(true); }}
+                      >
+                        <UserPlus size={14} /> Add Student
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : activeTab === 'students' ? (
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
+            <div>
+              <h2 style={{ fontSize: '1rem' }}>Student Accounts</h2>
+              <p className="text-muted text-sm">Manage students across all departments</p>
+            </div>
+            <button className="btn btn-primary" onClick={() => { setStudentForm(f => ({ ...f, department: '' })); setShowStudentModal(true); }}>
+              <UserPlus size={14} /> Add Student
+            </button>
+          </div>
+          
+          <div className="table-wrap">
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <Users size={32} style={{ marginBottom: 16, opacity: 0.5 }} />
+              <p>Student list will be available once the backend provides a fetch endpoint.</p>
+              <p className="text-sm mt-2">You can use the "Add Student" button to register new students.</p>
+            </div>
+          </div>
+        </div>
       ) : null}
+
+      {/* Add Department Modal */}
+      {showDeptModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowDeptModal(false)}>
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Create Department & Assign HOD</h3>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowDeptModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateDept}>
+              <div className="modal-body">
+                <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
+                  <span>Creating a department will automatically generate a new HOD account with a default password of <strong>password123</strong>.</span>
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label">Department Name *</label>
+                  <input 
+                    className="form-input" 
+                    type="text" 
+                    required 
+                    placeholder="e.g. Computer Science" 
+                    value={deptForm.name} 
+                    onChange={e => setDeptForm(f => ({ ...f, name: e.target.value }))} 
+                    autoFocus 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">HOD Full Name</label>
+                  <input 
+                    className="form-input" 
+                    type="text" 
+                    placeholder="Optional" 
+                    value={deptForm.hodFullName} 
+                    onChange={e => setDeptForm(f => ({ ...f, hodFullName: e.target.value }))} 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">HOD Email Address *</label>
+                  <input 
+                    className="form-input" 
+                    type="email" 
+                    required 
+                    placeholder="hod@university.edu.in" 
+                    value={deptForm.hodEmail} 
+                    onChange={e => setDeptForm(f => ({ ...f, hodEmail: e.target.value }))} 
+                  />
+                  <p className="form-hint">This email will be used for the HOD to log in.</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowDeptModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? <><span className="spinner" /> Creating...</> : 'Create Department'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Student Modal */}
+      {showStudentModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowStudentModal(false)}>
+          <div className="modal" style={{ maxWidth: '750px', overflow: 'visible' }}>
+            <div className="modal-header">
+              <h3>Create Student Account</h3>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowStudentModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateStudent}>
+              <div className="modal-body" style={{ overflow: 'visible' }}>
+                <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
+                  <span>This will create a new student account in the external system.</span>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Full Name *</label>
+                    <input className="form-input" type="text" required placeholder="Student Name" value={studentForm.name} onChange={e => setStudentForm(f => ({ ...f, name: e.target.value }))} autoFocus />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Email Address *</label>
+                    <input className="form-input" type="email" required placeholder="student@university.edu.in" value={studentForm.email} onChange={e => setStudentForm(f => ({ ...f, email: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Phone Number *</label>
+                    <input className="form-input" type="text" required placeholder="9000000001" value={studentForm.phone} onChange={e => setStudentForm(f => ({ ...f, phone: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Password *</label>
+                    <input className="form-input" type="password" required placeholder="Password" value={studentForm.password} onChange={e => setStudentForm(f => ({ ...f, password: e.target.value }))} />
+                  </div>
+                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                    <label className="form-label">Department *</label>
+                    <SearchableSelect
+                      value={studentForm.department}
+                      onChange={val => setStudentForm(f => ({ ...f, department: val, tutorName: '', tutorEmail: '' }))}
+                      options={departmentsList.map(d => d.name)}
+                      placeholder="— Select Department —"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Tutor Name *</label>
+                    <div style={{ pointerEvents: studentForm.department ? 'auto' : 'none', opacity: studentForm.department ? 1 : 0.6 }}>
+                      <SearchableSelect
+                        value={studentForm.tutorName}
+                        onChange={val => {
+                          const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
+                          const tutor = validTutors.find(f => (f.profile?.personalInfo?.fullName || f.username || '') === val);
+                          setStudentForm(f => ({ 
+                            ...f, 
+                            tutorName: val,
+                            tutorEmail: tutor?.email || ''
+                          }));
+                        }}
+                        options={departmentFaculty.filter(f => f.role !== 'hod').map(f => f.profile?.personalInfo?.fullName || f.username || '')}
+                        placeholder={studentForm.department ? "— Select Tutor —" : "Select department first"}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Tutor Email *</label>
+                    <input 
+                      className="form-input" 
+                      type="email" 
+                      required 
+                      readOnly 
+                      value={studentForm.tutorEmail} 
+                      style={{ backgroundColor: 'var(--bg)', color: 'var(--text-muted)' }} 
+                      placeholder="Auto-filled"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowStudentModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? <><span className="spinner" /> Creating...</> : 'Create Student'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Faculty Modal */}
       {showModal && (

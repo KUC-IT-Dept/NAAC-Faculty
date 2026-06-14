@@ -22,17 +22,22 @@ router.get('/', async (req, res) => {
 // GET /api/departments/:name/faculty
 router.get('/:name/faculty', async (req, res) => {
   try {
+    console.log(`[DEBUG] Fetching faculty for department: "${req.params.name}"`);
     const profiles = await Faculty.find({ 'employmentDetails.department': req.params.name })
       .select('userId username personalInfo.fullName personalInfo.designation personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
     
+    console.log(`[DEBUG] Found ${profiles.length} profiles for department "${req.params.name}"`);
+    
     const userIds = profiles.map(p => p.userId);
     const users = await User.find({ _id: { $in: userIds }, role: { $in: ['faculty', 'hod'] } }).select('-password').sort({ createdAt: -1 });
+
+    console.log(`[DEBUG] Found ${users.length} users matching those profiles`);
 
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.userId.toString()] = p; });
     res.json(users.map(u => ({ ...u.toObject(), profile: profileMap[u._id.toString()] || null })));
   } catch (err) {
-    console.error(err);
+    console.error("[DEBUG] Error fetching faculty by department:", err);
     res.status(500).json({ message: 'Server error' });
   }
 });

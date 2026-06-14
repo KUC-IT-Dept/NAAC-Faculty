@@ -41,24 +41,38 @@ export default function HODDashboard() {
   const [departments, setDepartments] = useState<any[]>([]);
   const [departmentFaculty, setDepartmentFaculty] = useState<FacultyUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState<any[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
   const { user } = useAuth();
-  
+
   // Modals
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ email: '', fullName: '' });
   const [submitting, setSubmitting] = useState(false);
-  
+
   const [showStudentModal, setShowStudentModal] = useState(false);
+  const getHodDepartment = () => {
+    try {
+      const facStr = localStorage.getItem('iqac_faculty');
+      if (facStr) {
+        const fac = JSON.parse(facStr);
+        return fac?.employmentDetails?.department || '';
+      }
+    } catch { }
+    return '';
+  };
+  const hodDepartment = getHodDepartment();
+
   const [studentForm, setStudentForm] = useState({
     name: '',
     email: '',
     phone: '',
     password: '',
-    department: '',
+    department: hodDepartment,
     tutorName: '',
     tutorEmail: ''
   });
-  
+
   const [actionModal, setActionModal] = useState<{ isOpen: boolean; type: 'approve' | 'reject'; requestId: string; message: string }>({ isOpen: false, type: 'approve', requestId: '', message: '' });
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -84,11 +98,55 @@ export default function HODDashboard() {
     fetchData();
   }, []);
 
+  const fetchStudents = async () => {
+    if (!hodDepartment) {
+      console.warn('fetchStudents: hodDepartment is not set or empty in localStorage.');
+      return;
+    }
+    setStudentsLoading(true);
+    console.log('--- Fetching Students Start ---');
+    console.log('HOD Logged-in Department:', hodDepartment);
+    const url = `https://kuc-backend.onrender.com/api/student/by-department?department=${encodeURIComponent(hodDepartment)}`;
+    console.log('Sending GET Request URL:', url);
+    try {
+      const rawRes = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      console.log('GET /api/student/by-department Response status:', rawRes.status);
+      if (!rawRes.ok) throw new Error(`Server returned ${rawRes.status}`);
+      const resData = await rawRes.json();
+      console.log('GET /api/student/by-department Response data:', resData);
+      const data = Array.isArray(resData) ? resData : (resData.data || resData.students || resData.student || []);
+      console.log('GET /api/student/by-department Parsed students list:', data);
+      setStudents(data);
+    } catch (err: any) {
+      console.error('Error fetching students:', err);
+      toast.error('Failed to fetch students');
+    } finally {
+      console.log('--- Fetching Students End ---');
+      setStudentsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'students') {
+      fetchStudents();
+    }
+  }, [activeTab, hodDepartment]);
+
   useEffect(() => {
     if (studentForm.department) {
+      console.log('Fetching faculty/tutors for department:', studentForm.department);
       api.get(`/departments/${encodeURIComponent(studentForm.department)}/faculty`)
-        .then(res => setDepartmentFaculty(res.data))
-        .catch(() => setDepartmentFaculty([]));
+        .then(res => {
+          console.log('Fetched department faculty:', res.data);
+          setDepartmentFaculty(res.data);
+        })
+        .catch(err => {
+          console.error('Error fetching department faculty:', err);
+          setDepartmentFaculty([]);
+        });
     } else {
       setDepartmentFaculty([]);
     }
@@ -103,10 +161,10 @@ export default function HODDashboard() {
       setShowModal(false);
       setForm({ email: '', fullName: '' });
       fetchData();
-    } catch (e: any) { 
-      toast.error(e.response?.data?.message || 'Creation failed'); 
-    } finally { 
-      setSubmitting(false); 
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Creation failed');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -123,11 +181,12 @@ export default function HODDashboard() {
       await axios.post('https://kuc-backend.onrender.com/api/auth/register', payload);
       toast.success(`Student account created for ${studentForm.email}`);
       setShowStudentModal(false);
-      setStudentForm({ name: '', email: '', phone: '', password: '', department: '', tutorName: '', tutorEmail: '' });
-    } catch (e: any) { 
-      toast.error(e.response?.data?.message || 'Student creation failed'); 
-    } finally { 
-      setSubmitting(false); 
+      setStudentForm({ name: '', email: '', phone: '', password: '', department: hodDepartment, tutorName: '', tutorEmail: '' });
+      fetchStudents();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Student creation failed');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -243,9 +302,9 @@ export default function HODDashboard() {
             </div>
             <div style={{ position: 'relative', width: 250 }}>
               <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-              <input 
-                type="text" 
-                placeholder="Search requests..." 
+              <input
+                type="text"
+                placeholder="Search requests..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="form-input"
@@ -330,11 +389,21 @@ export default function HODDashboard() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>
-                    Student list will be available once the backend provides a fetch endpoint. For now, you can add new students using the button above.
-                  </td>
-                </tr>
+                {studentsLoading ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
+                ) : students.length === 0 ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No students found in your department.</td></tr>
+                ) : students.map((s, idx) => (
+                  <tr key={s._id || idx}>
+                    <td>
+                      <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.name || s.username || '—'}</div>
+                    </td>
+                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.email || '—'}</td>
+                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.phone || '—'}</td>
+                    <td><span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{s.department || hodDepartment}</span></td>
+                    <td><span className="text-sm">{s.tutorName || '—'}</span></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -378,17 +447,17 @@ export default function HODDashboard() {
       {/* Add Student Modal */}
       {showStudentModal && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowStudentModal(false)}>
-          <div className="modal" style={{ maxWidth: '600px' }}>
+          <div className="modal" style={{ maxWidth: '750px', overflow: 'visible' }}>
             <div className="modal-header">
               <h3>Add Student Account</h3>
               <button className="btn btn-ghost btn-sm" onClick={() => setShowStudentModal(false)}><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateStudent}>
-              <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <div className="modal-body" style={{ overflow: 'visible' }}>
                 <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
                   <span>This will create a new student account in the external system.</span>
                 </div>
-                
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
                     <label className="form-label">Full Name *</label>
@@ -407,12 +476,13 @@ export default function HODDashboard() {
                     <input className="form-input" type="password" required placeholder="Password" value={studentForm.password} onChange={e => setStudentForm(f => ({ ...f, password: e.target.value }))} />
                   </div>
                   <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                    <label className="form-label">Department *</label>
-                    <SearchableSelect
-                      value={studentForm.department}
-                      onChange={val => setStudentForm(f => ({ ...f, department: val }))}
-                      options={departments.map(d => d.name)}
-                      placeholder="— Select Department —"
+                    <label className="form-label">Department</label>
+                    <input
+                      className="form-input"
+                      type="text"
+                      value={studentForm.department || '— No Department —'}
+                      readOnly
+                      style={{ backgroundColor: 'var(--bg)', color: 'var(--text-muted)' }}
                     />
                   </div>
                   <div className="form-group">
@@ -421,16 +491,15 @@ export default function HODDashboard() {
                       <SearchableSelect
                         value={studentForm.tutorName}
                         onChange={val => {
-                          const tutor = departmentFaculty.find(f => (f.profile?.personalInfo?.fullName || f.username || '') === val);
+                          const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
+                          const tutor = validTutors.find(f => (f.profile?.personalInfo?.fullName || f.username || '') === val);
                           setStudentForm(f => ({
                             ...f,
                             tutorName: val,
                             tutorEmail: tutor ? tutor.email : ''
                           }));
                         }}
-                        options={departmentFaculty
-                          .filter(f => f.role !== 'hod')
-                          .map(f => f.profile?.personalInfo?.fullName || f.username || '')}
+                        options={departmentFaculty.filter(f => f.role !== 'hod').map(f => f.profile?.personalInfo?.fullName || f.username || '')}
                         placeholder={studentForm.department ? '— Select Tutor —' : '— Select Dept First —'}
                       />
                     </div>
@@ -464,22 +533,22 @@ export default function HODDashboard() {
               <div className="modal-body">
                 <div className="form-group">
                   <label className="form-label">Message to Faculty {actionModal.type === 'reject' ? '*' : '(Optional)'}</label>
-                  <textarea 
-                    className="form-textarea" 
-                    rows={3} 
+                  <textarea
+                    className="form-textarea"
+                    rows={3}
                     required={actionModal.type === 'reject'}
                     placeholder={actionModal.type === 'reject' ? "Please provide a reason for rejection..." : "E.g. Added to the list."}
-                    value={actionModal.message} 
-                    onChange={e => setActionModal({ ...actionModal, message: e.target.value })} 
-                    autoFocus 
+                    value={actionModal.message}
+                    onChange={e => setActionModal({ ...actionModal, message: e.target.value })}
+                    autoFocus
                   />
                 </div>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setActionModal({ ...actionModal, isOpen: false })}>Cancel</button>
-                <button 
-                  type="submit" 
-                  className="btn" 
+                <button
+                  type="submit"
+                  className="btn"
                   style={actionModal.type === 'approve' ? { background: '#059669', color: 'white' } : { background: '#dc2626', color: 'white' }}
                   disabled={submitting}
                 >

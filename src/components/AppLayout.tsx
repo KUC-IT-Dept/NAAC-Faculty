@@ -1,15 +1,17 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2 } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus } from 'lucide-react';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
 const adminNav: NavItem[] = [
   { label: 'Faculty Accounts', path: '/admin/accounts', icon: <Users size={18} /> },
   { label: 'Org Hierarchy', path: '/admin/hierarchy', icon: <GraduationCap size={18} /> },
+  { label: 'Departments', path: '/admin/departments', icon: <Building2 size={18} /> },
+  { label: 'Students', path: '/admin/students', icon: <UserPlus size={18} /> },
   { label: 'Notifications', path: '/admin/requests', icon: <Bell size={18} /> },
-  { label: 'Edit Profile', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
+  { label: 'Edit Form', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
   { label: 'General', path: '/admin/general', icon: <Globe size={18} /> },
 ];
 
@@ -106,7 +108,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         <nav className="sidebar-nav">
           {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : user?.role === 'vc' ? 'University Overview' : user?.role === 'hod' ? (facultyProfile?.employmentDetails?.department || 'Department Panel') : 'My Account'}</div>}
           {navItems.map(item => {
-            if (item.label === 'Edit Profile') {
+            if (item.label === 'Edit Profile' || item.label === 'Edit Form') {
               return (
                 <div key={item.path} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <button
