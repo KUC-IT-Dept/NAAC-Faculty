@@ -107,6 +107,7 @@ interface FacultyUser {
   _id: string;
   username: string;
   email: string;
+  role?: string;
   isActive: boolean;
   isFirstLogin: boolean;
   createdAt: string;
