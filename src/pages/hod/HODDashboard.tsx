@@ -106,19 +106,24 @@ export default function HODDashboard() {
     setStudentsLoading(true);
     console.log('--- Fetching Students Start ---');
     console.log('HOD Logged-in Department:', hodDepartment);
-    const url = `https://kuc-backend.onrender.com/api/student/by-department?department=${encodeURIComponent(hodDepartment)}`;
-    console.log('Sending GET Request URL:', url);
+    const url = 'https://kuc-backend.onrender.com/api/student/by-department';
+    console.log('Sending POST Request URL:', url);
+    console.log('Request body:', { department: hodDepartment });
     try {
       const rawRes = await fetch(url, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ department: hodDepartment })
       });
-      console.log('GET /api/student/by-department Response status:', rawRes.status);
+      console.log('POST /api/student/by-department Response status:', rawRes.status);
       if (!rawRes.ok) throw new Error(`Server returned ${rawRes.status}`);
       const resData = await rawRes.json();
-      console.log('GET /api/student/by-department Response data:', resData);
+      console.log('POST /api/student/by-department Response data:', resData);
       const data = Array.isArray(resData) ? resData : (resData.data || resData.students || resData.student || []);
-      console.log('GET /api/student/by-department Parsed students list:', data);
+      console.log('POST /api/student/by-department Parsed students list:', data);
       setStudents(data);
     } catch (err: any) {
       console.error('Error fetching students:', err);
@@ -396,12 +401,12 @@ export default function HODDashboard() {
                 ) : students.map((s, idx) => (
                   <tr key={s._id || idx}>
                     <td>
-                      <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.name || s.username || '—'}</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.personal_details?.fullName || s.name || s.username || '—'}</div>
                     </td>
-                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.email || '—'}</td>
-                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.phone || '—'}</td>
-                    <td><span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{s.department || hodDepartment}</span></td>
-                    <td><span className="text-sm">{s.tutorName || '—'}</span></td>
+                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.contact_details?.personalEmail || s.email || '—'}</td>
+                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.contact_details?.personalMobile?.number || s.phone || '—'}</td>
+                    <td><span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{s.academic_details?.department || s.department || hodDepartment}</span></td>
+                    <td><span className="text-sm">{s.mentor_details?.tutorName || s.tutorName || '—'}</span></td>
                   </tr>
                 ))}
               </tbody>
