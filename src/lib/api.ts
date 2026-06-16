@@ -1,15 +1,15 @@
 import axios from 'axios';
 
-const rawBaseUrl = import.meta.env.VITE_API_URL || '/api';
+const rawBaseUrl = import.meta.env.VITE_API_URL || '/api/faculty';
 const apiBaseUrl = rawBaseUrl.startsWith('http')
-  ? `${rawBaseUrl.replace(/\/$/, '')}${rawBaseUrl.endsWith('/api') ? '' : '/api'}`
+  ? `${rawBaseUrl.replace(/\/$/, '')}${rawBaseUrl.endsWith('/api/faculty') ? '' : ''}`
   : rawBaseUrl;
 const api = axios.create({ baseURL: apiBaseUrl });
 
 export const getFileUrl = (url?: string) => {
   if (!url) return '';
   if (url.startsWith('http')) return url;
-  const backendBase = apiBaseUrl.replace(/\/api\/?$/, '');
+  const backendBase = apiBaseUrl.replace(/\/api\/faculty\/?$/, '');
   return `${backendBase}${url.startsWith('/') ? url : '/' + url}`;
 };
 

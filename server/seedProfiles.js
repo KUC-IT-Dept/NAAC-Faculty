@@ -1,7 +1,8 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('./models/User');
-const Faculty = require('./models/Faculty');
+const bcrypt = require('bcryptjs');
+const User = require('./auth/models/User.model');
+const Faculty = require('./modules/faculty/models/Faculty');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://vasudevcs037_db_user:iqac123@iqac.thi9ynv.mongodb.net/?appName=iqac';
 
@@ -20,19 +21,23 @@ const seedProfiles = async () => {
     await User.deleteMany({ username: { $in: [username1, username2] } });
     await Faculty.deleteMany({ username: { $in: [username1, username2] } });
 
+    const hashedPassword = await bcrypt.hash('password123', 12);
+
     const user1 = await User.create({
+      name: 'Dr. John Doe',
       username: username1,
       email: email1,
-      password: 'password123',
+      password: hashedPassword,
       role: 'faculty',
       isActive: true,
       isFirstLogin: false
     });
 
     const user2 = await User.create({
+      name: 'Dr. Jane Smith',
       username: username2,
       email: email2,
-      password: 'password123',
+      password: hashedPassword,
       role: 'faculty',
       isActive: true,
       isFirstLogin: false

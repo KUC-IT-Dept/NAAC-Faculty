@@ -1,173 +1,184 @@
-const StudentProfile = require("../models/StudentProfile.js");
-const Users = require("../../../auth/models/User.model.js");
-const qs = require("qs");
+// controllers/studentProfile.controller.js
+const qs = require('qs');
+const StudentProfile = require('../models/StudentProfile');
+const User = require('../../../auth/models/User.model');
+const ProfileUpdateRequest = require('../models/ProfileUpdateRequest');
+const { deepMerge } = require('../utils/deepMerge');
+const { buildNestedObjectFromDotPaths, isEmptyFileValue, sanitizeProfilePayload, setByDotPath } = require('../utils/profileDataSanitizer');
 
-exports.CreateOrUpdate = async (req, res) => {
+const CreateOrUpdate = async (req, res) => {
+  const body = qs.parse(req.body);
+  const files = req.files || {};
   try {
-    if (req.user.role !== "student") {
-      return res.status(403).json({ message: "Only students allowed" });
-    }
+    if (req.user.role !== 'student') return res.status(403).json({ message: 'Only students allowed' });
     const userId = req.user._id;
-    const files = req.files || {};
-    const body = qs.parse(req.body);
-    const users = await Users.findById(userId);
-    if (!users || !users.canEdit) {
-      return res.status(403).json({ message: "Editing not allowed" });
-    }
+    const jsonSections = ['academic_details','personal_details','contact_details','health_details','family_details','financial_details','professional_details','residential_details','education_details'];
+    jsonSections.forEach((section) => {
+      if (body[section] && typeof body[section] === 'string') {
+        try { body[section] = JSON.parse(body[section]); } catch { /* ignore */ }
+      }
+    });
+    const users = await User.findById(userId);
+    if (!users || !users.canEdit) return res.status(403).json({ message: 'Editing not allowed' });
     const existingProfile = await StudentProfile.findOne({ userId });
     const academic = body.academic_details;
-
     if (!existingProfile) {
       if (!academic?.rollNumber || !academic?.admissionApplicationNumber || !academic?.universityEnrollmentNumber) {
-        return res.status(400).json({ message: "Academic identifiers required for first submission" });
+        return res.status(400).json({ message: 'Academic identifiers required for first submission' });
       }
     }
-
-    const admissionNumber = academic?.admissionApplicationNumber;
-    const enrollmentNumber = academic?.universityEnrollmentNumber;
-    const rollNumber = academic?.rollNumber;
     let errors = {};
-
-    if (admissionNumber) {
-      const existing = await StudentProfile.findOne({ "academic_details.admissionApplicationNumber": admissionNumber });
-      if (existing && existing.userId.toString() !== userId.toString()) {
-        errors.admissionApplicationNumber = "Already exists";
-      }
-    }
-    if (enrollmentNumber) {
-      const existing = await StudentProfile.findOne({ "academic_details.universityEnrollmentNumber": enrollmentNumber });
-      if (existing && existing.userId.toString() !== userId.toString()) {
-        errors.universityEnrollmentNumber = "Already exists";
-      }
-    }
-    if (rollNumber) {
-      const existing = await StudentProfile.findOne({ "academic_details.rollNumber": rollNumber });
-      if (existing && existing.userId.toString() !== userId.toString()) {
-        errors.rollNumber = "Already exists";
-      }
-    }
-
-    if (Object.keys(errors).length > 0) {
-      return res.status(400).json({ message: "Duplicate fields", errors });
-    }
+    const checkDuplicate = async (field, value) => {
+      const existing = await StudentProfile.findOne({ [field]: value });
+      return existing && existing.userId.toString() !== userId.toString();
+    };
+    if (academic?.admissionApplicationNumber && await checkDuplicate('academic_details.admissionApplicationNumber', academic.admissionApplicationNumber)) errors.admissionApplicationNumber = 'Already exists';
+    if (academic?.universityEnrollmentNumber && await checkDuplicate('academic_details.universityEnrollmentNumber', academic.universityEnrollmentNumber)) errors.universityEnrollmentNumber = 'Already exists';
+    if (academic?.rollNumber && await checkDuplicate('academic_details.rollNumber', academic.rollNumber)) errors.rollNumber = 'Already exists';
+    if (Object.keys(errors).length > 0) return res.status(400).json({ message: 'Duplicate fields', errors });
 
     let updateData = {};
-    const sections = ["academic_details", "personal_details", "contact_details", "health_details", "family_details", "financial_details", "professional_details", "residential_details"];
-    sections.forEach(section => {
+    const sections = ['academic_details','personal_details','contact_details','health_details','family_details','financial_details','professional_details','residential_details'];
+    sections.forEach((section) => {
       if (body[section]) {
         for (let key in body[section]) {
-          updateData[`${section}.${key}`] = body[section][key];
+          const value = body[section][key];
+          if (value === undefined || (section === 'academic_details' && key === 'fellowshipLetter' && isEmptyFileValue(value))) continue;
+          updateData[`${section}.${key}`] = value;
         }
       }
     });
-
     const fileFieldMap = {
-      fellowshipLetter: "academic_details.fellowshipLetter",
-      passportDoc: "personal_details.passportDoc",
-      visaDoc: "personal_details.visaDoc",
-      birthCertificateDoc: "personal_details.birthCertificateDoc",
-      disabilityCertificate: "health_details.disabilityCertificate",
-      vaccinationDoc: "health_details.vaccinationDoc",
-      migrationUrl: "education_details.migrationUrl",
-      feeWaiveDocument: "financial_details.feeWaiveUrl.document",
-      hostelDeclarationForm: "residential_details.hostelDeclarationForm",
-      profilePhoto: "documents.profilePhoto",
-      signature: "documents.signature",
-      identityProof: "documents.identityProof.document",
-      incomeCertificate: "documents.legalCertificates.incomeCertificate",
-      casteCertificate: "documents.legalCertificates.casteCertificate",
-      nonCreamyLayerCertificate: "documents.legalCertificates.nonCreamyLayerCertificate",
-      nativityCertificate: "documents.legalCertificates.nativityCertificate"
+      fellowshipLetter:'academic_details.fellowshipLetter', passportDoc:'personal_details.passportDoc', visaDoc:'personal_details.visaDoc',
+      birthCertificateDoc:'personal_details.birthCertificateDoc', disabilityCertificate:'health_details.disabilityCertificate',
+      vaccinationDoc:'health_details.vaccinationDoc', migrationUrl:'education_details.migrationUrl',
+      feeWaiveDocument:'financial_details.feeWaiveUrl.document', hostelDeclarationForm:'residential_details.hostelDeclarationForm',
+      profilePhoto:'documents.profilePhoto', signature:'documents.signature', identityProof:'documents.identityProof.document',
+      incomeCertificate:'documents.legalCertificates.incomeCertificate', casteCertificate:'documents.legalCertificates.casteCertificate',
+      nonCreamyLayerCertificate:'documents.legalCertificates.nonCreamyLayerCertificate', nativityCertificate:'documents.legalCertificates.nativityCertificate'
     };
-
-    Object.keys(fileFieldMap).forEach(field => {
-      if (files[field]) {
-        updateData[fileFieldMap[field]] = files[field][0].path;
-      }
+    Object.keys(fileFieldMap).forEach((field) => {
+      if (files[field]) updateData[fileFieldMap[field]] = { url: files[field][0].path, name: files[field][0].originalname };
+    });
+    if (body.education_details?.education) {
+      updateData['education_details.education'] = body.education_details.education.map((edu, i) => ({
+        ...edu, documentUrl: files.educationDocuments?.[i] ? { url: files.educationDocuments[i].path, name: files.educationDocuments[i].originalname } : edu.documentUrl
+      }));
+    }
+    if (body.education_details?.competitiveExams) {
+      updateData['education_details.competitiveExams'] = body.education_details.competitiveExams.map((exam, i) => ({
+        ...exam, documentUrl: files.competitiveExamDocs?.[i] ? { url: files.competitiveExamDocs[i].path, name: files.competitiveExamDocs[i].originalname } : exam.documentUrl
+      }));
+    }
+    if (body.professional_details?.publications) {
+      updateData['professional_details.publications'] = body.professional_details.publications.map((pub, i) => ({
+        ...pub, url: files.publicationDocs?.[i] ? { url: files.publicationDocs[i].path, name: files.publicationDocs[i].originalname } : pub.url
+      }));
+    }
+    if (body.professional_details?.experience) {
+      updateData['professional_details.experience'] = body.professional_details.experience.map((exp, i) => ({
+        ...exp, url: files.experienceDocs?.[i] ? { url: files.experienceDocs[i].path, name: files.experienceDocs[i].originalname } : exp.url
+      }));
+    }
+    if (files.transcripts) updateData['documents.transcripts'] = files.transcripts.map((f) => ({ url: f.path, name: f.originalname }));
+    Object.keys(updateData).forEach((key) => {
+      if (updateData[key] === undefined || (key === 'academic_details.fellowshipLetter' && isEmptyFileValue(updateData[key]))) delete updateData[key];
     });
 
-    if (body.education_details?.education) {
-      const educationArray = body.education_details.education;
-      updateData["education_details.education"] = educationArray.map((edu, index) => ({
-        ...edu,
-        documentUrl: files.educationDocuments?.[index]?.path || ""
-      }));
+    const existingData = await StudentProfile.findOne({ userId });
+    let finalData = { ...(existingData?.toObject() || {}) };
+    Object.keys(updateData).forEach((key) => setByDotPath(finalData, key, updateData[key]));
+    finalData = sanitizeProfilePayload(finalData);
+
+    let profile = null;
+    if (!existingData) {
+      profile = await StudentProfile.create({ userId, ...finalData });
+    } else {
+      const requestChanges = buildNestedObjectFromDotPaths(updateData);
+      await ProfileUpdateRequest.create({ studentId: userId, requestNo: `REQ-${Date.now()}`, changes: requestChanges, status: 'pending' });
     }
-
-    if (body.education_details?.competitiveExams) {
-      const exams = body.education_details.competitiveExams;
-      updateData["education_details.competitiveExams"] = exams.map((exam, index) => ({
-        ...exam,
-        documentUrl: files.competitiveExamDocs?.[index]?.path || ""
-      }));
-    }
-
-    if (body.professional_details?.publications) {
-      const publications = body.professional_details.publications;
-      updateData["professional_details.publications"] = publications.map((pub, index) => ({
-        ...pub,
-        url: files.publicationDocs?.[index]?.path || ""
-      }));
-    }
-
-    if (body.professional_details?.conferences) {
-      const conferences = body.professional_details.conferences;
-      updateData["professional_details.conferences"] = conferences.map((conf, index) => ({
-        ...conf,
-        url: files.conferenceDocs?.[index]?.path || ""
-      }));
-    }
-
-    if (body.professional_details?.patents) {
-      const patents = body.professional_details.patents;
-      updateData["professional_details.patents"] = patents.map((patent, index) => ({
-        ...patent,
-        document: files.patentDocs?.[index]?.path || ""
-      }));
-    }
-
-    if (body.professional_details?.experience) {
-      const experience = body.professional_details.experience;
-      updateData["professional_details.experience"] = experience.map((exp, index) => ({
-        ...exp,
-        url: files.experienceDocs?.[index]?.path || ""
-      }));
-    }
-
-    if (files.transcripts) {
-      updateData["documents.transcripts"] = files.transcripts.map(file => ({
-        name: file.originalname,
-        file: file.path
-      }));
-    }
-
-    const profile = await StudentProfile.findOneAndUpdate(
-      { userId },
-      { $set: updateData },
-      { new: true, upsert: true, runValidators: true }
-    );
-
-    // await Users.findByIdAndUpdate(userId, { canEdit: false }); // Disabled for demo multi-save
-    return res.status(200).json({ message: "Profile saved successfully", profile });
+    await User.findByIdAndUpdate(userId, { canEdit: false });
+    return res.status(200).json({ message: 'Profile saved successfully', profile });
   } catch (error) {
     console.log(error);
-    if (error.code === 11000) {
-      return res.status(400).json({ message: "Duplicate value detected", field: Object.keys(error.keyValue) });
-    }
+    if (error.code === 11000) return res.status(400).json({ message: 'Duplicate value detected', field: Object.keys(error.keyValue) });
     return res.status(500).json({ message: error.message });
   }
 };
 
-exports.getStudentProfile = async (req, res) => {
+const getStudentProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const profile = await StudentProfile.findOne({ userId: userId });
-    if (!profile) {
-      return res.status(404).json({ success: false, message: "Student profile not found" });
-    }
+    const profile = await StudentProfile.findOne({ userId });
+    if (!profile) return res.status(404).json({ success: false, message: 'Student profile not found' });
     return res.status(200).json({ success: true, data: profile });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: error.message });
-  }
+  } catch (error) { return res.status(500).json({ success: false, message: error.message }); }
 };
+
+const getAllStudents = async (req, res) => {
+  try {
+    const students = await StudentProfile.find();
+    return res.status(200).json({ success: true, count: students.length, data: students });
+  } catch (error) { return res.status(500).json({ success: false, message: error.message }); }
+};
+
+const getStudentsByDepartment = async (req, res) => {
+  try {
+    const { department } = req.body;
+    if (!department) return res.status(400).json({ success: false, message: 'Department is required' });
+    const students = await StudentProfile.find({ 'academic_details.department': department });
+    return res.status(200).json({ success: true, count: students.length, data: students });
+  } catch (error) { return res.status(500).json({ success: false, message: error.message }); }
+};
+
+const getMyRequests = async (req, res) => {
+  try {
+    const requests = await ProfileUpdateRequest.find({ studentId: req.user._id }).sort({ createdAt: -1 });
+    return res.json(requests);
+  } catch (err) { return res.status(500).json({ message: err.message }); }
+};
+
+const getPendingRequests = async (req, res) => {
+  try {
+    const requests = await ProfileUpdateRequest.find({ status: 'pending' }).populate('studentId').sort({ createdAt: -1 });
+    return res.status(200).json(requests);
+  } catch (error) { return res.status(500).json({ message: error.message }); }
+};
+
+const getRequestById = async (req, res) => {
+  try {
+    const request = await ProfileUpdateRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    return res.status(200).json(request);
+  } catch (error) { return res.status(500).json({ message: error.message }); }
+};
+
+const approveRequest = async (req, res) => {
+  try {
+    const request = await ProfileUpdateRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    if (request.status !== 'pending') return res.status(400).json({ message: 'Already processed' });
+    const profile = await StudentProfile.findOne({ userId: request.studentId });
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    const sanitizedChanges = sanitizeProfilePayload(request.changes || {});
+    const mergedData = sanitizeProfilePayload(deepMerge(profile.toObject(), sanitizedChanges));
+    delete mergedData._id; delete mergedData.__v;
+    await StudentProfile.findOneAndUpdate({ userId: request.studentId }, mergedData, { new: true });
+    request.status = 'approved'; request.reviewedAt = new Date(); request.reviewedBy = req.user._id;
+    await request.save();
+    return res.json({ success: true, message: 'Request approved' });
+  } catch (error) { return res.status(500).json({ message: error.message }); }
+};
+
+const rejectRequest = async (req, res) => {
+  try {
+    const request = await ProfileUpdateRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    request.status = 'rejected'; request.remarks = req.body.remarks || '';
+    request.reviewedBy = req.user._id; request.reviewedAt = new Date();
+    await request.save();
+    return res.status(200).json({ message: 'Request rejected successfully' });
+  } catch (error) { return res.status(500).json({ message: error.message }); }
+};
+
+module.exports = { CreateOrUpdate, getStudentProfile, getAllStudents, getStudentsByDepartment, getMyRequests, getPendingRequests, getRequestById, approveRequest, rejectRequest };

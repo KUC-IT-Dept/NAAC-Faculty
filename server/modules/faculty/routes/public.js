@@ -1,6 +1,6 @@
-const express = require('express');
+﻿const express = require('express');
 const Faculty = require('../models/Faculty');
-const User = require('../models/User');
+const User = require('../../../auth/models/User.model');
 const DropdownConfig = require('../models/DropdownConfig');
 const SectionConfig = require('../models/SectionConfig');
 
@@ -59,7 +59,7 @@ router.get('/sections-config', async (req, res) => {
   }
 });
 
-// GET /api/profile/:username — public profile (no auth)
+// GET /api/profile/:username â€” public profile (no auth)
 router.get('/:username', async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username, role: 'faculty', isActive: true }).select('-password');
@@ -120,7 +120,7 @@ router.get('/:username', async (req, res) => {
   }
 });
 
-// GET /api/profile — list all public profiles (directory)
+// GET /api/profile â€” list all public profiles (directory)
 router.get('/', async (req, res) => {
   try {
     const faculties = await Faculty.find({ profileComplete: true })
@@ -144,3 +144,5 @@ router.get('/', async (req, res) => {
 });
 
 module.exports = router;
+
+

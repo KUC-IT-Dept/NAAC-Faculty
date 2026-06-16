@@ -1,7 +1,7 @@
-const Metric = require("../models/Metric");
-const Faculty = require("../../../models/Faculty");
+﻿const Metric = require("../models/Metric");
+const Faculty = require("../../faculty/models/Faculty");
 const StudentProfile =
-require("../../../modules/student/models/StudentProfile");
+require("../../student/models/StudentProfile");
 
 async function calculateMetric(metricId) {
 
@@ -397,3 +397,4 @@ module.exports = {
     getStudentDepartments,
     getProgramLevels
 };
+

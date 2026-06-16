@@ -1,11 +1,12 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('./models/User');
-const Faculty = require('./models/Faculty');
-const Department = require('./models/Department');
+const bcrypt = require('bcryptjs');
+const User = require('./auth/models/User.model');
+const Faculty = require('./modules/faculty/models/Faculty');
+const Department = require('./modules/faculty/models/Department');
 
-const ADMIN = { username: 'admin', email: 'admin@iqac.edu.in', password: 'Admin@IQAC2024' };
-const VC_USER = { username: 'vc', email: 'vc@iqac.edu.in', password: 'VC@IQAC2024' };
+const ADMIN = { name: 'Super Administrator', username: 'admin', email: 'admin@iqac.edu.in', password: 'Admin@IQAC2024' };
+const VC_USER = { name: 'Vice Chancellor', username: 'vc', email: 'vc@iqac.edu.in', password: 'VC@IQAC2024' };
 
 const getDummyProfile = (name, email, dept, designation) => ({
   personalInfo: {
@@ -66,31 +67,35 @@ async function seed() {
 
     // 1. Flush Database
     console.log('🗑️  Flushing old faculty, HODs, and departments...');
-    await User.deleteMany({ role: { $nin: ['admin', 'vc'] } });
+    await User.deleteMany({ role: { $nin: ['superadmin', 'vc'] } });
     await Faculty.deleteMany({});
     await Department.deleteMany({});
     console.log('✅ Old data flushed');
 
     // 2. Admin & VC setup
     for (const adminOrVc of [
-      { ...ADMIN, role: 'admin' },
+      { ...ADMIN, role: 'superadmin' },
       { ...VC_USER, role: 'vc' }
     ]) {
       const exists = await User.findOne({ username: adminOrVc.username });
       if (!exists) {
-        await User.create({ ...adminOrVc, isFirstLogin: false, isActive: true });
+        const hashedPassword = await bcrypt.hash(adminOrVc.password, 12);
+        await User.create({ ...adminOrVc, password: hashedPassword, isFirstLogin: false, isActive: true });
         console.log(`✅ ${adminOrVc.role.toUpperCase()} created`);
       } else {
         console.log(`⚠️  ${adminOrVc.role.toUpperCase()} already exists`);
       }
     }
 
+    const defaultHashedPassword = await bcrypt.hash('password123', 12);
+
     // 3. Seed HODs
     for (const h of HODS) {
       const user = await User.create({
+        name: `HOD ${h.dept}`,
         username: h.username,
         email: h.email,
-        password: 'password123',
+        password: defaultHashedPassword,
         role: 'hod',
         isFirstLogin: false,
         isActive: true,
@@ -119,9 +124,10 @@ async function seed() {
     // 4. Seed Faculties
     for (const f of FACULTIES) {
       const user = await User.create({
+        name: f.name,
         username: f.username,
         email: f.email,
-        password: 'password123',
+        password: defaultHashedPassword,
         role: 'faculty',
         isFirstLogin: false,
         isActive: true,

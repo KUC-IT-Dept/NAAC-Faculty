@@ -1,5 +1,5 @@
-const express = require('express');
-const User = require('../models/User');
+﻿const express = require('express');
+const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
 const Department = require('../models/Department');
 const { auth, vcOnly } = require('../middleware/auth');
@@ -50,3 +50,5 @@ router.get('/hierarchy', async (req, res) => {
 // Note: /api/departments handles adding new departments.
 
 module.exports = router;
+
+

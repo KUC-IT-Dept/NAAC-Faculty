@@ -1,6 +1,6 @@
-const express = require('express');
+﻿const express = require('express');
 const Department = require('../models/Department');
-const User = require('../models/User');
+const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
 const { auth, adminOrVc } = require('../middleware/auth');
 
@@ -108,3 +108,5 @@ router.post('/', adminOrVc, async (req, res) => {
 });
 
 module.exports = router;
+
+

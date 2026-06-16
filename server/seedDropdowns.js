@@ -11,7 +11,7 @@
 
 require('dotenv').config({ path: __dirname + '/.env' });
 const mongoose = require('mongoose');
-const DropdownConfig = require('./models/DropdownConfig');
+const DropdownConfig = require('./modules/faculty/models/DropdownConfig');
 
 const FORCE = process.argv.includes('--force');
 

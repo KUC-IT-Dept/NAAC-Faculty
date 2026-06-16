@@ -1,5 +1,5 @@
-const express = require('express');
-const User = require('../models/User');
+﻿const express = require('express');
+const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
 const OptionRequest = require('../models/OptionRequest');
 const Department = require('../models/Department');
@@ -190,3 +190,5 @@ router.patch('/option-requests/:id/reject', async (req, res) => {
 
 
 module.exports = router;
+
+

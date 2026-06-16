@@ -107,7 +107,7 @@ export default function HODDashboard() {
     setStudentsLoading(true);
     console.log('--- Fetching Students Start ---');
     console.log('HOD Logged-in Department:', hodDepartment);
-    const url = 'https://kuc-backend.onrender.com/api/student/by-department';
+    const url = '/api/student/by-department';
     console.log('Sending POST Request URL:', url);
     console.log('Request body:', { department: hodDepartment });
     try {
@@ -184,7 +184,7 @@ export default function HODDashboard() {
         hodName: user?.username || 'HOD',
         hodEmail: user?.email || 'hod@test.com'
       };
-      await axios.post('https://kuc-backend.onrender.com/api/auth/register', payload);
+      await axios.post('/api/student/auth/register', payload);
       toast.success(`Student account created for ${studentForm.email}`);
       setShowStudentModal(false);
       setStudentForm({ name: '', email: '', phone: '', password: '', department: hodDepartment, tutorName: '', tutorEmail: '' });

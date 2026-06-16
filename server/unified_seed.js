@@ -7,6 +7,7 @@ const bcrypt = require("bcryptjs");
 const { ROLES } = require("./auth/constants/roles");
 const User = require("./auth/models/User.model");
 const StudentProfile = require("./modules/student/models/StudentProfile");
+const Faculty = require("./modules/faculty/models/Faculty");
 
 const DEMO_USERS = [
   {
@@ -126,10 +127,35 @@ async function seed() {
               personalEmail: userData.email
             }
           });
-          console.log(`  ✅ Created Profile: ${userData.email}`);
+          console.log(`  ✅ Created Student Profile: ${userData.email}`);
         } else {
           // Reset canEdit even if profile exists
-          console.log(`  ✨ Profile already exists for: ${userData.email}`);
+          console.log(`  ✨ Student Profile already exists for: ${userData.email}`);
+        }
+      }
+
+      // If it's a faculty or HOD, create a base faculty profile
+      if (userData.role === ROLES.FACULTY || userData.role === ROLES.HOD) {
+        const existingProfile = await Faculty.findOne({ userId: user._id });
+        if (!existingProfile) {
+          await Faculty.create({
+            userId: user._id,
+            username: user.username,
+            profileComplete: true,
+            completionPercentage: 100,
+            personalInfo: {
+              fullName: userData.name,
+              officialEmail: userData.email,
+            },
+            employmentDetails: {
+              department: userData.department || "Computer Science",
+              designation: userData.role === ROLES.HOD ? "HOD" : "Assistant Professor",
+              institution: "KUC",
+            }
+          });
+          console.log(`  ✅ Created Faculty Profile: ${userData.email}`);
+        } else {
+          console.log(`  ✨ Faculty Profile already exists for: ${userData.email}`);
         }
       }
     }

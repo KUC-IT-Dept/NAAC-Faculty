@@ -1,12 +1,11 @@
+// modules/faculty/middleware/auth.js
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../../../auth/models/User.model');
 
 const auth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return res.status(401).json({ message: 'No token provided' });
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).select('-password');
@@ -20,38 +19,29 @@ const auth = async (req, res, next) => {
 };
 
 const adminOnly = (req, res, next) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Admin access required' });
-  }
+  if (req.user.role !== 'admin' && req.user.role !== 'superadmin') return res.status(403).json({ message: 'Admin access required' });
   next();
 };
 
 const facultyOnly = (req, res, next) => {
-  if (req.user.role !== 'faculty') {
-    return res.status(403).json({ message: 'Faculty access required' });
-  }
+  if (req.user.role !== 'faculty') return res.status(403).json({ message: 'Faculty access required' });
   next();
 };
 
 const hodOnly = (req, res, next) => {
-  if (req.user.role !== 'hod') {
-    return res.status(403).json({ message: 'HOD access required' });
-  }
+  if (req.user.role !== 'hod') return res.status(403).json({ message: 'HOD access required' });
   next();
 };
 
 const vcOnly = (req, res, next) => {
-  if (req.user.role !== 'vc') {
-    return res.status(403).json({ message: 'VC access required' });
-  }
+  if (req.user.role !== 'vc') return res.status(403).json({ message: 'VC access required' });
   next();
 };
 
 const adminOrVc = (req, res, next) => {
-  if (req.user.role !== 'admin' && req.user.role !== 'vc') {
-    return res.status(403).json({ message: 'Admin or VC access required' });
-  }
+  if (req.user.role !== 'admin' && req.user.role !== 'superadmin' && req.user.role !== 'vc') return res.status(403).json({ message: 'Admin or VC access required' });
   next();
 };
 
 module.exports = { auth, adminOnly, facultyOnly, hodOnly, vcOnly, adminOrVc };
+

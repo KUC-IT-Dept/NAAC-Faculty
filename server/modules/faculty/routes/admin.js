@@ -1,5 +1,5 @@
-const express = require('express');
-const User = require('../models/User');
+﻿const express = require('express');
+const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
 const DropdownConfig = require('../models/DropdownConfig');
 const OptionRequest = require('../models/OptionRequest');
@@ -21,7 +21,7 @@ router.get('/faculty', async (req, res) => {
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
-// POST /api/admin/faculty — create faculty (email + optional fullName, password defaults to password123)
+// POST /api/admin/faculty â€” create faculty (email + optional fullName, password defaults to password123)
 router.post('/faculty', async (req, res) => {
   try {
     const { email, fullName } = req.body;
@@ -342,3 +342,5 @@ router.patch('/option-requests/:id/undo', async (req, res) => {
 });
 
 module.exports = router;
+
+

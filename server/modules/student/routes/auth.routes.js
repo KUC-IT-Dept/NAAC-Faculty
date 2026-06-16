@@ -1,15 +1,16 @@
-const {  login, register, ResetPassword  } = require("../controllers/auth.controller.js");
-const {  Router  } = require("express");
-const authMiddleware = require("../../../auth/middleware/authenticate.js");
-const validatePassword = require("../../../auth/middleware/validatePassword.js");
-const {  verifyOTP  } = require("../utils/verifyOTP.js");
+// routes/auth.routes.js  (original name: auth.routes.mjs)
+const express = require('express');
+const router = express.Router();
+const { register, login, ResetPassword, changePassword, checkAuth } = require('../controllers/auth.controller');
+const authMiddleware = require('../middlewares/middlewares.auth');
+const { validatePassword } = require('../middlewares/middlewares.passwordvalidator');
+const { verifyOTP } = require('../utils/verifyOTP');
 
+router.post('/register', validatePassword, register);
+router.post('/login', login);
+router.post('/reset-password', authMiddleware, validatePassword, ResetPassword);
+router.post('/change-password', validatePassword, changePassword);
+router.post('/verify-otp', verifyOTP);
+router.get('/check-auth', authMiddleware, checkAuth);
 
-const authRouter = Router()
-authRouter.post("/register",validatePassword, register);
-authRouter.post("/login", login)
-authRouter.post("/reset-password", authMiddleware, validatePassword,ResetPassword);
-authRouter.post("/verify-otp", verifyOTP);
-
-
-module.exports = authRouter;
+module.exports = router;

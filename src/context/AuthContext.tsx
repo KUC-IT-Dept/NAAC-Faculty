@@ -31,13 +31,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const u = localStorage.getItem('iqac_user');
     if (t && u) {
       setToken(t);
-      setUser(JSON.parse(u));
+      const parsedUser = JSON.parse(u);
+      if (parsedUser && parsedUser.role === 'superadmin') {
+        parsedUser.role = 'admin';
+      }
+      setUser(parsedUser);
     }
     setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/auth/login', { username: email, password });
+    if (data.user && data.user.role === 'superadmin') {
+      data.user.role = 'admin';
+    }
     localStorage.setItem('iqac_token', data.token);
     localStorage.setItem('iqac_user', JSON.stringify(data.user));
     if (data.faculty) localStorage.setItem('iqac_faculty', JSON.stringify(data.faculty));
@@ -61,6 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = async () => {
     try {
       const { data } = await api.get('/auth/me');
+      if (data.user && data.user.role === 'superadmin') {
+        data.user.role = 'admin';
+      }
       localStorage.setItem('iqac_user', JSON.stringify(data.user));
       if (data.faculty) localStorage.setItem('iqac_faculty', JSON.stringify(data.faculty));
       setUser(data.user);

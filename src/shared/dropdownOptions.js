@@ -287,7 +287,7 @@ export const loadDropdownOptionsFromServer = async () => {
     triggerUpdateEvent();
 
     // 2. Fetch from server
-    const response = await api.get('/profile/dropdowns');
+    const response = await api.get('/public/dropdowns');
     if (response.data) {
       Object.entries(response.data).forEach(([serverKey, options]) => {
         const clientKey = serverToClientKeyMap[serverKey];

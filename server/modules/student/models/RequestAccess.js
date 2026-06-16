@@ -1,19 +1,9 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const RequestAccess = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
-    message: {
-        type: String
-    },
-    status: {
-        type: String,
-        enum: ["cancelled", "approved", "pending"],
-        default: "pending"
-    }
-})
+const RequestAccessSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  message: { type: String },
+  status: { type: String, enum: ['cancelled', 'approved', 'pending'], default: 'pending' }
+}, { timestamps: true });
 
-module.exports = mongoose.model("RequestAccess", RequestAccess);
+module.exports = mongoose.model('RequestAccess', RequestAccessSchema);

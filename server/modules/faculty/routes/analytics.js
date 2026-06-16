@@ -1,5 +1,5 @@
-const express = require("express");
-const Metric = require("../modules/analytics/models/Metric");
+﻿const express = require("express");
+const Metric = require("../../analytics/models/Metric");
 const Faculty = require("../models/Faculty");
 const {
     calculateMetric,
@@ -7,7 +7,7 @@ const {
     getStudentProfileSummary,
     getStudentDepartments,
     getProgramLevels
-} = require("../modules/analytics/services/analyticsService");
+} = require("../../analytics/services/analyticsService");
 
 console.log("Metric =", Metric);
 
@@ -483,3 +483,6 @@ router.get(
     }
 );
 module.exports = router;
+
+
+

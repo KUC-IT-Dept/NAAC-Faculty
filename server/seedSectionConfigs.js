@@ -1,6 +1,6 @@
 require('dotenv').config({ path: __dirname + '/.env' });
 const mongoose = require('mongoose');
-const SectionConfig = require('./models/SectionConfig');
+const SectionConfig = require('./modules/faculty/models/SectionConfig');
 
 const sectionsData = [
   {
