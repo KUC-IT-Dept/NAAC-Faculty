@@ -69,6 +69,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isFirstLogin: {
+      type: Boolean,
+      default: true,
+    },
 
     // ── Edit Permission (from naac) ───────────────────────────────────────────
     canEdit: {

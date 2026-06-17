@@ -1,4 +1,5 @@
-﻿const express = require('express');
+const express = require('express');
+const bcrypt = require('bcryptjs');
 const Department = require('../models/Department');
 const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
@@ -70,13 +71,14 @@ router.post('/', adminOrVc, async (req, res) => {
     }
 
     // Create HOD User
+    const hashedPassword = await bcrypt.hash('password123', 12);
     const hodUser = await User.create({
+      name: hodFullName || username,
       username,
       email,
-      password: 'password123',
+      password: hashedPassword,
       role: 'hod',
       isFirstLogin: true,
-      createdBy: req.user._id,
     });
 
     // Create Faculty Profile for HOD
