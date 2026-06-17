@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const Faculty = require('../models/Faculty');
 const OptionRequest = require('../models/OptionRequest');
 const { auth, facultyOnly } = require('../middleware/auth');
@@ -63,7 +63,7 @@ function calcCompletion(f) {
 }
 
 // GET /api/faculty/me
-router.get('/me', facultyOnly, async (req, res) => {
+router.get('/', facultyOnly, async (req, res) => {
   try {
     let faculty = await Faculty.findOne({ userId: req.user._id });
     if (!faculty) faculty = await Faculty.create({ userId: req.user._id, username: req.user.username });
@@ -72,7 +72,7 @@ router.get('/me', facultyOnly, async (req, res) => {
 });
 
 // PUT /api/faculty/me
-router.put('/me', facultyOnly, async (req, res) => {
+router.put('/', facultyOnly, async (req, res) => {
   try {
     const allowed = [
       'personalInfo', 'qualifications', 'eligibilityTests', 'employmentDetails',
@@ -102,7 +102,7 @@ router.put('/me', facultyOnly, async (req, res) => {
 });
 
 // PATCH /api/faculty/me/visibility
-router.patch('/me/visibility', facultyOnly, async (req, res) => {
+router.patch('/visibility', facultyOnly, async (req, res) => {
   try {
     const faculty = await Faculty.findOne({ userId: req.user._id });
     if (!faculty) return res.status(404).json({ message: 'Profile not found' });
