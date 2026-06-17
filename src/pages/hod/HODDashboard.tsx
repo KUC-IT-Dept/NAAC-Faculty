@@ -107,7 +107,8 @@ export default function HODDashboard() {
     setStudentsLoading(true);
     console.log('--- Fetching Students Start ---');
     console.log('HOD Logged-in Department:', hodDepartment);
-    const url = '/api/student/by-department';
+    const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+    const url = `${backendBase}/api/student/by-department`;
     console.log('Sending POST Request URL:', url);
     console.log('Request body:', { department: hodDepartment });
     try {
@@ -184,7 +185,8 @@ export default function HODDashboard() {
         hodName: user?.username || 'HOD',
         hodEmail: user?.email || 'hod@test.com'
       };
-      await axios.post('/api/student/auth/register', payload);
+      const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+      await axios.post(`${backendBase}/api/student/auth/register`, payload);
       toast.success(`Student account created for ${studentForm.email}`);
       setShowStudentModal(false);
       setStudentForm({ name: '', email: '', phone: '', password: '', department: hodDepartment, tutorName: '', tutorEmail: '' });
