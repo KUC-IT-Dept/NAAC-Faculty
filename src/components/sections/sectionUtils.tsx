@@ -35,7 +35,7 @@ export const RequestableSelect = ({ v, fn, opts, ph = '— Select —' }: { v: s
     if (dropdownKey) {
       setSubmitting(true);
       try {
-        await api.post('/faculty/requests', { 
+        await api.post('/me/requests', { 
           dropdownKey, 
           requestedValue: customValue.trim(),
           previousValue: v || '' 
@@ -194,7 +194,7 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
     const uploadFile = new File([finalFile], file.name, { type: file.type });
     fd.append('file', uploadFile);
     try {
-      const r = await api.post('/faculty/upload', fd);
+      const r = await api.post('/upload', fd);
       fn(r.data.url);
       toast.success('File uploaded successfully!');
     } catch (err: any) {

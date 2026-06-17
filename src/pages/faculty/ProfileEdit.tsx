@@ -133,7 +133,7 @@ export default function ProfileEdit() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const r = await api.get('/faculty/me');
+        const r = await api.get('/me');
         const serverData = { ...EMPTY, ...Object.fromEntries(Object.entries(r.data).filter(([k]) => k in EMPTY)) };
 
         // Merge: server data as base, local unsaved draft overlaid on top
@@ -187,8 +187,8 @@ export default function ProfileEdit() {
     if (!tab) return;
     if (showToast) setSaving(true);
     try {
-      if (tab === 'visibility') await api.patch('/faculty/me/visibility', profile.visibility);
-      else await api.put('/faculty/me', { [tab]: payload !== undefined ? payload : profile[tab] });
+      if (tab === 'visibility') await api.patch('/me/visibility', profile.visibility);
+      else await api.put('/me', { [tab]: payload !== undefined ? payload : profile[tab] });
       if (showToast) toast.success('Saved!');
     } catch { 
       if (showToast) toast.error('Save failed'); 

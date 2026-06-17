@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Camera, Upload } from 'lucide-react';
-import { getFileUrl } from '../lib/api';
+import api, { getFileUrl } from '../lib/api';
 
 interface ProfilePictureUploadProps {
   currentPicture?: string;
@@ -33,24 +33,8 @@ export default function ProfilePictureUpload({ currentPicture, onPictureChange, 
       const formData = new FormData();
       formData.append('profilePicture', file);
 
-      const rawBase = import.meta.env.VITE_API_URL || '/api';
-      const apiBase = rawBase.startsWith('http')
-        ? rawBase.replace(/\/$/, '') + (rawBase.endsWith('/api') ? '' : '/api')
-        : rawBase;
-
-      const response = await fetch(`${apiBase}/upload/profile-picture`, {
-        method: 'POST',
-        body: formData,
-      });
-
-
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const result = await response.json();
-      onPictureChange(result.url);
+      const response = await api.post('/upload/profile-picture', formData);
+      onPictureChange(response.data.url);
     } catch (error) {
       console.error('Upload error:', error);
       alert('Failed to upload profile picture');

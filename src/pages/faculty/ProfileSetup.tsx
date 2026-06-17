@@ -104,7 +104,7 @@ export default function ProfileSetup() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const r = await api.get('/faculty/me');
+        const r = await api.get('/me');
         const serverData = { ...EMPTY, ...Object.fromEntries(Object.entries(r.data).filter(([k]) => k in EMPTY)) };
 
         // Merge: server data as base, local unsaved draft overlaid on top
@@ -157,7 +157,7 @@ export default function ProfileSetup() {
     const key = STEPS[step].key;
     if (key) {
       setSaving(true);
-      try { await api.put('/faculty/me', { [key]: profile[key] }); toast.success('Saved!'); }
+      try { await api.put('/me', { [key]: profile[key] }); toast.success('Saved!'); }
       catch { toast.error('Save failed'); }
       finally { setSaving(false); }
     }
@@ -176,14 +176,14 @@ export default function ProfileSetup() {
 
   const saveAwardsSection = async (updatedAwards?: any[]) => {
     setSaving(true);
-    try { await api.put('/faculty/me', { awards: updatedAwards ?? profile.awards }); toast.success('Saved!'); }
+    try { await api.put('/me', { awards: updatedAwards ?? profile.awards }); toast.success('Saved!'); }
     catch { toast.error('Save failed'); }
     finally { setSaving(false); }
   };
 
   const saveResearchGuidance = async (updatedResearchGuidance?: any) => {
     setSaving(true);
-    try { await api.put('/faculty/me', { researchGuidance: updatedResearchGuidance ?? profile.researchGuidance }); toast.success('Saved!'); }
+    try { await api.put('/me', { researchGuidance: updatedResearchGuidance ?? profile.researchGuidance }); toast.success('Saved!'); }
     catch { toast.error('Save failed'); }
     finally { setSaving(false); }
   };

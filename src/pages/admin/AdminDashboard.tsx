@@ -127,6 +127,8 @@ export default function AdminDashboard() {
   const [requests, setRequests] = useState<any[]>([]);
   const [departmentsList, setDepartmentsList] = useState<any[]>([]);
   const [departmentFaculty, setDepartmentFaculty] = useState<FacultyUser[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const { tabId } = useParams();
@@ -176,7 +178,36 @@ export default function AdminDashboard() {
     finally { setLoading(false); }
   };
 
+  const fetchStudents = async () => {
+    setStudentsLoading(true);
+    try {
+      const rawRes = await fetch('/api/student/all-students', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
+      if (!rawRes.ok) throw new Error(`Server returned ${rawRes.status}`);
+      const resData = await rawRes.json();
+      const data = Array.isArray(resData) ? resData : (resData.data || resData.students || resData.student || []);
+      setStudents(data);
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      toast.error('Failed to fetch students');
+    } finally {
+      setStudentsLoading(false);
+    }
+  };
+
   useEffect(() => { fetchData(); }, []);
+
+  useEffect(() => {
+    if (activeTab === 'students') {
+      fetchStudents();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (studentForm.department) {
@@ -239,10 +270,11 @@ export default function AdminDashboard() {
     setSubmitting(true);
     try {
       const payload = { ...studentForm, role: 'student' };
-      await axios.post('https://kuc-backend.onrender.com/api/auth/register', payload);
+      await axios.post('/api/student/auth/register', payload);
       toast.success(`Student account created for ${studentForm.email}`);
       setShowStudentModal(false);
       setStudentForm({ name: '', email: '', phone: '', password: '', department: '', tutorName: '', tutorEmail: '' });
+      fetchStudents();
     } catch (e: any) { 
       toast.error(e.response?.data?.message || 'Student creation failed'); 
     } finally { 
@@ -665,11 +697,34 @@ export default function AdminDashboard() {
           </div>
           
           <div className="table-wrap">
-            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              <Users size={32} style={{ marginBottom: 16, opacity: 0.5 }} />
-              <p>Student list will be available once the backend provides a fetch endpoint.</p>
-              <p className="text-sm mt-2">You can use the "Add Student" button to register new students.</p>
-            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Student Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Department</th>
+                  <th>Tutor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {studentsLoading ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
+                ) : students.length === 0 ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No students found.</td></tr>
+                ) : students.map((s, idx) => (
+                  <tr key={s._id || idx}>
+                    <td>
+                      <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.personal_details?.fullName || s.name || s.username || '—'}</div>
+                    </td>
+                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.contact_details?.personalEmail || s.email || '—'}</td>
+                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.contact_details?.personalMobile?.number || s.phone || '—'}</td>
+                    <td><span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{s.academic_details?.department || s.department || '—'}</span></td>
+                    <td><span className="text-sm">{s.mentor_details?.tutorName || s.tutorName || '—'}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       ) : null}

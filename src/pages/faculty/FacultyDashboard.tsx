@@ -15,8 +15,8 @@ export default function FacultyDashboard() {
 
   useEffect(() => {
     Promise.all([
-      api.get('/faculty/me'),
-      api.get('/faculty/requests')
+      api.get('/me'),
+      api.get('/me/requests')
     ]).then(([pRes, rRes]) => {
       setProfile(pRes.data);
       setRequests(rRes.data);
@@ -26,7 +26,7 @@ export default function FacultyDashboard() {
 
   const dismissRequest = async (id: string) => {
     try {
-      await api.patch(`/faculty/requests/${id}/dismiss`);
+      await api.patch(`/me/requests/${id}/dismiss`);
       setRequests(prev => prev.filter(r => r._id !== id));
     } catch (err) {
       toast.error('Failed to dismiss notification');

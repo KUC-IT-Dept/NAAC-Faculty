@@ -11,7 +11,7 @@ export default function PublicProfile() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    api.get(`/profile/${username}`)
+    api.get(`/public/${username}`)
       .then(r => setProfile(r.data))
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));

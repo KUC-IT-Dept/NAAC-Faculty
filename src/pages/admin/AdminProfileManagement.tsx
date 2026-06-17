@@ -52,7 +52,7 @@ export function EditProfileLayout() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/profile/sections-config')
+    api.get('/public/sections-config')
       .then(res => setSectionsData(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
