@@ -181,7 +181,8 @@ export default function AdminDashboard() {
   const fetchStudents = async () => {
     setStudentsLoading(true);
     try {
-      const rawRes = await fetch('/api/student/all-students', {
+      const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+      const rawRes = await fetch(`${backendBase}/api/student/all-students`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -270,7 +271,8 @@ export default function AdminDashboard() {
     setSubmitting(true);
     try {
       const payload = { ...studentForm, role: 'student' };
-      await axios.post('/api/student/auth/register', payload);
+      const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+      await axios.post(`${backendBase}/api/student/auth/register`, payload);
       toast.success(`Student account created for ${studentForm.email}`);
       setShowStudentModal(false);
       setStudentForm({ name: '', email: '', phone: '', password: '', department: '', tutorName: '', tutorEmail: '' });

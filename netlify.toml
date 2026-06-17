@@ -4,3 +4,22 @@
 
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "NODE_ENV,PORT,VITE_API_URL"
+
+# ── Proxy all API calls to the backend server ───────────────────────────────
+[[redirects]]
+  from = "/api/*"
+  to = "https://naac-faculty.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://naac-faculty.onrender.com/uploads/:splat"
+  status = 200
+  force = true
+
+# ── SPA fallback for React Router ───────────────────────────────────────────
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
