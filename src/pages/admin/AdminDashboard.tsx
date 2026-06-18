@@ -135,10 +135,10 @@ export default function AdminDashboard() {
   const activeTab = tabId || 'accounts';
   
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ email: '', fullName: '' });
+  const [form, setForm] = useState({ email: '', fullName: '', department: '' });
 
   const [showDeptModal, setShowDeptModal] = useState(false);
-  const [deptForm, setDeptForm] = useState({ name: '', hodEmail: '', hodFullName: '' });
+  const [deptForm, setDeptForm] = useState({ name: '', hodEmail: '' });
   
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [studentForm, setStudentForm] = useState({
@@ -239,12 +239,16 @@ export default function AdminDashboard() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.department) {
+      toast.error('Department is required');
+      return;
+    }
     setSubmitting(true);
     try {
       await api.post('/admin/faculty', form);
       toast.success(`Account created for ${form.email}`);
       setShowModal(false);
-      setForm({ email: '', fullName: '' });
+      setForm({ email: '', fullName: '', department: '' });
       fetchData();
     } catch (e: any) { toast.error(e.response?.data?.message || 'Creation failed'); }
     finally { setSubmitting(false); }
@@ -257,7 +261,7 @@ export default function AdminDashboard() {
       await api.post('/departments', deptForm);
       toast.success(`Department ${deptForm.name} created successfully!`);
       setShowDeptModal(false);
-      setDeptForm({ name: '', hodEmail: '', hodFullName: '' });
+      setDeptForm({ name: '', hodEmail: '' });
       fetchData();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Creation failed');
@@ -758,16 +762,6 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">HOD Full Name</label>
-                  <input 
-                    className="form-input" 
-                    type="text" 
-                    placeholder="Optional" 
-                    value={deptForm.hodFullName} 
-                    onChange={e => setDeptForm(f => ({ ...f, hodFullName: e.target.value }))} 
-                  />
-                </div>
 
                 <div className="form-group">
                   <label className="form-label">HOD Email Address *</label>
@@ -894,6 +888,15 @@ export default function AdminDashboard() {
                   <label className="form-label">Email Address *</label>
                   <input className="form-input" type="email" required placeholder="faculty@university.edu.in" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} autoFocus />
                   <p className="form-hint">Username will be auto-generated from the email address.</p>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Department *</label>
+                  <SearchableSelect
+                    value={form.department}
+                    onChange={val => setForm(f => ({ ...f, department: val }))}
+                    options={departmentsList.map(d => d.name)}
+                    placeholder="— Select Department —"
+                  />
                 </div>
               </div>
               <div className="modal-footer">

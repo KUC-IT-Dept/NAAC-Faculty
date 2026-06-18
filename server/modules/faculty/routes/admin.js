@@ -25,8 +25,8 @@ router.get('/faculty', async (req, res) => {
 // POST /api/admin/faculty â€” create faculty (email + optional fullName, password defaults to password123)
 router.post('/faculty', async (req, res) => {
   try {
-    const { email, fullName } = req.body;
-    if (!email) return res.status(400).json({ message: 'Email is required' });
+    const { email, fullName, department } = req.body;
+    if (!email || !department) return res.status(400).json({ message: 'Email and department are required' });
 
     const existing = await User.findOne({ email: email.trim().toLowerCase() });
     if (existing) return res.status(409).json({ message: 'Email already exists' });
@@ -54,6 +54,7 @@ router.post('/faculty', async (req, res) => {
       userId: user._id,
       username: user.username,
       personalInfo: { fullName: adminFullName, officialEmail: email.trim().toLowerCase() },
+      employmentDetails: { department: department.trim() }
     });
 
     res.status(201).json({

@@ -55,7 +55,7 @@ const TINY_PDF_TEXT = [
 ].join('\n');
 
 const SUBJECTS_BY_DEPARTMENT = {
-  'Computer Science': [
+  'Department Of Information Technology': [
     'Data Structures',
     'Operating Systems',
     'Cloud Computing',
@@ -65,7 +65,7 @@ const SUBJECTS_BY_DEPARTMENT = {
     'DBMS',
     'Computer Networks',
   ],
-  Physics: [
+  'Department of Physics': [
     'Quantum Mechanics',
     'Electromagnetism',
     'Statistical Mechanics',

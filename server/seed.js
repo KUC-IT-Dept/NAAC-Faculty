@@ -46,18 +46,33 @@ const getDummyProfile = (name, email, dept, designation) => ({
   ]
 });
 
-const HODS = [
-  { email: 'hod.cs@university.edu.in', dept: 'Computer Science', username: 'hod.cs' },
-  { email: 'psychologyhod@gmail.com', dept: 'Psychology', username: 'psychologyhod' },
-  { email: 'hod.maths@university.edu.in', dept: 'Mathematics', username: 'hod.maths' },
+const DEPARTMENTS = [
+  "Department Of Information Technology",
+  "Department of Wood Science & Technology",
+  "Department of Library and Information Science.",
+  "Department of Journalism and Media Studies",
+  "Department Of Mathematical Sciences",
+  "Department of Statistical Sciences",
+  "Department Of Biotechnology & Microbiology",
+  "Department of Chemistry",
+  "Department of Physics",
+  "Department Of Studies In English",
+  "Department Of Economics",
+  "Department Of Anthropology",
+  "Department of History"
 ];
 
+const HODS = DEPARTMENTS.map(dept => {
+  const shortName = dept.replace(/Department |Of |of |& /gi, "").replace(/[^a-zA-Z0-9 ]/g, "").trim().toLowerCase().split(" ").filter(Boolean).join(".");
+  return { email: `hod.${shortName}@university.edu.in`, dept, username: `hod.${shortName}` };
+});
+
 const FACULTIES = [
-  { email: 'dr.priya.sharma@university.edu.in', name: 'Dr. Priya Sharma', dept: 'Computer Science', designation: 'Associate Professor', username: 'dr.priya.sharma' },
-  { email: 'prof.ajay.kumar@university.edu.in', name: 'Prof. Ajay Kumar', dept: 'Computer Science', designation: 'Professor', username: 'prof.ajay.kumar' },
-  { email: 'ms.kavitha.r@university.edu.in', name: 'Ms. Kavitha R.', dept: 'Computer Science', designation: 'Assistant Professor', username: 'ms.kavitha.r' },
-  { email: 'dr.ramesh.patel@university.edu.in', name: 'Dr. Ramesh Patel', dept: 'Computer Science', designation: 'Assistant Professor', username: 'dr.ramesh.patel' },
-  { email: 'dr.anjali.gupta@university.edu.in', name: 'Dr. Anjali Gupta', dept: 'Computer Science', designation: 'Associate Professor', username: 'dr.anjali.gupta' },
+  { email: 'dr.priya.sharma@university.edu.in', name: 'Dr. Priya Sharma', dept: DEPARTMENTS[0], designation: 'Associate Professor', username: 'dr.priya.sharma' },
+  { email: 'prof.ajay.kumar@university.edu.in', name: 'Prof. Ajay Kumar', dept: DEPARTMENTS[1], designation: 'Professor', username: 'prof.ajay.kumar' },
+  { email: 'ms.kavitha.r@university.edu.in', name: 'Ms. Kavitha R.', dept: DEPARTMENTS[2], designation: 'Assistant Professor', username: 'ms.kavitha.r' },
+  { email: 'dr.ramesh.patel@university.edu.in', name: 'Dr. Ramesh Patel', dept: DEPARTMENTS[3], designation: 'Assistant Professor', username: 'dr.ramesh.patel' },
+  { email: 'dr.anjali.gupta@university.edu.in', name: 'Dr. Anjali Gupta', dept: DEPARTMENTS[4], designation: 'Associate Professor', username: 'dr.anjali.gupta' },
 ];
 
 async function seed() {

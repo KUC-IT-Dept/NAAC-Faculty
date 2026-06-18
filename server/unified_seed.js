@@ -16,7 +16,7 @@ const DEMO_USERS = [
     username: "student",
     password: "password123",
     role: ROLES.STUDENT,
-    department: "Computer Science",
+    department: "Department Of Information Technology",
   },
   {
     name: "Dr. Jane Smith",
@@ -24,15 +24,15 @@ const DEMO_USERS = [
     username: "teacher",
     password: "password123",
     role: ROLES.FACULTY,
-    department: "Computer Science",
+    department: "Department Of Information Technology",
   },
   {
-    name: "Head of Department — CS",
-    email: "hod_cs@profcv.edu",
-    username: "hod_cs",
+    name: "Head of Department — IT",
+    email: "hod_it@profcv.edu",
+    username: "hod_it",
     password: "password123",
     role: ROLES.HOD,
-    department: "Computer Science",
+    department: "Department Of Information Technology",
   },
   {
     name: "Vice Chancellor",
@@ -148,7 +148,7 @@ async function seed() {
               officialEmail: userData.email,
             },
             employmentDetails: {
-              department: userData.department || "Computer Science",
+              department: userData.department || "Department Of Information Technology",
               designation: userData.role === ROLES.HOD ? "HOD" : "Assistant Professor",
               institution: "KUC",
             }

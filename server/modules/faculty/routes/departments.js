@@ -26,9 +26,9 @@ router.get('/:name/faculty', async (req, res) => {
     console.log(`[DEBUG] Fetching faculty for department: "${req.params.name}"`);
     const profiles = await Faculty.find({ 'employmentDetails.department': req.params.name })
       .select('userId username personalInfo.fullName personalInfo.designation personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
-    
+
     console.log(`[DEBUG] Found ${profiles.length} profiles for department "${req.params.name}"`);
-    
+
     const userIds = profiles.map(p => p.userId);
     const users = await User.find({ _id: { $in: userIds }, role: { $in: ['faculty', 'hod'] } }).select('-password').sort({ createdAt: -1 });
 
@@ -46,7 +46,7 @@ router.get('/:name/faculty', async (req, res) => {
 // POST /api/departments
 router.post('/', adminOrVc, async (req, res) => {
   try {
-    const { name, hodEmail, hodFullName } = req.body;
+    const { name, hodEmail } = req.body;
     if (!name || !hodEmail) {
       return res.status(400).json({ message: 'Department name and HOD email are required' });
     }
@@ -73,7 +73,7 @@ router.post('/', adminOrVc, async (req, res) => {
     // Create HOD User
     const hashedPassword = await bcrypt.hash('password123', 12);
     const hodUser = await User.create({
-      name: hodFullName || username,
+      name: username,
       username,
       email,
       password: hashedPassword,
@@ -82,11 +82,10 @@ router.post('/', adminOrVc, async (req, res) => {
     });
 
     // Create Faculty Profile for HOD
-    const adminFullName = hodFullName ? `temp--${hodFullName}` : '';
     await Faculty.create({
       userId: hodUser._id,
       username: hodUser.username,
-      personalInfo: { fullName: adminFullName, officialEmail: email },
+      personalInfo: { fullName: '', officialEmail: email },
       employmentDetails: { department: name.trim(), designation: 'HOD' },
     });
 
