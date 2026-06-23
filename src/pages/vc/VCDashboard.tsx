@@ -4,7 +4,7 @@ import OrgHierarchy from '../../components/admin/OrgHierarchy';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
-import { Plus, X, Building2, User } from 'lucide-react';
+import { Plus, X, Building2, User, Search, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface Department {
   _id: string;
@@ -23,6 +23,10 @@ export default function VCDashboard() {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: '', hodEmail: '', hodFullName: '' });
+
+  const [deptSearchQuery, setDeptSearchQuery] = useState('');
+  const [deptSortBy, setDeptSortBy] = useState<'name' | 'hod' | 'createdAt'>('name');
+  const [deptSortOrder, setDeptSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const fetchDepartments = async () => {
     setLoading(true);
@@ -58,6 +62,30 @@ export default function VCDashboard() {
     }
   };
 
+  const filteredAndSortedDepartments = departments.filter(d => {
+    const q = deptSearchQuery.toLowerCase();
+    const name = (d.name || '').toLowerCase();
+    const hodName = (d.hod?.username || '').toLowerCase();
+    const hodEmail = (d.hod?.email || '').toLowerCase();
+    return name.includes(q) || hodName.includes(q) || hodEmail.includes(q);
+  }).sort((a, b) => {
+    let valA: any = '';
+    let valB: any = '';
+    if (deptSortBy === 'name') {
+      valA = (a.name || '').toLowerCase();
+      valB = (b.name || '').toLowerCase();
+    } else if (deptSortBy === 'hod') {
+      valA = (a.hod?.username || '').toLowerCase();
+      valB = (b.hod?.username || '').toLowerCase();
+    } else if (deptSortBy === 'createdAt') {
+      valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    }
+    if (valA < valB) return deptSortOrder === 'asc' ? -1 : 1;
+    if (valA > valB) return deptSortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return (
     <AppLayout title="Vice Chancellor Dashboard">
 
@@ -70,9 +98,43 @@ export default function VCDashboard() {
               <h2 style={{ fontSize: '1rem' }}>University Departments</h2>
               <p className="text-muted text-sm">Manage academic departments and assign Heads of Department</p>
             </div>
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              <Plus size={14} /> Add Department
-            </button>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: 380 }}>
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search departments..." 
+                  value={deptSearchQuery}
+                  onChange={e => setDeptSearchQuery(e.target.value)}
+                  className="form-input"
+                  style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
+                />
+              </div>
+              <select
+                value={deptSortBy}
+                onChange={e => setDeptSortBy(e.target.value as any)}
+                className="form-input"
+                style={{ height: 32, fontSize: '13px', minWidth: 120, padding: '0 8px' }}
+              >
+                <option value="name">Sort: Name</option>
+                <option value="hod">Sort: HOD Name</option>
+                <option value="createdAt">Sort: Added On</option>
+              </select>
+              <button 
+                className="btn"
+                onClick={() => setDeptSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
+                style={{ height: 32, width: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', color: '#334155', border: '1px solid #cbd5e1', padding: 0, boxSizing: 'border-box', flexShrink: 0 }}
+              >
+                {deptSortOrder === 'asc' ? <ArrowUp size={15} /> : <ArrowDown size={15} />}
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => setShowModal(true)}
+                style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', lineHeight: 1, display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box' }}
+              >
+                <Plus size={13} /> Add Department
+              </button>
+            </div>
           </div>
           
           <div className="table-wrap">
@@ -90,7 +152,9 @@ export default function VCDashboard() {
                   <tr><td colSpan={4} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
                 ) : departments.length === 0 ? (
                   <tr><td colSpan={4} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No departments configured.</td></tr>
-                ) : departments.map(d => (
+                ) : filteredAndSortedDepartments.length === 0 ? (
+                  <tr><td colSpan={4} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No departments match your search.</td></tr>
+                ) : filteredAndSortedDepartments.map(d => (
                   <tr key={d._id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
