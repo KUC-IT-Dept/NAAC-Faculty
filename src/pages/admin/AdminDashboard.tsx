@@ -4,7 +4,7 @@ import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
-import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye, Check, XCircle, MessageSquare, RefreshCw, Search, Clock3, Building2, UserPlus } from 'lucide-react';
+import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye, Check, XCircle, MessageSquare, RefreshCw, Search, Clock3, Building2, UserPlus, Filter } from 'lucide-react';
 import OrgHierarchy from '../../components/admin/OrgHierarchy';
 import SearchableSelect from '../../components/SearchableSelect';
 import axios from 'axios';
@@ -154,6 +154,9 @@ export default function AdminDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [facultySearchQuery, setFacultySearchQuery] = useState('');
+  const [deptSearchQuery, setDeptSearchQuery] = useState('');
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
+  const [studentSortBy, setStudentSortBy] = useState<'alphabetical' | 'department'>('alphabetical');
   const [departmentFilter, setDepartmentFilter] = useState('All');
   const [sortBy, setSortBy] = useState<'name' | 'username' | 'email' | 'completion'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -367,6 +370,41 @@ export default function AdminDashboard() {
     const date = new Date(r.createdAt).toLocaleDateString().toLowerCase();
     
     return name.includes(q) || email.includes(q) || category.includes(q) || val.includes(q) || date.includes(q);
+  });
+
+  const filteredDepartments = departmentsList.filter(d => {
+    if (!deptSearchQuery) return true;
+    const q = deptSearchQuery.toLowerCase();
+    const deptName = d.name?.toLowerCase() || '';
+    const hodName = d.hod?.username?.toLowerCase() || '';
+    const hodEmail = d.hod?.email?.toLowerCase() || '';
+    return deptName.includes(q) || hodName.includes(q) || hodEmail.includes(q);
+  });
+
+  const filteredAndSortedStudents = students.filter(s => {
+    if (!studentSearchQuery) return true;
+    const q = studentSearchQuery.toLowerCase();
+    const name = (s.personal_details?.fullName || s.name || s.username || '').toLowerCase();
+    const email = (s.contact_details?.personalEmail || s.email || '').toLowerCase();
+    const phone = (s.contact_details?.personalMobile?.number || s.phone || '').toLowerCase();
+    const dept = (s.academic_details?.department || s.department || '').toLowerCase();
+    return name.includes(q) || email.includes(q) || phone.includes(q) || dept.includes(q);
+  }).sort((a, b) => {
+    if (studentSortBy === 'alphabetical') {
+      const nameA = (a.personal_details?.fullName || a.name || a.username || '').toLowerCase();
+      const nameB = (b.personal_details?.fullName || b.name || b.username || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    } else if (studentSortBy === 'department') {
+      const deptA = (a.academic_details?.department || a.department || '').toLowerCase();
+      const deptB = (b.academic_details?.department || b.department || '').toLowerCase();
+      if (deptA === deptB) {
+        const nameA = (a.personal_details?.fullName || a.name || a.username || '').toLowerCase();
+        const nameB = (b.personal_details?.fullName || b.name || b.username || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      }
+      return deptA.localeCompare(deptB);
+    }
+    return 0;
   });
 
   return (
@@ -628,7 +666,18 @@ export default function AdminDashboard() {
               <h2 style={{ fontSize: '1rem' }}>University Departments</h2>
               <p className="text-muted text-sm">Manage academic departments and assign HODs</p>
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: 450 }}>
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search departments..." 
+                  value={deptSearchQuery}
+                  onChange={e => setDeptSearchQuery(e.target.value)}
+                  className="form-input"
+                  style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
+                />
+              </div>
               <button className="btn btn-primary" onClick={() => setShowDeptModal(true)}>
                 <Plus size={14} /> Add Department
               </button>
@@ -649,9 +698,9 @@ export default function AdminDashboard() {
               <tbody>
                 {loading ? (
                   <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
-                ) : departmentsList.length === 0 ? (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No departments configured.</td></tr>
-                ) : departmentsList.map(d => (
+                ) : filteredDepartments.length === 0 ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No departments found.</td></tr>
+                ) : filteredDepartments.map(d => (
                   <tr key={d._id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -697,9 +746,34 @@ export default function AdminDashboard() {
               <h2 style={{ fontSize: '1rem' }}>Student Accounts</h2>
               <p className="text-muted text-sm">Manage students across all departments</p>
             </div>
-            <button className="btn btn-primary" onClick={() => { setStudentForm(f => ({ ...f, department: '' })); setShowStudentModal(true); }}>
-              <UserPlus size={14} /> Add Student
-            </button>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', flex: 1, justifyContent: 'flex-end' }}>
+              <div style={{ position: 'relative', width: 450 }}>
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search students..." 
+                  value={studentSearchQuery}
+                  onChange={e => setStudentSearchQuery(e.target.value)}
+                  className="form-input"
+                  style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
+                />
+              </div>
+              <div style={{ position: 'relative' }}>
+                <Filter size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <select
+                  value={studentSortBy}
+                  onChange={e => setStudentSortBy(e.target.value as any)}
+                  className="form-input"
+                  style={{ height: 32, fontSize: '13px', minWidth: 180, padding: '0 8px 0 30px' }}
+                >
+                  <option value="alphabetical">Sort: Alphabetically</option>
+                  <option value="department">Sort: Department-wise</option>
+                </select>
+              </div>
+              <button className="btn btn-primary" onClick={() => { setStudentForm(f => ({ ...f, department: '' })); setShowStudentModal(true); }}>
+                <UserPlus size={14} /> Add Student
+              </button>
+            </div>
           </div>
           
           <div className="table-wrap">
@@ -716,9 +790,9 @@ export default function AdminDashboard() {
               <tbody>
                 {studentsLoading ? (
                   <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
-                ) : students.length === 0 ? (
+                ) : filteredAndSortedStudents.length === 0 ? (
                   <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No students found.</td></tr>
-                ) : students.map((s, idx) => (
+                ) : filteredAndSortedStudents.map((s, idx) => (
                   <tr key={s._id || idx}>
                     <td>
                       <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.personal_details?.fullName || s.name || s.username || '—'}</div>
