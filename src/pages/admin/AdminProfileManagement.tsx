@@ -248,7 +248,7 @@ const FIELD_STORAGE_KEYS: Record<string, string> = {
 
 function DropdownConfigList({ config, sectionId }: { config: any; sectionId: string }) {
   const getOptionsRef = () => (config.optionsKey && optionArrays[config.optionsKey as keyof typeof optionArrays]) || config.options || [];
-  
+
   const [options, setOptions] = useState<string[]>([...getOptionsRef()]);
   const [selected, setSelected] = useState(getOptionsRef()[0] || 'Select an option');
   const [isOpen, setIsOpen] = useState(false);
