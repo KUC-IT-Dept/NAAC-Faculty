@@ -398,6 +398,51 @@ router.post('/', adminOrVc, async (req, res) => {
   }
 });
 
+// DELETE /api/departments/:id
+router.delete('/:id', adminOrVc, async (req, res) => {
+  try {
+    const department = await Department.findById(req.params.id);
+    if (!department) {
+      return res.status(404).json({ message: 'Department not found' });
+    }
+    await Department.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Department deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PUT /api/departments/:id
+router.put('/:id', adminOrVc, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ message: 'Department name is required' });
+    }
+
+    const existingDept = await Department.findOne({ name: name.trim(), _id: { $ne: req.params.id } });
+    if (existingDept) {
+      return res.status(409).json({ message: 'Department with this name already exists' });
+    }
+
+    const department = await Department.findByIdAndUpdate(
+      req.params.id,
+      { name: name.trim() },
+      { new: true }
+    );
+
+    if (!department) {
+      return res.status(404).json({ message: 'Department not found' });
+    }
+
+    res.json({ message: 'Department updated successfully', department });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
 
 

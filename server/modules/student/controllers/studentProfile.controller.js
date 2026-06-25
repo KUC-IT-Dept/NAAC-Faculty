@@ -181,4 +181,46 @@ const rejectRequest = async (req, res) => {
   } catch (error) { return res.status(500).json({ message: error.message }); }
 };
 
-module.exports = { CreateOrUpdate, getStudentProfile, getAllStudents, getStudentsByDepartment, getMyRequests, getPendingRequests, getRequestById, approveRequest, rejectRequest };
+const updateStudentByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { department, tutorName } = req.body;
+    
+    const profile = await StudentProfile.findById(id);
+    if (!profile) return res.status(404).json({ message: 'Student not found' });
+    
+    if (department) {
+      profile.academic_details = profile.academic_details || {};
+      profile.academic_details.department = department;
+    }
+    if (tutorName) {
+      profile.mentor_details = profile.mentor_details || {};
+      profile.mentor_details.tutorName = tutorName;
+    }
+    
+    await profile.save();
+    return res.json({ success: true, message: 'Student updated successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteStudentByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const profile = await StudentProfile.findById(id);
+    if (!profile) return res.status(404).json({ message: 'Student not found' });
+    
+    const userId = profile.userId;
+    await StudentProfile.findByIdAndDelete(id);
+    if (userId) {
+      await User.findByIdAndDelete(userId);
+    }
+    
+    return res.json({ success: true, message: 'Student deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { CreateOrUpdate, getStudentProfile, getAllStudents, getStudentsByDepartment, getMyRequests, getPendingRequests, getRequestById, approveRequest, rejectRequest, updateStudentByAdmin, deleteStudentByAdmin };

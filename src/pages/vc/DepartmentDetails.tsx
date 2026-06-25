@@ -15,7 +15,7 @@ export default function DepartmentDetails() {
     const fetch = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/departments/${encodeURIComponent(name)}/overview`);
+        const res = await api.get(`/departments/${encodeURIComponent(name || '')}/overview`);
         setData(res.data);
       } catch (err) {
         console.error('Dept details load error', err);

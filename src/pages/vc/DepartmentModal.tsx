@@ -244,7 +244,7 @@ export default function DepartmentModal({ name, onClose }: { name: string; onClo
                         <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Average per Faculty</div>
                         <div style={{ fontWeight: 800, fontSize: '1.3rem' }}>{overview?.stats?.avgPublications ?? '-'}</div>
                       </div>
-                      {(contentItems?.perFaculty || contentItems)?.slice?.(0,6)?.map((f: any, idx: number) => (
+                      {((contentItems as any)?.perFaculty || contentItems)?.slice?.(0,6)?.map((f: any, idx: number) => (
                         <div className="card" key={idx} style={{ padding: 12 }}>
                           <div style={{ fontWeight: 700 }}>{f.name}</div>
                           <div style={{ color: 'var(--text-muted)' }}>{f.count} publications</div>

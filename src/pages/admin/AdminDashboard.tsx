@@ -4,7 +4,7 @@ import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
-import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye, Check, XCircle, MessageSquare, RefreshCw, Search, Clock3, Building2, UserPlus, ArrowUp, ArrowDown, Filter } from 'lucide-react';
+import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRight, X, Eye, Check, XCircle, MessageSquare, RefreshCw, Search, Clock3, Building2, UserPlus, ArrowUp, ArrowDown, Filter, Edit } from 'lucide-react';
 import OrgHierarchy from '../../components/admin/OrgHierarchy';
 import SearchableSelect from '../../components/SearchableSelect';
 import axios from 'axios';
@@ -133,13 +133,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const { tabId } = useParams();
   const activeTab = tabId || 'accounts';
-  
+
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ email: '', fullName: '', department: '' });
 
   const [showDeptModal, setShowDeptModal] = useState(false);
   const [deptForm, setDeptForm] = useState({ name: '', hodEmail: '' });
-  
+
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [studentForm, setStudentForm] = useState({
     name: '',
@@ -151,25 +151,41 @@ export default function AdminDashboard() {
     tutorEmail: ''
   });
 
+  const [showEditDeptModal, setShowEditDeptModal] = useState(false);
+  const [editDeptForm, setEditDeptForm] = useState({ id: '', name: '' });
+
+  const [showEditStudentModal, setShowEditStudentModal] = useState(false);
+  const [editStudentForm, setEditStudentForm] = useState({
+    id: '',
+    department: '',
+    tutorName: '',
+    tutorEmail: ''
+  });
+
+  const [showEditFacultyDeptModal, setShowEditFacultyDeptModal] = useState(false);
+  const [editFacultyDeptForm, setEditFacultyDeptForm] = useState({ userId: '', department: '' });
+
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [facultySearchQuery, setFacultySearchQuery] = useState('');
   const [deptSearchQuery, setDeptSearchQuery] = useState('');
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
-  const [studentSortBy, setStudentSortBy] = useState<'alphabetical' | 'department'>('alphabetical');
+  const [studentSortOrder, setStudentSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [studentDeptFilter, setStudentDeptFilter] = useState('All');
+  const [studentTutorFilter, setStudentTutorFilter] = useState('All');
   const [departmentFilter, setDepartmentFilter] = useState('All');
   const [sortBy, setSortBy] = useState<'name' | 'username' | 'email' | 'completion'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showHistory, setShowHistory] = useState(false);
-  
+
   // For action modals
   const [actionModal, setActionModal] = useState<{ isOpen: boolean; type: 'approve' | 'reject'; requestId: string; message: string }>({ isOpen: false, type: 'approve', requestId: '', message: '' });
 
   const fetchData = async () => {
     try {
       const [fRes, sRes, rRes, dRes] = await Promise.all([
-        api.get('/admin/faculty'), 
-        api.get('/admin/stats'), 
+        api.get('/admin/faculty'),
+        api.get('/admin/stats'),
         api.get('/admin/option-requests'),
         api.get('/departments')
       ]);
@@ -218,10 +234,20 @@ export default function AdminDashboard() {
       api.get(`/departments/${encodeURIComponent(studentForm.department)}/faculty`)
         .then(res => setDepartmentFaculty(res.data))
         .catch(() => setDepartmentFaculty([]));
-    } else {
+    } else if (!editStudentForm.department) {
       setDepartmentFaculty([]);
     }
   }, [studentForm.department]);
+
+  useEffect(() => {
+    if (editStudentForm.department) {
+      api.get(`/departments/${encodeURIComponent(editStudentForm.department)}/faculty`)
+        .then(res => setDepartmentFaculty(res.data))
+        .catch(() => setDepartmentFaculty([]));
+    } else if (!studentForm.department) {
+      setDepartmentFaculty([]);
+    }
+  }, [editStudentForm.department]);
 
   const toggleStatus = async (id: string) => {
     try {
@@ -229,6 +255,21 @@ export default function AdminDashboard() {
       toast.success(data.message);
       fetchData();
     } catch { toast.error('Action failed'); }
+  };
+
+  const handleUpdateFacultyDept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.put(`/admin/faculty/${editFacultyDeptForm.userId}/department`, { department: editFacultyDeptForm.department });
+      toast.success('Faculty department updated successfully');
+      setShowEditFacultyDeptModal(false);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Update failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const deleteFaculty = async (id: string, username: string) => {
@@ -284,10 +325,67 @@ export default function AdminDashboard() {
       setShowStudentModal(false);
       setStudentForm({ name: '', email: '', phone: '', password: '', department: '', tutorName: '', tutorEmail: '' });
       fetchStudents();
-    } catch (e: any) { 
-      toast.error(e.response?.data?.message || 'Student creation failed'); 
-    } finally { 
-      setSubmitting(false); 
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Student creation failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateDept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.put(`/departments/${editDeptForm.id}`, { name: editDeptForm.name });
+      toast.success('Department updated successfully');
+      setShowEditDeptModal(false);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Update failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteDept = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete the department "${name}"? This action cannot be undone.`)) return;
+    try {
+      await api.delete(`/departments/${id}`);
+      toast.success('Department deleted successfully');
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Delete failed');
+    }
+  };
+
+  const handleUpdateStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+      await axios.put(`${backendBase}/api/student/${editStudentForm.id}`, {
+        department: editStudentForm.department,
+        tutorName: editStudentForm.tutorName
+      });
+      toast.success('Student updated successfully');
+      setShowEditStudentModal(false);
+      fetchStudents();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Update failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteStudent = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete the student "${name}"? This action cannot be undone.`)) return;
+    try {
+      const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+      await axios.delete(`${backendBase}/api/student/${id}`);
+      toast.success('Student deleted successfully');
+      fetchStudents();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Delete failed');
     }
   };
 
@@ -307,10 +405,10 @@ export default function AdminDashboard() {
       toast.success(`Request ${type === 'undo' ? 'undone' : type + 'd'} successfully`);
       fetchData();
       if (!overrideType) setActionModal({ ...actionModal, isOpen: false });
-      
+
       // Inform users to refresh if they want the new options immediately
       if (type === 'approve' || type === 'undo') {
-        window.dispatchEvent(new CustomEvent('dropdownOptionsUpdated')); 
+        window.dispatchEvent(new CustomEvent('dropdownOptionsUpdated'));
       }
     } catch (err) {
       toast.error(`Failed to ${type} request`);
@@ -360,7 +458,7 @@ export default function AdminDashboard() {
   const filteredRequests = requests.filter(r => {
     const matchesStatus = showHistory ? (r.status !== 'PENDING') : (r.status === 'PENDING');
     if (!matchesStatus) return false;
-    
+
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     const name = r.user?.username?.toLowerCase() || '';
@@ -368,7 +466,7 @@ export default function AdminDashboard() {
     const category = r.dropdownKey?.toLowerCase() || '';
     const val = r.requestedValue?.toLowerCase() || '';
     const date = new Date(r.createdAt).toLocaleDateString().toLowerCase();
-    
+
     return name.includes(q) || email.includes(q) || category.includes(q) || val.includes(q) || date.includes(q);
   });
 
@@ -382,30 +480,27 @@ export default function AdminDashboard() {
   });
 
   const filteredAndSortedStudents = students.filter(s => {
-    if (!studentSearchQuery) return true;
     const q = studentSearchQuery.toLowerCase();
     const name = (s.personal_details?.fullName || s.name || s.username || '').toLowerCase();
     const email = (s.contact_details?.personalEmail || s.email || '').toLowerCase();
     const phone = (s.contact_details?.personalMobile?.number || s.phone || '').toLowerCase();
-    const dept = (s.academic_details?.department || s.department || '').toLowerCase();
-    return name.includes(q) || email.includes(q) || phone.includes(q) || dept.includes(q);
+    const dept = (s.academic_details?.department || s.department || '');
+    const tutor = (s.mentor_details?.tutorName || s.tutorName || '');
+
+    const matchesSearch = !studentSearchQuery || name.includes(q) || email.includes(q) || phone.includes(q) || dept.toLowerCase().includes(q) || tutor.toLowerCase().includes(q);
+    const matchesDept = studentDeptFilter === 'All' || dept === studentDeptFilter;
+    const matchesTutor = studentTutorFilter === 'All' || tutor === studentTutorFilter;
+
+    return matchesSearch && matchesDept && matchesTutor;
   }).sort((a, b) => {
-    if (studentSortBy === 'alphabetical') {
-      const nameA = (a.personal_details?.fullName || a.name || a.username || '').toLowerCase();
-      const nameB = (b.personal_details?.fullName || b.name || b.username || '').toLowerCase();
-      return nameA.localeCompare(nameB);
-    } else if (studentSortBy === 'department') {
-      const deptA = (a.academic_details?.department || a.department || '').toLowerCase();
-      const deptB = (b.academic_details?.department || b.department || '').toLowerCase();
-      if (deptA === deptB) {
-        const nameA = (a.personal_details?.fullName || a.name || a.username || '').toLowerCase();
-        const nameB = (b.personal_details?.fullName || b.name || b.username || '').toLowerCase();
-        return nameA.localeCompare(nameB);
-      }
-      return deptA.localeCompare(deptB);
-    }
+    const nameA = (a.personal_details?.fullName || a.name || a.username || '').toLowerCase();
+    const nameB = (b.personal_details?.fullName || b.name || b.username || '').toLowerCase();
+    if (nameA < nameB) return studentSortOrder === 'asc' ? -1 : 1;
+    if (nameA > nameB) return studentSortOrder === 'asc' ? 1 : -1;
     return 0;
   });
+
+  const uniqueTutors = Array.from(new Set(students.map(s => s.mentor_details?.tutorName || s.tutorName).filter(Boolean))) as string[];
 
   return (
     <AppLayout title={activeTab === 'accounts' ? 'Faculty Accounts' : activeTab === 'hierarchy' ? 'Org Hierarchy' : 'Notifications'}>
@@ -435,9 +530,9 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ position: 'relative', width: 200, flexShrink: 0 }}>
                   <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                  <input 
-                    type="text" 
-                    placeholder="Search faculty..." 
+                  <input
+                    type="text"
+                    placeholder="Search faculty..."
                     value={facultySearchQuery}
                     onChange={e => setFacultySearchQuery(e.target.value)}
                     className="form-input"
@@ -463,20 +558,20 @@ export default function AdminDashboard() {
                   <option value="email">Sort: Email</option>
                   <option value="completion">Sort: Completion</option>
                 </select>
-                <button 
+                <button
                   className="btn"
                   onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
                   style={{ height: 32, width: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', color: '#334155', border: '1px solid #cbd5e1', padding: 0, boxSizing: 'border-box', flexShrink: 0 }}
                 >
                   {sortOrder === 'asc' ? <ArrowUp size={15} /> : <ArrowDown size={15} />}
                 </button>
-                <button 
-                  id="add-faculty-btn" 
-                  className="btn btn-primary" 
+                <button
+                  id="add-faculty-btn"
+                  className="btn btn-primary"
                   onClick={() => setShowModal(true)}
                   style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', lineHeight: 1, display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box', flexShrink: 0 }}
                 >
-                  <Plus size={13} /> Add Faculty
+                  <Plus size={14} /> Add Faculty
                 </button>
               </div>
             </div>
@@ -487,6 +582,7 @@ export default function AdminDashboard() {
                     <th>Faculty</th>
                     <th>Username</th>
                     <th>Email</th>
+                    <th>Department</th>
                     <th>Profile Status</th>
                     <th>Completion</th>
                     <th>Account</th>
@@ -495,9 +591,9 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
+                    <tr><td colSpan={8} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
                   ) : filteredFaculty.length === 0 ? (
-                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No faculty found.</td></tr>
+                    <tr><td colSpan={8} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No faculty found.</td></tr>
                   ) : filteredFaculty.map(f => (
                     <tr key={f._id}>
                       <td>
@@ -515,6 +611,7 @@ export default function AdminDashboard() {
                       </td>
                       <td><code style={{ background: 'var(--bg)', padding: '2px 6px', borderRadius: 4, fontSize: '0.8rem' }}>{f.username}</code></td>
                       <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{f.email}</td>
+                      <td><span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{f.profile?.employmentDetails?.department || '—'}</span></td>
                       <td>
                         <span className={`badge ${f.profile?.profileComplete ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
                           {f.profile?.profileComplete ? 'Complete' : f.isFirstLogin ? 'First Login' : 'Incomplete'}
@@ -540,6 +637,20 @@ export default function AdminDashboard() {
                           </button>
                           <button
                             className="btn btn-ghost btn-sm"
+                            title="Edit department"
+                            onClick={() => {
+                              setEditFacultyDeptForm({
+                                userId: f._id,
+                                department: f.profile?.employmentDetails?.department || ''
+                              });
+                              setShowEditFacultyDeptModal(true);
+                            }}
+                            style={{ padding: '6px' }}
+                          >
+                            <Edit size={12} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
                             title={f.isActive ? 'Deactivate' : 'Activate'}
                             onClick={() => toggleStatus(f._id)}
                             style={{ padding: '6px' }}
@@ -557,6 +668,42 @@ export default function AdminDashboard() {
               </table>
             </div>
           </div>
+
+          {/* Edit Faculty Department Modal */}
+          {showEditFacultyDeptModal && (
+            <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditFacultyDeptModal(false)}>
+              <div className="modal">
+                <div className="modal-header">
+                  <h3>Edit Faculty Department</h3>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setShowEditFacultyDeptModal(false)}><X size={18} /></button>
+                </div>
+                <form onSubmit={handleUpdateFacultyDept}>
+                  <div className="modal-body">
+                    <div className="form-group">
+                      <label className="form-label">Department</label>
+                      <select
+                        className="form-input"
+                        required
+                        value={editFacultyDeptForm.department}
+                        onChange={e => setEditFacultyDeptForm(f => ({ ...f, department: e.target.value }))}
+                      >
+                        <option value="">— Select Department —</option>
+                        {departmentsList.map(d => (
+                          <option key={d.name} value={d.name}>{d.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-ghost" onClick={() => setShowEditFacultyDeptModal(false)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary" disabled={submitting}>
+                      {submitting ? <><span className="spinner" /> Saving...</> : 'Save Changes'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </>
       ) : activeTab === 'requests' ? (
         <div className="card">
@@ -568,20 +715,20 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ position: 'relative', width: 250, flexShrink: 0 }}>
                 <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                <input 
-                  type="text" 
-                  placeholder="Search name, category, date..." 
+                <input
+                  type="text"
+                  placeholder="Search name, category, date..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="form-input"
                   style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
                 />
               </div>
-              <button 
+              <button
                 className="btn btn-sm"
                 onClick={() => setShowHistory(!showHistory)}
-                style={{ 
-                  background: showHistory ? '#e2e8f0' : 'transparent', 
+                style={{
+                  background: showHistory ? '#e2e8f0' : 'transparent',
                   border: '1px solid #cbd5e1',
                   color: '#334155',
                   height: 32,
@@ -679,9 +826,9 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ position: 'relative', width: 250, flexShrink: 0 }}>
                 <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                <input 
-                  type="text" 
-                  placeholder="Search departments..." 
+                <input
+                  type="text"
+                  placeholder="Search departments..."
                   value={deptSearchQuery}
                   onChange={e => setDeptSearchQuery(e.target.value)}
                   className="form-input"
@@ -693,7 +840,7 @@ export default function AdminDashboard() {
               </button>
             </div>
           </div>
-          
+
           <div className="table-wrap">
             <table>
               <thead>
@@ -735,13 +882,29 @@ export default function AdminDashboard() {
                     <td className="text-sm text-muted">{d.hod?.email || '—'}</td>
                     <td className="text-sm text-muted">{new Date(d.createdAt).toLocaleDateString()}</td>
                     <td>
-                      <button 
-                        className="btn btn-sm btn-ghost" 
-                        title="Add student to this department"
-                        onClick={() => { setStudentForm(f => ({ ...f, department: d.name })); setShowStudentModal(true); }}
-                      >
-                        <UserPlus size={14} /> Add Student
-                      </button>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button
+                          className="btn btn-sm btn-ghost"
+                          title="Add student to this department"
+                          onClick={() => { setStudentForm(f => ({ ...f, department: d.name })); setShowStudentModal(true); }}
+                        >
+                          <UserPlus size={14} />
+                        </button>
+                        <button
+                          className="btn btn-sm btn-ghost"
+                          title="Edit department"
+                          onClick={() => { setEditDeptForm({ id: d._id, name: d.name }); setShowEditDeptModal(true); }}
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          className="btn btn-sm btn-ghost"
+                          title="Delete department"
+                          onClick={() => handleDeleteDept(d._id, d.name)}
+                        >
+                          <Trash2 size={14} color="var(--danger)" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -750,8 +913,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       ) : activeTab === 'students' ? (
-        <div className="card">
-          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, flexWrap: 'wrap', gap: 12 }}>
+        <div className="card" style={{ overflow: 'visible' }}>
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, flexWrap: 'wrap', gap: 12, position: 'relative', zIndex: 20 }}>
             <div>
               <h2 style={{ fontSize: '1rem' }}>Student Accounts</h2>
               <p className="text-muted text-sm">Manage students across all departments</p>
@@ -759,281 +922,416 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <div style={{ position: 'relative', width: 250, flexShrink: 0 }}>
                 <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                <input 
-                  type="text" 
-                  placeholder="Search students..." 
+                <input
+                  type="text"
+                  placeholder="Search students..."
                   value={studentSearchQuery}
                   onChange={e => setStudentSearchQuery(e.target.value)}
                   className="form-input"
                   style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
                 />
               </div>
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                <Filter size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                <select
-                  value={studentSortBy}
-                  onChange={e => setStudentSortBy(e.target.value as any)}
-                  className="form-input"
-                  style={{ height: 32, fontSize: '13px', width: 180, padding: '0 8px 0 30px' }}
-                >
-                  <option value="alphabetical">Sort: Alphabetically</option>
-                  <option value="department">Sort: Department-wise</option>
-                </select>
+              <div style={{ position: 'relative', width: 180, zIndex: 10 }}>
+                <SearchableSelect
+                  value={studentDeptFilter === 'All' ? 'All Departments' : studentDeptFilter}
+                  onChange={val => setStudentDeptFilter(val === 'All Departments' ? 'All' : val)}
+                  options={['All Departments', ...departmentsList.map(d => d.name)]}
+                  placeholder="All Departments"
+                />
               </div>
+              <div style={{ position: 'relative', width: 180, zIndex: 9 }}>
+                <SearchableSelect
+                  value={studentTutorFilter === 'All' ? 'All Tutors' : studentTutorFilter}
+                  onChange={val => setStudentTutorFilter(val === 'All Tutors' ? 'All' : val)}
+                  options={['All Tutors', ...uniqueTutors]}
+                  placeholder="All Tutors"
+                />
+              </div>
+              <button
+                className="btn"
+                onClick={() => setStudentSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
+                style={{ height: 32, width: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', color: '#334155', border: '1px solid #cbd5e1', padding: 0, boxSizing: 'border-box', flexShrink: 0 }}
+              >
+                {studentSortOrder === 'asc' ? <ArrowUp size={15} /> : <ArrowDown size={15} />}
+              </button>
               <button className="btn btn-primary" onClick={() => { setStudentForm(f => ({ ...f, department: '' })); setShowStudentModal(true); }} style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box', flexShrink: 0 }}>
                 <UserPlus size={14} /> Add Student
               </button>
             </div>
           </div>
-          
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Student Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Department</th>
-                  <th>Tutor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {studentsLoading ? (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
-                ) : filteredAndSortedStudents.length === 0 ? (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No students found.</td></tr>
-                ) : filteredAndSortedStudents.map((s: any, idx: number) => (
-                  <tr key={s._id || idx}>
-                    <td>
-                      <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.personal_details?.fullName || s.name || s.username || '—'}</div>
-                    </td>
-                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.contact_details?.personalEmail || s.email || '—'}</td>
-                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.contact_details?.personalMobile?.number || s.phone || '—'}</td>
-                    <td><span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{s.academic_details?.department || s.department || '—'}</span></td>
-                    <td><span className="text-sm">{s.mentor_details?.tutorName || s.tutorName || '—'}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Department</th>
+            <th>Tutor</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {studentsLoading ? (
+            <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
+          ) : filteredAndSortedStudents.length === 0 ? (
+            <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No students found.</td></tr>
+          ) : filteredAndSortedStudents.map((s: any, idx: number) => (
+            <tr key={s._id || idx}>
+              <td>
+                <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.personal_details?.fullName || s.name || s.username || '—'}</div>
+              </td>
+              <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.contact_details?.personalEmail || s.email || '—'}</td>
+              <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{s.contact_details?.personalMobile?.number || s.phone || '—'}</td>
+              <td><span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{s.academic_details?.department || s.department || '—'}</span></td>
+              <td><span className="text-sm">{s.mentor_details?.tutorName || s.tutorName || '—'}</span></td>
+              <td>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    title="Edit student"
+                    onClick={() => {
+                      setEditStudentForm({
+                        id: s._id,
+                        department: s.academic_details?.department || s.department || '',
+                        tutorName: s.mentor_details?.tutorName || s.tutorName || '',
+                        tutorEmail: ''
+                      });
+                      setShowEditStudentModal(true);
+                    }}
+                  >
+                    <Edit size={14} />
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    title="Delete student"
+                    onClick={() => handleDeleteStudent(s._id, s.personal_details?.fullName || s.name || s.username || s.contact_details?.personalEmail || s.email || 'this student')}
+                  >
+                    <Trash2 size={14} color="var(--danger)" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+        </div >
+      ) : null
+}
+
+{/* Edit Department Modal */ }
+{
+  showEditDeptModal && (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditDeptModal(false)}>
+      <div className="modal">
+        <div className="modal-header">
+          <h3>Edit Department</h3>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowEditDeptModal(false)}><X size={18} /></button>
         </div>
-      ) : null}
-
-      {/* Add Department Modal */}
-      {showDeptModal && (
-        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowDeptModal(false)}>
-          <div className="modal">
-            <div className="modal-header">
-              <h3>Create Department & Assign HOD</h3>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowDeptModal(false)}><X size={18} /></button>
+        <form onSubmit={handleUpdateDept}>
+          <div className="modal-body">
+            <div className="form-group">
+              <label className="form-label">Department Name *</label>
+              <input
+                className="form-input"
+                type="text"
+                required
+                placeholder="e.g. Computer Science"
+                value={editDeptForm.name}
+                onChange={e => setEditDeptForm(f => ({ ...f, name: e.target.value }))}
+                autoFocus
+              />
             </div>
-            <form onSubmit={handleCreateDept}>
-              <div className="modal-body">
-                <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
-                  <span>Creating a department will automatically generate a new HOD account with a default password of <strong>password123</strong>.</span>
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">Department Name *</label>
-                  <input 
-                    className="form-input" 
-                    type="text" 
-                    required 
-                    placeholder="e.g. Computer Science" 
-                    value={deptForm.name} 
-                    onChange={e => setDeptForm(f => ({ ...f, name: e.target.value }))} 
-                    autoFocus 
-                  />
-                </div>
-
-
-                <div className="form-group">
-                  <label className="form-label">HOD Email Address *</label>
-                  <input 
-                    className="form-input" 
-                    type="email" 
-                    required 
-                    placeholder="hod@university.edu.in" 
-                    value={deptForm.hodEmail} 
-                    onChange={e => setDeptForm(f => ({ ...f, hodEmail: e.target.value }))} 
-                  />
-                  <p className="form-hint">This email will be used for the HOD to log in.</p>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowDeptModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? <><span className="spinner" /> Creating...</> : 'Create Department'}
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
-
-      {/* Add Student Modal */}
-      {showStudentModal && (
-        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowStudentModal(false)}>
-          <div className="modal" style={{ maxWidth: '750px', overflow: 'visible' }}>
-            <div className="modal-header">
-              <h3>Create Student Account</h3>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowStudentModal(false)}><X size={18} /></button>
-            </div>
-            <form onSubmit={handleCreateStudent}>
-              <div className="modal-body" style={{ overflow: 'visible' }}>
-                <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
-                  <span>This will create a new student account in the external system.</span>
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div className="form-group">
-                    <label className="form-label">Full Name *</label>
-                    <input className="form-input" type="text" required placeholder="Student Name" value={studentForm.name} onChange={e => setStudentForm(f => ({ ...f, name: e.target.value }))} autoFocus />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Email Address *</label>
-                    <input className="form-input" type="email" required placeholder="student@university.edu.in" value={studentForm.email} onChange={e => setStudentForm(f => ({ ...f, email: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Phone Number *</label>
-                    <input className="form-input" type="text" required placeholder="9000000001" value={studentForm.phone} onChange={e => setStudentForm(f => ({ ...f, phone: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Password *</label>
-                    <input className="form-input" type="password" required placeholder="Password" value={studentForm.password} onChange={e => setStudentForm(f => ({ ...f, password: e.target.value }))} />
-                  </div>
-                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                    <label className="form-label">Department *</label>
-                    <SearchableSelect
-                      value={studentForm.department}
-                      onChange={val => setStudentForm(f => ({ ...f, department: val, tutorName: '', tutorEmail: '' }))}
-                      options={departmentsList.map(d => d.name)}
-                      placeholder="— Select Department —"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Tutor Name *</label>
-                    <div style={{ pointerEvents: studentForm.department ? 'auto' : 'none', opacity: studentForm.department ? 1 : 0.6 }}>
-                      <SearchableSelect
-                        value={studentForm.tutorName}
-                        onChange={val => {
-                          const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
-                          const tutor = validTutors.find(f => (f.profile?.personalInfo?.fullName || f.username || '') === val);
-                          setStudentForm(f => ({ 
-                            ...f, 
-                            tutorName: val,
-                            tutorEmail: tutor?.email || ''
-                          }));
-                        }}
-                        options={departmentFaculty.filter(f => f.role !== 'hod').map(f => f.profile?.personalInfo?.fullName || f.username || '')}
-                        placeholder={studentForm.department ? "— Select Tutor —" : "Select department first"}
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Tutor Email *</label>
-                    <input 
-                      className="form-input" 
-                      type="email" 
-                      required 
-                      readOnly 
-                      value={studentForm.tutorEmail} 
-                      style={{ backgroundColor: 'var(--bg)', color: 'var(--text-muted)' }} 
-                      placeholder="Auto-filled"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowStudentModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? <><span className="spinner" /> Creating...</> : 'Create Student'}
-                </button>
-              </div>
-            </form>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-ghost" onClick={() => setShowEditDeptModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? <><span className="spinner" /> Saving...</> : 'Save Changes'}
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </div>
+    </div>
+  )
+}
 
-      {/* Add Faculty Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
-          <div className="modal">
-            <div className="modal-header">
-              <h3>Add Faculty Account</h3>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowModal(false)}><X size={18} /></button>
+{/* Edit Student Modal */ }
+{
+  showEditStudentModal && (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditStudentModal(false)}>
+      <div className="modal" style={{ maxWidth: '500px', overflow: 'visible' }}>
+        <div className="modal-header">
+          <h3>Edit Student</h3>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowEditStudentModal(false)}><X size={18} /></button>
+        </div>
+        <form onSubmit={handleUpdateStudent}>
+          <div className="modal-body" style={{ overflow: 'visible' }}>
+            <div className="form-group">
+              <label className="form-label">Department</label>
+              <SearchableSelect
+                value={editStudentForm.department}
+                onChange={val => setEditStudentForm(f => ({ ...f, department: val, tutorName: '', tutorEmail: '' }))}
+                options={departmentsList.map(d => d.name)}
+                placeholder="— Select Department —"
+              />
             </div>
-            <form onSubmit={handleCreate}>
-              <div className="modal-body">
-                <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
-                  <span>Faculty will receive a default password of <strong>password123</strong>. They'll be prompted to change it on first login.</span>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Email Address *</label>
-                  <input className="form-input" type="email" required placeholder="faculty@university.edu.in" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} autoFocus />
-                  <p className="form-hint">Username will be auto-generated from the email address.</p>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Department *</label>
+            <div className="form-group">
+              <label className="form-label">Tutor Name</label>
+              <div style={{ pointerEvents: editStudentForm.department ? 'auto' : 'none', opacity: editStudentForm.department ? 1 : 0.6 }}>
+                <SearchableSelect
+                  value={editStudentForm.tutorName}
+                  onChange={val => {
+                    const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
+                    const tutor = validTutors.find(f => (f.profile?.personalInfo?.fullName || f.username || '') === val);
+                    setEditStudentForm(f => ({
+                      ...f,
+                      tutorName: val,
+                      tutorEmail: tutor?.email || ''
+                    }));
+                  }}
+                  options={departmentFaculty.filter(f => f.role !== 'hod').map(f => f.profile?.personalInfo?.fullName || f.username || '')}
+                  placeholder={editStudentForm.department ? "— Select Tutor —" : "Select department first"}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-ghost" onClick={() => setShowEditStudentModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? <><span className="spinner" /> Saving...</> : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+{/* Add Department Modal */ }
+{
+  showDeptModal && (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowDeptModal(false)}>
+      <div className="modal">
+        <div className="modal-header">
+          <h3>Create Department & Assign HOD</h3>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowDeptModal(false)}><X size={18} /></button>
+        </div>
+        <form onSubmit={handleCreateDept}>
+          <div className="modal-body">
+            <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
+              <span>Creating a department will automatically generate a new HOD account with a default password of <strong>password123</strong>.</span>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Department Name *</label>
+              <input
+                className="form-input"
+                type="text"
+                required
+                placeholder="e.g. Computer Science"
+                value={deptForm.name}
+                onChange={e => setDeptForm(f => ({ ...f, name: e.target.value }))}
+                autoFocus
+              />
+            </div>
+
+
+            <div className="form-group">
+              <label className="form-label">HOD Email Address *</label>
+              <input
+                className="form-input"
+                type="email"
+                required
+                placeholder="hod@university.edu.in"
+                value={deptForm.hodEmail}
+                onChange={e => setDeptForm(f => ({ ...f, hodEmail: e.target.value }))}
+              />
+              <p className="form-hint">This email will be used for the HOD to log in.</p>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-ghost" onClick={() => setShowDeptModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? <><span className="spinner" /> Creating...</> : 'Create Department'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+{/* Add Student Modal */ }
+{
+  showStudentModal && (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowStudentModal(false)}>
+      <div className="modal" style={{ maxWidth: '750px', overflow: 'visible' }}>
+        <div className="modal-header">
+          <h3>Create Student Account</h3>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowStudentModal(false)}><X size={18} /></button>
+        </div>
+        <form onSubmit={handleCreateStudent}>
+          <div className="modal-body" style={{ overflow: 'visible' }}>
+            <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
+              <span>This will create a new student account in the external system.</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label">Full Name *</label>
+                <input className="form-input" type="text" required placeholder="Student Name" value={studentForm.name} onChange={e => setStudentForm(f => ({ ...f, name: e.target.value }))} autoFocus />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Email Address *</label>
+                <input className="form-input" type="email" required placeholder="student@university.edu.in" value={studentForm.email} onChange={e => setStudentForm(f => ({ ...f, email: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Phone Number *</label>
+                <input className="form-input" type="text" required placeholder="9000000001" value={studentForm.phone} onChange={e => setStudentForm(f => ({ ...f, phone: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Password *</label>
+                <input className="form-input" type="password" required placeholder="Password" value={studentForm.password} onChange={e => setStudentForm(f => ({ ...f, password: e.target.value }))} />
+              </div>
+              <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                <label className="form-label">Department *</label>
+                <SearchableSelect
+                  value={studentForm.department}
+                  onChange={val => setStudentForm(f => ({ ...f, department: val, tutorName: '', tutorEmail: '' }))}
+                  options={departmentsList.map(d => d.name)}
+                  placeholder="— Select Department —"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Tutor Name *</label>
+                <div style={{ pointerEvents: studentForm.department ? 'auto' : 'none', opacity: studentForm.department ? 1 : 0.6 }}>
                   <SearchableSelect
-                    value={form.department}
-                    onChange={val => setForm(f => ({ ...f, department: val }))}
-                    options={departmentsList.map(d => d.name)}
-                    placeholder="— Select Department —"
+                    value={studentForm.tutorName}
+                    onChange={val => {
+                      const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
+                      const tutor = validTutors.find(f => (f.profile?.personalInfo?.fullName || f.username || '') === val);
+                      setStudentForm(f => ({
+                        ...f,
+                        tutorName: val,
+                        tutorEmail: tutor?.email || ''
+                      }));
+                    }}
+                    options={departmentFaculty.filter(f => f.role !== 'hod').map(f => f.profile?.personalInfo?.fullName || f.username || '')}
+                    placeholder={studentForm.department ? "— Select Tutor —" : "Select department first"}
                   />
                 </div>
               </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? <><span className="spinner" /> Creating...</> : 'Create Account'}
-                </button>
+              <div className="form-group">
+                <label className="form-label">Tutor Email *</label>
+                <input
+                  className="form-input"
+                  type="email"
+                  required
+                  readOnly
+                  value={studentForm.tutorEmail}
+                  style={{ backgroundColor: 'var(--bg)', color: 'var(--text-muted)' }}
+                  placeholder="Auto-filled"
+                />
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {/* Action Modal */}
-      {actionModal.isOpen && (
-        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setActionModal({ ...actionModal, isOpen: false })}>
-          <div className="modal">
-            <div className="modal-header">
-              <h3>{actionModal.type === 'approve' ? 'Approve Request' : 'Reject Request'}</h3>
-              <button className="btn btn-ghost btn-sm" onClick={() => setActionModal({ ...actionModal, isOpen: false })}><X size={18} /></button>
             </div>
-            <form onSubmit={handleRequestAction}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">Message to Faculty {actionModal.type === 'reject' ? '*' : '(Optional)'}</label>
-                  <textarea 
-                    className="form-textarea" 
-                    rows={3} 
-                    required={actionModal.type === 'reject'}
-                    placeholder={actionModal.type === 'reject' ? "Please provide a reason for rejection..." : "E.g. Added to the list."}
-                    value={actionModal.message} 
-                    onChange={e => setActionModal({ ...actionModal, message: e.target.value })} 
-                    autoFocus 
-                  />
-                  {actionModal.type === 'reject' && (
-                    <p className="form-hint" style={{ color: 'var(--danger)' }}>This message will be shown to the faculty member.</p>
-                  )}
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-ghost" onClick={() => setActionModal({ ...actionModal, isOpen: false })}>Cancel</button>
-                <button 
-                  type="submit" 
-                  className="btn" 
-                  style={actionModal.type === 'approve' ? { background: '#059669', color: 'white' } : { background: '#dc2626', color: 'white' }}
-                  disabled={submitting}
-                >
-                  {submitting ? <><span className="spinner" /> Processing...</> : actionModal.type === 'approve' ? 'Approve' : 'Reject'}
-                </button>
-              </div>
-            </form>
           </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-ghost" onClick={() => setShowStudentModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? <><span className="spinner" /> Creating...</> : 'Create Student'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+{/* Add Faculty Modal */ }
+{
+  showModal && (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
+      <div className="modal" style={{ overflow: 'visible' }}>
+        <div className="modal-header">
+          <h3>Add Faculty Account</h3>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowModal(false)}><X size={18} /></button>
         </div>
-      )}
-    </AppLayout>
+        <form onSubmit={handleCreate}>
+          <div className="modal-body" style={{ overflow: 'visible' }}>
+            <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
+              <span>Faculty will receive a default password of <strong>password123</strong>. They'll be prompted to change it on first login.</span>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Email Address *</label>
+              <input className="form-input" type="email" required placeholder="faculty@university.edu.in" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} autoFocus />
+              <p className="form-hint">Username will be auto-generated from the email address.</p>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Department *</label>
+              <SearchableSelect
+                value={form.department}
+                onChange={val => setForm(f => ({ ...f, department: val }))}
+                options={departmentsList.map(d => d.name)}
+                placeholder="— Select Department —"
+              />
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? <><span className="spinner" /> Creating...</> : 'Create Account'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+{/* Action Modal */ }
+{
+  actionModal.isOpen && (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setActionModal({ ...actionModal, isOpen: false })}>
+      <div className="modal">
+        <div className="modal-header">
+          <h3>{actionModal.type === 'approve' ? 'Approve Request' : 'Reject Request'}</h3>
+          <button className="btn btn-ghost btn-sm" onClick={() => setActionModal({ ...actionModal, isOpen: false })}><X size={18} /></button>
+        </div>
+        <form onSubmit={handleRequestAction}>
+          <div className="modal-body">
+            <div className="form-group">
+              <label className="form-label">Message to Faculty {actionModal.type === 'reject' ? '*' : '(Optional)'}</label>
+              <textarea
+                className="form-textarea"
+                rows={3}
+                required={actionModal.type === 'reject'}
+                placeholder={actionModal.type === 'reject' ? "Please provide a reason for rejection..." : "E.g. Added to the list."}
+                value={actionModal.message}
+                onChange={e => setActionModal({ ...actionModal, message: e.target.value })}
+                autoFocus
+              />
+              {actionModal.type === 'reject' && (
+                <p className="form-hint" style={{ color: 'var(--danger)' }}>This message will be shown to the faculty member.</p>
+              )}
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-ghost" onClick={() => setActionModal({ ...actionModal, isOpen: false })}>Cancel</button>
+            <button
+              type="submit"
+              className="btn"
+              style={actionModal.type === 'approve' ? { background: '#059669', color: 'white' } : { background: '#dc2626', color: 'white' }}
+              disabled={submitting}
+            >
+              {submitting ? <><span className="spinner" /> Processing...</> : actionModal.type === 'approve' ? 'Approve' : 'Reject'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+    </AppLayout >
   );
 }
