@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus } from 'lucide-react';
 
@@ -22,7 +22,9 @@ const facultyNav: NavItem[] = [
 
 const vcNav: NavItem[] = [
   { label: 'Org Hierarchy', path: '/vc/hierarchy', icon: <GraduationCap size={18} /> },
+  { label: 'Dashboard', path: '/vc/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Departments', path: '/vc/departments', icon: <Building2 size={18} /> },
+  { label: 'Students', path: '/vc/students', icon: <UserPlus size={18} /> },
 ];
 
 const hodNav: NavItem[] = [
@@ -143,10 +145,10 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             }
 
             return (
-              <button key={item.path} className={`nav-item ${isActive(item) ? 'active' : ''}`} onClick={() => navigate(item.path)}>
+              <Link key={item.path} to={item.path} className={`nav-item ${isActive(item) ? 'active' : ''}`} style={{ textDecoration: 'none' }}>
                 <span className="nav-item-button">{item.icon}</span>
                 {!collapsed && <span className="nav-item-label">{item.label}</span>}
-              </button>
+              </Link>
             );
           })}
 
@@ -206,8 +208,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             </span>
           </div>
         </header>
-        <main className="page-content" style={{ overflow: 'hidden', maxHeight: 'calc(100vh - var(--header-h))' }}>
-          <div style={{ height: '100%', overflowY: 'auto', padding: '20px' }}>
+        <main className="page-content" style={{ overflow: 'hidden', height: 'calc(100vh - var(--header-h))' }}>
+          <div style={{ height: '100%', overflowY: 'hidden', padding: '12px 16px' }}>
             {children}
           </div>
         </main>
