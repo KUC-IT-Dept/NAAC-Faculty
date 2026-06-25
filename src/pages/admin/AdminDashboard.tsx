@@ -427,13 +427,13 @@ export default function AdminDashboard() {
 
           {/* Faculty Table */}
           <div className="card">
-            <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
+            <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, flexWrap: 'wrap', gap: 12 }}>
               <div>
                 <h2 style={{ fontSize: '1rem' }}>Faculty Accounts</h2>
                 <p className="text-muted text-sm">Manage all registered faculty members</p>
               </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ position: 'relative', width: 200 }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', width: 200, flexShrink: 0 }}>
                   <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                   <input 
                     type="text" 
@@ -448,7 +448,7 @@ export default function AdminDashboard() {
                   value={departmentFilter}
                   onChange={e => setDepartmentFilter(e.target.value)}
                   className="form-input"
-                  style={{ height: 32, fontSize: '13px', minWidth: 120, padding: '0 8px' }}
+                  style={{ height: 32, fontSize: '13px', minWidth: 120, width: 'auto', flexShrink: 0, padding: '0 8px' }}
                 >
                   {departments.map(d => <option key={d as string} value={d as string}>{d as string}</option>)}
                 </select>
@@ -456,7 +456,7 @@ export default function AdminDashboard() {
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value as any)}
                   className="form-input"
-                  style={{ height: 32, fontSize: '13px', minWidth: 100, padding: '0 8px' }}
+                  style={{ height: 32, fontSize: '13px', minWidth: 130, width: 'auto', flexShrink: 0, padding: '0 8px' }}
                 >
                   <option value="name">Sort: Name</option>
                   <option value="username">Sort: Username</option>
@@ -474,7 +474,7 @@ export default function AdminDashboard() {
                   id="add-faculty-btn" 
                   className="btn btn-primary" 
                   onClick={() => setShowModal(true)}
-                  style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', lineHeight: 1, display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box' }}
+                  style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', lineHeight: 1, display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box', flexShrink: 0 }}
                 >
                   <Plus size={13} /> Add Faculty
                 </button>
@@ -560,13 +560,13 @@ export default function AdminDashboard() {
         </>
       ) : activeTab === 'requests' ? (
         <div className="card">
-          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h2 style={{ fontSize: '1rem' }}>{showHistory ? 'Request History' : 'Notifications (Pending Requests)'}</h2>
               <p className="text-muted text-sm">{showHistory ? 'View processed requests (Approved / Rejected)' : 'Review requests from faculty to add new custom dropdown options'}</p>
             </div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ position: 'relative', width: 250 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', width: 250, flexShrink: 0 }}>
                 <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                 <input 
                   type="text" 
@@ -583,7 +583,12 @@ export default function AdminDashboard() {
                 style={{ 
                   background: showHistory ? '#e2e8f0' : 'transparent', 
                   border: '1px solid #cbd5e1',
-                  color: '#334155'
+                  color: '#334155',
+                  height: 32,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  boxSizing: 'border-box',
+                  flexShrink: 0
                 }}
               >
                 <Clock3 size={14} /> {showHistory ? 'View Pending' : 'History'}
@@ -666,13 +671,13 @@ export default function AdminDashboard() {
         <OrgHierarchy />
       ) : activeTab === 'departments' ? (
         <div className="card">
-          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h2 style={{ fontSize: '1rem' }}>University Departments</h2>
               <p className="text-muted text-sm">Manage academic departments and assign HODs</p>
             </div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ position: 'relative', width: 450 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', width: 250, flexShrink: 0 }}>
                 <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                 <input 
                   type="text" 
@@ -683,7 +688,7 @@ export default function AdminDashboard() {
                   style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
                 />
               </div>
-              <button className="btn btn-primary" onClick={() => setShowDeptModal(true)}>
+              <button className="btn btn-primary" onClick={() => setShowDeptModal(true)} style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box', flexShrink: 0 }}>
                 <Plus size={14} /> Add Department
               </button>
             </div>
@@ -746,13 +751,13 @@ export default function AdminDashboard() {
         </div>
       ) : activeTab === 'students' ? (
         <div className="card">
-          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h2 style={{ fontSize: '1rem' }}>Student Accounts</h2>
               <p className="text-muted text-sm">Manage students across all departments</p>
             </div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', flex: 1, justifyContent: 'flex-end' }}>
-              <div style={{ position: 'relative', width: 450 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <div style={{ position: 'relative', width: 250, flexShrink: 0 }}>
                 <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                 <input 
                   type="text" 
@@ -763,19 +768,19 @@ export default function AdminDashboard() {
                   style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
                 />
               </div>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', flexShrink: 0 }}>
                 <Filter size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                 <select
                   value={studentSortBy}
                   onChange={e => setStudentSortBy(e.target.value as any)}
                   className="form-input"
-                  style={{ height: 32, fontSize: '13px', minWidth: 180, padding: '0 8px 0 30px' }}
+                  style={{ height: 32, fontSize: '13px', width: 180, padding: '0 8px 0 30px' }}
                 >
                   <option value="alphabetical">Sort: Alphabetically</option>
                   <option value="department">Sort: Department-wise</option>
                 </select>
               </div>
-              <button className="btn btn-primary" onClick={() => { setStudentForm(f => ({ ...f, department: '' })); setShowStudentModal(true); }}>
+              <button className="btn btn-primary" onClick={() => { setStudentForm(f => ({ ...f, department: '' })); setShowStudentModal(true); }} style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box', flexShrink: 0 }}>
                 <UserPlus size={14} /> Add Student
               </button>
             </div>
