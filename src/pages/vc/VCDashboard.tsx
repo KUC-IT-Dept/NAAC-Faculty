@@ -1128,7 +1128,7 @@ export default function VCDashboard() {
       {activeTab === 'hierarchy' ? (
         <OrgHierarchy />
       ) : activeTab === 'dashboard' ? (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'flex-start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'flex-start' }}>
           <div className="card" style={{ marginBottom: 8, padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <div style={{ width: 48, height: 48, borderRadius: 8, background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(99,102,241,0.06))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', color: 'var(--primary)', fontWeight: 700 }}>

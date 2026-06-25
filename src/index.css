@@ -649,6 +649,33 @@ a:hover {
 
 .page-content {
   flex: 1;
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.page-content-inner {
+  padding: 12px 16px;
+}
+
+/* Custom Scrollbar for page content container */
+.page-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.page-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.page-content::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+.page-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
 }
 
 /* ── Cards ──────────────────────────────────────────────────── */

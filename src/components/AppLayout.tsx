@@ -208,8 +208,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             </span>
           </div>
         </header>
-        <main className="page-content" style={{ overflow: 'hidden', height: 'calc(100vh - var(--header-h))' }}>
-          <div style={{ height: '100%', overflowY: 'hidden', padding: '12px 16px' }}>
+        <main className="page-content">
+          <div className="page-content-inner">
             {children}
           </div>
         </main>
