@@ -23,9 +23,13 @@ import {
   AlertCircle,
   Search,
   X,
-  Filter
+  Filter,
+  Plus,
+  Trash2,
+  Edit,
+  ChevronLeft,
+  UserPlus
 } from 'lucide-react';
-import { UserPlus } from 'lucide-react';
 import axios from 'axios';
 import SearchableSelect from '../../components/SearchableSelect';
 import { useAuth } from '../../context/AuthContext';
@@ -305,6 +309,11 @@ export default function VCDashboard() {
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState<string | null>(null);
   const [deptSearchQuery, setDeptSearchQuery] = useState('');
+  const [showDeptModal, setShowDeptModal] = useState(false);
+  const [deptForm, setDeptForm] = useState({ name: '', hodEmail: '' });
+  const [showEditDeptModal, setShowEditDeptModal] = useState(false);
+  const [editDeptForm, setEditDeptForm] = useState({ id: '', name: '' });
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Add Student modal state (mirror Admin behavior)
   const [showStudentModal, setShowStudentModal] = useState(false);
@@ -384,6 +393,7 @@ export default function VCDashboard() {
       setStudentForm({ name: '', email: '', phone: '', password: '', department: '', tutorName: '', tutorEmail: '' });
       // refresh departments & stats to reflect updated student counts
       fetchDepartments();
+      fetchDepartmentsList();
       fetchDashboard();
       if (activeTab === 'students') {
         fetchStudents();
@@ -392,6 +402,51 @@ export default function VCDashboard() {
       toast.error(err.response?.data?.message || 'Student creation failed');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleCreateDept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.post('/departments', deptForm);
+      toast.success(`Department ${deptForm.name} created successfully!`);
+      setShowDeptModal(false);
+      setDeptForm({ name: '', hodEmail: '' });
+      fetchDepartmentsList();
+      fetchDepartments();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Creation failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateDept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.put(`/departments/${editDeptForm.id}`, { name: editDeptForm.name });
+      toast.success('Department updated successfully');
+      setShowEditDeptModal(false);
+      fetchDepartmentsList();
+      fetchDepartments();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Update failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteDept = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete the department "${name}"? This action cannot be undone.`)) return;
+    try {
+      await api.delete(`/departments/${id}`);
+      toast.success('Department deleted successfully');
+      fetchDepartmentsList();
+      fetchDepartments();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Delete failed');
     }
   };
 
@@ -455,6 +510,32 @@ export default function VCDashboard() {
       return 0;
     });
   }, [students, studentSearchQuery, studentSortBy]);
+
+  const filteredDepartments = useMemo(() => {
+    return departmentsList.filter(d => {
+      if (!deptSearchQuery) return true;
+      const q = deptSearchQuery.toLowerCase();
+      const deptName = d.name?.toLowerCase() || '';
+      const hodName = d.hod?.username?.toLowerCase() || '';
+      const hodEmail = d.hod?.email?.toLowerCase() || '';
+      return deptName.includes(q) || hodName.includes(q) || hodEmail.includes(q);
+    });
+  }, [departmentsList, deptSearchQuery]);
+
+  const itemsPerPage = 9;
+  const totalItems = filteredDepartments.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  
+  const paginatedDepartments = useMemo(() => {
+    return filteredDepartments.slice(startIndex, endIndex);
+  }, [filteredDepartments, startIndex, endIndex]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [deptSearchQuery]);
 
   const getGreeting = () => {
     const now = new Date();
@@ -534,97 +615,144 @@ export default function VCDashboard() {
   useEffect(() => { if (activeTab === 'dashboard') fetchDepartments(); }, [activeTab]);
     const navigate = useNavigate();
   const renderDeptList = () => {
-    const filtered = departmentsList.filter(d => 
-      d.name.toLowerCase().includes(deptSearchQuery.toLowerCase()) ||
-      (d.hodName && d.hodName.toLowerCase().includes(deptSearchQuery.toLowerCase()))
-    );
-
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto', paddingBottom: '40px' }}>
-        {/* List Content */}
-        {deptsLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '60px' }}>
-            <div className="spinner" style={{ width: '40px', height: '40px', border: '3px solid var(--primary)', borderTopColor: 'transparent' }} />
+      <div className="card">
+        <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <h2 style={{ fontSize: '1rem' }}>University Departments</h2>
+            <p className="text-muted text-sm">Manage academic departments and assign HODs</p>
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="card" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <Building2 size={48} style={{ color: 'var(--text-light)', marginBottom: '16px', marginInline: 'auto' }} />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '8px' }}>No Departments Found</h3>
-            <p style={{ fontSize: '0.88rem' }}>We couldn't find any departments matching your search query.</p>
-          </div>
-        ) : (
-          <div className="card">
-            <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
-              <div>
-                <h2 style={{ fontSize: '1rem' }}>University Departments</h2>
-                <p className="text-muted text-sm">Manage academic departments and assign HODs</p>
-              </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ position: 'relative', width: 420 }}>
-                  <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                  <input
-                    type="text"
-                    placeholder="Search departments..."
-                    value={deptSearchQuery}
-                    onChange={e => setDeptSearchQuery(e.target.value)}
-                    className="form-input"
-                    style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
-                  />
-                </div>
-              </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', width: 250, flexShrink: 0 }}>
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <input
+                type="text"
+                placeholder="Search departments..."
+                value={deptSearchQuery}
+                onChange={e => setDeptSearchQuery(e.target.value)}
+                className="form-input"
+                style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
+              />
             </div>
+            <button className="btn btn-primary" onClick={() => setShowDeptModal(true)} style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box', flexShrink: 0 }}>
+              <Plus size={14} /> Add Department
+            </button>
+          </div>
+        </div>
 
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Department Name</th>
-                    <th>HOD Assigned</th>
-                    <th>HOD Email</th>
-                    <th>Added On</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deptsLoading ? (
-                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
-                  ) : filtered.length === 0 ? (
-                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No departments found.</td></tr>
-                  ) : filtered.map(d => (
-                    <tr key={d._id} onDoubleClick={() => setSelectedDept(d.name)} style={{ cursor: 'pointer' }}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.08)', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Building2 size={16} />
-                          </div>
-                          <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{d.name}</span>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Department Name</th>
+                <th>HOD Assigned</th>
+                <th>HOD Email</th>
+                <th>Added On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deptsLoading ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
+              ) : filteredDepartments.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No departments found.</td></tr>
+              ) : paginatedDepartments.map(d => (
+                <tr key={d._id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.1)', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Building2 size={16} />
+                      </div>
+                      <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{d.name}</span>
+                    </div>
+                  </td>
+                  <td>
+                    {d.hod ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div className="avatar" style={{ width: 24, height: 24, fontSize: '0.6rem' }}>
+                          {(d.hod.username || '').substring(0, 2).toUpperCase()}
                         </div>
-                      </td>
-                      <td>
-                        {d.hod ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div className="avatar" style={{ width: 28, height: 28, fontSize: '0.65rem' }}>{(d.hod.username || '').substring(0,2).toUpperCase()}</div>
-                            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{d.hod.username}</span>
-                          </div>
-                        ) : (
-                          <span className="badge badge-inactive">No HOD</span>
-                        )}
-                      </td>
-                        <td className="text-sm text-muted" style={{ fontSize: '0.9rem' }}>{d.hod?.email || '—'}</td>
-                        <td className="text-sm text-muted" style={{ fontSize: '0.9rem' }}>{new Date(d.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          <button 
-                            className="btn btn-ghost" 
-                            title="Add student to this department"
-                            onClick={() => { setStudentForm(f => ({ ...f, department: d.name })); setShowStudentModal(true); }}
-                          >
-                            <UserPlus size={14} /> Add Student
-                          </button>
-                        </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{d.hod.username}</span>
+                      </div>
+                    ) : (
+                      <span className="badge badge-inactive">No HOD</span>
+                    )}
+                  </td>
+                  <td className="text-sm text-muted">{d.hod?.email || '—'}</td>
+                  <td className="text-sm text-muted">{new Date(d.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        title="Add student to this department"
+                        onClick={() => { setStudentForm(f => ({ ...f, department: d.name })); setShowStudentModal(true); }}
+                      >
+                        <UserPlus size={14} />
+                      </button>
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        title="Edit department"
+                        onClick={() => { setEditDeptForm({ id: d._id, name: d.name }); setShowEditDeptModal(true); }}
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        title="Delete department"
+                        onClick={() => handleDeleteDept(d._id, d.name)}
+                      >
+                        <Trash2 size={14} color="var(--danger)" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Section */}
+        {totalItems > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid var(--border)', background: 'var(--card)' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Showing {startIndex + 1} to {endIndex} of {totalItems} departments
+            </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button 
+                type="button"
+                className="btn btn-ghost btn-sm" 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                style={{ padding: '6px 12px', border: '1px solid var(--border)', borderRadius: '6px', minWidth: '38px', height: '34px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button
+                  type="button"
+                  key={p}
+                  className={`btn btn-sm ${currentPage === p ? 'btn-primary' : 'btn-ghost'}`}
+                  onClick={() => setCurrentPage(p)}
+                  style={{ 
+                    padding: '6px 12px', 
+                    borderRadius: '6px',
+                    minWidth: '34px',
+                    height: '34px',
+                    ...(currentPage === p ? {} : { border: '1px solid var(--border)', background: '#fff', color: '#334155' })
+                  }}
+                >
+                  {p}
+                </button>
+              ))}
+              <button 
+                type="button"
+                className="btn btn-ghost btn-sm" 
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                style={{ padding: '6px 12px', border: '1px solid var(--border)', borderRadius: '6px', minWidth: '38px', height: '34px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
           </div>
         )}
@@ -1145,14 +1273,40 @@ export default function VCDashboard() {
             </div>
           </div>
 
-          <div className="vc-stat-row" style={{ display: 'flex', gap: 6, overflowX: 'hidden', paddingBottom: 4, alignItems: 'center' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+            gap: '12px',
+            width: '100%',
+            marginBottom: '16px'
+          }}>
             {statCards.map(s => (
-              <div key={s.label} className="stat-card" style={{ minWidth: 130, padding: 8, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start', flex: '0 0 auto' }}>
-                <div className="stat-card-icon" style={{ background: (s as any).bg, width: 30, height: 30, borderRadius: 8 }}>
+              <div 
+                key={s.label} 
+                className="stat-card" 
+                style={{ 
+                  padding: '16px', 
+                  borderRadius: '12px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '6px', 
+                  alignItems: 'flex-start',
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  boxShadow: 'var(--shadow-sm)',
+                  height: '100%',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <div className="stat-card-icon" style={{ background: (s as any).bg, width: 36, height: 36, borderRadius: 8, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ color: (s as any).color }}>{s.icon}</span>
                 </div>
-                <div className="stat-card-value" style={{ color: (s as any).color, fontSize: '1.2rem' }}>{loading ? <span className="spinner" /> : s.value}</div>
-                <div className="stat-card-label" style={{ fontSize: '0.62rem', marginTop: 0 }}>{s.label}</div>
+                <div className="stat-card-value" style={{ color: (s as any).color, fontSize: '1.4rem', fontWeight: 700, margin: '4px 0 0' }}>
+                  {loading ? <span className="spinner" style={{ width: 16, height: 16 }} /> : s.value}
+                </div>
+                <div className="stat-card-label" style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                  {s.label}
+                </div>
               </div>
             ))}
           </div>
@@ -1160,7 +1314,13 @@ export default function VCDashboard() {
           {/* Departments section */}
           <div style={{ marginTop: 15 }}>
             <h3 style={{ fontSize: '0.95rem', margin: '12px 0', fontWeight: 700 }}>Departments</h3>
-            <div className="dept-grid" style={{ marginTop: 6 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
+              gap: '20px',
+              marginTop: '12px',
+              width: '100%'
+            }}>
               {depsLoading ? (
                 <div style={{ padding: 12 }}><div className="spinner" /></div>
               ) : departments.length === 0 ? (
@@ -1171,7 +1331,7 @@ export default function VCDashboard() {
                   <div 
                     key={d._id} 
                     className="dept-card" 
-                    onClick={() => setSelectedDept(d.name)}
+                    onClick={() => navigate(`/vc/department/${encodeURIComponent(d.name)}`)}
                     style={{
                       background: '#fff',
                       borderRadius: '16px',
@@ -1183,7 +1343,9 @@ export default function VCDashboard() {
                       flexDirection: 'column',
                       gap: '16px',
                       transition: 'all 0.2s ease-in-out',
-                      alignItems: 'stretch'
+                      alignItems: 'stretch',
+                      height: '100%',
+                      boxSizing: 'border-box'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
@@ -1209,12 +1371,12 @@ export default function VCDashboard() {
                       }}>
                         <Building2 size={22} />
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 }}>
+                        <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={d.name}>
                           {d.name}
                         </span>
                         <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                          HOD: <span style={{ color: theme.hodColor, fontWeight: 600 }}>{d.hod?.username || d.hodName || '—'}</span>
+                          HOD: <span style={{ color: theme.hodColor, fontWeight: 600 }}>{d.hodName || d.hod?.username || '—'}</span>
                         </span>
                       </div>
                     </div>
@@ -1223,7 +1385,7 @@ export default function VCDashboard() {
                     <div style={{ borderTop: '1px solid #f1f5f9', width: '100%' }} />
 
                     {/* Stats Row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', margin: '4px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', margin: '4px 0', marginTop: 'auto' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
                         <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>{d.facultyCount ?? 0}</span>
                         <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px', fontWeight: 500 }}>Faculty Members</span>
@@ -1250,15 +1412,9 @@ export default function VCDashboard() {
                       fontSize: '0.85rem',
                       fontWeight: 600,
                       gap: '8px',
-                      transition: 'background 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = theme.btnHoverBg;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = theme.btnBg;
-                    }}
-                    >
+                      transition: 'background 0.2s',
+                      marginTop: '12px'
+                    }}>
                       <Users size={16} />
                       <span>View Details</span>
                       <span>→</span>
@@ -1273,7 +1429,7 @@ export default function VCDashboard() {
           )}
         </div>
       ) : activeTab === 'departments' ? (
-        selectedDept ? renderDeptDetails() : renderDeptList()
+        renderDeptList()
       ) : activeTab === 'students' ? (
         renderStudentsTab()
       ) : (
@@ -1357,6 +1513,91 @@ export default function VCDashboard() {
                 <button type="button" className="btn btn-ghost" onClick={() => setShowStudentModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
                   {submitting ? <><span className="spinner" /> Creating...</> : 'Create Student'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Department Modal */}
+      {showEditDeptModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditDeptModal(false)}>
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Edit Department</h3>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowEditDeptModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleUpdateDept}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Department Name *</label>
+                  <input
+                    className="form-input"
+                    type="text"
+                    required
+                    placeholder="e.g. Computer Science"
+                    value={editDeptForm.name}
+                    onChange={e => setEditDeptForm(f => ({ ...f, name: e.target.value }))}
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowEditDeptModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? <><span className="spinner" /> Saving...</> : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Department Modal */}
+      {showDeptModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowDeptModal(false)}>
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Create Department & Assign HOD</h3>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowDeptModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateDept}>
+              <div className="modal-body">
+                <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
+                  <span>Creating a department will automatically generate a new HOD account with a default password of <strong>password123</strong>.</span>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Department Name *</label>
+                  <input
+                    className="form-input"
+                    type="text"
+                    required
+                    placeholder="e.g. Computer Science"
+                    value={deptForm.name}
+                    onChange={e => setDeptForm(f => ({ ...f, name: e.target.value }))}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">HOD Email Address *</label>
+                  <input
+                    className="form-input"
+                    type="email"
+                    required
+                    placeholder="hod@university.edu.in"
+                    value={deptForm.hodEmail}
+                    onChange={e => setDeptForm(f => ({ ...f, hodEmail: e.target.value }))}
+                  />
+                  <p className="form-hint">This email will be used for the HOD to log in.</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowDeptModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? <><span className="spinner" /> Creating...</> : 'Create Department'}
                 </button>
               </div>
             </form>
