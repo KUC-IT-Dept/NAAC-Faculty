@@ -81,7 +81,7 @@ const uploadDoc = multer({
 });
 
 // Generic file upload endpoint
-router.post('/', uploadDoc.single('file'), (req, res) => {
+router.post('/upload', uploadDoc.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -99,7 +99,7 @@ router.post('/', uploadDoc.single('file'), (req, res) => {
 });
 
 // Photo upload endpoint
-router.post('/photo', uploadPhoto.single('photo'), (req, res) => {
+router.post('/upload/photo', uploadPhoto.single('photo'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -120,7 +120,7 @@ router.post('/photo', uploadPhoto.single('photo'), (req, res) => {
 });
 
 // Profile picture upload endpoint
-router.post('/profile-picture', uploadPhoto.single('profilePicture'), (req, res) => {
+router.post('/upload/profile-picture', uploadPhoto.single('profilePicture'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });

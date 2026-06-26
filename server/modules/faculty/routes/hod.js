@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
 const OptionRequest = require('../models/OptionRequest');
@@ -25,7 +25,7 @@ router.get('/faculty', async (req, res) => {
     // Find all faculty in this department
     const profiles = await Faculty.find({ 'employmentDetails.department': dept })
       .select('userId username personalInfo.fullName personalInfo.designation personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
-    
+
     const userIds = profiles.map(p => p.userId);
     const users = await User.find({ _id: { $in: userIds }, role: { $in: ['faculty', 'hod'] } }).select('-password').sort({ createdAt: -1 });
 
@@ -60,6 +60,7 @@ router.post('/faculty', async (req, res) => {
     }
 
     const user = await User.create({
+      name: fullName || username,
       username,
       email: email.trim().toLowerCase(),
       password: 'password123',
@@ -118,7 +119,7 @@ router.patch('/option-requests/:id/approve', async (req, res) => {
 
     const request = await OptionRequest.findById(req.params.id).populate('user');
     if (!request) return res.status(404).json({ message: 'Request not found' });
-    
+
     // Verify the user is in HOD's department
     const faculty = await Faculty.findOne({ userId: request.user._id });
     if (!faculty || faculty.employmentDetails?.department !== dept) {
@@ -130,11 +131,11 @@ router.patch('/option-requests/:id/approve', async (req, res) => {
     request.status = 'APPROVED';
     if (req.body.adminMessage) request.adminMessage = req.body.adminMessage;
     await request.save();
-    
+
     // NOTE: This doesn't add to DropdownConfig like Admin does, because HODs probably shouldn't mutate 
     // the global university dropdown list. Alternatively, we could allow it. 
     // To keep it simple, we just mark it APPROVED and the faculty keeps using it.
-    
+
     res.json(request);
   } catch (err) {
     console.error(err);
@@ -180,7 +181,7 @@ router.patch('/option-requests/:id/reject', async (req, res) => {
         await Faculty.updateOne({ _id: faculty._id }, { $set: raw });
       }
     }
-    
+
     res.json(request);
   } catch (err) {
     console.error(err);

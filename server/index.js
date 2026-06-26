@@ -41,7 +41,7 @@ app.use('/api/faculty/auth',        facultyAuthRoutes);
 app.use('/api/faculty/admin',       facultyAdminRoutes);
 app.use('/api/faculty/me',          facultyProfileRoutes);   // faculty profile (GET/PUT /me)
 app.use('/api/faculty/public',      facultyPublicRoutes);    // public directory (was /api/profile)
-app.use('/api/faculty/upload',      facultyUploadRoutes);    // file uploads
+app.use('/api/faculty',      facultyUploadRoutes);    // file uploads
 app.use('/api/faculty/departments', facultyDeptRoutes);
 app.use('/api/faculty/vc',          facultyVcRoutes);
 app.use('/api/faculty/hod',         facultyHodRoutes);
