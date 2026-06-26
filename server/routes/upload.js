@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -6,7 +6,7 @@ const fs = require('fs');
 const router = express.Router();
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), 'uploads', 'photos');
+const uploadsDir = path.join(__dirname, '..', 'uploads', 'photos');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -82,8 +82,6 @@ router.post('/profile-picture', upload.single('profilePicture'), (req, res) => {
 });
 
 // Serve uploaded files
-router.use('/uploads/photos', express.static(path.join(process.cwd(), 'uploads', 'photos')));
+router.use('/uploads/photos', express.static(path.join(__dirname, '..', 'uploads', 'photos')));
 
 module.exports = router;
-
-

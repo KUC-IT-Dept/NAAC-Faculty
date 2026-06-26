@@ -8,7 +8,9 @@ const StudentProfile = require('../models/StudentProfile');
 const register = async (req, res) => {
   try {
     const data = req.body;
-    const existingUser = await User.findOne({ $or: [{ email: data.email }, { phone: data.phone }] });
+    let orConditions = [{ email: data.email }];
+    if (data.phone) orConditions.push({ phone: data.phone });
+    const existingUser = await User.findOne({ $or: orConditions });
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await User.create({

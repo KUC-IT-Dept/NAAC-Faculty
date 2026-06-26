@@ -63,7 +63,7 @@ function calcCompletion(f) {
 }
 
 // GET /api/faculty/me
-router.get('/', facultyOnly, async (req, res) => {
+router.get('/me', facultyOnly, async (req, res) => {
   try {
     let faculty = await Faculty.findOne({ userId: req.user._id });
     if (!faculty) faculty = await Faculty.create({ userId: req.user._id, username: req.user.username });
@@ -72,7 +72,7 @@ router.get('/', facultyOnly, async (req, res) => {
 });
 
 // PUT /api/faculty/me
-router.put('/', facultyOnly, async (req, res) => {
+router.put('/me', facultyOnly, async (req, res) => {
   try {
     const allowed = [
       'personalInfo', 'qualifications', 'eligibilityTests', 'employmentDetails',
@@ -102,7 +102,7 @@ router.put('/', facultyOnly, async (req, res) => {
 });
 
 // PATCH /api/faculty/me/visibility
-router.patch('/visibility', facultyOnly, async (req, res) => {
+router.patch('/me/visibility', facultyOnly, async (req, res) => {
   try {
     const faculty = await Faculty.findOne({ userId: req.user._id });
     if (!faculty) return res.status(404).json({ message: 'Profile not found' });
@@ -175,5 +175,3 @@ router.patch('/requests/:id/dismiss', facultyOnly, async (req, res) => {
 });
 
 module.exports = router;
-
-

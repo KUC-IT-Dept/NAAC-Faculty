@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const Department = require('../models/Department');
 const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
+const StudentProfile = require('../../student/models/StudentProfile');
 const { auth, adminOrVc } = require('../middleware/auth');
 
 const router = express.Router();
@@ -12,42 +13,41 @@ router.use(auth);
 router.get('/', async (req, res) => {
   try {
     const departments = await Department.find()
-      .populate('hod', 'name username email')
+      .populate('hod', 'username email name')
       .sort({ name: 1 });
-    
-    // For each department, find the faculty count
-    const deptsWithStats = await Promise.all(departments.map(async (dept) => {
-      const facultyCount = await Faculty.countDocuments({ 'employmentDetails.department': dept.name });
-      let studentCount = 0;
-      try {
-        const StudentProfile = require('../../student/models/StudentProfile');
-        studentCount = await StudentProfile.countDocuments({ 'academic_details.department': dept.name });
-      } catch (e) {
-        studentCount = 0;
-      }
       
-      let hodName = 'No HOD Assigned';
-      if (dept.hod) {
-        const hodProfile = await Faculty.findOne({ userId: dept.hod._id }).select('personalInfo.fullName');
-        if (hodProfile && hodProfile.personalInfo?.fullName) {
-          hodName = hodProfile.personalInfo.fullName;
-        } else if (dept.hod.name) {
-          hodName = dept.hod.name;
-        } else {
-          hodName = dept.hod.username || 'No HOD';
-        }
-      }
-      
-      return {
-        ...dept.toObject(),
-        facultyCount,
-        hodName,
-        studentCount
-      };
-    }));
+    const deptNames = departments.map(d => d.name);
     
-    res.json(deptsWithStats);
+    // Count faculty profiles
+    const facultyProfiles = await Faculty.find({ 'employmentDetails.department': { $in: deptNames } }).select('employmentDetails.department');
+    const facultyCountMap = {};
+    facultyProfiles.forEach(p => {
+      const dept = p.employmentDetails?.department;
+      if (dept) {
+        facultyCountMap[dept] = (facultyCountMap[dept] || 0) + 1;
+      }
+    });
+
+    // Count students
+    const studentProfiles = await StudentProfile.find({ 'academic_details.department': { $in: deptNames } }).select('academic_details.department');
+    const studentCountMap = {};
+    studentProfiles.forEach(s => {
+      const dept = s.academic_details?.department;
+      if (dept) {
+        studentCountMap[dept] = (studentCountMap[dept] || 0) + 1;
+      }
+    });
+
+    const enriched = departments.map(d => {
+      const obj = d.toObject();
+      obj.facultyCount = facultyCountMap[d.name] || 0;
+      obj.studentCount = studentCountMap[d.name] || 0;
+      return obj;
+    });
+
+    res.json(enriched);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -58,9 +58,9 @@ router.get('/:name/faculty', async (req, res) => {
     console.log(`[DEBUG] Fetching faculty for department: "${req.params.name}"`);
     const profiles = await Faculty.find({ 'employmentDetails.department': req.params.name })
       .select('userId username personalInfo.fullName personalInfo.designation personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
-
+    
     console.log(`[DEBUG] Found ${profiles.length} profiles for department "${req.params.name}"`);
-
+    
     const userIds = profiles.map(p => p.userId);
     const users = await User.find({ _id: { $in: userIds }, role: { $in: ['faculty', 'hod'] } }).select('-password').sort({ createdAt: -1 });
 
@@ -75,268 +75,10 @@ router.get('/:name/faculty', async (req, res) => {
   }
 });
 
-// GET /api/departments/:name/overview
-router.get('/:name/overview', async (req, res) => {
-  try {
-    const deptName = req.params.name.trim();
-    const department = await Department.findOne({ name: deptName })
-      .populate('hod', 'name username email');
-      
-    if (!department) {
-      return res.status(404).json({ message: 'Department not found' });
-    }
-
-    // 1. Fetch HOD profile if available
-    let hodName = 'No HOD Assigned';
-    if (department.hod) {
-      const hodProfile = await Faculty.findOne({ userId: department.hod._id }).select('personalInfo.fullName');
-      if (hodProfile && hodProfile.personalInfo?.fullName) {
-        hodName = hodProfile.personalInfo.fullName;
-      } else if (department.hod.name) {
-        hodName = department.hod.name;
-      } else {
-        hodName = department.hod.username || 'No HOD';
-      }
-    }
-
-    // 2. Fetch all faculty profiles in this department
-    const facultyProfiles = await Faculty.find({ 'employmentDetails.department': deptName });
-    const facultyCount = facultyProfiles.length;
-
-    // 3. Compute stats
-    let totalPublications = 0;
-    let totalProjects = 0;
-    let totalQualifications = 0;
-    let totalAwards = 0;
-    let sumCompletion = 0;
-
-    let scopusPubs = 0;
-    let ugcPubs = 0;
-    let bookChapters = 0;
-    let books = 0;
-
-    facultyProfiles.forEach(profile => {
-      const pubs = profile.publications || [];
-      const projs = profile.projects || [];
-      const quals = profile.qualifications || [];
-      const awds = profile.awards || [];
-
-      totalPublications += pubs.length;
-      totalProjects += projs.length;
-      totalQualifications += quals.length;
-      totalAwards += awds.length;
-      sumCompletion += (profile.completionPercentage || 0);
-
-      pubs.forEach(pub => {
-        const typeLower = (pub.type || '').toLowerCase();
-        const indexedLower = (pub.indexedIn || '').toLowerCase();
-
-        if (indexedLower.includes('scopus')) {
-          scopusPubs++;
-        }
-        if (indexedLower.includes('ugc')) {
-          ugcPubs++;
-        }
-        if (typeLower.includes('chapter')) {
-          bookChapters++;
-        }
-        if (typeLower.includes('book') && !typeLower.includes('chapter')) {
-          books++;
-        }
-      });
-    });
-
-    const avgPublications = facultyCount > 0 ? parseFloat((totalPublications / facultyCount).toFixed(2)) : 0;
-    const profileCompletionRate = facultyCount > 0 ? parseFloat((sumCompletion / facultyCount).toFixed(2)) : 0;
-
-    // 4. Fetch students count matching this department
-    let totalStudents = 0;
-    let ugStudents = 0;
-    let pgStudents = 0;
-    let scholarStudents = 0;
-
-    try {
-      const StudentProfile = require('../../student/models/StudentProfile');
-      totalStudents = await StudentProfile.countDocuments({ 'academic_details.department': deptName });
-      ugStudents = await StudentProfile.countDocuments({ 'academic_details.department': deptName, 'academic_details.programLevel': 'UG' });
-      pgStudents = await StudentProfile.countDocuments({ 'academic_details.department': deptName, 'academic_details.programLevel': 'PG' });
-      scholarStudents = await StudentProfile.countDocuments({ 
-        'academic_details.department': deptName, 
-        'academic_details.programLevel': { $in: ['PhD', 'M.Phil', 'PostDoc'] } 
-      });
-    } catch (e) {
-      console.error('[GET department overview] StudentProfile load/query error', e);
-    }
-
-    // 5. Format faculty list
-    const facultyMembers = facultyProfiles.map(p => ({
-      name: p.personalInfo?.fullName || p.username || 'Faculty',
-      designation: p.employmentDetails?.designation || 'Faculty',
-      completionPercentage: p.completionPercentage || 0
-    }));
-
-    res.json({
-      name: department.name,
-      hodName,
-      stats: {
-        facultyCount,
-        totalPublications,
-        totalProjects,
-        totalQualifications,
-        avgPublications,
-        studentCount: totalStudents
-      },
-      facultyMembers,
-      publications: {
-        total: totalPublications,
-        scopus: scopusPubs,
-        ugc: ugcPubs,
-        bookChapters,
-        books
-      },
-      students: {
-        total: totalStudents,
-        ug: ugStudents,
-        pg: pgStudents,
-        scholars: scholarStudents
-      },
-      performance: {
-        facultyCount,
-        publications: totalPublications,
-        projects: totalProjects,
-        awards: totalAwards,
-        profileCompletionRate
-      }
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /api/departments/:name/publications
-router.get('/:name/publications', async (req, res) => {
-  try {
-    const deptName = req.params.name.trim();
-    const facultyProfiles = await Faculty.find({ 'employmentDetails.department': deptName }).select('personalInfo.fullName publications');
-    const pubs = [];
-    facultyProfiles.forEach(fp => {
-      const owner = fp.personalInfo?.fullName || fp.username || 'Faculty';
-      (fp.publications || []).forEach(p => {
-        pubs.push({
-          title: p.title || '',
-          authors: p.authors || owner,
-          journal: p.journal || '',
-          year: p.year || '',
-          indexedIn: p.indexedIn || '',
-          owner
-        });
-      });
-    });
-    res.json(pubs);
-  } catch (err) {
-    console.error('[GET dept publications] error', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /api/departments/:name/projects
-router.get('/:name/projects', async (req, res) => {
-  try {
-    const deptName = req.params.name.trim();
-    const facultyProfiles = await Faculty.find({ 'employmentDetails.department': deptName }).select('personalInfo.fullName projects');
-    const projs = [];
-    facultyProfiles.forEach(fp => {
-      const owner = fp.personalInfo?.fullName || fp.username || 'Faculty';
-      (fp.projects || []).forEach(p => {
-        projs.push({
-          title: p.title || '',
-          principalInvestigator: p.role === 'PI' || p.role === 'Principal Investigator' ? owner : (p.principalInvestigator || owner),
-          fundingAgency: p.fundingAgency || '',
-          status: p.status || '',
-          owner
-        });
-      });
-    });
-    res.json(projs);
-  } catch (err) {
-    console.error('[GET dept projects] error', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /api/departments/:name/qualifications
-router.get('/:name/qualifications', async (req, res) => {
-  try {
-    const deptName = req.params.name.trim();
-    const facultyProfiles = await Faculty.find({ 'employmentDetails.department': deptName }).select('personalInfo.fullName qualifications');
-    const quals = [];
-    facultyProfiles.forEach(fp => {
-      const owner = fp.personalInfo?.fullName || fp.username || 'Faculty';
-      (fp.qualifications || []).forEach(q => {
-        quals.push({
-          facultyName: owner,
-          degree: q.degreeName || q.degreeLevel || '',
-          specialization: q.specialization || '',
-          university: q.university || q.boardUniversity || ''
-        });
-      });
-    });
-    res.json(quals);
-  } catch (err) {
-    console.error('[GET dept qualifications] error', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /api/departments/:name/publication-analytics
-router.get('/:name/publication-analytics', async (req, res) => {
-  try {
-    const deptName = req.params.name.trim();
-    const facultyProfiles = await Faculty.find({ 'employmentDetails.department': deptName }).select('personalInfo.fullName publications');
-    const perFaculty = facultyProfiles.map(fp => ({
-      name: fp.personalInfo?.fullName || fp.username || 'Faculty',
-      count: (fp.publications || []).length
-    }));
-    const total = perFaculty.reduce((s, f) => s + f.count, 0);
-    const avg = perFaculty.length > 0 ? parseFloat((total / perFaculty.length).toFixed(2)) : 0;
-    const sorted = [...perFaculty].sort((a, b) => b.count - a.count);
-    res.json({ total, avg, perFaculty: sorted, topContributors: sorted.slice(0, 5) });
-  } catch (err) {
-    console.error('[GET publication analytics] error', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /api/departments/:name/achievements
-router.get('/:name/achievements', async (req, res) => {
-  try {
-    const deptName = req.params.name.trim();
-    const facultyProfiles = await Faculty.find({ 'employmentDetails.department': deptName }).select('personalInfo.fullName awards');
-    const awds = [];
-    facultyProfiles.forEach(fp => {
-      const owner = fp.personalInfo?.fullName || fp.username || 'Faculty';
-      (fp.awards || []).forEach(a => {
-        awds.push({
-          title: a.name || '',
-          awardingAgency: a.awardingAgency || '',
-          year: a.yearReceived || a.dateOfAward || '',
-          faculty: owner
-        });
-      });
-    });
-    res.json(awds);
-  } catch (err) {
-    console.error('[GET dept achievements] error', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 // POST /api/departments
 router.post('/', adminOrVc, async (req, res) => {
   try {
-    const { name, hodEmail } = req.body;
+    const { name, hodEmail, hodFullName } = req.body;
     if (!name || !hodEmail) {
       return res.status(400).json({ message: 'Department name and HOD email are required' });
     }
@@ -363,7 +105,7 @@ router.post('/', adminOrVc, async (req, res) => {
     // Create HOD User
     const hashedPassword = await bcrypt.hash('password123', 12);
     const hodUser = await User.create({
-      name: username,
+      name: hodFullName || username,
       username,
       email,
       password: hashedPassword,
@@ -372,10 +114,11 @@ router.post('/', adminOrVc, async (req, res) => {
     });
 
     // Create Faculty Profile for HOD
+    const adminFullName = hodFullName ? `temp--${hodFullName}` : '';
     await Faculty.create({
       userId: hodUser._id,
       username: hodUser.username,
-      personalInfo: { fullName: '', officialEmail: email },
+      personalInfo: { fullName: adminFullName, officialEmail: email },
       employmentDetails: { department: name.trim(), designation: 'HOD' },
     });
 
@@ -401,11 +144,8 @@ router.post('/', adminOrVc, async (req, res) => {
 // DELETE /api/departments/:id
 router.delete('/:id', adminOrVc, async (req, res) => {
   try {
-    const department = await Department.findById(req.params.id);
-    if (!department) {
-      return res.status(404).json({ message: 'Department not found' });
-    }
-    await Department.findByIdAndDelete(req.params.id);
+    const dept = await Department.findByIdAndDelete(req.params.id);
+    if (!dept) return res.status(404).json({ message: 'Department not found' });
     res.json({ message: 'Department deleted successfully' });
   } catch (err) {
     console.error(err);
@@ -413,30 +153,47 @@ router.delete('/:id', adminOrVc, async (req, res) => {
   }
 });
 
-// PUT /api/departments/:id
-router.put('/:id', adminOrVc, async (req, res) => {
+// GET /api/departments/:name/overview
+router.get('/:name/overview', async (req, res) => {
   try {
-    const { name } = req.body;
-    if (!name) {
-      return res.status(400).json({ message: 'Department name is required' });
-    }
+    const departmentName = req.params.name;
+    const department = await Department.findOne({ name: departmentName }).populate('hod', 'username email name');
+    
+    if (!department) return res.status(404).json({ message: 'Department not found' });
+    
+    const profiles = await Faculty.find({ 'employmentDetails.department': departmentName })
+      .select('userId personalInfo.fullName personalInfo.designation employmentDetails.designation profileComplete completionPercentage publications projects subjects');
+      
+    const userIds = profiles.map(p => p.userId);
+    const users = await User.find({ _id: { $in: userIds }, role: { $in: ['faculty', 'hod'] } });
+    const students = await StudentProfile.countDocuments({ 'academic_details.department': departmentName });
 
-    const existingDept = await Department.findOne({ name: name.trim(), _id: { $ne: req.params.id } });
-    if (existingDept) {
-      return res.status(409).json({ message: 'Department with this name already exists' });
-    }
-
-    const department = await Department.findByIdAndUpdate(
-      req.params.id,
-      { name: name.trim() },
-      { new: true }
-    );
-
-    if (!department) {
-      return res.status(404).json({ message: 'Department not found' });
-    }
-
-    res.json({ message: 'Department updated successfully', department });
+    let totalPublications = 0;
+    let totalProjects = 0;
+    
+    const facultyMembers = profiles.map(p => {
+      totalPublications += p.publications ? p.publications.length : 0;
+      totalProjects += p.projects ? p.projects.length : 0;
+      
+      const user = users.find(u => u._id.toString() === p.userId.toString());
+      return {
+        name: p.personalInfo?.fullName || user?.username || 'Unknown',
+        designation: p.employmentDetails?.designation || p.personalInfo?.designation || 'Faculty',
+        completionPercentage: p.completionPercentage || 0
+      };
+    });
+    
+    res.json({
+      name: department.name,
+      hodName: department.hod ? (department.hod.name || department.hod.username) : 'No HOD Assigned',
+      stats: {
+        facultyCount: facultyMembers.length,
+        studentCount: students,
+        totalPublications,
+        totalProjects,
+      },
+      facultyMembers
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

@@ -12,7 +12,7 @@ const CreateOrUpdate = async (req, res) => {
   try {
     if (req.user.role !== 'student') return res.status(403).json({ message: 'Only students allowed' });
     const userId = req.user._id;
-    const jsonSections = ['academic_details','personal_details','contact_details','health_details','family_details','financial_details','professional_details','residential_details','education_details'];
+    const jsonSections = ['academic_details', 'personal_details', 'contact_details', 'health_details', 'family_details', 'financial_details', 'professional_details', 'residential_details', 'education_details'];
     jsonSections.forEach((section) => {
       if (body[section] && typeof body[section] === 'string') {
         try { body[section] = JSON.parse(body[section]); } catch { /* ignore */ }
@@ -38,7 +38,7 @@ const CreateOrUpdate = async (req, res) => {
     if (Object.keys(errors).length > 0) return res.status(400).json({ message: 'Duplicate fields', errors });
 
     let updateData = {};
-    const sections = ['academic_details','personal_details','contact_details','health_details','family_details','financial_details','professional_details','residential_details'];
+    const sections = ['academic_details', 'personal_details', 'contact_details', 'health_details', 'family_details', 'financial_details', 'professional_details', 'residential_details'];
     sections.forEach((section) => {
       if (body[section]) {
         for (let key in body[section]) {
@@ -49,13 +49,13 @@ const CreateOrUpdate = async (req, res) => {
       }
     });
     const fileFieldMap = {
-      fellowshipLetter:'academic_details.fellowshipLetter', passportDoc:'personal_details.passportDoc', visaDoc:'personal_details.visaDoc',
-      birthCertificateDoc:'personal_details.birthCertificateDoc', disabilityCertificate:'health_details.disabilityCertificate',
-      vaccinationDoc:'health_details.vaccinationDoc', migrationUrl:'education_details.migrationUrl',
-      feeWaiveDocument:'financial_details.feeWaiveUrl.document', hostelDeclarationForm:'residential_details.hostelDeclarationForm',
-      profilePhoto:'documents.profilePhoto', signature:'documents.signature', identityProof:'documents.identityProof.document',
-      incomeCertificate:'documents.legalCertificates.incomeCertificate', casteCertificate:'documents.legalCertificates.casteCertificate',
-      nonCreamyLayerCertificate:'documents.legalCertificates.nonCreamyLayerCertificate', nativityCertificate:'documents.legalCertificates.nativityCertificate'
+      fellowshipLetter: 'academic_details.fellowshipLetter', passportDoc: 'personal_details.passportDoc', visaDoc: 'personal_details.visaDoc',
+      birthCertificateDoc: 'personal_details.birthCertificateDoc', disabilityCertificate: 'health_details.disabilityCertificate',
+      vaccinationDoc: 'health_details.vaccinationDoc', migrationUrl: 'education_details.migrationUrl',
+      feeWaiveDocument: 'financial_details.feeWaiveUrl.document', hostelDeclarationForm: 'residential_details.hostelDeclarationForm',
+      profilePhoto: 'documents.profilePhoto', signature: 'documents.signature', identityProof: 'documents.identityProof.document',
+      incomeCertificate: 'documents.legalCertificates.incomeCertificate', casteCertificate: 'documents.legalCertificates.casteCertificate',
+      nonCreamyLayerCertificate: 'documents.legalCertificates.nonCreamyLayerCertificate', nativityCertificate: 'documents.legalCertificates.nativityCertificate'
     };
     Object.keys(fileFieldMap).forEach((field) => {
       if (files[field]) updateData[fileFieldMap[field]] = { url: files[field][0].path, name: files[field][0].originalname };
@@ -181,46 +181,63 @@ const rejectRequest = async (req, res) => {
   } catch (error) { return res.status(500).json({ message: error.message }); }
 };
 
-const updateStudentByAdmin = async (req, res) => {
+const updateStudentAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const { department, tutorName } = req.body;
-    
-    const profile = await StudentProfile.findById(id);
-    if (!profile) return res.status(404).json({ message: 'Student not found' });
-    
-    if (department) {
-      profile.academic_details = profile.academic_details || {};
-      profile.academic_details.department = department;
+    const role = (req.user.role || '').toLowerCase();
+    if (!['admin', 'superadmin', 'vc', 'hod'].includes(role)) {
+      return res.status(403).json({ message: `Not authorized to update students. Your role: ${req.user.role}` });
     }
-    if (tutorName) {
-      profile.mentor_details = profile.mentor_details || {};
-      profile.mentor_details.tutorName = tutorName;
+    const { department, tutorName, tutorEmail } = req.body;
+    let profile = await StudentProfile.findById(id);
+    if (!profile) {
+      profile = await StudentProfile.findOne({ userId: id });
     }
-    
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+
+    if (department) profile.academic_details.department = department;
+    if (tutorName || tutorEmail) {
+      if (!profile.mentor_details) profile.mentor_details = {};
+      if (tutorName) profile.mentor_details.tutorName = tutorName;
+      if (tutorEmail) profile.mentor_details.tutorEmail = tutorEmail;
+    }
+
     await profile.save();
-    return res.json({ success: true, message: 'Student updated successfully' });
+    return res.status(200).json({ message: 'Student updated successfully' });
   } catch (error) {
+    console.error('[updateStudentAdmin]', error);
     return res.status(500).json({ message: error.message });
   }
 };
 
-const deleteStudentByAdmin = async (req, res) => {
+const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const profile = await StudentProfile.findById(id);
-    if (!profile) return res.status(404).json({ message: 'Student not found' });
-    
-    const userId = profile.userId;
-    await StudentProfile.findByIdAndDelete(id);
-    if (userId) {
-      await User.findByIdAndDelete(userId);
+    const role = (req.user.role || '').toLowerCase();
+    console.log('[deleteStudent] user role:', role, 'payload:', req.user);
+    if (!['admin', 'superadmin', 'vc', 'hod'].includes(role)) {
+      return res.status(403).json({ message: `Not authorized to delete students. Your role: ${req.user.role}` });
+    }
+    let profile = await StudentProfile.findById(id);
+    if (!profile) {
+      profile = await StudentProfile.findOne({ userId: id });
     }
     
-    return res.json({ success: true, message: 'Student deleted successfully' });
+    if (!profile) {
+      // fallback in case there's a User but no profile
+      const user = await User.findByIdAndDelete(id);
+      if (!user) return res.status(404).json({ message: 'Student not found' });
+      return res.status(200).json({ message: 'Student deleted successfully (no profile)' });
+    }
+    
+    await User.findByIdAndDelete(profile.userId);
+    await StudentProfile.findByIdAndDelete(profile._id);
+    
+    return res.status(200).json({ message: 'Student deleted successfully' });
   } catch (error) {
+    console.error('[deleteStudent]', error);
     return res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { CreateOrUpdate, getStudentProfile, getAllStudents, getStudentsByDepartment, getMyRequests, getPendingRequests, getRequestById, approveRequest, rejectRequest, updateStudentByAdmin, deleteStudentByAdmin };
+module.exports = { CreateOrUpdate, getStudentProfile, getAllStudents, getStudentsByDepartment, getMyRequests, getPendingRequests, getRequestById, approveRequest, rejectRequest, deleteStudent, updateStudentAdmin };

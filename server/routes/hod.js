@@ -1,10 +1,9 @@
 const express = require('express');
-const User = require('../../../auth/models/User.model');
+const User = require('../models/User');
 const Faculty = require('../models/Faculty');
 const OptionRequest = require('../models/OptionRequest');
 const Department = require('../models/Department');
 const { auth, hodOnly } = require('../middleware/auth');
-const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 router.use(auth, hodOnly);
@@ -60,14 +59,13 @@ router.post('/faculty', async (req, res) => {
       username = `${baseUsername}${counter++}`;
     }
 
-    const hashedPassword = await bcrypt.hash('password123', 12);
     const user = await User.create({
-      name: fullName || username,
       username,
       email: email.trim().toLowerCase(),
-      password: hashedPassword,
+      password: 'password123',
       role: 'faculty',
       isFirstLogin: true,
+      createdBy: req.user._id,
     });
 
     const adminFullName = fullName ? `temp--${fullName}` : '';
@@ -192,5 +190,3 @@ router.patch('/option-requests/:id/reject', async (req, res) => {
 
 
 module.exports = router;
-
-

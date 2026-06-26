@@ -365,7 +365,10 @@ export default function AdminDashboard() {
       const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
       await axios.put(`${backendBase}/api/student/${editStudentForm.id}`, {
         department: editStudentForm.department,
-        tutorName: editStudentForm.tutorName
+        tutorName: editStudentForm.tutorName,
+        tutorEmail: editStudentForm.tutorEmail
+      }, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('iqac_token')}` }
       });
       toast.success('Student updated successfully');
       setShowEditStudentModal(false);
@@ -381,7 +384,9 @@ export default function AdminDashboard() {
     if (!window.confirm(`Are you sure you want to delete the student "${name}"? This action cannot be undone.`)) return;
     try {
       const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
-      await axios.delete(`${backendBase}/api/student/${id}`);
+      await axios.delete(`${backendBase}/api/student/${id}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('iqac_token')}` }
+      });
       toast.success('Student deleted successfully');
       fetchStudents();
     } catch (err: any) {

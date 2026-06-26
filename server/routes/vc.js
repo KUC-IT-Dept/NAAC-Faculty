@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../../../auth/models/User.model');
+const User = require('../models/User');
 const Faculty = require('../models/Faculty');
 const Department = require('../models/Department');
 const { auth, vcOnly } = require('../middleware/auth');
@@ -7,46 +7,8 @@ const { auth, vcOnly } = require('../middleware/auth');
 const router = express.Router();
 router.use(auth, vcOnly);
 
-// GET /api/vc/stats
-// Dashboard statistics
-router.get('/stats', async (req, res) => {
-  try {
-    const totalFaculty = await User.countDocuments({ role: { $in: ['faculty', 'hod'] } });
-    const totalDepartments = await Department.countDocuments();
-    const facultyProfiles = await Faculty.countDocuments({ profileComplete: true });
-    const totalStudents = await User.countDocuments({ role: 'student' });
-    const activeUsers = await User.countDocuments({ isActive: true });
-    
-    const aggregates = await Faculty.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalPublications: { $sum: { $size: { $ifNull: ["$publications", []] } } },
-          totalProjects: { $sum: { $size: { $ifNull: ["$projects", []] } } },
-          totalAwards: { $sum: { $size: { $ifNull: ["$awards", []] } } }
-        }
-      }
-    ]);
-    
-    const counts = aggregates[0] || { totalPublications: 0, totalProjects: 0, totalAwards: 0 };
-    
-    res.json({
-      totalFaculty,
-      totalDepartments,
-      facultyProfiles,
-      totalStudents,
-      totalPublications: counts.totalPublications,
-      totalProjects: counts.totalProjects,
-      totalAwards: counts.totalAwards,
-      activeUsers
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 // GET /api/vc/faculty
+// Get all faculty for the hierarchy builder
 router.get('/faculty', async (req, res) => {
   try {
     const users = await User.find({ role: { $in: ['faculty', 'hod'] } }).select('-password').sort({ createdAt: -1 });
@@ -88,5 +50,3 @@ router.get('/hierarchy', async (req, res) => {
 // Note: /api/departments handles adding new departments.
 
 module.exports = router;
-
-

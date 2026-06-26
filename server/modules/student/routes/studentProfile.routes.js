@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/middlewares.auth');
 const upload = require('../configs/multer');
-const { CreateOrUpdate, getStudentProfile, getStudentsByDepartment, getMyRequests, getPendingRequests, getRequestById, approveRequest, rejectRequest, getAllStudents, updateStudentByAdmin, deleteStudentByAdmin } = require('../controllers/studentProfile.controller');
+const { CreateOrUpdate, getStudentProfile, getStudentsByDepartment, getMyRequests, getPendingRequests, getRequestById, approveRequest, rejectRequest, getAllStudents, deleteStudent, updateStudentAdmin } = require('../controllers/studentProfile.controller');
 
 router.post('/profile', authMiddleware, upload.fields([
   { name: 'fellowshipLetter', maxCount: 1 }, { name: 'passportDoc', maxCount: 1 },
@@ -28,9 +28,7 @@ router.get('/my-requests/:id', authMiddleware, getRequestById);
 router.get('/requests/pending', authMiddleware, getPendingRequests);
 router.post('/requests/:id/approve', authMiddleware, approveRequest);
 router.post('/requests/:id/reject', authMiddleware, rejectRequest);
-
-// Admin Student Routes (No strict auth middleware here to align with frontend fetch behavior, but ideally should be secured)
-router.put('/:id', updateStudentByAdmin);
-router.delete('/:id', deleteStudentByAdmin);
+router.delete('/:id', authMiddleware, deleteStudent);
+router.put('/:id', authMiddleware, updateStudentAdmin);
 
 module.exports = router;

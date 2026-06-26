@@ -1,6 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const User = require('../../../auth/models/User.model');
+const User = require('../models/User');
 const Faculty = require('../models/Faculty');
 const DropdownConfig = require('../models/DropdownConfig');
 const OptionRequest = require('../models/OptionRequest');
@@ -19,10 +18,10 @@ router.get('/faculty', async (req, res) => {
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.userId.toString()] = p; });
     res.json(users.map(u => ({ ...u.toObject(), profile: profileMap[u._id.toString()] || null })));
-  } catch (err) { console.error('[GET /admin/faculty]', err); res.status(500).json({ message: 'Server error' }); }
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
-// POST /api/admin/faculty â€” create faculty (email + optional fullName, password defaults to password123)
+// POST /api/admin/faculty — create faculty (email + optional fullName, password defaults to password123)
 router.post('/faculty', async (req, res) => {
   try {
     const { email, fullName } = req.body;
@@ -39,14 +38,13 @@ router.post('/faculty', async (req, res) => {
       username = `${baseUsername}${counter++}`;
     }
 
-    const hashedPassword = await bcrypt.hash('password123', 12);
     const user = await User.create({
-      name: fullName || username,
       username,
       email: email.trim().toLowerCase(),
-      password: hashedPassword,
+      password: 'password123',
       role: 'faculty',
       isFirstLogin: true,
+      createdBy: req.user._id,
     });
 
     const adminFullName = fullName ? `temp--${fullName}` : '';
@@ -344,5 +342,3 @@ router.patch('/option-requests/:id/undo', async (req, res) => {
 });
 
 module.exports = router;
-
-

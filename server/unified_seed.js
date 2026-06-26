@@ -39,7 +39,7 @@ function parseCSVLine(line) {
 
 async function seedInstitutions() {
   try {
-    
+
     const csvPath = path.resolve(__dirname, '../world-universities.csv');
     const institutionsSet = new Set();
 
@@ -83,7 +83,7 @@ async function seedInstitutions() {
     }
 
     const options = Array.from(institutionsSet).sort();
-    
+
     await DropdownConfig.findOneAndUpdate(
       { key: 'institutions' },
       { options },
@@ -295,7 +295,7 @@ const sectionsData = [
 
 async function seedSectionConfigs() {
   try {
-    
+
     let inserted = 0;
     let updated = 0;
 
@@ -398,7 +398,7 @@ const FACULTIES = [
 
 async function seedDepartmentsHodsFaculties() {
   try {
-    
+
     // 1. Flush Database
     console.log('🗑️  Flushing old faculty, HODs, and departments...');
     await User.deleteMany({ role: { $nin: ['superadmin', 'vc'] } });
@@ -500,7 +500,7 @@ async function seedDepartmentsHodsFaculties() {
 // ==========================================
 const seedProfiles = async () => {
   try {
-    
+
     const username1 = 'dr_john_doe';
     const email1 = 'john.doe@university.edu';
 
@@ -1368,13 +1368,7 @@ async function getAvailableUsername(username, userId = null) {
 
 async function seedDemoUsers() {
   try {
-    console.log("🌱 Starting unified database seeding...");
-
-    if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI not found in .env");
-    }
-
-    
+    console.log("🌱 Creating demo users and profiles...");
     let created = 0;
     let updated = 0;
 
@@ -1475,7 +1469,7 @@ async function seedDemoUsers() {
   } catch (err) {
     console.error("❌ Seeding failed:", err.message);
     console.error(err.stack);
-  } 
+  }
 }
 
 
@@ -1654,7 +1648,7 @@ const defaults = {
 async function seedDropdowns() {
   try {
     const FORCE = process.argv.includes('--force');
-        console.log(FORCE ? '⚠️  --force flag detected: ALL keys will be overwritten' : 'ℹ️  Safe mode: only inserting missing keys');
+    console.log(FORCE ? '⚠️  --force flag detected: ALL keys will be overwritten' : 'ℹ️  Safe mode: only inserting missing keys');
     console.log('');
 
     let inserted = 0;

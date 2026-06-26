@@ -1,21 +1,6 @@
-/**
- * seedProfiles.js
- *
- * Seeds form-aligned profile data for all users in the database.
- * - Safe to re-run (upserts by user id)
- * - Creates reusable placeholder upload assets (PDF + PNG)
- *
- * Usage:
- *   node seedProfiles.js
- */
 
-const fs = require('fs');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
-
-const mongoose = require('mongoose');
-const User = require('./models/User');
-const Profile = require('./models/Profile');
+const fs = require("fs");
+const path = require("path");
 
 const UPLOAD_SUBDIR = 'seed';
 const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads', UPLOAD_SUBDIR);
@@ -55,7 +40,7 @@ const TINY_PDF_TEXT = [
 ].join('\n');
 
 const SUBJECTS_BY_DEPARTMENT = {
-  'Department Of Information Technology': [
+  'Computer Science': [
     'Data Structures',
     'Operating Systems',
     'Cloud Computing',
@@ -65,7 +50,7 @@ const SUBJECTS_BY_DEPARTMENT = {
     'DBMS',
     'Computer Networks',
   ],
-  'Department of Physics': [
+  Physics: [
     'Quantum Mechanics',
     'Electromagnetism',
     'Statistical Mechanics',
@@ -645,54 +630,117 @@ function buildProfileForUser(user) {
   };
 }
 
-async function seedProfiles() {
-  await mongoose.connect(process.env.MONGO_URI);
-  ensureUploadDir();
 
-  console.log('Connected to MongoDB');
-  const users = await User.find({}).lean();
 
-  if (users.length === 0) {
-    console.error('No users found. Run seed.js first.');
-    process.exit(1);
-  }
+module.exports = {
+  buildProfileForUser
+};
 
-  let created = 0;
-  let updated = 0;
-
-  for (const user of users) {
-    const profileData = buildProfileForUser(user);
-    const existing = await Profile.findOne({ user: user._id });
-
-    if (existing) {
-      await Profile.findOneAndUpdate(
-        { user: user._id },
-        { $set: profileData },
-        { runValidators: true }
-      );
-      updated += 1;
-      console.log(`Updated profile: ${user.email}`);
-    } else {
-      await Profile.create({ user: user._id, ...profileData });
-      created += 1;
-      console.log(`Created profile: ${user.email}`);
+function generateFacultyData(user) {
+  const profile = buildProfileForUser(user);
+  return {
+    userId: user._id,
+    username: user.username,
+    profileComplete: true,
+    completionPercentage: 100,
+    personalInfo: {
+      fullName: user.name,
+      dateOfBirth: profile.dob,
+      gender: profile.gender,
+      bloodGroup: profile.bloodGroup,
+      nationality: profile.nationality,
+      permanentAddress: profile.permanentAddress,
+      currentAddress: profile.currentAddress,
+      mobilePersonal: profile.mobileNumber,
+      alternatePhone: profile.alternatePhone,
+      officialEmail: profile.officialEmail,
+      personalEmail: profile.personalEmail,
+      biography: profile.bio,
+      professionalHeadline: profile.headline,
+      subjects: profile.subjects?.join(', ') || '',
+      interests: profile.interests?.join(', ') || '',
+      aadhaarNumber: profile.aadhaar,
+      passportNumber: profile.passport,
+      panNumber: profile.panNumber,
+      religion: profile.religion,
+      category: profile.category,
+      maritalStatus: profile.maritalStatus,
+      photoUrl: profile.photo
+    },
+    qualifications: profile.qualifications?.map(q => ({
+      degreeLevel: q.educationlevel,
+      degreeName: q.degree,
+      specialization: q.specialisation,
+      institution: q.institution,
+      university: q.university,
+      yearOfPassing: q.yearofpassing,
+      percentageCGPA: q.cgpa,
+      division: q.division,
+      mode: q.mode,
+      country: q.country,
+      state: q.state
+    })) || [],
+    eligibilityTests: [
+      ...(profile.entranceTests?.net?.year ? [{ examName: 'NET', subject: profile.entranceTests.net.subject, year: profile.entranceTests.net.year, certificateNo: profile.entranceTests.net.certificateNo }] : []),
+      ...(profile.entranceTests?.gate?.year ? [{ examName: 'GATE', score: profile.entranceTests.gate.score, year: profile.entranceTests.gate.year }] : [])
+    ],
+    employmentDetails: {
+      employeeId: profile.professionalDetails?.employeeId,
+      designation: profile.professionalDetails?.designation,
+      department: profile.professionalDetails?.department,
+      institution: profile.professionalDetails?.institutionName,
+      affiliatedUniversity: profile.professionalDetails?.affiliatedUniversity,
+      dateOfAppointment: profile.professionalDetails?.dateOfJoining,
+      natureOfAppointment: profile.professionalDetails?.natureOfAppointment,
+      scaleOfPay: profile.professionalDetails?.payBand
+    },
+    workExperience: profile.workExperiences?.map(w => ({
+      organization: w.institutionName,
+      designation: w.designation,
+      from: w.fromDate,
+      to: w.toDate,
+      department: w.department,
+      natureOfAppointment: w.natureOfAppointment,
+      reasonForLeaving: w.reasonForLeaving
+    })) || [],
+    publications: profile.publications?.map(p => ({
+      type: p.publicationType,
+      title: p.title,
+      authors: p.authors,
+      journal: p.journal,
+      year: p.year,
+      volume: p.volume,
+      issue: p.issue,
+      issn: p.issn,
+      pages: p.pages,
+      doi: p.doi,
+      indexedIn: p.indexedIn,
+      impactFactor: p.impactFactor
+    })) || [],
+    projects: profile.projects?.map(p => ({
+      title: p.title,
+      fundingAgency: p.fundingAgency,
+      amountSanctioned: p.amount,
+      startDate: p.durationFrom,
+      endDate: p.durationTo,
+      status: p.status,
+      role: p.role,
+      referenceNumber: p.referenceNumber
+    })) || [],
+    awards: profile.awards?.map(a => ({
+      name: a.name,
+      awardingAgency: a.awardingBody,
+      level: a.level,
+      yearReceived: a.year
+    })) || [],
+    documents: {
+      photo: profile.documents?.passportPhoto,
+      signature: profile.documents?.signature,
+      aadhar: profile.documents?.aadhaarCard,
+      pan: profile.documents?.panCard,
+      dobProof: profile.documents?.dobProof
     }
-
-    // Keep user avatar in sync with seeded profile photo.
-    await User.findByIdAndUpdate(user._id, { photo: profileData.photo });
-  }
-
-  console.log(`Seeded profiles complete. Created: ${created}, Updated: ${updated}`);
-  await mongoose.disconnect();
-  console.log('Disconnected from MongoDB');
+  };
 }
 
-seedProfiles().catch(async (err) => {
-  console.error('Profile seed failed:', err.message);
-  try {
-    await mongoose.disconnect();
-  } catch (disconnectErr) {
-    // No-op.
-  }
-  process.exit(1);
-});
+module.exports.generateFacultyData = generateFacultyData;
