@@ -1199,8 +1199,12 @@ tbody tr:last-child td {
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 520px;
+  min-width: 0;
   max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
+  box-sizing: border-box;
   animation: slideUp .25s;
 }
 
@@ -1213,13 +1217,19 @@ tbody tr:last-child td {
 
 .modal-body {
   padding: 18px 24px;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .modal-footer {
+  position: sticky;
+  bottom: 0;
   padding: 0 24px 22px;
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+  background: var(--card);
+  z-index: 1;
 }
 
 /* ── Dynamic list ─────────────────────────────────────────────── */
