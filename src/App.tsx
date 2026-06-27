@@ -11,6 +11,7 @@ import ProfileSetup from './pages/faculty/ProfileSetup';
 import ProfileEdit from './pages/faculty/ProfileEdit';
 import PublicProfile from './pages/PublicProfile';
 import VCDashboard from './pages/vc/VCDashboard';
+import DepartmentDetails from './pages/vc/DepartmentDetails';
 import HODDashboard from './pages/hod/HODDashboard';
 import { loadDropdownOptionsFromServer } from './shared/dropdownOptions';
 import { useEffect } from 'react';
@@ -65,6 +66,7 @@ function AppRoutes() {
       {/* VC */}
       <Route path="/vc" element={<Navigate to="/vc/hierarchy" replace />} />
       <Route path="/vc/:tabId" element={<ProtectedRoute role="vc"><VCDashboard /></ProtectedRoute>} />
+      <Route path="/vc/department/:name" element={<ProtectedRoute role="vc"><DepartmentDetails /></ProtectedRoute>} />
 
       {/* HOD */}
       <Route path="/hod" element={<Navigate to="/hod/hierarchy" replace />} />

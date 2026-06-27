@@ -65,6 +65,28 @@ router.post('/faculty', async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
 });
 
+// PUT /api/admin/faculty/:id/department
+router.put('/faculty/:id/department', async (req, res) => {
+  try {
+    const { department } = req.body;
+    if (!department) return res.status(400).json({ message: 'Department is required' });
+
+    const user = await User.findOne({ _id: req.params.id, role: 'faculty' });
+    if (!user) return res.status(404).json({ message: 'Faculty not found' });
+
+    await Faculty.findOneAndUpdate(
+      { userId: user._id },
+      { $set: { 'employmentDetails.department': department, 'personalInfo.department': department } }
+    );
+
+    res.json({ message: 'Faculty department updated' });
+  } catch (err) {
+    console.error(err);
+    res.sta
+    tus(500).json({ message: 'Server error' });
+  }
+});
+
 // PATCH /api/admin/faculty/:id/status
 router.patch('/faculty/:id/status', async (req, res) => {
   try {

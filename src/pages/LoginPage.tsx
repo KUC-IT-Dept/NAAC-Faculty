@@ -137,7 +137,7 @@ export default function LoginPage() {
             {[
               { label: 'Vice Chancellor', email: 'vc@profcv.edu', pass: 'password123' },
               { label: 'Admin', email: 'admin@profcv.edu', pass: 'password123' },
-              { label: 'HOD (Computer Science)', email: 'hod.cs@university.edu.in', pass: 'password123' },
+              { label: 'HOD (Computer Science)', email: 'hod_it@profcv.edu', pass: 'password123' },
               { label: 'Faculty (Dr. Priya Sharma)', email: 'dr.priya.sharma@university.edu.in', pass: 'password123' },
             ].map(c => (
               <button
