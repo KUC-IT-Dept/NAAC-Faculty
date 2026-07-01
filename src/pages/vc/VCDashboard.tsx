@@ -28,7 +28,8 @@ import {
   Trash2,
   Edit,
   ChevronLeft,
-  UserPlus
+  UserPlus,
+  Calendar
 } from 'lucide-react';
 import axios from 'axios';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -307,6 +308,24 @@ export default function VCDashboard() {
   const [publicationsLoading, setPublicationsLoading] = useState(false);
   const [pubSearchQuery, setPubSearchQuery] = useState('');
   const [pubSortBy, setPubSortBy] = useState('year-desc');
+  const [pubFilterDept, setPubFilterDept] = useState('all');
+  const [pubFilterYear, setPubFilterYear] = useState('all');
+
+  const uniqueDepartments = useMemo(() => {
+    const depts = new Set<string>();
+    publicationsList.forEach(p => {
+      if (p.department) depts.add(p.department);
+    });
+    return Array.from(depts).sort();
+  }, [publicationsList]);
+
+  const uniqueYears = useMemo(() => {
+    const years = new Set<string>();
+    publicationsList.forEach(p => {
+      if (p.year) years.add(String(p.year));
+    });
+    return Array.from(years).sort((a, b) => b.localeCompare(a));
+  }, [publicationsList]);
 
   // Department navigation and overview states
   const [departmentsList, setDepartmentsList] = useState<DeptListItem[]>([]);
@@ -1169,6 +1188,12 @@ export default function VCDashboard() {
   };
   const renderPublicationsTab = () => {
     let filteredPublications = publicationsList.filter(p => {
+      if (pubFilterDept !== 'all' && p.department !== pubFilterDept) {
+        return false;
+      }
+      if (pubFilterYear !== 'all' && String(p.year) !== pubFilterYear) {
+        return false;
+      }
       if (!pubSearchQuery) return true;
       const q = pubSearchQuery.toLowerCase();
       return (
@@ -1199,7 +1224,7 @@ export default function VCDashboard() {
             <p className="text-muted text-sm">Comprehensive list of all publications by university faculty</p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginLeft: 'auto', flexWrap: 'wrap' }}>
-            <div className="relative" style={{ width: '420px', position: 'relative' }}>
+            <div className="relative" style={{ width: '300px', position: 'relative' }}>
               <Search className="absolute text-gray-400" size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               <input
                 type="text"
@@ -1211,8 +1236,40 @@ export default function VCDashboard() {
               />
             </div>
             
+            {/* Department Filter */}
+            <div className="relative" style={{ width: '200px', position: 'relative' }}>
+              <Filter className="absolute text-gray-400" size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <select
+                value={pubFilterDept}
+                onChange={e => setPubFilterDept(e.target.value)}
+                className="form-input"
+                style={{ paddingLeft: '32px', height: '36px', fontSize: '13px', width: '100%', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', paddingRight: '8px', cursor: 'pointer' }}
+              >
+                <option value="all">All Departments</option>
+                {uniqueDepartments.map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Year Filter */}
+            <div className="relative" style={{ width: '130px', position: 'relative' }}>
+              <Calendar className="absolute text-gray-400" size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <select
+                value={pubFilterYear}
+                onChange={e => setPubFilterYear(e.target.value)}
+                className="form-input"
+                style={{ paddingLeft: '32px', height: '36px', fontSize: '13px', width: '100%', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', paddingRight: '8px', cursor: 'pointer' }}
+              >
+                <option value="all">All Years</option>
+                {uniqueYears.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+            
             {/* Sort Dropdown */}
-            <div className="relative" style={{ width: '180px', position: 'relative' }}>
+            <div className="relative" style={{ width: '170px', position: 'relative' }}>
               <Filter className="absolute text-gray-400" size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               <select
                 value={pubSortBy}
