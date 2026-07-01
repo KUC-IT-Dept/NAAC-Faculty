@@ -87,6 +87,35 @@ router.get('/hierarchy', async (req, res) => {
 
 // Note: /api/departments handles adding new departments.
 
+// GET /api/vc/publications
+// Gets all publications across all faculty members
+router.get('/publications', async (req, res) => {
+  try {
+    const publications = await Faculty.aggregate([
+      { $unwind: "$publications" },
+      {
+        $project: {
+          _id: 0,
+          facultyId: "$userId",
+          authorName: { $ifNull: ["$personalInfo.fullName", "$username"] },
+          department: "$employmentDetails.department",
+          title: "$publications.title",
+          type: "$publications.type",
+          authors: "$publications.authors",
+          journal: "$publications.journal",
+          year: "$publications.year",
+          indexedIn: "$publications.indexedIn",
+          documentUrl: "$publications.documentUrl",
+          createdAt: "$publications.createdAt"
+        }
+      },
+      { $sort: { year: -1, title: 1 } }
+    ]);
+    res.json(publications);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
-
-

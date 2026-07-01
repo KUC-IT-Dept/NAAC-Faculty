@@ -296,10 +296,17 @@ export default function VCDashboard() {
   const { tabId } = useParams();
   const activeTab = tabId || 'hierarchy';
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [stats, setStats] = useState<VCStats | null>(null);
   const [now, setNow] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
+
+  // Publications state
+  const [publicationsList, setPublicationsList] = useState<any[]>([]);
+  const [publicationsLoading, setPublicationsLoading] = useState(false);
+  const [pubSearchQuery, setPubSearchQuery] = useState('');
+  const [pubSortBy, setPubSortBy] = useState('year-desc');
 
   // Department navigation and overview states
   const [departmentsList, setDepartmentsList] = useState<DeptListItem[]>([]);
@@ -589,7 +596,7 @@ export default function VCDashboard() {
     { label: 'Faculty Profiles', value: stats?.facultyProfiles ?? '—', icon: <BookOpen size={20} />, color: 'var(--success)', bg: 'rgba(5,150,105,0.06)' },
     ...(stats ? [
       { label: 'Total Students', value: stats.totalStudents, icon: <UsersIcon size={20} />, color: 'var(--navy)', bg: 'rgba(2,6,23,0.05)' },
-      { label: 'Publications', value: stats.totalPublications, icon: <Activity size={18} />, color: 'var(--primary)', bg: 'rgba(15,76,117,0.06)' },
+      { label: 'Publications', value: stats.totalPublications, icon: <Activity size={18} />, color: 'var(--primary)', bg: 'rgba(15,76,117,0.06)', onClick: () => navigate('/vc/publications') },
       { label: 'Projects', value: stats.totalProjects, icon: <LayoutDashboard size={18} />, color: 'var(--accent)', bg: 'rgba(232,160,32,0.06)' },
       { label: 'Awards', value: stats.totalAwards, icon: <Award size={18} />, color: 'var(--success)', bg: 'rgba(5,150,105,0.06)' },
       { label: 'Active Users', value: stats.activeUsers, icon: <User size={18} />, color: 'var(--danger)', bg: 'rgba(229,62,62,0.06)' }
@@ -613,7 +620,26 @@ export default function VCDashboard() {
   };
 
   useEffect(() => { if (activeTab === 'dashboard') fetchDepartments(); }, [activeTab]);
-    const navigate = useNavigate();
+
+  const fetchPublications = async () => {
+    setPublicationsLoading(true);
+    try {
+      const res = await api.get('/vc/publications');
+      setPublicationsList(res.data || []);
+    } catch (err) {
+      console.error('Error fetching publications:', err);
+      toast.error('Failed to load publications');
+    } finally {
+      setPublicationsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'publications') {
+      fetchPublications();
+    }
+  }, [activeTab]);
+
   const renderDeptList = () => {
     return (
       <div className="card">
@@ -1141,6 +1167,155 @@ export default function VCDashboard() {
       </div>
     );
   };
+  const renderPublicationsTab = () => {
+    let filteredPublications = publicationsList.filter(p => {
+      if (!pubSearchQuery) return true;
+      const q = pubSearchQuery.toLowerCase();
+      return (
+        (p.title || '').toLowerCase().includes(q) ||
+        (p.authorName || '').toLowerCase().includes(q) ||
+        (p.department || '').toLowerCase().includes(q) ||
+        (p.journal || '').toLowerCase().includes(q)
+      );
+    });
+
+    filteredPublications.sort((a, b) => {
+      switch (pubSortBy) {
+        case 'year-desc': return (b.year || 0) - (a.year || 0);
+        case 'year-asc': return (a.year || 0) - (b.year || 0);
+        case 'title-asc': return (a.title || '').localeCompare(b.title || '');
+        case 'author-asc': return (a.authorName || '').localeCompare(b.authorName || '');
+        case 'department-asc': return (a.department || '').localeCompare(b.department || '');
+        case 'type-asc': return (a.type || '').localeCompare(b.type || '');
+        default: return 0;
+      }
+    });
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto', paddingBottom: '40px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', padding: '10px 0 6px' }}>
+          <div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)', marginBottom: '4px' }}>University Publications</h2>
+            <p className="text-muted text-sm">Comprehensive list of all publications by university faculty</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginLeft: 'auto', flexWrap: 'wrap' }}>
+            <div className="relative" style={{ width: '420px', position: 'relative' }}>
+              <Search className="absolute text-gray-400" size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                placeholder="Search by title, author, department..."
+                value={pubSearchQuery}
+                onChange={e => setPubSearchQuery(e.target.value)}
+                className="form-input"
+                style={{ paddingLeft: '34px', height: '36px', fontSize: '13px', width: '100%', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px' }}
+              />
+            </div>
+            
+            {/* Sort Dropdown */}
+            <div className="relative" style={{ width: '180px', position: 'relative' }}>
+              <Filter className="absolute text-gray-400" size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <select
+                value={pubSortBy}
+                onChange={e => setPubSortBy(e.target.value)}
+                className="form-input"
+                style={{ paddingLeft: '32px', height: '36px', fontSize: '13px', width: '100%', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', paddingRight: '8px', cursor: 'pointer' }}
+              >
+                <option value="year-desc">Year (Newest)</option>
+                <option value="year-asc">Year (Oldest)</option>
+                <option value="title-asc">Title (A-Z)</option>
+                <option value="author-asc">Author (A-Z)</option>
+                <option value="department-asc">Department (A-Z)</option>
+                <option value="type-asc">Type (A-Z)</option>
+              </select>
+            </div>
+            
+            <button
+              onClick={() => navigate('/vc/dashboard')}
+              className="btn btn-ghost"
+              style={{ height: '36px', padding: '0 16px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '8px', border: '1px solid var(--border)' }}
+            >
+              <ArrowLeft size={15} />
+              <span>Back to Dashboard</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="card" style={{ padding: 0 }}>
+          <div className="table-wrap" style={{ margin: 0 }}>
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>TITLE & JOURNAL</th>
+                  <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>AUTHOR & DEPT</th>
+                  <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>YEAR</th>
+                  <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>TYPE & INDEXING</th>
+                  <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>LINK</th>
+                </tr>
+              </thead>
+              <tbody>
+                {publicationsLoading ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '40px' }}>
+                      <div className="spinner" style={{ margin: 'auto' }} />
+                    </td>
+                  </tr>
+                ) : filteredPublications.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                      No publications found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredPublications.map((p, idx) => (
+                    <tr key={idx}>
+                      <td style={{ padding: '14px 20px', maxWidth: '300px' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.88rem', marginBottom: '4px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={p.title}>
+                          {p.title || 'Untitled'}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={p.journal}>
+                          {p.journal || '—'}
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        <div style={{ fontWeight: 600, color: '#334155', fontSize: '0.85rem' }}>
+                          {p.authorName || '—'}
+                        </div>
+                        <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
+                          {p.department || '—'}
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        {p.year || '—'}
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        <span style={{ display: 'inline-block', padding: '4px 8px', background: 'rgba(37, 99, 235, 0.08)', color: 'var(--primary)', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 600, marginBottom: '4px' }}>
+                          {p.type || 'Article'}
+                        </span>
+                        {p.indexedIn && (
+                          <div style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                            {p.indexedIn}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        {p.documentUrl ? (
+                          <a href={p.documentUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            View <ArrowLeft size={14} style={{ transform: 'rotate(135deg)' }} />
+                          </a>
+                        ) : (
+                          <span style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderStudentsTab = () => {
     return (
@@ -1284,6 +1459,7 @@ export default function VCDashboard() {
               <div 
                 key={s.label} 
                 className="stat-card" 
+                onClick={(s as any).onClick}
                 style={{ 
                   padding: '16px', 
                   borderRadius: '12px', 
@@ -1295,7 +1471,8 @@ export default function VCDashboard() {
                   border: '1px solid var(--border)',
                   boxShadow: 'var(--shadow-sm)',
                   height: '100%',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  cursor: (s as any).onClick ? 'pointer' : 'default'
                 }}
               >
                 <div className="stat-card-icon" style={{ background: (s as any).bg, width: 36, height: 36, borderRadius: 8, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1432,6 +1609,8 @@ export default function VCDashboard() {
         renderDeptList()
       ) : activeTab === 'students' ? (
         renderStudentsTab()
+      ) : activeTab === 'publications' ? (
+        renderPublicationsTab()
       ) : (
         <OrgHierarchy />
       )}
