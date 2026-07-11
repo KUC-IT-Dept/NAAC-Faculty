@@ -5,10 +5,10 @@ const Faculty = require('../models/Faculty');
 const DropdownConfig = require('../models/DropdownConfig');
 const OptionRequest = require('../models/OptionRequest');
 const Department = require('../models/Department');
-const { auth, adminOnly } = require('../middleware/auth');
+const { auth, adminOrVc } = require('../middleware/auth');
 
 const router = express.Router();
-router.use(auth, adminOnly);
+router.use(auth, adminOrVc);
 
 // GET /api/admin/faculty
 router.get('/faculty', async (req, res) => {

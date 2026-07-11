@@ -29,7 +29,14 @@ import {
   Edit,
   ChevronLeft,
   UserPlus,
-  Calendar
+  Calendar,
+  UserCheck,
+  UserX,
+  ToggleLeft,
+  ToggleRight,
+  ArrowUp,
+  ArrowDown,
+  Eye
 } from 'lucide-react';
 import axios from 'axios';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -353,6 +360,19 @@ export default function VCDashboard() {
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [studentSortBy, setStudentSortBy] = useState<'alphabetical' | 'department'>('alphabetical');
 
+  // Faculty accounts states (mirror Admin behavior)
+  const [faculty, setFaculty] = useState<any[]>([]);
+  const [facultyStats, setFacultyStats] = useState<{ total: number; active: number; inactive: number; profilesComplete: number }>({ total: 0, active: 0, inactive: 0, profilesComplete: 0 });
+  const [facultyLoading, setFacultyLoading] = useState(false);
+  const [facultySearchQuery, setFacultySearchQuery] = useState('');
+  const [facultyDeptFilter, setFacultyDeptFilter] = useState('All');
+  const [facultySortBy, setFacultySortBy] = useState<'name' | 'username' | 'email' | 'completion'>('name');
+  const [facultySortOrder, setFacultySortOrder] = useState<'asc' | 'desc'>('asc');
+  const [showFacultyModal, setShowFacultyModal] = useState(false);
+  const [facultyForm, setFacultyForm] = useState({ email: '', fullName: '', department: '' });
+  const [showEditFacultyDeptModal, setShowEditFacultyDeptModal] = useState(false);
+  const [editFacultyDeptForm, setEditFacultyDeptForm] = useState({ userId: '', department: '' });
+
   const fetchDepartmentsList = async () => {
     setDeptsLoading(true);
     try {
@@ -508,6 +528,121 @@ export default function VCDashboard() {
       fetchStudents();
     }
   }, [activeTab]);
+
+  const fetchFacultyData = async () => {
+    setFacultyLoading(true);
+    try {
+      const [fRes, sRes] = await Promise.all([
+        api.get('/admin/faculty'),
+        api.get('/admin/stats')
+      ]);
+      setFaculty(fRes.data);
+      setFacultyStats(sRes.data);
+    } catch (err) {
+      console.error('Failed to load faculty data', err);
+      toast.error('Failed to load faculty data');
+    } finally {
+      setFacultyLoading(false);
+    }
+  };
+
+  const toggleFacultyStatus = async (id: string) => {
+    try {
+      const { data } = await api.patch(`/admin/faculty/${id}/status`);
+      toast.success(data.message);
+      fetchFacultyData();
+    } catch {
+      toast.error('Action failed');
+    }
+  };
+
+  const handleUpdateFacultyDept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.put(`/admin/faculty/${editFacultyDeptForm.userId}/department`, { department: editFacultyDeptForm.department });
+      toast.success('Faculty department updated successfully');
+      setShowEditFacultyDeptModal(false);
+      fetchFacultyData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Update failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const deleteFaculty = async (id: string, username: string) => {
+    if (!confirm(`Delete account for ${username}? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/admin/faculty/${id}`);
+      toast.success('Faculty account deleted');
+      fetchFacultyData();
+    } catch {
+      toast.error('Delete failed');
+    }
+  };
+
+  const handleCreateFaculty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!facultyForm.department) {
+      toast.error('Department is required');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.post('/admin/faculty', facultyForm);
+      toast.success(`Account created for ${facultyForm.email}`);
+      setShowFacultyModal(false);
+      setFacultyForm({ email: '', fullName: '', department: '' });
+      fetchFacultyData();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Creation failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'accounts') {
+      fetchFacultyData();
+      fetchDepartmentsList();
+    }
+  }, [activeTab]);
+
+  const filteredAndSortedFaculty = useMemo(() => {
+    return faculty.filter(f => {
+      const q = facultySearchQuery.toLowerCase();
+      const name = (f.profile?.personalInfo?.fullName || '').toLowerCase();
+      const username = f.username.toLowerCase();
+      const email = f.email.toLowerCase();
+      const matchesSearch = name.includes(q) || username.includes(q) || email.includes(q);
+      const matchesDept = facultyDeptFilter === 'All' || f.profile?.employmentDetails?.department === facultyDeptFilter;
+      return matchesSearch && matchesDept;
+    }).sort((a, b) => {
+      let valA: any = '';
+      let valB: any = '';
+      if (facultySortBy === 'name') {
+        valA = (a.profile?.personalInfo?.fullName || '').toLowerCase();
+        valB = (b.profile?.personalInfo?.fullName || '').toLowerCase();
+      } else if (facultySortBy === 'username') {
+        valA = a.username.toLowerCase();
+        valB = b.username.toLowerCase();
+      } else if (facultySortBy === 'email') {
+        valA = a.email.toLowerCase();
+        valB = b.email.toLowerCase();
+      } else if (facultySortBy === 'completion') {
+        valA = a.profile?.completionPercentage || 0;
+        valB = b.profile?.completionPercentage || 0;
+      }
+      if (valA < valB) return facultySortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return facultySortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [faculty, facultySearchQuery, facultyDeptFilter, facultySortBy, facultySortOrder]);
+
+  const facultyDepartments = useMemo(() => {
+    return ['All', ...Array.from(new Set(faculty.map(f => f.profile?.employmentDetails?.department).filter(Boolean)))];
+  }, [faculty]);
 
   const filteredAndSortedStudents = useMemo(() => {
     return students.filter(s => {
@@ -1483,8 +1618,183 @@ export default function VCDashboard() {
     );
   };
 
+  const renderFacultyAccountsTab = () => {
+    const statCards = [
+      { label: 'Total Faculty', value: facultyStats.total, icon: <Users size={20} />, color: 'var(--primary)', bg: 'rgba(15,76,117,0.1)' },
+      { label: 'Active', value: facultyStats.active, icon: <UserCheck size={20} />, color: 'var(--success)', bg: 'rgba(5,150,105,0.1)' },
+      { label: 'Inactive', value: facultyStats.inactive, icon: <UserX size={20} />, color: 'var(--danger)', bg: 'rgba(229,62,62,0.1)' },
+      { label: 'Profiles Complete', value: facultyStats.profilesComplete, icon: <BookOpen size={20} />, color: 'var(--accent)', bg: 'rgba(232,160,32,0.12)' },
+    ];
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto', paddingBottom: '40px' }}>
+        {/* Stats */}
+        <div className="stat-grid" style={{ marginBottom: 20 }}>
+          {statCards.map(s => (
+            <div key={s.label} className="stat-card">
+              <div className="stat-card-icon" style={{ background: s.bg }}>
+                <span style={{ color: s.color }}>{s.icon}</span>
+              </div>
+              <div className="stat-card-value" style={{ color: s.color }}>{facultyLoading ? <span className="spinner" style={{ width: 16, height: 16 }} /> : s.value}</div>
+              <div className="stat-card-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Faculty Table */}
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <h2 style={{ fontSize: '1rem' }}>Faculty Accounts</h2>
+              <p className="text-muted text-sm">Manage all registered faculty members</p>
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', width: 200, flexShrink: 0 }}>
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <input
+                  type="text"
+                  placeholder="Search faculty..."
+                  value={facultySearchQuery}
+                  onChange={e => setFacultySearchQuery(e.target.value)}
+                  className="form-input"
+                  style={{ paddingLeft: 30, height: 32, fontSize: '13px' }}
+                />
+              </div>
+              <select
+                value={facultyDeptFilter}
+                onChange={e => setFacultyDeptFilter(e.target.value)}
+                className="form-input"
+                style={{ height: 32, fontSize: '13px', minWidth: 120, width: 'auto', flexShrink: 0, padding: '0 8px' }}
+              >
+                {facultyDepartments.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <select
+                value={facultySortBy}
+                onChange={e => setFacultySortBy(e.target.value as any)}
+                className="form-input"
+                style={{ height: 32, fontSize: '13px', minWidth: 130, width: 'auto', flexShrink: 0, padding: '0 8px' }}
+              >
+                <option value="name">Sort: Name</option>
+                <option value="username">Sort: Username</option>
+                <option value="email">Sort: Email</option>
+                <option value="completion">Sort: Completion</option>
+              </select>
+              <button
+                className="btn"
+                onClick={() => setFacultySortOrder(o => o === 'asc' ? 'desc' : 'asc')}
+                style={{ height: 32, width: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', color: '#334155', border: '1px solid #cbd5e1', padding: 0, boxSizing: 'border-box', flexShrink: 0 }}
+              >
+                {facultySortOrder === 'asc' ? <ArrowUp size={15} /> : <ArrowDown size={15} />}
+              </button>
+              <button
+                id="add-faculty-btn"
+                className="btn btn-primary"
+                onClick={() => setShowFacultyModal(true)}
+                style={{ height: 32, padding: '0 12px', fontSize: '0.8rem', lineHeight: 1, display: 'inline-flex', alignItems: 'center', gap: 6, boxSizing: 'border-box', flexShrink: 0 }}
+              >
+                <Plus size={14} /> Add Faculty
+              </button>
+            </div>
+          </div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Faculty</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Department</th>
+                  <th>Profile Status</th>
+                  <th>Completion</th>
+                  <th>Account</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {facultyLoading ? (
+                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: 24 }}><div className="spinner" /></td></tr>
+                ) : filteredAndSortedFaculty.length === 0 ? (
+                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>No faculty found.</td></tr>
+                ) : filteredAndSortedFaculty.map(f => (
+                  <tr key={f._id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div className="avatar">
+                          {((f.profile?.personalInfo?.fullName || f.username || '').slice(0, 2)).toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{f.profile?.personalInfo?.fullName || '—'}</div>
+                          <div className="text-xs text-muted">
+                            {f.profile?.employmentDetails?.designation || f.profile?.personalInfo?.designation || 'Profile Incomplete'}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><code style={{ background: 'var(--bg)', padding: '2px 6px', borderRadius: 4, fontSize: '0.8rem' }}>{f.username}</code></td>
+                    <td className="text-sm text-muted" style={{ fontSize: '0.8rem' }}>{f.email}</td>
+                    <td><span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{f.profile?.employmentDetails?.department || '—'}</span></td>
+                    <td>
+                      <span className={`badge ${f.profile?.profileComplete ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
+                        {f.profile?.profileComplete ? 'Complete' : f.isFirstLogin ? 'First Login' : 'Incomplete'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 80 }}>
+                        <div className="progress-bar-wrap" style={{ flex: 1 }}>
+                          <div className="progress-bar" style={{ width: `${f.profile?.completionPercentage || 0}%` }} />
+                        </div>
+                        <span className="text-xs text-muted" style={{ fontSize: '0.7rem' }}>{f.profile?.completionPercentage || 0}%</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`badge ${f.isActive ? 'badge-active' : 'badge-inactive'}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
+                        {f.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button className="btn btn-ghost btn-sm" title="View public profile" onClick={() => window.open(`/profile/${f.username}`, '_blank')} style={{ padding: '6px' }}>
+                          <Eye size={12} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          title="Edit department"
+                          onClick={() => {
+                            setEditFacultyDeptForm({
+                              userId: f._id,
+                              department: f.profile?.employmentDetails?.department || ''
+                            });
+                            setShowEditFacultyDeptModal(true);
+                          }}
+                          style={{ padding: '6px' }}
+                        >
+                          <Edit size={12} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          title={f.isActive ? 'Deactivate' : 'Activate'}
+                          onClick={() => toggleFacultyStatus(f._id)}
+                          style={{ padding: '6px' }}
+                        >
+                          {f.isActive ? <ToggleRight size={14} color="var(--success)" /> : <ToggleLeft size={14} />}
+                        </button>
+                        <button className="btn btn-ghost btn-sm" title="Delete" onClick={() => deleteFaculty(f._id, f.username)} style={{ padding: '6px' }}>
+                          <Trash2 size={12} color="var(--danger)" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <AppLayout title={activeTab === 'students' ? 'Student Accounts' : 'Vice Chancellor Dashboard'}>
+    <AppLayout title={activeTab === 'students' ? 'Student Accounts' : activeTab === 'accounts' ? 'Faculty Accounts' : 'Vice Chancellor Dashboard'}>
       {activeTab === 'hierarchy' ? (
         <OrgHierarchy />
       ) : activeTab === 'dashboard' ? (
@@ -1668,6 +1978,8 @@ export default function VCDashboard() {
         renderStudentsTab()
       ) : activeTab === 'publications' ? (
         renderPublicationsTab()
+      ) : activeTab === 'accounts' ? (
+        renderFacultyAccountsTab()
       ) : (
         <OrgHierarchy />
       )}
@@ -1834,6 +2146,81 @@ export default function VCDashboard() {
                 <button type="button" className="btn btn-ghost" onClick={() => setShowDeptModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
                   {submitting ? <><span className="spinner" /> Creating...</> : 'Create Department'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Faculty Department Modal */}
+      {showEditFacultyDeptModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditFacultyDeptModal(false)}>
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Edit Faculty Department</h3>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowEditFacultyDeptModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleUpdateFacultyDept}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Department</label>
+                  <select
+                    className="form-input"
+                    required
+                    value={editFacultyDeptForm.department}
+                    onChange={e => setEditFacultyDeptForm(f => ({ ...f, department: e.target.value }))}
+                  >
+                    <option value="">— Select Department —</option>
+                    {departmentsList.map(d => (
+                      <option key={d.name} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowEditFacultyDeptModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? <><span className="spinner" /> Saving...</> : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Faculty Modal */}
+      {showFacultyModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowFacultyModal(false)}>
+          <div className="modal" style={{ overflow: 'visible' }}>
+            <div className="modal-header">
+              <h3>Add Faculty Account</h3>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowFacultyModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateFaculty}>
+              <div className="modal-body" style={{ overflow: 'visible' }}>
+                <div className="info-banner info-banner-info" style={{ marginBottom: 16 }}>
+                  <span>Faculty will receive a default password of <strong>password123</strong>. They'll be prompted to change it on first login.</span>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email Address *</label>
+                  <input className="form-input" type="email" required placeholder="faculty@university.edu.in" value={facultyForm.email} onChange={e => setFacultyForm(f => ({ ...f, email: e.target.value }))} autoFocus />
+                  <p className="form-hint">Username will be auto-generated from the email address.</p>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Department *</label>
+                  <SearchableSelect
+                    value={facultyForm.department}
+                    onChange={val => setFacultyForm(f => ({ ...f, department: val }))}
+                    options={departmentsList.map(d => d.name)}
+                    placeholder="— Select Department —"
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowFacultyModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? <><span className="spinner" /> Creating...</> : 'Create Account'}
                 </button>
               </div>
             </form>

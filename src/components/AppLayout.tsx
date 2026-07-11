@@ -22,6 +22,7 @@ const facultyNav: NavItem[] = [
 ];
 
 const vcNav: NavItem[] = [
+  { label: 'Faculty Accounts', path: '/vc/accounts', icon: <Users size={18} /> },
   { label: 'Org Hierarchy', path: '/vc/hierarchy', icon: <GraduationCap size={18} /> },
   { label: 'Dashboard', path: '/vc/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Departments', path: '/vc/departments', icon: <Building2 size={18} /> },
