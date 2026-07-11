@@ -33,6 +33,9 @@ const facultyDirectoryRoutes= require('./modules/faculty/routes/directory');
 const facultyVcRoutes       = require('./modules/faculty/routes/vc');
 const facultyHodRoutes      = require('./modules/faculty/routes/hod');
 const facultyAnalyticsRoutes = require('./modules/faculty/routes/analytics');
+const analyticsAccessRoutes  = require('./modules/analytics/routes/analyticsAccess');
+const analyticsV2Routes      = require('./modules/analytics/routes/analyticsV2');
+const analyticsV3Routes      = require('./modules/analytics/routes/analyticsV3');
 
 // ── Student module routes ─────────────────────────────────────────────────────
 const studentAuthRoutes       = require('./modules/student/routes/auth.routes');
@@ -131,6 +134,9 @@ app.use('/api/faculty/directory',   facultyDirectoryRoutes);
 app.use('/api/faculty/vc',          facultyVcRoutes);
 app.use('/api/faculty/hod',         facultyHodRoutes);
 app.use('/api/faculty/analytics',   facultyAnalyticsRoutes);
+app.use('/api/faculty/analytics',   analyticsAccessRoutes);
+app.use('/api/faculty/analytics',   analyticsV2Routes);
+app.use('/api/faculty/analytics',   analyticsV3Routes);
 
 // ── Student routes  →  /api/student/... ──────────────────────────────────────
 app.use('/api/student/auth',           studentAuthRoutes);

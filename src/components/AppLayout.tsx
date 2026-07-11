@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2 } from 'lucide-react';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
@@ -11,6 +11,7 @@ const adminNav: NavItem[] = [
   { label: 'Departments', path: '/admin/departments', icon: <Building2 size={18} /> },
   { label: 'Students', path: '/admin/students', icon: <UserPlus size={18} /> },
   { label: 'Notifications', path: '/admin/requests', icon: <Bell size={18} /> },
+  { label: 'Analytics', path: '/admin/analytics', icon: <BarChart2 size={18} /> },
   { label: 'Edit Form', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
   { label: 'General', path: '/admin/general', icon: <Globe size={18} /> },
 ];
@@ -25,6 +26,7 @@ const vcNav: NavItem[] = [
   { label: 'Dashboard', path: '/vc/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Departments', path: '/vc/departments', icon: <Building2 size={18} /> },
   { label: 'Students', path: '/vc/students', icon: <UserPlus size={18} /> },
+  { label: 'Analytics', path: '/vc/analytics', icon: <BarChart2 size={18} /> },
 ];
 
 const hodNav: NavItem[] = [
@@ -32,6 +34,7 @@ const hodNav: NavItem[] = [
   { label: 'Department Faculty', path: '/hod/faculty', icon: <Users size={18} /> },
   { label: 'Department Students', path: '/hod/students', icon: <Users size={18} /> },
   { label: 'Notifications', path: '/hod/notifications', icon: <Bell size={18} /> },
+  { label: 'Analytics', path: '/hod/analytics', icon: <BarChart2 size={18} /> },
 ];
 
 const profileDropdownItems = (role?: 'admin' | 'faculty' | 'vc' | 'hod') => {

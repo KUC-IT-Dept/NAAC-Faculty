@@ -59,12 +59,15 @@ distinctField: {
 numeratorField: {
     type: String
 },
-numeratorField: {
-    type: String
-},
     missingFields: [{
         type: String
-    }]
+    }],
+    // Phase 18: direction field for ranking
+    direction: {
+        type: String,
+        enum: ['higherIsBetter', 'lowerIsBetter'],
+        default: 'higherIsBetter'
+    }
 },
 {
     timestamps: true

@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "seed:benchmarks": "node seeders/benchmarkSeeder.js",
+    "seed:data": "node seeders/analyticsDataSeeder.js",
+    "seed:v3metrics": "node seeders/analyticsV3MetricSeeder.js",
+    "seed:all": "node seeders/runAllSeeders.js",
+    "seed:dry": "node seeders/runAllSeeders.js --dry-run"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +31,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^8.0.5",
     "papaparse": "^5.4.1",
+    "pdfkit": "0.15.0",
     "qs": "^6.15.1",
     "uuid": "^14.0.0",
     "xlsx": "^0.18.5"

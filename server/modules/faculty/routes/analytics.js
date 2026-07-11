@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const Metric = require("../../analytics/models/Metric");
 const Faculty = require("../models/Faculty");
 const {
@@ -8,15 +8,13 @@ const {
     getStudentDepartments,
     getProgramLevels
 } = require("../../analytics/services/analyticsService");
-
-console.log("Metric =", Metric);
-
-console.log("Metric type:", typeof Metric);
-console.log("Metric name:", Metric?.modelName);
+const { auth } = require("../middleware/auth");
+const requireAnalyticsScope = require("../../analytics/middleware/requireAnalyticsScope");
+const { buildFacultyFilter, mergeFilters } = require("../../analytics/services/filterService");
 
 const router = express.Router();
 
-router.get("/metrics", async (req, res) => {
+router.get("/metrics", auth, requireAnalyticsScope("metrics"), async (req, res) => {
   try {
     const metrics = await Metric.find();
     res.json(metrics);
@@ -27,13 +25,25 @@ router.get("/metrics", async (req, res) => {
     });
   }
 });
-router.get("/coverage", async (req, res) => {
+router.get("/coverage", auth, requireAnalyticsScope("coverage"), async (req, res) => {
 
     try {
 
+        const scope = req.analyticsScope;
+
+        // Build an optional base filter for department-scoped callers.
+        const deptFilter =
+            scope.level === "department" && scope.department
+                ? { "employmentDetails.department": scope.department }
+                : {};
+
+        // V2: merge with optional query-param filters (no-op when absent).
+        const userFilter = buildFacultyFilter(req.query);
+        const combinedFilter = mergeFilters(deptFilter, userFilter);
+
         const metrics = await Metric.find().lean();
 
-        const totalFaculty = await Faculty.countDocuments();
+        const totalFaculty = await Faculty.countDocuments(combinedFilter);
 
         const coverage = [];
 
@@ -46,6 +56,7 @@ router.get("/coverage", async (req, res) => {
                 if (metric.formulaType === "objectSum") {
 
                     const facultyRecords = await Faculty.find({
+                        ...combinedFilter,
                         [metric.fieldPath]: {
                             $exists: true
                         }
@@ -56,6 +67,7 @@ router.get("/coverage", async (req, res) => {
                 } else {
 
                     recordsFound = await Faculty.countDocuments({
+                        ...combinedFilter,
                         [metric.fieldPath]: {
                             $exists: true,
                             $ne: []
@@ -97,7 +109,7 @@ router.get("/coverage", async (req, res) => {
     }
 
 });
-router.get("/metric/:metricId", async (req, res) => {
+router.get("/metric/:metricId", auth, requireAnalyticsScope("metric"), async (req, res) => {
 
     try {
 
@@ -124,7 +136,7 @@ router.get("/metric/:metricId", async (req, res) => {
     }
 
 });
-router.get("/dashboard", async (req, res) => {
+router.get("/dashboard", auth, requireAnalyticsScope("dashboard"), async (req, res) => {
 
     try {
 
@@ -155,11 +167,21 @@ res.json(dashboard);
     }
 
 });
-router.get("/profile-completion", async (req, res) => {
+router.get("/profile-completion", auth, requireAnalyticsScope("profileCompletion"), async (req, res) => {
 
     try {
 
-        const facultyRecords = await Faculty.find().lean();
+        const scope = req.analyticsScope;
+
+        const deptFilter =
+            scope.level === "department" && scope.department
+                ? { "employmentDetails.department": scope.department }
+                : {};
+
+        const userFilter = buildFacultyFilter(req.query);
+        const combinedFilter = mergeFilters(deptFilter, userFilter);
+
+        const facultyRecords = await Faculty.find(combinedFilter).lean();
 
         const result = facultyRecords.map(faculty => ({
 
@@ -192,11 +214,21 @@ router.get("/profile-completion", async (req, res) => {
     }
 
 });
-router.get("/profile-summary", async (req, res) => {
+router.get("/profile-summary", auth, requireAnalyticsScope("profileSummary"), async (req, res) => {
 
     try {
 
-        const facultyRecords = await Faculty.find().lean();
+        const scope = req.analyticsScope;
+
+        const deptFilter =
+            scope.level === "department" && scope.department
+                ? { "employmentDetails.department": scope.department }
+                : {};
+
+        const userFilter = buildFacultyFilter(req.query);
+        const combinedFilter = mergeFilters(deptFilter, userFilter);
+
+        const facultyRecords = await Faculty.find(combinedFilter).lean();
 
         const totalFaculty = facultyRecords.length;
 
@@ -242,11 +274,21 @@ router.get("/profile-summary", async (req, res) => {
     }
 
 });
-router.get("/departments", async (req, res) => {
+router.get("/departments", auth, requireAnalyticsScope("departments"), async (req, res) => {
 
     try {
 
-        const facultyRecords = await Faculty.find().lean();
+        const scope = req.analyticsScope;
+
+        const deptFilter =
+            scope.level === "department" && scope.department
+                ? { "employmentDetails.department": scope.department }
+                : {};
+
+        const userFilter = buildFacultyFilter(req.query);
+        const combinedFilter = mergeFilters(deptFilter, userFilter);
+
+        const facultyRecords = await Faculty.find(combinedFilter).lean();
 
         const departments = {};
 
@@ -300,11 +342,21 @@ router.get("/departments", async (req, res) => {
     }
 
 });
-router.get("/department-performance", async (req, res) => {
+router.get("/department-performance", auth, requireAnalyticsScope("departmentPerformance"), async (req, res) => {
 
     try {
 
-        const facultyRecords = await Faculty.find().lean();
+        const scope = req.analyticsScope;
+
+        const deptFilter =
+            scope.level === "department" && scope.department
+                ? { "employmentDetails.department": scope.department }
+                : {};
+
+        const userFilter = buildFacultyFilter(req.query);
+        const combinedFilter = mergeFilters(deptFilter, userFilter);
+
+        const facultyRecords = await Faculty.find(combinedFilter).lean();
 
         const departments = {};
 
@@ -398,6 +450,7 @@ router.get("/department-performance", async (req, res) => {
 });
 router.get(
     "/student-profile-completion",
+    auth, requireAnalyticsScope("studentProfileCompletion"),
     async (req, res) => {
 
         try {
@@ -420,6 +473,7 @@ router.get(
 );
 router.get(
     "/student-profile-summary",
+    auth, requireAnalyticsScope("studentProfileSummary"),
     async (req, res) => {
 
         try {
@@ -440,6 +494,7 @@ router.get(
 );
 router.get(
     "/student-departments",
+    auth, requireAnalyticsScope("studentDepartments"),
     async (req, res) => {
 
         try {
@@ -462,6 +517,7 @@ router.get(
 );
 router.get(
     "/program-levels",
+    auth, requireAnalyticsScope("programLevels"),
     async (req, res) => {
 
         try {

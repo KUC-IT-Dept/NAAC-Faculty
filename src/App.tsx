@@ -13,6 +13,7 @@ import PublicProfile from './pages/PublicProfile';
 import VCDashboard from './pages/vc/VCDashboard';
 import DepartmentDetails from './pages/vc/DepartmentDetails';
 import HODDashboard from './pages/hod/HODDashboard';
+import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
 import { loadDropdownOptionsFromServer } from './shared/dropdownOptions';
 import { useEffect } from 'react';
 
@@ -71,6 +72,11 @@ function AppRoutes() {
       {/* HOD */}
       <Route path="/hod" element={<Navigate to="/hod/hierarchy" replace />} />
       <Route path="/hod/:tabId" element={<ProtectedRoute role="hod"><HODDashboard /></ProtectedRoute>} />
+
+      {/* Analytics — accessible by hod, vc, admin */}
+      <Route path="/hod/analytics"   element={<ProtectedRoute role="hod"><AnalyticsDashboard /></ProtectedRoute>} />
+      <Route path="/vc/analytics"    element={<ProtectedRoute role="vc"><AnalyticsDashboard /></ProtectedRoute>} />
+      <Route path="/admin/analytics" element={<ProtectedRoute role="admin"><AnalyticsDashboard /></ProtectedRoute>} />
 
       {/* Public — no auth */}
       <Route path="/profile/:username" element={<PublicProfile />} />

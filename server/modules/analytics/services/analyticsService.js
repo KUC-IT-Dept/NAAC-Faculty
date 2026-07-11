@@ -1,18 +1,13 @@
-﻿const Metric = require("../models/Metric");
+const Metric = require("../models/Metric");
 const Faculty = require("../../faculty/models/Faculty");
 const StudentProfile =
 require("../../student/models/StudentProfile");
 
-async function calculateMetric(metricId) {
+// Phase 6: calculateMetricFromDoc accepts an already-fetched Metric document,
+// eliminating redundant Metric.findOne in batch callers like /dashboard-v3.
+// calculateMetric remains a thin wrapper for standalone/V1/V2 callers.
 
-
-
-    const metric = await Metric.findOne({
-        metricId
-    }).lean();
-
-   
-
+async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     if (!metric) {
         return null;
     }
@@ -26,6 +21,7 @@ async function calculateMetric(metricId) {
             case "count":
 
                 const countRecords = await Faculty.find({
+                    ...filter,
                     [metric.fieldPath]: {
                         $exists: true,
                         $ne: []
@@ -45,6 +41,7 @@ async function calculateMetric(metricId) {
             case "sum":
 
                 const sumRecords = await Faculty.find({
+                    ...filter,
                     [metric.fieldPath]: {
                         $exists: true,
                         $ne: []
@@ -74,6 +71,7 @@ async function calculateMetric(metricId) {
                 case "conditionalCount":
 
     const conditionalRecords = await Faculty.find({
+        ...filter,
         [metric.fieldPath]: {
             $exists: true,
             $ne: []
@@ -99,7 +97,7 @@ async function calculateMetric(metricId) {
     break;
             case "objectSum":
 
-    const records = await Faculty.find().lean();
+    const records = await Faculty.find({ ...filter }).lean();
 
     value = records.reduce((total, faculty) => {
 
@@ -117,10 +115,11 @@ async function calculateMetric(metricId) {
     case "percentage":
 
     const totalFaculty =
-        await Faculty.countDocuments();
+        await Faculty.countDocuments({ ...filter });
 
     const matchingFaculty =
         await Faculty.countDocuments({
+            ...filter,
             [metric.numeratorField]: {
                 $exists: true,
                 $ne: []
@@ -142,12 +141,14 @@ async function calculateMetric(metricId) {
 
     const numeratorMetric =
         await calculateMetric(
-            metric.numeratorMetric
+            metric.numeratorMetric,
+            filter
         );
 
     const denominatorMetric =
         await calculateMetric(
-            metric.denominatorMetric
+            metric.denominatorMetric,
+            filter
         );
 
     value =
@@ -164,19 +165,16 @@ async function calculateMetric(metricId) {
     case "facultyCount":
 
     value =
-        await Faculty.countDocuments();
+        await Faculty.countDocuments({ ...filter });
 
     break;
     case "studentCount":
-    
+
         value =
             await StudentProfile.countDocuments();
-    
-            console.log("DB:", StudentProfile.db.name);
-            console.log("Collection:", StudentProfile.collection.name);
-            console.log("Count:", await StudentProfile.countDocuments());    
-    
+
         break;
+
         case "studentConditionalCount":
 
     value =
@@ -201,12 +199,14 @@ async function calculateMetric(metricId) {
 
     const numerator =
         await calculateMetric(
-            metric.numeratorMetric
+            metric.numeratorMetric,
+            filter
         );
 
     const denominator =
         await calculateMetric(
-            metric.denominatorMetric
+            metric.denominatorMetric,
+            filter
         );
 
     value =
@@ -221,16 +221,85 @@ async function calculateMetric(metricId) {
 
     break;
 
+    // ── V3 additions ────────────────────────────────────────────────────────
+    // These cases are unreachable by any formulaType value currently seeded;
+    // they activate only when new Metric documents with these formulaTypes
+    // are added by analyticsV3MetricSeeder.js.
+
+    case "average":
+        {
+            const avgRecords = await Faculty.find({ ...filter }).lean();
+
+            let total = 0, count = 0;
+            for (const faculty of avgRecords) {
+                const field = faculty[metric.fieldPath];
+                if (Array.isArray(field)) {
+                    for (const item of field) {
+                        const num = parseFloat(
+                            String(item[metric.sumField] || '').replace(/,/g, '')
+                        );
+                        if (!isNaN(num)) { total += num; count++; }
+                    }
+                } else if (field && typeof field === 'object') {
+                    const num = parseFloat(
+                        String(field[metric.sumField] || '').replace(/,/g, '')
+                    );
+                    if (!isNaN(num) && num >= 0) { total += num; count++; }
+                }
+            }
+            value = count > 0 ? Number((total / count).toFixed(4)) : 0;
+        }
+        break;
+
+    case "distinctGroupCount":
+        {
+            const distinctVals = await Faculty.distinct(metric.fieldPath, { ...filter });
+            value = distinctVals.filter(v => v && String(v).trim() !== '').length;
+        }
+        break;
+
             default:
                 value = 0;
         }
     }
 
+    // Apply viewMode normalization centrally
+    // Phase 3 fix: skip normalization for formula types that are already
+    // normalized by definition. ratio/metricPercentage/percentage are
+    // already ratios — dividing by facultyCount again produces nonsense.
+    const NON_NORMALIZABLE = new Set(['ratio', 'metricPercentage', 'percentage']);
+    const viewMode = options.viewMode || 'absolute';
+    const normalizationSkipped = viewMode !== 'absolute' && NON_NORMALIZABLE.has(metric.formulaType);
+
+    if (viewMode === 'perFaculty' && !normalizationSkipped) {
+        const facultyCount = (options.precomputedCounts && typeof options.precomputedCounts.facultyCount === 'number')
+            ? options.precomputedCounts.facultyCount
+            : await Faculty.countDocuments({ ...filter });
+        value = facultyCount > 0 ? Number((value / facultyCount).toFixed(4)) : 0;
+    } else if (viewMode === 'percentage' && !normalizationSkipped) {
+        const facultyCount = (options.precomputedCounts && typeof options.precomputedCounts.facultyCount === 'number')
+            ? options.precomputedCounts.facultyCount
+            : await Faculty.countDocuments({ ...filter });
+        value = facultyCount > 0 ? Number((value / facultyCount * 100).toFixed(2)) : 0;
+    } else if (viewMode === 'perStudent' && !normalizationSkipped) {
+        const studentCount = (options.precomputedCounts && typeof options.precomputedCounts.studentCount === 'number')
+            ? options.precomputedCounts.studentCount
+            : await StudentProfile.countDocuments();
+        value = studentCount > 0 ? Number((value / studentCount).toFixed(4)) : 0;
+    }
+
     return {
         metricId: metric.metricId,
         metricName: metric.metricName,
-        value
+        value,
+        ...(normalizationSkipped ? { normalizationSkipped: true } : {}),
     };
+}
+
+async function calculateMetric(metricId, filter = {}, options = {}) {
+    const { getMetric } = require('./referenceDataCache');
+    const metric = await getMetric(metricId);
+    return calculateMetricFromDoc(metric, filter, options);
 }
 async function getStudentProfileCompletion() {
 
@@ -392,9 +461,9 @@ async function getProgramLevels() {
 }
 module.exports = {
     calculateMetric,
+    calculateMetricFromDoc,
     getStudentProfileCompletion,
     getStudentProfileSummary,
     getStudentDepartments,
     getProgramLevels
 };
-
