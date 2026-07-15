@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { fg, inp, sel, ta, yearSel } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
@@ -22,6 +22,16 @@ const cancelBtnStyle: React.CSSProperties = {
 const NUM_OPTS_100 = Array.from({ length: 100 }, (_, i) => String(i + 1));
 const NUM_OPTS_10 = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
+const isPhd = (deg: string) => {
+  const d = (deg || 'Ph.D').trim();
+  return d === 'Ph.D' || d === 'Ph.D.';
+};
+
+const isMphil = (deg: string) => {
+  const d = (deg || '').trim();
+  return d === 'M.Phil' || d === 'M.Phil.';
+};
+
 export default function ResearchSupervision({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any, showToast?: boolean) => Promise<void> | void }) {
   const degrees = useDropdownOptions(researchDegreeOptions);
   const statuses = useDropdownOptions(researchStatusOptions);
@@ -29,7 +39,18 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
   const guidanceTypes = useDropdownOptions(guidanceTypeOptions);
   const categories = useDropdownOptions(supervisionCategoryOptions);
 
-  const studentDetails = data.studentDetails || [];
+  const mapStudentDetails = (details: any[]) => {
+    return (details || []).map((st: any, idx: number) => ({
+      id: st.id || st._id || `student-${idx}-${st.studentName || ''}-${st.topic || ''}`,
+      ...st
+    }));
+  };
+
+  const [studentDetails, setStudentDetails] = useState<any[]>(() => mapStudentDetails(data.studentDetails));
+
+  useEffect(() => {
+    setStudentDetails(mapStudentDetails(data.studentDetails));
+  }, [data.studentDetails]);
 
   const persist = async (updated: any, showToast = false) => {
     if (!onPersist) return;
@@ -38,23 +59,23 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
   };
 
   // Dynamically calculate metrics from studentDetails
-  const phdAwardedCount = String(studentDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
-  const phdOngoingCount = String(studentDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Ongoing' && s.studentName?.trim()).length);
-  const mphilGuidedCount = String(studentDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'M.Phil.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
+  const phdAwardedCount = String(studentDetails.filter((s: any) => isPhd(s.degree) && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
+  const phdOngoingCount = String(studentDetails.filter((s: any) => isPhd(s.degree) && (s.status || 'Ongoing') === 'Ongoing').length);
+  const mphilGuidedCount = String(studentDetails.filter((s: any) => isMphil(s.degree) && (s.status || 'Ongoing') === 'Completed').length);
   const completedStudentsNames = studentDetails
-    .filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim())
+    .filter((s: any) => isPhd(s.degree) && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim())
     .map((s: any) => s.studentName.trim())
     .join(', ');
 
-  const update = (k: string, v: any, showToast = false) => {
+  const update = (k: string, v: any, shouldPersist = false) => {
     const updatedDetails = k === 'studentDetails' ? v : studentDetails;
 
-    const newPhdCompleted = String(updatedDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
-    const newPhdInProgress = String(updatedDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Ongoing' && s.studentName?.trim()).length);
-    const newMphilCompleted = String(updatedDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'M.Phil.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
-    const newMphilInProgress = String(updatedDetails.filter((s: any) => (s.degree || 'Ph.D.') === 'M.Phil.' && (s.status || 'Ongoing') === 'Ongoing' && s.studentName?.trim()).length);
+    const newPhdCompleted = String(updatedDetails.filter((s: any) => isPhd(s.degree) && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim()).length);
+    const newPhdInProgress = String(updatedDetails.filter((s: any) => isPhd(s.degree) && (s.status || 'Ongoing') === 'Ongoing').length);
+    const newMphilCompleted = String(updatedDetails.filter((s: any) => isMphil(s.degree) && (s.status || 'Ongoing') === 'Completed').length);
+    const newMphilInProgress = String(updatedDetails.filter((s: any) => isMphil(s.degree) && (s.status || 'Ongoing') === 'Ongoing').length);
     const newCompletedNames = updatedDetails
-      .filter((s: any) => (s.degree || 'Ph.D.') === 'Ph.D.' && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim())
+      .filter((s: any) => isPhd(s.degree) && (s.status || 'Ongoing') === 'Completed' && s.studentName?.trim())
       .map((s: any) => s.studentName.trim())
       .join(', ');
 
@@ -72,44 +93,53 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
     };
 
     onChange(updated);
-    // Persist asynchronously if handler provided
-    void persist(updated, showToast);
+    // Persist asynchronously ONLY when explicitly requested (e.g. Save/Delete)
+    if (shouldPersist) {
+      void persist(updated, shouldPersist);
+    }
   };
 
   const updStudent = (i: number, k: string, v: string) => {
     const arr = [...studentDetails];
     arr[i] = { ...arr[i], [k]: v };
+    setStudentDetails(arr);
     update('studentDetails', arr);
   };
 
   const toggleEdit = (i: number, state: boolean) => {
     const arr = [...studentDetails];
     arr[i] = { ...arr[i], isEditing: state };
+    setStudentDetails(arr);
     update('studentDetails', arr, !state);
   };
 
   const deleteRow = (i: number) => {
-    update('studentDetails', studentDetails.filter((_: any, idx: number) => idx !== i));
+    const arr = studentDetails.filter((_: any, idx: number) => idx !== i);
+    setStudentDetails(arr);
+    update('studentDetails', arr, true);
   };
 
   const addRow = () => {
-    update('studentDetails', [
-      { studentName: '', topic: '', year: '', fellowship: '', degree: 'Ph.D.', status: 'Ongoing', scholarGender: '', guidanceType: '', supervisionCategory: '', isEditing: true },
+    const tempId = 'student-' + Math.random().toString(36).substr(2, 9);
+    const arr = [
+      { id: tempId, studentName: '', topic: '', year: '', fellowship: '', degree: 'Ph.D', status: 'Ongoing', scholarGender: '', guidanceType: '', supervisionCategory: '', isEditing: true },
       ...studentDetails
-    ]);
+    ];
+    setStudentDetails(arr);
+    update('studentDetails', arr);
   };
 
   const isComplete = (st: any) => !!st.studentName?.trim() && !!st.degree && !!st.status;
 
   return (
     <div className="section-container" style={{ padding: 24, backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border)' }}>
+      <div className="form-row form-row-1">
+        {fg('Names of completed Ph.D. students', <textarea className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed', minHeight: 60 }} value={completedStudentsNames} readOnly placeholder="No completed Ph.D. students added yet..." />)}
+      </div>
+
       <div className="form-row form-row-2">
         {fg('Number of Ph.D. students Awarded (Completed)', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={phdAwardedCount} readOnly />)}
         {fg('Number of Ph.D. students Ongoing', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={phdOngoingCount} readOnly />)}
-      </div>
-
-      <div className="form-row form-row-1">
-        {fg('Names of completed Ph.D. students', <textarea className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed', minHeight: 60 }} value={completedStudentsNames} readOnly placeholder="No completed Ph.D. students added yet..." />)}
       </div>
 
       <div className="form-row form-row-1">
@@ -133,8 +163,10 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
         </div>
 
         <div className="items-list" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {studentDetails.map((st: any, i: number) => (
-            <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+          {studentDetails.map((st: any, i: number) => {
+            const rowKey = st.id || st._id || st.studentName || `idx-${i}`;
+            return (
+              <div key={rowKey} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
               {st.isEditing ? (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
@@ -160,7 +192,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                     {fg('Scholar Gender', sel(st.scholarGender, v => updStudent(i, 'scholarGender', v), genders, "Select..."))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Degree *', sel(st.degree || 'Ph.D.', v => updStudent(i, 'degree', v), degrees, "Select..."))}
+                    {fg('Degree *', sel(st.degree || 'Ph.D', v => updStudent(i, 'degree', v), degrees, "Select..."))}
                     {fg('Status *', sel(st.status || 'Ongoing', v => updStudent(i, 'status', v), statuses, "Select..."))}
                   </div>
                   <div className="form-row form-row-2">
@@ -181,7 +213,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                     <div>
                       <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>
                         {st.studentName || 'Untitled Student'}
-                        <span style={{ marginLeft: '8px', fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>{st.degree || 'Ph.D.'}</span>
+                        <span style={{ marginLeft: '8px', fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>{st.degree || 'Ph.D'}</span>
                         <span style={{
                           marginLeft: '4px', fontSize: '0.72rem', padding: '2px 8px', borderRadius: 4, fontWeight: 600,
                           background: (st.status || 'Ongoing') === 'Completed' ? '#dcfce7' : '#fef3c7',
@@ -217,7 +249,8 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                 </div>
               )}
             </div>
-          ))}
+          );
+          })}
         </div>
       </div>
     </div>

@@ -27,7 +27,7 @@ const EMPTY = {
 
 const QUALIFICATION_LEVELS = ['10th', '12th', 'UG', 'PG', 'Ph.D', 'M.Phil'];
 const SPECIALIZATION_LEVELS = ['UG', 'PG', 'Ph.D', 'M.Phil'];
-const YEAR_OPTIONS = Array.from({ length: new Date().getFullYear() - 1979 }, (_, i) => String(new Date().getFullYear() - i));
+const YEAR_OPTIONS = Array.from({ length: new Date().getFullYear() - 1959 }, (_, i) => String(new Date().getFullYear() - i));
 const DIVISION_OPTIONS = ['First', 'Second', 'Third'];
 const MODE_OPTIONS = ['Regular', 'Distance'];
 const PHD_MODE_OPTIONS = ['Full time', 'Part time'];
