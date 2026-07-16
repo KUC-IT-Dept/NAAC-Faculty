@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2, Check, X, ChevronDown, ChevronUp, Edit2 } from 'lucide-react';
 import { fg, inp, sel, Sub } from './sectionUtils';
+import SearchableSelect from '../SearchableSelect';
+import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { degreeNameOptions } from '../../shared/dropdownOptions';
 
 const emptyStudent = { studentName: '', program: '', status: 'Ongoing', title: '', organisation: '', role: '', fromDate: '', toDate: '' };
 const statusOptions = ['Ongoing', 'Completed'];
@@ -86,6 +89,7 @@ function EntryCard({
   onChange,
   onSave,
   onCancel,
+  programOptions,
 }: {
   item: any;
   index: number;
@@ -97,6 +101,7 @@ function EntryCard({
   onChange: (key: string, value: any) => void;
   onSave: () => void;
   onCancel: () => void;
+  programOptions: string[];
 }) {
   const displayName = getDisplayName(item);
   const duration = item.fromDate || item.toDate ? `${item.fromDate || '—'} to ${item.toDate || '—'}` : '';
@@ -115,7 +120,14 @@ function EntryCard({
 
           <div className="form-row form-row-2">
             {fg('STUDENT NAME *', inp(item.studentName, v => onChange('studentName', v), 'Enter student name'))}
-            {fg('PROGRAM / COURSE *', inp(item.program, v => onChange('program', v), 'Internship'))}
+            {fg('PROGRAM / COURSE *', (
+              <SearchableSelect
+                value={item.program || ''}
+                onChange={v => onChange('program', v)}
+                options={programOptions}
+                placeholder="Search or Select Program/Course"
+              />
+            ))}
           </div>
           <div className="form-row form-row-2">
             {fg('INTERNSHIP / PROJECT TITLE *', inp(item.title, v => onChange('title', v), 'Enter internship / project title'))}
@@ -179,6 +191,7 @@ function EntryCard({
 }
 
 export default function InternshipAndProjects({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const programOptions = useDropdownOptions(degreeNameOptions);
   const [students, setStudents] = useState<any[]>(Array.isArray(data) ? data : []);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
@@ -295,7 +308,14 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
           </div>
           <div className="form-row form-row-2">
             {fg('STUDENT NAME *', inp(pending.studentName, v => updatePending('studentName', v), 'Enter student name'))}
-            {fg('PROGRAM / COURSE *', inp(pending.program, v => updatePending('program', v), 'Internship'))}
+            {fg('PROGRAM / COURSE *', (
+              <SearchableSelect
+                value={pending.program || ''}
+                onChange={v => updatePending('program', v)}
+                options={programOptions}
+                placeholder="Search or Select Program/Course"
+              />
+            ))}
           </div>
           <div className="form-row form-row-2">
             {fg('INTERNSHIP / PROJECT TITLE *', inp(pending.title, v => updatePending('title', v), 'Enter internship / project title'))}
@@ -327,6 +347,7 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
             onChange={(key, value) => updateStudent(i, key, value)}
             onSave={() => finishEdit(i)}
             onCancel={() => finishEdit(i)}
+            programOptions={programOptions}
           />
         ))}
       </div>
