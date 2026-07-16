@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-re
 import { fg, sel, yearSel } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions } from '../../shared/dropdownOptions';
+import SearchableSelect from '../SearchableSelect';
 
 const COURSE_NAMES = ['Advanced Algorithms', 'Database Systems', 'Operating Systems', 'Computer Networks', 'Software Engineering', 'Data Structures', 'Machine Learning', 'Artificial Intelligence', 'Web Development', 'Other'];
 const PROGRAMMES_LIST = ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M.A.', 'B.Com', 'M.Com', 'BBA', 'MBA', 'BCA', 'MCA', 'Other'];
@@ -195,7 +196,14 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                 </div>
               </div>
               <div className="form-row form-row-1">
-                {fg('Courses / Subjects Taught', sel(pendingCourse.courseName, v => setPendingCourse({ ...pendingCourse, courseName: v }), COURSE_NAMES))}
+                {fg('Courses / Subjects Taught', (
+                  <SearchableSelect
+                    value={pendingCourse.courseName || ''}
+                    onChange={v => setPendingCourse({ ...pendingCourse, courseName: v })}
+                    options={COURSE_NAMES}
+                    placeholder="Search or Select Course"
+                  />
+                ))}
               </div>
               <div className="form-row form-row-1">
                 {fg('Year', yearSel(pendingCourse.year, v => setPendingCourse({ ...pendingCourse, year: v })))}
@@ -204,7 +212,14 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                 {fg('Programmes', sel(pendingCourse.programmes, v => setPendingCourse({ ...pendingCourse, programmes: v }), PROGRAMMES_LIST))}
               </div>
               <div className="form-row form-row-1">
-                {fg('Subject', sel(pendingCourse.subject, v => setPendingCourse({ ...pendingCourse, subject: v }), SUBJECTS_LIST))}
+                {fg('Subject', (
+                  <SearchableSelect
+                    value={pendingCourse.subject || ''}
+                    onChange={v => setPendingCourse({ ...pendingCourse, subject: v })}
+                    options={SUBJECTS_LIST}
+                    placeholder="Search or Select Subject"
+                  />
+                ))}
               </div>
             </div>
           )}
@@ -227,7 +242,14 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                       </div>
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Courses / Subjects Taught', sel(c.courseName, v => updCourse(i, 'courseName', v), COURSE_NAMES))}
+                      {fg('Courses / Subjects Taught', (
+                        <SearchableSelect
+                          value={c.courseName || ''}
+                          onChange={v => updCourse(i, 'courseName', v)}
+                          options={COURSE_NAMES}
+                          placeholder="Search or Select Course"
+                        />
+                      ))}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Year', yearSel(c.year, v => updCourse(i, 'year', v)))}
@@ -236,7 +258,14 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                       {fg('Programmes', sel(c.programmes, v => updCourse(i, 'programmes', v), PROGRAMMES_LIST))}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Subject', sel(c.subject, v => updCourse(i, 'subject', v), SUBJECTS_LIST))}
+                      {fg('Subject', (
+                        <SearchableSelect
+                          value={c.subject || ''}
+                          onChange={v => updCourse(i, 'subject', v)}
+                          options={SUBJECTS_LIST}
+                          placeholder="Search or Select Subject"
+                        />
+                      ))}
                     </div>
                   </>
                 ) : (
