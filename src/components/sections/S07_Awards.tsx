@@ -217,7 +217,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
               {fg('Brief Description (optional)', ta(pendingNewItem.description, v => setPendingNewItem({ ...pendingNewItem, description: v }), 'Details about the award...'))}
             </div>
             <div className="form-row form-row-2">
-              {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} />)}
+              {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} section="awards" />)}
               <div></div>
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
                     {fg('Brief Description (optional)', ta(a.description, v => upd(originalIndex, 'description', v), 'Details about the award...'))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Certificate / Proof', <FileInp v={a.documentUrl} fn={v => upd(originalIndex, 'documentUrl', v)} />)}
+                    {fg('Certificate / Proof', <FileInp v={a.documentUrl} fn={v => upd(originalIndex, 'documentUrl', v)} section="awards" />)}
                     <div></div>
                   </div>
                 </>

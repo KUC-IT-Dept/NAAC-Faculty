@@ -266,6 +266,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           v={editingData.documentUrl}
           fn={(v) => updateEditingData('documentUrl', v)}
           accept=".pdf,image/*"
+          section="employmentDetails"
         />
       </div>
     </>

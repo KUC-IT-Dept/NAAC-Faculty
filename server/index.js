@@ -28,8 +28,10 @@ const facultyAdminRoutes    = require('./modules/faculty/routes/admin');
 const facultyProfileRoutes  = require('./modules/faculty/routes/faculty');
 const facultyPublicRoutes   = require('./modules/faculty/routes/public');
 const facultyUploadRoutes   = require('./modules/faculty/routes/upload');
+const legacyUploadsRoutes   = require('./modules/faculty/routes/legacyUploads');
 const facultyDeptRoutes     = require('./modules/faculty/routes/departments');
 const facultyDirectoryRoutes= require('./modules/faculty/routes/directory');
+const facultyFileRoutes     = require('./modules/faculty/routes/files');
 const facultyVcRoutes       = require('./modules/faculty/routes/vc');
 const facultyHodRoutes      = require('./modules/faculty/routes/hod');
 const facultyAnalyticsRoutes = require('./modules/faculty/routes/analytics');
@@ -121,7 +123,9 @@ app.use(cors(corsOptions));
 // removed app.options due to express 5 compatibility
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static('uploads'));
+
+// Legacy uploads compatibility
+app.use('/uploads', legacyUploadsRoutes);
 
 // ── Faculty routes  →  /api/faculty/... ──────────────────────────────────────
 app.use('/api/faculty/auth',        facultyAuthRoutes);
@@ -129,6 +133,7 @@ app.use('/api/faculty/admin',       facultyAdminRoutes);
 app.use('/api/faculty/me',          facultyProfileRoutes);   // faculty profile (GET/PUT /me)
 app.use('/api/faculty/public',      facultyPublicRoutes);    // public directory (was /api/profile)
 app.use('/api/faculty/upload',      facultyUploadRoutes);    // file uploads
+app.use('/api/faculty/files',       facultyFileRoutes);      // secure file access
 app.use('/api/faculty/departments', facultyDeptRoutes);
 app.use('/api/faculty/directory',   facultyDirectoryRoutes);
 app.use('/api/faculty/vc',          facultyVcRoutes);

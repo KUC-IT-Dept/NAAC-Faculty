@@ -13,7 +13,7 @@ const Department = require('./modules/faculty/models/Department');
 const DropdownConfig = require('./modules/faculty/models/DropdownConfig');
 const SectionConfig = require('./modules/faculty/models/SectionConfig');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://vasudevcs037_db_user:iqac123@iqac.thi9ynv.mongodb.net/?appName=iqac';
+const MONGO_URI = process.env.MONGO_URI;
 
 // ==========================================
 // INSTITUTIONS
@@ -399,12 +399,7 @@ const FACULTIES = [
 async function seedDepartmentsHodsFaculties() {
   try {
 
-    // 1. Flush Database
-    console.log('🗑️  Flushing old faculty, HODs, and departments...');
-    await User.deleteMany({ role: { $nin: ['superadmin', 'vc'] } });
-    await Faculty.deleteMany({});
-    await Department.deleteMany({});
-    console.log('✅ Old data flushed');
+
 
     // 2. Admin & VC setup
     for (const adminOrVc of [

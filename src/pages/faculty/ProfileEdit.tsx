@@ -136,24 +136,12 @@ export default function ProfileEdit() {
         const r = await api.get('/me');
         const serverData = { ...EMPTY, ...Object.fromEntries(Object.entries(r.data).filter(([k]) => k in EMPTY)) };
 
-        // Merge: server data as base, local unsaved draft overlaid on top
-        const localDraft = localStorage.getItem(STORAGE_KEY);
-        if (localDraft) {
-          try {
-            const parsedDraft = JSON.parse(localDraft);
-            const merged = { ...serverData, ...parsedDraft };
-            setProfile(merged);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-          } catch {
-            setProfile(serverData);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData));
-          }
-        } else {
-          setProfile(serverData);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData));
-        }
+        // Server is the source of truth — always use it when available
+        setProfile(serverData);
+        // Clear any stale localStorage draft now that we have fresh server data
+        localStorage.removeItem(STORAGE_KEY);
       } catch {
-        // API failed — fall back to localStorage
+        // API failed — fall back to localStorage as offline backup
         const localDraft = localStorage.getItem(STORAGE_KEY);
         if (localDraft) {
           try {
@@ -189,6 +177,8 @@ export default function ProfileEdit() {
     try {
       if (tab === 'visibility') await api.patch('/me/visibility', profile.visibility);
       else await api.put('/me', { [tab]: payload !== undefined ? payload : profile[tab] });
+      // Clear localStorage draft after successful save — DB is now up to date
+      localStorage.removeItem(STORAGE_KEY);
       if (showToast) toast.success('Saved!');
     } catch { 
       if (showToast) toast.error('Save failed'); 
@@ -234,6 +224,9 @@ export default function ProfileEdit() {
                 <p className="text-xs text-muted" style={{ marginTop: 2 }}>Changes are saved per section.</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-primary" disabled={saving} onClick={() => save()}>
+                  {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Saving…</> : <><Save size={14} /> Save</>}
+                </button>
               </div>
             </div>
 

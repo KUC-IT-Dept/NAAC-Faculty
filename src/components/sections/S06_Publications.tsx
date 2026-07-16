@@ -180,7 +180,7 @@ function PubForm({ item, onChange, levels, yesNo, indexedInOpts, authorRoleOpts,
 
       {/* File upload */}
       <div style={{ marginTop: 10 }}>
-        {fg('Certificate / Proof / Link', <FileInp v={item.documentUrl} fn={v => onChange('documentUrl', v)} label="Upload Document" />)}
+        {fg('Certificate / Proof / Link', <FileInp v={item.documentUrl} fn={v => onChange('documentUrl', v)} label="Upload Document" section="publications" />)}
       </div>
     </>
   );

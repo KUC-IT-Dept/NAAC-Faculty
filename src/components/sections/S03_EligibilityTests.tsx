@@ -181,6 +181,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
               fn={v => upd('documentUrl', v)}
               label="Upload Certificate (PDF / Image)"
               accept=".pdf,image/*"
+              section="eligibilityTests"
             />
           ))}
         </div>

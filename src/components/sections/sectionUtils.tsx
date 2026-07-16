@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Upload, X, FileText, ExternalLink, RefreshCw, ChevronDown, Search, Check } from 'lucide-react';
-import api from '../../lib/api';
+import api, { getAuthenticatedFileUrl } from '../../lib/api';
 import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
 import { PDFDocument } from 'pdf-lib';
@@ -143,7 +143,7 @@ export const DropdownWithCustom = ({ v, fn, opts, ph = 'Select or type custom...
 };
 
 /** File Upload Component */
-export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image/*" }: { v: string, fn: (s: string) => void, label?: string, accept?: string }) => {
+export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image/*", section = "" }: { v: string, fn: (s: string) => void, label?: string, accept?: string, section?: string }) => {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -194,7 +194,8 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
     const uploadFile = new File([finalFile], file.name, { type: file.type });
     fd.append('file', uploadFile);
     try {
-      const r = await api.post('/upload', fd);
+      const endpoint = section ? `/upload?section=${encodeURIComponent(section)}` : '/upload';
+      const r = await api.post(endpoint, fd);
       fn(r.data.url);
       toast.success('File uploaded successfully!');
     } catch (err: any) {
@@ -222,7 +223,7 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
       <div style={{ display: 'flex', gap: 4 }}>
         <button 
           type="button" 
-          onClick={() => window.open(`${import.meta.env.VITE_API_URL || ''}${v}`, '_blank')}
+          onClick={() => window.open(getAuthenticatedFileUrl(v), '_blank')}
           title="View Document"
           style={{ padding: '6px', backgroundColor: 'white', border: '1px solid #e0f2fe', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
         >

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, ChevronDown } from 'lucide-react';
+import api from '../lib/api';
+import toast from 'react-hot-toast';
 
 interface SearchableSelectProps {
   value: string;
@@ -18,6 +20,7 @@ export default function SearchableSelect({
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,6 +32,35 @@ export default function SearchableSelect({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const dropdownKey = (options as any).dropdownKey;
+  const trimmedSearch = searchTerm.trim();
+  const hasExactMatch = options.some(opt => opt.toLowerCase() === trimmedSearch.toLowerCase());
+  const showAddOption = trimmedSearch !== '' && !hasExactMatch;
+
+  const handleRequestAdd = async (newValue: string) => {
+    if (!newValue.trim()) return;
+    if (dropdownKey) {
+      setSubmitting(true);
+      try {
+        await api.post('/me/requests', { 
+          dropdownKey, 
+          requestedValue: newValue.trim(),
+          previousValue: value || '' 
+        });
+        toast.success('Request sent for approval. You can continue saving.');
+        onChange(newValue.trim());
+        setIsOpen(false);
+      } catch (err) {
+        toast.error('Failed to submit request');
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      onChange(newValue.trim());
+      setIsOpen(false);
+    }
+  };
 
   const handleOpen = () => {
     setIsOpen(true);
@@ -103,9 +135,11 @@ export default function SearchableSelect({
           </div>
           <div style={{ overflowY: 'auto', flex: 1, padding: '4px 0', backgroundColor: '#ffffff' }}>
             {filteredOptions.length === 0 ? (
-              <div style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center' }}>
-                No options found
-              </div>
+              !showAddOption && (
+                <div style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center' }}>
+                  No options found
+                </div>
+              )
             ) : (
               filteredOptions.map((opt, idx) => (
                 <div
@@ -135,6 +169,27 @@ export default function SearchableSelect({
             {filteredOptions.length === maxOptions && (
               <div style={{ padding: '8px 16px', fontSize: '0.8rem', color: '#94a3b8', textAlign: 'center', fontStyle: 'italic', backgroundColor: '#ffffff' }}>
                 Type to see more specific results...
+              </div>
+            )}
+            {showAddOption && (
+              <div
+                onClick={() => handleRequestAdd(trimmedSearch)}
+                style={{
+                  padding: '10px 16px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  color: '#4f46e5',
+                  fontWeight: 600,
+                  borderTop: '1px solid #e2e8f0',
+                  backgroundColor: '#f8fafc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+              >
+                {submitting ? 'Sending Request...' : `+ Add "${trimmedSearch}" ${dropdownKey ? '(Request HOD Approval)' : ''}`}
               </div>
             )}
           </div>
