@@ -192,6 +192,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
         <FileInp
           v={editingData.documentUrl || ''}
           fn={(v) => updateField('documentUrl', v)}
+          section="workExperience"
           accept=".pdf,image/*"
         />
       </div>

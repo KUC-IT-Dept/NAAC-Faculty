@@ -148,7 +148,7 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
             <div className="form-row form-row-1">
               {fg('Year of Joining *', yearSel(pendingNewItem.yearOfJoining, v => setPendingNewItem({ ...pendingNewItem, yearOfJoining: v })))}
             </div>
-            {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} />)}
+            {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} section="memberships" />)}
           </div>
         )}
 
@@ -177,7 +177,7 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
                   <div className="form-row form-row-1">
                     {fg('Year of Joining *', yearSel(m.yearOfJoining, v => upd(i, 'yearOfJoining', v)))}
                   </div>
-                  {fg('Certificate / Proof', <FileInp v={m.documentUrl} fn={v => upd(i, 'documentUrl', v)} />)}
+                  {fg('Certificate / Proof', <FileInp v={m.documentUrl} fn={v => upd(i, 'documentUrl', v)} section="memberships" />)}
                 </>
               ) : (
                 <PreviewCard

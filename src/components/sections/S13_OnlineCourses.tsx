@@ -156,7 +156,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
               {fg('Certificate ID', inp(pendingNewItem.certificateId, v => setPendingNewItem({ ...pendingNewItem, certificateId: v })))}
               {fg('Score / Grade', inp(pendingNewItem.score, v => setPendingNewItem({ ...pendingNewItem, score: v })))}
             </div>
-            {fg('Upload Certificate', <FileInp v={pendingNewItem.certificateUrl} fn={v => setPendingNewItem({ ...pendingNewItem, certificateUrl: v })} />)}
+            {fg('Upload Certificate', <FileInp v={pendingNewItem.certificateUrl} fn={v => setPendingNewItem({ ...pendingNewItem, certificateUrl: v })} section="onlineCourses" />)}
           </div>
         )}
 
@@ -190,7 +190,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                     {fg('Certificate ID', inp(item.certificateId, v => upd(i, 'certificateId', v)))}
                     {fg('Score / Grade', inp(item.score, v => upd(i, 'score', v)))}
                   </div>
-                  {fg('Upload Certificate', <FileInp v={item.certificateUrl} fn={v => upd(i, 'certificateUrl', v)} />)}
+                  {fg('Upload Certificate', <FileInp v={item.certificateUrl} fn={v => upd(i, 'certificateUrl', v)} section="onlineCourses" />)}
                 </>
               ) : (
                 <PreviewCard

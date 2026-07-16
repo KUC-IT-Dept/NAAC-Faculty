@@ -23,6 +23,16 @@ export const getFileUrl = (url?: string) => {
   return `${backendBase}${url.startsWith('/') ? url : '/' + url}`;
 };
 
+export const getAuthenticatedFileUrl = (url?: string) => {
+  if (!url) return '';
+  const fullUrl = getFileUrl(url);
+  const token = localStorage.getItem('iqac_token');
+  if (!token) return fullUrl;
+  
+  const separator = fullUrl.includes('?') ? '&' : '?';
+  return `${fullUrl}${separator}token=${token}`;
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('iqac_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;

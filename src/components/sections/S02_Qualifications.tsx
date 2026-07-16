@@ -387,6 +387,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 }}
                 label="Upload PhD Certificate (PDF / Image)"
                 accept=".pdf,image/*"
+                section="qualifications"
               />
             ))}
           </div>
@@ -475,6 +476,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 fn={v => updateEditingData('documentUrl', v)}
                 label="Upload Certificate (PDF / Image)"
                 accept=".pdf,image/*"
+                section="qualifications"
               />
             ))}
           </div>
