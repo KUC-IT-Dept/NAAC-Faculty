@@ -228,9 +228,8 @@ export default function PersonalInfo({ data, onChange, onPersist, saving }: { da
                   value={safeData.dateOfBirth || ''}
                   onChange={(e) => {
                     const value = e.target.value;
-                    s('dateOfBirth', value);
                     const calculatedAge = calculateAge(value);
-                    s('age', calculatedAge);
+                    onChange({ ...safeData, dateOfBirth: value, age: calculatedAge });
                   }}
                   key="dateOfBirth"
                 />
