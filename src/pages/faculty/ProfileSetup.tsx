@@ -107,26 +107,14 @@ export default function ProfileSetup() {
         const r = await api.get('/me');
         const serverData = { ...EMPTY, ...Object.fromEntries(Object.entries(r.data).filter(([k]) => k in EMPTY)) };
 
-        // Merge: server data as base, local unsaved draft overlaid on top
-        const localDraft = localStorage.getItem(STORAGE_KEY);
-        if (localDraft) {
-          try {
-            const parsedDraft = JSON.parse(localDraft);
-            const merged = { ...serverData, ...parsedDraft };
-            setProfile(merged);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-          } catch {
-            setProfile(serverData);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData));
-          }
-        } else {
-          setProfile(serverData);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData));
-        }
+        // Server is the source of truth — always use it when available
+        setProfile(serverData);
+        // Clear any stale localStorage draft now that we have fresh server data
+        localStorage.removeItem(STORAGE_KEY);
 
         if (!user?.isFirstLogin) setStep(1);
       } catch {
-        // API failed — fall back to localStorage
+        // API failed — fall back to localStorage as offline backup
         const localDraft = localStorage.getItem(STORAGE_KEY);
         if (localDraft) {
           try {
@@ -157,7 +145,11 @@ export default function ProfileSetup() {
     const key = STEPS[step].key;
     if (key) {
       setSaving(true);
-      try { await api.put('/me', { [key]: profile[key] }); toast.success('Saved!'); }
+      try {
+        await api.put('/me', { [key]: profile[key] });
+        localStorage.removeItem(STORAGE_KEY);
+        toast.success('Saved!');
+      }
       catch { toast.error('Save failed'); }
       finally { setSaving(false); }
     }
@@ -176,14 +168,22 @@ export default function ProfileSetup() {
 
   const saveAwardsSection = async (updatedAwards?: any[]) => {
     setSaving(true);
-    try { await api.put('/me', { awards: updatedAwards ?? profile.awards }); toast.success('Saved!'); }
+    try {
+      await api.put('/me', { awards: updatedAwards ?? profile.awards });
+      localStorage.removeItem(STORAGE_KEY);
+      toast.success('Saved!');
+    }
     catch { toast.error('Save failed'); }
     finally { setSaving(false); }
   };
 
   const saveResearchGuidance = async (updatedResearchGuidance?: any) => {
     setSaving(true);
-    try { await api.put('/me', { researchGuidance: updatedResearchGuidance ?? profile.researchGuidance }); toast.success('Saved!'); }
+    try {
+      await api.put('/me', { researchGuidance: updatedResearchGuidance ?? profile.researchGuidance });
+      localStorage.removeItem(STORAGE_KEY);
+      toast.success('Saved!');
+    }
     catch { toast.error('Save failed'); }
     finally { setSaving(false); }
   };
