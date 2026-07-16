@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fg, inp, ta, sel } from './sectionUtils';
+import { Copy } from 'lucide-react';
 import ProfilePictureUpload from '../ProfilePictureUpload';
 import { genderOptions, bloodGroupOptions, nationalityOptions, maritalStatusOptions, disabilityStatusOptions, religionOptions, categoryOptions, subCategoryOptions, disabilityTypeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
@@ -329,7 +330,27 @@ export default function PersonalInfo({ data, onChange, onPersist, saving }: { da
           <div className="form-section">
             <h4>Address Information</h4>
             <div className="address-section">
-              <h5>Address for Communication</h5>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <h5 style={{ margin: 0 }}>Address for Communication</h5>
+                {isEditing && (
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-xs"
+                    style={{ fontSize: '0.75rem', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    onClick={() => {
+                      onChange({
+                        ...safeData,
+                        communicationAddress: safeData.permanentAddress || '',
+                        communicationCity: safeData.permanentCity || '',
+                        communicationState: safeData.permanentState || '',
+                        communicationPin: safeData.permanentPin || '',
+                      });
+                    }}
+                  >
+                    <Copy size={12} /> Same as Permanent
+                  </button>
+                )}
+              </div>
               {isEditing ? (
                 <>
                   {fg('Street / Locality / Colony', ta(data.communicationAddress, v => s('communicationAddress', v), '12, Example Street'))}
@@ -348,7 +369,27 @@ export default function PersonalInfo({ data, onChange, onPersist, saving }: { da
             </div>
 
             <div className="address-section">
-              <h5>Permanent Address</h5>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <h5 style={{ margin: 0 }}>Permanent Address</h5>
+                {isEditing && (
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-xs"
+                    style={{ fontSize: '0.75rem', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    onClick={() => {
+                      onChange({
+                        ...safeData,
+                        permanentAddress: safeData.communicationAddress || '',
+                        permanentCity: safeData.communicationCity || '',
+                        permanentState: safeData.communicationState || '',
+                        permanentPin: safeData.communicationPin || '',
+                      });
+                    }}
+                  >
+                    <Copy size={12} /> Same as Communication
+                  </button>
+                )}
+              </div>
               {isEditing ? (
                 <>
                   {fg('Street / Locality / Colony', ta(data.permanentAddress, v => s('permanentAddress', v), '12, Example Street'))}
