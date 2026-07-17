@@ -45,21 +45,41 @@ const upload = multer({
   }
 });
 
+// Optional sections that faculty can choose to skip (excluded from completion %)
+const OPTIONAL_SECTIONS = new Set([
+  'eligibilityTests', 'workExperience', 'publications', 'awards', 'projects',
+  'patents', 'researchGuidance', 'adminResponsibilities', 'fdpWorkshops',
+  'onlineCourses', 'memberships', 'internationalExperience',
+  'adminNonAcademicResponsibilities', 'academicAdministration', 'qualityAssurance',
+  'researchAndInnovation', 'examinationAndEvaluation', 'administrativeSupport',
+  'departmentalCharges', 'specialAssignments', 'extraInstitutionalActivities',
+]);
+
 function calcCompletion(f) {
-  let score = 0;
-  const max = 10;
+  const skipped = new Set(f.skippedSections || []);
   const pi = f.personalInfo || {};
-  if (pi.firstName || pi.fullName) score++;
-  if (pi.dateOfBirth && pi.gender) score++;
-  if (f.qualifications?.length > 0) score++;
-  if (f.employmentDetails?.designation) score++;
-  if (f.workExperience?.length > 0) score++;
-  if (f.publications?.length > 0) score++;
-  if (f.projects?.length > 0) score++;
-  if (f.awards?.length > 0) score++;
-  if (f.memberships?.length > 0) score++;
-  if (f.researchGuidance?.phdCompleted || f.researchGuidance?.phdInProgress) score++;
-  return Math.round((score / max) * 100);
+
+  // All scored items: [sectionKey, isFilled]
+  const items = [
+    [null,                    !!(pi.firstName || pi.fullName)],             // Personal Info name
+    [null,                    !!(pi.dateOfBirth && pi.gender)],             // Personal Info DOB+gender
+    [null,                    !!f.qualifications?.length],                   // Qualifications
+    [null,                    !!f.employmentDetails?.designation],           // Employment Details
+    ['workExperience',        !!f.workExperience?.length],
+    ['publications',          !!f.publications?.length],
+    ['projects',              !!f.projects?.length],
+    ['awards',                !!f.awards?.length],
+    ['memberships',           !!f.memberships?.length],
+    ['researchGuidance',      !!(f.researchGuidance?.phdCompleted || f.researchGuidance?.phdInProgress)],
+  ];
+
+  let score = 0, total = 0;
+  for (const [key, filled] of items) {
+    if (key && skipped.has(key)) continue; // skip excluded optional sections
+    total++;
+    if (filled) score++;
+  }
+  return total > 0 ? Math.round((score / total) * 100) : 0;
 }
 
 // GET /api/faculty/me
@@ -113,7 +133,28 @@ router.patch('/me/visibility', facultyOnly, async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
 });
 
-// POST /api/faculty/upload
+// PATCH /api/faculty/me/skip  – toggle a section in/out of skippedSections
+router.patch('/me/skip', facultyOnly, async (req, res) => {
+  try {
+    const { section } = req.body;
+    if (!section || !OPTIONAL_SECTIONS.has(section)) {
+      return res.status(400).json({ message: 'Invalid or non-skippable section' });
+    }
+    const faculty = await Faculty.findOne({ userId: req.user._id });
+    if (!faculty) return res.status(404).json({ message: 'Profile not found' });
+
+    const idx = faculty.skippedSections.indexOf(section);
+    if (idx === -1) faculty.skippedSections.push(section);
+    else faculty.skippedSections.splice(idx, 1);
+
+    faculty.completionPercentage = calcCompletion(faculty);
+    faculty.profileComplete = faculty.completionPercentage >= 20;
+    await faculty.save();
+    res.json({ skippedSections: faculty.skippedSections, completionPercentage: faculty.completionPercentage });
+  } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
+});
+
+
 router.post('/upload', facultyOnly, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {

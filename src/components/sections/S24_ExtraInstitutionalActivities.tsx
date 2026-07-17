@@ -12,7 +12,6 @@ const EMPTY_RESPONSIBILITY: Record<string, string> = {
   organizationName: '',
   department: '',
   facultyName: '',
-  specialization: '',
   programName: '',
   courseName: '',
   role: '',
@@ -81,9 +80,6 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {fg('Institution Name', <SearchableSelect value={item.institutionName || ''} onChange={(v: string) => setVal('institutionName', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
           {fg('Department', inp(item.department, v => setVal('department', v), 'Enter department'))}
-        </div>
-        <div className="form-row form-row-1">
-          {fg('Area of Specialization', inp(item.specialization, v => setVal('specialization', v), 'Enter area of specialization'))}
         </div>
       </>
     );
@@ -195,7 +191,6 @@ function ChargePreviewRows({ r }: { r: any }) {
       <>
         <PreviewRow label="Institution Name" value={r.institutionName} />
         <PreviewRow label="Department" value={r.department} />
-        <PreviewRow label="Specialization" value={r.specialization} />
       </>
     );
   }
