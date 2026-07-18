@@ -3,7 +3,7 @@ import { useParams, Navigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
-import { Save, SkipForward } from 'lucide-react';
+import { SkipForward } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 import PersonalInfo from '../../components/sections/S01_PersonalInfo';
@@ -119,17 +119,6 @@ const EMPTY: any = {
   documents: {}, visibility: {},
 };
 
-// Optional sections that can be skipped (must match server-side OPTIONAL_SECTIONS)
-const SKIPPABLE = new Set([
-  'eligibilityTests', 'workExperience', 'publications', 'awards', 'projects',
-  'patents', 'researchGuidance', 'adminResponsibilities', 'fdpWorkshops',
-  'onlineCourses', 'memberships', 'internationalExperience',
-  'adminNonAcademicResponsibilities', 'academicAdministration', 'qualityAssurance',
-  'researchAndInnovation', 'examinationAndEvaluation', 'administrativeSupport',
-  'departmentalCharges', 'specialAssignments', 'extraInstitutionalActivities',
-  'internshipAndProjects'
-]);
-
 export default function ProfileEdit() {
   const { sectionId } = useParams();
   const { user } = useAuth();
@@ -140,8 +129,6 @@ export default function ProfileEdit() {
   const [profile, setProfile] = useState<any>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [skippedSections, setSkippedSections] = useState<string[]>([]);
-  const [skipping, setSkipping] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -151,7 +138,6 @@ export default function ProfileEdit() {
 
         // Server is the source of truth — always use it when available
         setProfile(serverData);
-        setSkippedSections(r.data.skippedSections || []);
         // Clear any stale localStorage draft now that we have fresh server data
         localStorage.removeItem(STORAGE_KEY);
       } catch {
@@ -218,21 +204,6 @@ export default function ProfileEdit() {
     });
   };
 
-  const handleSkip = async () => {
-    if (!tab || !SKIPPABLE.has(tab)) return;
-    setSkipping(true);
-    try {
-      const r = await api.patch('/me/skip', { section: tab });
-      setSkippedSections(r.data.skippedSections || []);
-      const isNowSkipped = r.data.skippedSections.includes(tab);
-      toast.success(isNowSkipped ? 'Section skipped — excluded from completion %' : 'Section unskipped — included in completion %');
-    } catch {
-      toast.error('Failed to update skip state');
-    } finally {
-      setSkipping(false);
-    }
-  };
-
   if (loading) return (
     <AppLayout title="Edit Profile">
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}>
@@ -278,20 +249,7 @@ export default function ProfileEdit() {
                     </button>
                   )
                 )}
-                <button className="btn btn-primary" disabled={saving} onClick={() => save()}>
-                  {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Saving…</> : <><Save size={14} /> Save</>}
-                </button>
               </div>
-            </div>
-
-            <div className="card-body animate-fadeIn">
-              {tab && SKIPPABLE.has(tab) && skippedSections.includes(tab) && (
-                <div className="info-banner info-banner-warn" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <SkipForward size={15} style={{ flexShrink: 0 }} />
-                  <span>This section is <strong>skipped</strong> and will not count towards your profile completion percentage. You can still fill in the data. Click <strong>Skipped — Undo</strong> above to include it again.</span>
-                </div>
-              )}
-              {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} onPersist={save} saving={saving} />}
               {tab === 'qualifications' && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
               {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
               {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} />}
