@@ -29,6 +29,32 @@ const EMPTY = {
   branchName: ''
 };
 
+type FieldDefinition = {
+  key: string;
+  required?: boolean;
+  visible?: (values: Record<string, any>) => boolean;
+};
+
+const FIELD_DEFINITIONS: FieldDefinition[] = [
+  { key: 'employeeId', required: true },
+  { key: 'designation', required: true },
+  { key: 'department', required: true },
+  { key: 'institution', required: true },
+  { key: 'affiliatedUniversity', required: true },
+  { key: 'typeOfInstitution', required: true },
+  { key: 'natureOfAppointment', required: true },
+  { key: 'dateOfJoining', required: true },
+  { key: 'approvalOfAppointment', required: true },
+  { key: 'payBand', required: true },
+  { key: 'bankName', required: true },
+  { key: 'accountNumber', required: true },
+  { key: 'ifscCode', required: true },
+  { key: 'branchName', required: true },
+  { key: 'pfNumber', required: true },
+  { key: 'serviceBookNumber', required: true },
+  { key: 'documentUrl', required: true }
+];
+
 // Options removed since they are now dynamic
 const natureOfAppointmentOptionsCustom = [
   'Regular',
@@ -64,7 +90,7 @@ const parseBankDetails = (str: string) => {
   };
 };
 
-const CustomSelect = ({ value, onChange, options, placeholder = "— Select —" }: any) => sel(value, onChange, options, placeholder);
+const CustomSelect = ({ value, onChange, options, placeholder = "— Select —", inputRef }: any) => sel(value, onChange, options, placeholder, inputRef);
 
 export default function EmploymentDetails({ data, onChange }: { data: any; onChange: (d: any) => void }) {
   const dynamicDepartmentOptions = useDropdownOptions(departmentOptions);
@@ -77,14 +103,67 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
   const [editingIndex, setEditingIndex] = useState<number | null>(-1);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
   // Convert object to array for internal use
   const dataArray = Array.isArray(data) ? data : [];
   const institutionsOpts = useDropdownOptions(institutionsOptions);
 
+  const getFieldDefinition = (key: string) => FIELD_DEFINITIONS.find((field) => field.key === key);
+
+  const isFieldRequired = (key: string, values: Record<string, any> = editingData) => {
+    const definition = getFieldDefinition(key);
+    if (!definition?.required) return false;
+    if (definition.visible && !definition.visible(values)) return false;
+    return true;
+  };
+
+  const getFieldError = (key: string, value: any, values: Record<string, any> = editingData) => {
+    if (!isFieldRequired(key, values)) return '';
+    const trimmedValue = typeof value === 'string' ? value.trim() : value;
+    return trimmedValue ? '' : 'This field is required.';
+  };
+
+  const markFieldTouched = (key: string) => {
+    setTouchedFields((prev) => ({ ...prev, [key]: true }));
+  };
+
+  const getVisibleRequiredFields = (values: Record<string, any> = editingData) =>
+    FIELD_DEFINITIONS.filter((field) => field.required && (!field.visible || field.visible(values)));
+
+  const validateForm = () => {
+    const nextErrors: Record<string, string> = {};
+    getVisibleRequiredFields().forEach((field) => {
+      const message = getFieldError(field.key, editingData[field.key]);
+      if (message) nextErrors[field.key] = message;
+    });
+    setErrors(nextErrors);
+    setTouchedFields((prev) => {
+      const nextTouched = { ...prev };
+      getVisibleRequiredFields().forEach((field) => {
+        nextTouched[field.key] = true;
+      });
+      return nextTouched;
+    });
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const focusFirstError = (fieldErrors: Record<string, string>) => {
+    const firstInvalidKey = getVisibleRequiredFields().find((field) => fieldErrors[field.key])?.key;
+    const target = firstInvalidKey ? fieldRefs.current[firstInvalidKey] : null;
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.focus();
+    }
+  };
+
   const startEdit = (index: number) => {
     setEditingIndex(index);
+    setErrors({});
+    setTouchedFields({});
     const baseData = index === -1 ? { ...EMPTY } : { ...dataArray[index] };
     const bankInfo = parseBankDetails(baseData.bankAccountDetails || '');
     setEditingData({
@@ -98,20 +177,15 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
   };
 
   const saveEdit = () => {
-    const keysToCheck = [
-      'employeeId', 'designation', 'department', 'institution',
-      'affiliatedUniversity', 'typeOfInstitution', 'natureOfAppointment',
-      'dateOfJoining', 'dateOfConfirmation', 'approvalOfAppointment', 'payBand', 'pfNumber',
-      'serviceBookNumber', 'from', 'to',
-      'documentUrl', 'bankName', 'accountNumber', 'ifscCode', 'branchName'
-    ];
-    const hasAnyData = keysToCheck.some(key => {
-      const val = editingData[key];
-      return val && typeof val === 'string' && val.trim() !== '';
+    const nextErrors: Record<string, string> = {};
+    getVisibleRequiredFields().forEach((field) => {
+      const message = getFieldError(field.key, editingData[field.key]);
+      if (message) nextErrors[field.key] = message;
     });
+    setErrors(nextErrors);
 
-    if (!hasAnyData) {
-      alert('Please fill in at least one field to save.');
+    if (Object.keys(nextErrors).length > 0) {
+      focusFirstError(nextErrors);
       return;
     }
 
@@ -158,10 +232,31 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
     // If cancelling the always-visible new form, keep it open but reset fields
     setEditingIndex(editingIndex === -1 ? -1 : null);
     setEditingData(EMPTY);
+    setErrors({});
+    setTouchedFields({});
   };
 
   const updateEditingData = (key: string, value: string) => {
-    setEditingData((prev: any) => ({ ...prev, [key]: value }));
+    markFieldTouched(key);
+    setEditingData((prev: any) => {
+      const nextValues = { ...prev, [key]: value };
+      if (isFieldRequired(key, nextValues)) {
+        const nextError = getFieldError(key, value, nextValues);
+        setErrors((prevErrors) => {
+          const updated = { ...prevErrors };
+          if (nextError) updated[key] = nextError;
+          else delete updated[key];
+          return updated;
+        });
+      } else {
+        setErrors((prevErrors) => {
+          const updated = { ...prevErrors };
+          delete updated[key];
+          return updated;
+        });
+      }
+      return nextValues;
+    });
   };
 
   const toggleCard = (index: number) => {
@@ -183,6 +278,8 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
   const addNewEntry = () => {
     setEditingIndex(-1);
     setEditingData({ ...EMPTY });
+    setErrors({});
+    setTouchedFields({});
   };
 
   const renderPreview = (label: string, value: any) => (
@@ -195,32 +292,36 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
   const renderFormFields = () => (
     <>
       <div className="form-row form-row-2">
-        {fg('Employee ID / Staff Code', inp(editingData.employeeId, v => updateEditingData('employeeId', v)))}
+        {fg('Employee ID / Staff Code', inp(editingData.employeeId, v => updateEditingData('employeeId', v), '', (el) => { fieldRefs.current.employeeId = el as HTMLElement; }), { required: true, error: errors.employeeId })}
         {fg('Designation', <CustomSelect
           value={editingData.designation}
           onChange={(v: string) => updateEditingData('designation', v)}
           options={dynamicDesignationOptions}
-        />)}
+          inputRef={(el: HTMLSelectElement | null) => { fieldRefs.current.designation = el as HTMLElement; }}
+        />, { required: true, error: errors.designation })}
       </div>
       <div className="form-row form-row-2">
         {fg('Department', <CustomSelect
           value={editingData.department}
           onChange={(v: string) => updateEditingData('department', v)}
           options={dynamicDepartmentOptions}
-        />)}
-        {fg('College / Institution Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
+          inputRef={(el: HTMLSelectElement | null) => { fieldRefs.current.department = el as HTMLElement; }}
+        />, { required: true, error: errors.department })}
+        {fg('College / Institution Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" inputRef={(el: HTMLDivElement | null) => { fieldRefs.current.institution = el as HTMLElement; }} />, { required: true, error: errors.institution })}
       </div>
       <div className="form-row form-row-2">
         {fg('University Affiliated to', <CustomSelect
           value={editingData.affiliatedUniversity}
           onChange={(v: string) => updateEditingData('affiliatedUniversity', v)}
           options={dynamicAffiliatedUniversityOptions}
-        />)}
+          inputRef={(el: HTMLSelectElement | null) => { fieldRefs.current.affiliatedUniversity = el as HTMLElement; }}
+        />, { required: true, error: errors.affiliatedUniversity })}
         {fg('Type of Institution', <CustomSelect
           value={editingData.typeOfInstitution}
           onChange={(v: string) => updateEditingData('typeOfInstitution', v)}
           options={dynamicInstitutionTypeOptions}
-        />)}
+          inputRef={(el: HTMLSelectElement | null) => { fieldRefs.current.typeOfInstitution = el as HTMLElement; }}
+        />, { required: true, error: errors.typeOfInstitution })}
       </div>
 
       <div className="form-row form-row-3">
@@ -228,8 +329,9 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           value={editingData.natureOfAppointment}
           onChange={(v: string) => updateEditingData('natureOfAppointment', v)}
           options={natureOfAppointmentOptionsCustom}
-        />)}
-        {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v)))}
+          inputRef={(el: HTMLSelectElement | null) => { fieldRefs.current.natureOfAppointment = el as HTMLElement; }}
+        />, { required: true, error: errors.natureOfAppointment })}
+        {fg('Date of Joining (current institution)', dateInp(editingData.dateOfJoining, v => updateEditingData('dateOfJoining', v), (el) => { fieldRefs.current.dateOfJoining = el as HTMLElement; }), { required: true, error: errors.dateOfJoining })}
         {fg('Date of Confirmation / Regularization', dateInp(editingData.dateOfConfirmation, v => updateEditingData('dateOfConfirmation', v)))}
       </div>
       <div className="form-row form-row-2">
@@ -237,37 +339,43 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           value={editingData.approvalOfAppointment}
           onChange={(v: string) => updateEditingData('approvalOfAppointment', v)}
           options={dynamicApprovalStatusOptions}
-        />)}
+          inputRef={(el: HTMLSelectElement | null) => { fieldRefs.current.approvalOfAppointment = el as HTMLElement; }}
+        />, { required: true, error: errors.approvalOfAppointment })}
         {fg('Pay Band / Pay Scale / CTC', <CustomSelect
           value={editingData.payBand}
           onChange={(v: string) => updateEditingData('payBand', v)}
           options={dynamicPayScaleOptions}
-        />)}
+          inputRef={(el: HTMLSelectElement | null) => { fieldRefs.current.payBand = el as HTMLElement; }}
+        />, { required: true, error: errors.payBand })}
       </div>
 
       <div className="form-row form-row-2">
-        {fg('Bank Name', inp(editingData.bankName, v => updateEditingData('bankName', v)))}
-        {fg('Account Number', inp(editingData.accountNumber, v => updateEditingData('accountNumber', v)))}
+        {fg('Bank Name', inp(editingData.bankName, v => updateEditingData('bankName', v)), { required: true, error: errors.bankName })}
+        {fg('Account Number', inp(editingData.accountNumber, v => updateEditingData('accountNumber', v)), { required: true, error: errors.accountNumber })}
       </div>
       <div className="form-row form-row-2">
-        {fg('IFSC Code', inp(editingData.ifscCode, v => updateEditingData('ifscCode', v)))}
-        {fg('Branch Name', inp(editingData.branchName, v => updateEditingData('branchName', v)))}
+        {fg('IFSC Code', inp(editingData.ifscCode, v => updateEditingData('ifscCode', v)), { required: true, error: errors.ifscCode })}
+        {fg('Branch Name', inp(editingData.branchName, v => updateEditingData('branchName', v)), { required: true, error: errors.branchName })}
       </div>
       <div className="form-row form-row-2">
-        {fg('Provident Fund (PF) Number', inp(editingData.pfNumber, v => updateEditingData('pfNumber', v)))}
-        {fg('Service Book Number', inp(editingData.serviceBookNumber, v => updateEditingData('serviceBookNumber', v)))}
+        {fg('Provident Fund (PF) Number', inp(editingData.pfNumber, v => updateEditingData('pfNumber', v)), { required: true, error: errors.pfNumber })}
+        {fg('Service Book Number', inp(editingData.serviceBookNumber, v => updateEditingData('serviceBookNumber', v)), { required: true, error: errors.serviceBookNumber })}
       </div>
 
       <div className="form-group" style={{ marginTop: 15 }}>
-        <label className="form-label" style={{ fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>
+        <label className={`form-label${errors.documentUrl ? ' invalid-label' : ''}`} style={{ fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>
           Experience Document / Proof
+          <span className="required-star">*</span>
         </label>
-        <FileInp
-          v={editingData.documentUrl}
-          fn={(v) => updateEditingData('documentUrl', v)}
-          accept=".pdf,image/*"
-          section="employmentDetails"
-        />
+        <div className={`form-field-wrapper${errors.documentUrl ? ' invalid-field' : ''}`}>
+          <FileInp
+            v={editingData.documentUrl}
+            fn={(v) => updateEditingData('documentUrl', v)}
+            accept=".pdf,image/*"
+            section="employmentDetails"
+          />
+        </div>
+        {errors.documentUrl ? <div className="error-message">{errors.documentUrl}</div> : null}
       </div>
     </>
   );
@@ -303,7 +411,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Briefcase size={20} color="#4f46e5" /> Employment Details
+                <Briefcase size={20} color="#4f46e5" /> Current Employment Details
               </h3>
               <div>
                 <button
@@ -358,7 +466,7 @@ export default function EmploymentDetails({ data, onChange }: { data: any; onCha
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
                   <h3 style={{ margin: 0, fontSize: '16px', color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Briefcase size={20} color="#111827" /> Edit Employment Details
+                    <Briefcase size={20} color="#111827" /> Edit Current Employment Details
                   </h3>
                   <div>
                     <button
