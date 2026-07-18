@@ -3,7 +3,7 @@ import { useParams, Navigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
-import { Save, SkipForward } from 'lucide-react';
+import { SkipForward } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 import PersonalInfo from '../../components/sections/S01_PersonalInfo';
@@ -278,9 +278,6 @@ export default function ProfileEdit() {
                     </button>
                   )
                 )}
-                <button className="btn btn-primary" disabled={saving} onClick={() => save()}>
-                  {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Saving…</> : <><Save size={14} /> Save</>}
-                </button>
               </div>
             </div>
 
