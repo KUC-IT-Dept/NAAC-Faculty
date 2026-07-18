@@ -3,7 +3,6 @@ import { useParams, Navigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
-import { Save } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 import PersonalInfo from '../../components/sections/S01_PersonalInfo';
@@ -223,11 +222,7 @@ export default function ProfileEdit() {
                 <h3 style={{ color: 'var(--primary-dark)' }}>{section?.label}</h3>
                 <p className="text-xs text-muted" style={{ marginTop: 2 }}>Changes are saved per section.</p>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-primary" disabled={saving} onClick={() => save()}>
-                  {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Saving…</> : <><Save size={14} /> Save</>}
-                </button>
-              </div>
+              {/* Top-level save button removed — saves are handled per-section */}
             </div>
 
             <div className="card-body animate-fadeIn">
