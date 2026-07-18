@@ -198,7 +198,6 @@ const extraInstitutionalActivitySchema = new mongoose.Schema({
   organizationName: { type: String, default: '' },
   department: { type: String, default: '' },
   facultyName: { type: String, default: '' },
-  specialization: { type: String, default: '' },
   programName: { type: String, default: '' },
   courseName: { type: String, default: '' },
   role: { type: String, default: '' },
@@ -439,6 +438,7 @@ const facultySchema = new mongoose.Schema({
   profileComplete: { type: Boolean, default: false },
   completionPercentage: { type: Number, default: 0 },
   visibility: { type: visibilitySchema, default: () => ({}) },
+  skippedSections: { type: [String], default: [] },
 
   // Section 1: Personal Information
   personalInfo: {
@@ -601,6 +601,9 @@ const facultySchema = new mongoose.Schema({
 
   // Section 21: Administrative Support
   administrativeSupport: { type: [administrativeSupportSchema], default: [] },
+
+  // Section 11.5: Internship and Projects
+  internshipAndProjects: { type: Array, default: [] },
 
   // Section 15: Documents (stored as key ? URL map)
   documents: {

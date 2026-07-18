@@ -45,21 +45,55 @@ const upload = multer({
   }
 });
 
+const OPTIONAL_SECTIONS = new Set([
+  'eligibilityTests', 'workExperience', 'publications', 'awards', 'projects',
+  'patents', 'researchGuidance', 'adminResponsibilities', 'fdpWorkshops',
+  'onlineCourses', 'memberships', 'internationalExperience',
+  'adminNonAcademicResponsibilities', 'academicAdministration', 'qualityAssurance',
+  'researchAndInnovation', 'examinationAndEvaluation', 'administrativeSupport',
+  'departmentalCharges', 'specialAssignments', 'extraInstitutionalActivities',
+  'internshipAndProjects'
+]);
+
 function calcCompletion(f) {
-  let score = 0;
-  const max = 10;
+  const skipped = new Set(f.skippedSections || []);
   const pi = f.personalInfo || {};
-  if (pi.firstName || pi.fullName) score++;
-  if (pi.dateOfBirth && pi.gender) score++;
-  if (f.qualifications?.length > 0) score++;
-  if (f.employmentDetails?.designation) score++;
-  if (f.workExperience?.length > 0) score++;
-  if (f.publications?.length > 0) score++;
-  if (f.projects?.length > 0) score++;
-  if (f.awards?.length > 0) score++;
-  if (f.memberships?.length > 0) score++;
-  if (f.researchGuidance?.phdCompleted || f.researchGuidance?.phdInProgress) score++;
-  return Math.round((score / max) * 100);
+  const items = [
+    [null, !!(pi.firstName || pi.fullName)],
+    [null, !!(f.qualifications && f.qualifications.length > 0)],
+    ['eligibilityTests', !!(f.eligibilityTests && f.eligibilityTests.length > 0)],
+    [null, !!(f.employmentDetails && f.employmentDetails.designation)],
+    ['workExperience', !!(f.workExperience && f.workExperience.length > 0)],
+    ['publications', !!(f.publications && f.publications.length > 0)],
+    ['awards', !!(f.awards && f.awards.length > 0)],
+    ['projects', !!(f.projects && f.projects.length > 0)],
+    ['patents', !!(f.patents && f.patents.length > 0)],
+    ['researchGuidance', !!(f.researchGuidance && (f.researchGuidance.phdCompleted || f.researchGuidance.phdInProgress || f.researchGuidance.mphilCompleted || f.researchGuidance.mphilInProgress || f.researchGuidance.pgProjectsSupervised || (f.researchGuidance.studentDetails && f.researchGuidance.studentDetails.length > 0)))],
+    ['adminResponsibilities', !!(f.adminResponsibilities && f.adminResponsibilities.length > 0)],
+    ['internshipAndProjects', !!(f.internshipAndProjects && f.internshipAndProjects.length > 0)],
+    ['fdpWorkshops', !!(f.fdpWorkshops && f.fdpWorkshops.length > 0)],
+    ['memberships', !!(f.memberships && f.memberships.length > 0)],
+    ['onlineCourses', !!(f.onlineCourses && f.onlineCourses.length > 0)],
+    ['internationalExperience', !!(f.internationalExperience && f.internationalExperience.length > 0)],
+    ['adminNonAcademicResponsibilities', !!(f.adminNonAcademicResponsibilities && f.adminNonAcademicResponsibilities.length > 0)],
+    ['academicAdministration', !!(f.academicAdministration && f.academicAdministration.length > 0)],
+    ['qualityAssurance', !!(f.qualityAssurance && f.qualityAssurance.length > 0)],
+    ['researchAndInnovation', !!(f.researchAndInnovation && f.researchAndInnovation.length > 0)],
+    ['examinationAndEvaluation', !!(f.examinationAndEvaluation && f.examinationAndEvaluation.length > 0)],
+    ['administrativeSupport', !!(f.administrativeSupport && f.administrativeSupport.length > 0)],
+    ['departmentalCharges', !!(f.departmentalCharges && f.departmentalCharges.length > 0)],
+    ['specialAssignments', !!(f.specialAssignments && f.specialAssignments.length > 0)],
+    ['extraInstitutionalActivities', !!(f.extraInstitutionalActivities && f.extraInstitutionalActivities.length > 0)],
+    [null, !!(f.documents && (f.documents.photo || f.documents.signature || f.documents.aadhar || f.documents.pan || f.documents.ssc || f.documents.hsc || f.documents.ug))]
+  ];
+
+  let score = 0, total = 0;
+  for (const [key, filled] of items) {
+    if (key && skipped.has(key)) continue;
+    total++;
+    if (filled) score++;
+  }
+  return total > 0 ? Math.round((score / total) * 100) : 0;
 }
 
 // GET /api/faculty/me
@@ -81,7 +115,7 @@ router.put('/', facultyOnly, async (req, res) => {
       'onlineCourses', 'internationalExperience', 'adminNonAcademicResponsibilities',
       'academicAdministration', 'qualityAssurance', 'researchAndInnovation',
       'examinationAndEvaluation', 'administrativeSupport', 'departmentalCharges',
-      'specialAssignments', 'extraInstitutionalActivities', 'documents',
+      'specialAssignments', 'extraInstitutionalActivities', 'internshipAndProjects', 'documents',
     ];
     const updateData = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) updateData[f] = req.body[f]; });
@@ -113,7 +147,26 @@ router.patch('/visibility', facultyOnly, async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
 });
 
-// POST /api/faculty/upload
+// PATCH /skip - toggle a section in/out of skippedSections
+router.patch('/skip', facultyOnly, async (req, res) => {
+  try {
+    const { section } = req.body;
+    if (!section || !OPTIONAL_SECTIONS.has(section)) {
+      return res.status(400).json({ message: 'Invalid or non-skippable section' });
+    }
+    const faculty = await Faculty.findOne({ userId: req.user._id });
+    if (!faculty) return res.status(404).json({ message: 'Profile not found' });
+    const idx = faculty.skippedSections.indexOf(section);
+    if (idx === -1) faculty.skippedSections.push(section);
+    else faculty.skippedSections.splice(idx, 1);
+    faculty.completionPercentage = calcCompletion(faculty);
+    faculty.profileComplete = faculty.completionPercentage >= 20;
+    await faculty.save();
+    res.json({ skippedSections: faculty.skippedSections, completionPercentage: faculty.completionPercentage });
+  } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
+});
+
+// POST /upload
 router.post('/upload', facultyOnly, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {

@@ -439,6 +439,8 @@ const facultySchema = new mongoose.Schema({
   profileComplete: { type: Boolean, default: false },
   completionPercentage: { type: Number, default: 0 },
   visibility: { type: visibilitySchema, default: () => ({}) },
+  // Sections the faculty has opted to skip (excluded from completion %).
+  skippedSections: { type: [String], default: [] },
 
   // Section 1: Personal Information
   personalInfo: {

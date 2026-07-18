@@ -53,21 +53,8 @@ export default function FacultyDashboard() {
   const docsCompleted = requiredDocs.filter(d => docs[d]).length;
   const docsProgress = profile ? Math.round((docsCompleted / requiredDocs.length) * 100) : 0;
 
-  // Calculate Main Profile Completion
-  const mainSectionsStatus = [
-    piProgress >= 50, // Personal Information (at least 50% filled)
-    (profile?.qualifications?.length || 0) > 0, // Qualifications
-    !!employment?.designation, // Employment Details
-    docsProgress >= 50, // Documents (at least 50% uploaded)
-    (profile?.publications?.length || 0) > 0, // Publications
-    (profile?.projects?.length || 0) > 0, // Projects
-    (profile?.awards?.length || 0) > 0, // Awards & Honours
-    !!(pi.orcidId || pi.googleScholarId || pi.scopusId), // Research IDs
-    Object.keys(profile?.visibility || {}).length > 0, // Visibility Settings
-    (profile?.employmentDetails?.length || 0) > 0 // Employment history entries
-  ];
-  const completedSectionsCount = mainSectionsStatus.filter(Boolean).length;
-  const pct = profile ? Math.round((completedSectionsCount / mainSectionsStatus.length) * 100) : 0;
+  // Use server-computed percentage (already accounts for skipped sections)
+  const pct = profile?.completionPercentage ?? 0;
 
   const rawName = pi.fullName || [pi.firstName, pi.middleName, pi.lastName].filter(Boolean).join(' ').trim() || user?.username;
   const displayName = rawName?.replace(/^temp--/i, '').trim();
