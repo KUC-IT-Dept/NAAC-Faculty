@@ -1,30 +1,44 @@
-import { ReactNode, useState, useRef, useEffect } from 'react';
+import { ReactNode, useState, useRef, useEffect, type Ref } from 'react';
 import { Upload, X, FileText, ExternalLink, RefreshCw, ChevronDown, Search, Check } from 'lucide-react';
 import api, { getAuthenticatedFileUrl } from '../../lib/api';
 import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
 import { PDFDocument } from 'pdf-lib';
 
+interface FieldLayoutOptions {
+  required?: boolean;
+  error?: string;
+}
+
 /** Shared label helper */
-export const fg = (label: string, node: ReactNode) => (
-  <div className="form-group">
-    <label className="form-label">{label}</label>
-    {node}
-  </div>
-);
+export const fg = (label: string, node: ReactNode, options: FieldLayoutOptions = {}) => {
+  const { required = false, error = '' } = options;
+  return (
+    <div className="form-group">
+      <label className={`form-label${error ? ' invalid-label' : ''}`}>
+        {label}
+        {required ? <span className="required-star">*</span> : null}
+      </label>
+      <div className={`form-field-wrapper${error ? ' invalid-field' : ''}`}>
+        {node}
+      </div>
+      {error ? <div className="error-message">{error}</div> : null}
+    </div>
+  );
+};
 
 /** Text input */
-export const inp = (v: string, fn: (s: string) => void, ph = '') => (
-  <input className="form-input" value={v || ''} onChange={e => fn(e.target.value)} placeholder={ph} />
+export const inp = (v: string, fn: (s: string) => void, ph = '', inputRef?: Ref<HTMLInputElement>) => (
+  <input ref={inputRef} className="form-input" value={v || ''} onChange={e => fn(e.target.value)} placeholder={ph} />
 );
 
 /** Date input */
-export const dateInp = (v: string, fn: (s: string) => void) => (
-  <input className="form-input" type="date" value={v || ''} onChange={e => fn(e.target.value)} />
+export const dateInp = (v: string, fn: (s: string) => void, inputRef?: Ref<HTMLInputElement>) => (
+  <input ref={inputRef} className="form-input" type="date" value={v || ''} onChange={e => fn(e.target.value)} />
 );
 
 /** Requestable Select handles + Other requests */
-export const RequestableSelect = ({ v, fn, opts, ph = '— Select —' }: { v: string, fn: (s: string) => void, opts: string[], ph?: string }) => {
+export const RequestableSelect = ({ v, fn, opts, ph = '— Select —', inputRef }: { v: string, fn: (s: string) => void, opts: string[], ph?: string, inputRef?: Ref<HTMLSelectElement> }) => {
   const [isCustom, setIsCustom] = useState(false);
   const [customValue, setCustomValue] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -71,7 +85,7 @@ export const RequestableSelect = ({ v, fn, opts, ph = '— Select —' }: { v: s
   }
 
   return (
-    <select className="form-select" value={isValueNotInOptions ? 'CUSTOM_VAL' : (v || '')} onChange={e => {
+    <select ref={inputRef} className="form-select" value={isValueNotInOptions ? 'CUSTOM_VAL' : (v || '')} onChange={e => {
       if (e.target.value === 'CUSTOM_ADD') {
         setIsCustom(true);
         setCustomValue('');
@@ -90,8 +104,8 @@ export const RequestableSelect = ({ v, fn, opts, ph = '— Select —' }: { v: s
 };
 
 /** Select */
-export const sel = (v: string, fn: (s: string) => void, opts: string[], ph?: string) => (
-  <RequestableSelect v={v} fn={fn} opts={opts} ph={ph} />
+export const sel = (v: string, fn: (s: string) => void, opts: string[], ph?: string, inputRef?: Ref<HTMLSelectElement>) => (
+  <RequestableSelect v={v} fn={fn} opts={opts} ph={ph} inputRef={inputRef} />
 );
 
 /** Year dropdown */
@@ -282,8 +296,8 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
 };
 
 /** Textarea */
-export const ta = (v: string, fn: (s: string) => void, ph = '', rows = 2) => (
-  <textarea className="form-textarea" rows={rows} value={v || ''} onChange={e => fn(e.target.value)} placeholder={ph} />
+export const ta = (v: string, fn: (s: string) => void, ph = '', rows = 2, inputRef?: Ref<HTMLTextAreaElement>) => (
+  <textarea ref={inputRef} className="form-textarea" rows={rows} value={v || ''} onChange={e => fn(e.target.value)} placeholder={ph} />
 );
 
 /** Subsection title — uses `.subsection-title` from index.css */
