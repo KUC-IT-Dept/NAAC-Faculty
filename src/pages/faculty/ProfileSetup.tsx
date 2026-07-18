@@ -76,7 +76,7 @@ const EMPTY: any = {
     completedStudentsNames: '',
     studentDetails: [],
   },
-  academicResponsibilities: { responsibilities: [], coursesTaught: [] },
+  academicResponsibilities: { courses: [], otherResponsibilities: [] },
   internshipAndProjects: [],
   memberships: [], fdpWorkshops: [], onlineCourses: [], internationalExperience: [],
   adminNonAcademicResponsibilities: [],
