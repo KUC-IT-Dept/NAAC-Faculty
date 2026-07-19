@@ -27,9 +27,7 @@ export const getAuthenticatedFileUrl = (url?: string) => {
   if (!url) return '';
   const fullUrl = getFileUrl(url);
   const token = localStorage.getItem('iqac_token');
-  
-  // Do not append our internal JWT token to Cloudinary URLs
-  if (!token || fullUrl.includes('res.cloudinary.com')) return fullUrl;
+  if (!token) return fullUrl;
   
   const separator = fullUrl.includes('?') ? '&' : '?';
   return `${fullUrl}${separator}token=${token}`;

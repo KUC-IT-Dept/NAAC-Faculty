@@ -43,6 +43,7 @@ const generalStorage = new CloudinaryStorage({
   params: {
     folder: 'faculty_documents',
     resource_type: 'auto',
+    type: 'authenticated',
     public_id: (req, file) => {
       const section = req.query.section || '';
       const safeSection = section.replace(/[^a-zA-Z0-9_-]/g, '');
@@ -83,13 +84,38 @@ const persistDocumentReference = async (userId, fieldKey, url) => {
 };
 
 const extractCloudinaryPublicId = (url) => {
-  if (!url || !url.includes('res.cloudinary.com')) return null;
-  const parts = url.split('/');
-  const uploadIndex = parts.indexOf('upload');
-  if (uploadIndex === -1) return null;
+  if (!url) return null;
   
-  // Skip 'upload' and version (e.g., 'v1734567890')
-  let startIndex = uploadIndex + 1;
+  // Handle our internal secure proxy URL: /api/faculty/files/secure/<resource_type>/<public_id.ext>
+  if (url.includes('/api/faculty/files/secure/')) {
+    const parts = url.split('/secure/');
+    if (parts.length > 1) {
+      const securePath = parts[1]; // e.g. "image/faculty_documents/..."
+      const pathParts = securePath.split('/');
+      // Remove the resource_type (e.g. "image")
+      pathParts.shift();
+      const publicIdWithExt = pathParts.join('/');
+      const lastDotIndex = publicIdWithExt.lastIndexOf('.');
+      return lastDotIndex !== -1 ? publicIdWithExt.substring(0, lastDotIndex) : publicIdWithExt;
+    }
+  }
+
+  // Handle direct Cloudinary URLs
+  if (!url.includes('res.cloudinary.com')) return null;
+  const decodedUrl = decodeURIComponent(url);
+  const parts = decodedUrl.split('/');
+  
+  let actionIndex = parts.indexOf('upload');
+  if (actionIndex === -1) actionIndex = parts.indexOf('authenticated');
+  if (actionIndex === -1) actionIndex = parts.indexOf('private');
+
+  if (actionIndex === -1) return null;
+  
+  let startIndex = actionIndex + 1;
+  if (parts[startIndex] && parts[startIndex].startsWith('s--')) {
+    startIndex++;
+  }
+
   if (parts[startIndex] && parts[startIndex].startsWith('v') && !isNaN(parts[startIndex].substring(1))) {
     startIndex++;
   }
@@ -170,7 +196,18 @@ router.post('/', facultyOnly, generalUpload.single('file'), async (req, res) => 
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const url = req.file.path;
+    const cloudinaryUrl = req.file.path;
+    
+    let resourceType = 'image';
+    if (cloudinaryUrl.includes('/raw/')) resourceType = 'raw';
+    if (cloudinaryUrl.includes('/video/')) resourceType = 'video';
+    
+    const publicId = extractCloudinaryPublicId(cloudinaryUrl) || req.file.filename;
+    const ext = require('path').extname(cloudinaryUrl) || require('path').extname(req.file.originalname);
+    
+    // Using a clean path instead of a query string ensures the frontend displays just the filename nicely
+    const url = `/api/faculty/files/secure/${resourceType}/${publicId}${ext}`;
+    
     const fieldKey = typeof req.query.field === 'string' ? req.query.field : '';
     await persistDocumentReference(req.user._id, fieldKey, url);
 
