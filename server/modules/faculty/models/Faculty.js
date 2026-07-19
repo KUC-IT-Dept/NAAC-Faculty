@@ -142,6 +142,22 @@ const adminRespSchema = new mongoose.Schema({
   to: { type: String, default: '' },
 }, { _id: false });
 
+const academicCourseSchema = new mongoose.Schema({
+  courseName: { type: String, default: '' },
+  fromYear: { type: String, default: '' },
+  toYear: { type: String, default: '' },
+  programme: { type: String, default: '' },
+  subject: { type: String, default: '' },
+}, { _id: false });
+
+const academicResponsibilitySchema = new mongoose.Schema({
+  classesHandled: { type: String, default: '' },
+  administrativeRoles: { type: String, default: '' },
+  committeeMemberships: { type: String, default: '' },
+  fromYear: { type: String, default: '' },
+  toYear: { type: String, default: '' },
+}, { _id: false });
+
 // Section 12: FDP / Workshops
 const fdpSchema = new mongoose.Schema({
   programTitle: { type: String, default: '' },
@@ -558,6 +574,11 @@ const facultySchema = new mongoose.Schema({
     pgProjectsSupervised: { type: String, default: '' },
     completedStudentsNames: { type: String, default: '' },
     studentDetails: { type: [studentDetailSchema], default: [] },
+  },
+
+  academicResponsibilities: {
+    courses: { type: [academicCourseSchema], default: [] },
+    otherResponsibilities: { type: [academicResponsibilitySchema], default: [] },
   },
 
   // Section 11: Admin & Academic Responsibilities

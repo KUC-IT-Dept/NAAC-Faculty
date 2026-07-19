@@ -10,7 +10,7 @@ const PROGRAMMES_LIST = ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M
 const SUBJECTS_LIST = ['Computer Science', 'Physics', 'Mathematics', 'Chemistry', 'Biology', 'Electronics Engineering', 'Mechanical Engineering', 'Civil Engineering', 'English', 'Management', 'Other'];
 const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
-const EMPTY_COURSE = { courseName: '', year: '', programmes: '', subject: '' };
+const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '' };
 const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
@@ -37,8 +37,8 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
           <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{c.year || '—'}</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Year</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{c.fromYear && c.toYear ? `${c.fromYear}-${c.toYear}` : c.fromYear || c.toYear || '—'}</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Duration</div>
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, color: 'var(--text-primary, #1e293b)', fontSize: 15, marginBottom: 4 }}>
@@ -65,7 +65,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
       {expanded && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Course Name" value={c.courseName} />
-          <PreviewRow label="Year" value={c.year} />
+          <PreviewRow label="Duration" value={`${c.fromYear || '—'} - ${c.toYear || '—'}`} />
           <PreviewRow label="Programmes" value={c.programmes} />
           <PreviewRow label="Subject" value={c.subject} />
         </div>
@@ -138,9 +138,11 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
   const isRespComplete = (r: any) => r.classesHandled || r.administrativeRoles || r.committeeMemberships;
 
   const handleSavePendingCourse = (item: any) => {
+    const validYears = !item.fromYear || !item.toYear || (parseInt(item.fromYear) <= parseInt(item.toYear));
+    if (!validYears) return;
     if (isCourseComplete(item)) {
       const updated = [item, ...courses];
-      updated.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+      updated.sort((a, b) => (parseInt(b.fromYear || b.toYear || '0') || 0) - (parseInt(a.fromYear || a.toYear || '0') || 0));
       update('courses', updated);
       setPendingCourse(null);
     }
@@ -155,7 +157,7 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
     }
   };
 
-  const sortedCourses = [...courses].sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+  const sortedCourses = [...courses].sort((a, b) => (parseInt(b.fromYear || b.toYear || '0') || 0) - (parseInt(a.fromYear || a.toYear || '0') || 0));
 
   return (
     <>
@@ -188,8 +190,8 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                   <button
                     type="button"
                     onClick={() => handleSavePendingCourse(pendingCourse)}
-                    disabled={!isCourseComplete(pendingCourse)}
-                    style={isCourseComplete(pendingCourse) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                    disabled={!isCourseComplete(pendingCourse) || (pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear))}
+                    style={!isCourseComplete(pendingCourse) || (pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear)) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
                   >
                     <Check size={14} /> Save
                   </button>
@@ -206,7 +208,21 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                 ))}
               </div>
               <div className="form-row form-row-1">
-                {fg('Year', yearSel(pendingCourse.year, v => setPendingCourse({ ...pendingCourse, year: v })))}
+                {fg('', (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ flex: '0 0 48%' }}>
+                      <label className="form-label">From Year</label>
+                      {yearSel(pendingCourse.fromYear, v => setPendingCourse({ ...pendingCourse, fromYear: v }), 1960)}
+                    </div>
+                    <div style={{ flex: '0 0 48%' }}>
+                      <label className="form-label">To Year</label>
+                      {yearSel(pendingCourse.toYear, v => setPendingCourse({ ...pendingCourse, toYear: v }), 1960)}
+                    </div>
+                  </div>
+                ))}
+                {pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear) && (
+                  <div style={{ marginTop: 8, color: '#b91c1c', fontSize: 13 }}>From Year cannot be greater than To Year.</div>
+                )}
               </div>
               <div className="form-row form-row-1">
                 {fg('Programmes', sel(pendingCourse.programmes, v => setPendingCourse({ ...pendingCourse, programmes: v }), PROGRAMMES_LIST))}
@@ -236,7 +252,12 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                         <button type="button" onClick={() => setEditingCourseIndex(null)} style={btnCancel}>
                           <X size={14} /> Cancel
                         </button>
-                        <button type="button" onClick={() => setEditingCourseIndex(null)} style={btnSave}>
+                        <button
+                          type="button"
+                          onClick={() => setEditingCourseIndex(null)}
+                          disabled={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear)}
+                          style={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                        >
                           <Check size={14} /> Save
                         </button>
                       </div>
@@ -252,7 +273,21 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                       ))}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Year', yearSel(c.year, v => updCourse(i, 'year', v)))}
+                      {fg('', (
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <div style={{ flex: '0 0 48%' }}>
+                            <label className="form-label">From Year</label>
+                            {yearSel(c.fromYear, v => updCourse(i, 'fromYear', v), 1960)}
+                          </div>
+                          <div style={{ flex: '0 0 48%' }}>
+                            <label className="form-label">To Year</label>
+                            {yearSel(c.toYear, v => updCourse(i, 'toYear', v), 1960)}
+                          </div>
+                        </div>
+                      ))}
+                      {c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear) && (
+                        <div style={{ marginTop: 8, color: '#b91c1c', fontSize: 13 }}>From Year cannot be greater than To Year.</div>
+                      )}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Programmes', sel(c.programmes, v => updCourse(i, 'programmes', v), PROGRAMMES_LIST))}
@@ -327,11 +362,11 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                     </div>
                     <div style={{ flex: '0 0 28%' }}>
                       <label className="form-label">From Year</label>
-                      {yearSel(pendingResp.fromYear, v => setPendingResp({ ...pendingResp, fromYear: v }))}
+                      {yearSel(pendingResp.fromYear, v => setPendingResp({ ...pendingResp, fromYear: v }), 1960)}
                     </div>
                     <div style={{ flex: '0 0 28%' }}>
                       <label className="form-label">To Year</label>
-                      {yearSel(pendingResp.toYear, v => setPendingResp({ ...pendingResp, toYear: v }))}
+                      {yearSel(pendingResp.toYear, v => setPendingResp({ ...pendingResp, toYear: v }), 1960)}
                     </div>
                   </div>
                 ))}
@@ -379,11 +414,11 @@ export default function AcademicResponsibilities({ data, onChange }: { data: any
                           </div>
                           <div style={{ flex: '0 0 28%' }}>
                             <label className="form-label">From Year</label>
-                            {yearSel(r.fromYear, v => updResp(i, 'fromYear', v))}
+                            {yearSel(r.fromYear, v => updResp(i, 'fromYear', v), 1960)}
                           </div>
                           <div style={{ flex: '0 0 28%' }}>
                             <label className="form-label">To Year</label>
-                            {yearSel(r.toYear, v => updResp(i, 'toYear', v))}
+                            {yearSel(r.toYear, v => updResp(i, 'toYear', v), 1960)}
                           </div>
                         </div>
                       ))}
