@@ -331,7 +331,7 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
   );
 }
 
-export default function SpecialAssignments({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+export default function SpecialAssignments({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (d: any, showToast?: boolean) => Promise<void> | void }) {
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
@@ -349,8 +349,13 @@ export default function SpecialAssignments({ data, onChange }: { data: any; onCh
 
   const isComplete = (r: any) => !!r.administrativeCharge;
 
-  const handleSavePending = (item: any) => {
-    if (isComplete(item)) { update([item, ...responsibilities]); setPending(null); }
+  const handleSavePending = async (item: any) => {
+    if (isComplete(item)) { 
+      const updated = [item, ...responsibilities];
+      update(updated); 
+      setPending(null); 
+      if (onPersist) await onPersist(updated, true);
+    }
   };
 
   /** When charge type changes, reset charge-specific fields but keep common ones */
@@ -375,7 +380,7 @@ export default function SpecialAssignments({ data, onChange }: { data: any; onCh
   const renderForm = (item: any, isPending: boolean, idx?: number) => {
     const setVal = (k: string, v: string) => {
       if (isPending) {
-        setPending({ ...item, [k]: v });
+        setPending((prev: any) => ({ ...prev, [k]: v }));
       } else if (idx !== undefined) {
         updItem(idx, k, v);
       }
@@ -446,8 +451,8 @@ export default function SpecialAssignments({ data, onChange }: { data: any; onCh
                       <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Responsibility</span>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button type="button" onClick={() => setEditingIndex(null)} style={btnCancel}><X size={14} /> Cancel</button>
-                        <button type="button" onClick={() => setEditingIndex(null)} style={btnSave}><Check size={14} /> Save</button>
-                        <button type="button" onClick={() => { update(responsibilities.filter((_: any, j: number) => j !== i)); setEditingIndex(null); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
+                        <button type="button" onClick={async () => { setEditingIndex(null); if (onPersist) await onPersist(responsibilities, true); }} style={btnSave}><Check size={14} /> Save</button>
+                        <button type="button" onClick={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); setEditingIndex(null); if (onPersist) await onPersist(updated, false); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
                       </div>
                     </div>
                     {renderForm(r, false, i)}
@@ -456,7 +461,7 @@ export default function SpecialAssignments({ data, onChange }: { data: any; onCh
                   <RespPreviewCard
                     r={r}
                     onEdit={() => setEditingIndex(i)}
-                    onDelete={() => update(responsibilities.filter((_: any, j: number) => j !== i))}
+                    onDelete={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); if (onPersist) await onPersist(updated, false); }}
                     disabled={pending !== null}
                   />
                 )}

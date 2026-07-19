@@ -433,6 +433,35 @@ const studentDetailSchema = new mongoose.Schema({
   supervisionCategory: { type: String, default: '' },
 }, { _id: false });
 
+// Section 10: Academic Responsibilities
+const academicCourseSchema = new mongoose.Schema({
+  courseName: { type: String, default: '' },
+  fromYear: { type: String, default: '' },
+  toYear: { type: String, default: '' },
+  programmes: { type: String, default: '' },
+  subject: { type: String, default: '' },
+}, { _id: false });
+
+const academicRespItemSchema = new mongoose.Schema({
+  classesHandled: { type: String, default: '' },
+  administrativeRoles: { type: String, default: '' },
+  committeeMemberships: { type: String, default: '' },
+  fromYear: { type: String, default: '' },
+  toYear: { type: String, default: '' },
+}, { _id: false });
+
+// Section 10: Internship & Projects
+const internshipSchema = new mongoose.Schema({
+  studentName: { type: String, default: '' },
+  program: { type: String, default: '' },
+  status: { type: String, default: '' },
+  title: { type: String, default: '' },
+  organisation: { type: String, default: '' },
+  role: { type: String, default: '' },
+  fromDate: { type: String, default: '' },
+  toDate: { type: String, default: '' },
+}, { _id: false });
+
 const facultySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   username: { type: String, required: true, unique: true },
@@ -569,6 +598,15 @@ const facultySchema = new mongoose.Schema({
     completedStudentsNames: { type: String, default: '' },
     studentDetails: { type: [studentDetailSchema], default: [] },
   },
+
+  // Section 10: Academic Responsibilities
+  academicResponsibilities: {
+    courses: { type: [academicCourseSchema], default: [] },
+    otherResponsibilities: { type: [academicRespItemSchema], default: [] },
+  },
+
+  // Section 10: Internship & Projects
+  internshipAndProjects: { type: [internshipSchema], default: [] },
 
   // Section 11: Admin & Academic Responsibilities
   adminResponsibilities: { type: [adminRespSchema], default: [] },

@@ -114,14 +114,18 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
   );
 }
 
-export default function AcademicResponsibilities({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+export default function AcademicResponsibilities({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (d: any) => void }) {
   const adminRoles = useDropdownOptions(responsibilityRoleOptions);
   const committees = useDropdownOptions(committeeTypeOptions);
   const teachingCategories = useDropdownOptions(teachingCategoryOptions);
 
   const courses = data.courses || [];
   const otherResponsibilities = data.otherResponsibilities || [];
-  const update = (k: string, v: any) => onChange({ ...data, [k]: v });
+  const update = (k: string, v: any) => {
+    const newData = { ...data, [k]: v };
+    onChange(newData);
+    if (onPersist) onPersist(newData);
+  };
 
   // Courses state
   const [editingCourseIndex, setEditingCourseIndex] = useState<number | null>(null);

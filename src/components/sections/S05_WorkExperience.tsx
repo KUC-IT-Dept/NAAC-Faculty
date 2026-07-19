@@ -41,25 +41,25 @@ const getDurationText = (from: string, to?: string) => {
   if (!from) return '—';
   const start = new Date(from);
   if (isNaN(start.getTime())) return '—';
-  
+
   const end = to ? new Date(to) : new Date();
   if (isNaN(end.getTime()) || end < start) return '—';
-  
+
   let years = end.getFullYear() - start.getFullYear();
   let months = end.getMonth() - start.getMonth();
   let days = end.getDate() - start.getDate();
-  
+
   if (days < 0) {
     months--;
     const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
     days += prevMonth.getDate();
   }
-  
+
   if (months < 0) {
     years--;
     months += 12;
   }
-  
+
   const parts = [];
   if (years > 0) parts.push(`${years} Year${years > 1 ? 's' : ''}`);
   if (months > 0) parts.push(`${months} Month${months > 1 ? 's' : ''}`);
@@ -67,7 +67,7 @@ const getDurationText = (from: string, to?: string) => {
     if (days > 0) parts.push(`${days} Day${days > 1 ? 's' : ''}`);
     else return '0 Days';
   }
-  
+
   const durationStr = parts.join(', ');
   return to ? durationStr : `${durationStr} (to Present)`;
 };

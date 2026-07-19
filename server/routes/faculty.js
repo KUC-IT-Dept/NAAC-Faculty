@@ -53,6 +53,7 @@ const OPTIONAL_SECTIONS = new Set([
   'adminNonAcademicResponsibilities', 'academicAdministration', 'qualityAssurance',
   'researchAndInnovation', 'examinationAndEvaluation', 'administrativeSupport',
   'departmentalCharges', 'specialAssignments', 'extraInstitutionalActivities',
+  'academicResponsibilities', 'internshipAndProjects',
 ]);
 
 function calcCompletion(f) {
@@ -102,6 +103,7 @@ router.put('/me', facultyOnly, async (req, res) => {
       'academicAdministration', 'qualityAssurance', 'researchAndInnovation',
       'examinationAndEvaluation', 'administrativeSupport', 'departmentalCharges',
       'specialAssignments', 'extraInstitutionalActivities', 'documents',
+      'academicResponsibilities', 'internshipAndProjects',
     ];
     const updateData = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) updateData[f] = req.body[f]; });

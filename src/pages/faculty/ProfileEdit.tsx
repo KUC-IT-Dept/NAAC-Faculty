@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
@@ -135,13 +135,13 @@ export default function ProfileEdit() {
   const { user } = useAuth();
   const section = sectionId && SECTION_MAP[sectionId] ? SECTION_MAP[sectionId] : null;
 
-  const STORAGE_KEY = `naac_profile_${user?.id || 'draft'}`;
-
   const [profile, setProfile] = useState<any>(EMPTY);
+  const profileRef = useRef<any>(profile);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [skippedSections, setSkippedSections] = useState<string[]>([]);
   const [skipping, setSkipping] = useState(false);
+  const saveTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -151,27 +151,16 @@ export default function ProfileEdit() {
 
         // Server is the source of truth — always use it when available
         setProfile(serverData);
+        profileRef.current = serverData;
         setSkippedSections(r.data.skippedSections || []);
-        // Clear any stale localStorage draft now that we have fresh server data
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {
-        // API failed — fall back to localStorage as offline backup
-        const localDraft = localStorage.getItem(STORAGE_KEY);
-        if (localDraft) {
-          try {
-            setProfile({ ...EMPTY, ...JSON.parse(localDraft) });
-          } catch {
-            toast.error('Failed to load profile');
-          }
-        } else {
-          toast.error('Failed to load profile');
-        }
+      } catch (err) {
+        toast.error('Failed to load profile');
       } finally {
         setLoading(false);
       }
     };
     loadProfile();
-  }, [STORAGE_KEY]);
+  }, []);
 
   if (!section && !loading) {
     return (
@@ -189,10 +178,8 @@ export default function ProfileEdit() {
     if (!tab) return;
     if (showToast) setSaving(true);
     try {
-      if (tab === 'visibility') await api.patch('/me/visibility', profile.visibility);
-      else await api.put('/me', { [tab]: payload !== undefined ? payload : profile[tab] });
-      // Clear localStorage draft after successful save — DB is now up to date
-      localStorage.removeItem(STORAGE_KEY);
+      if (tab === 'visibility') await api.patch('/me/visibility', profileRef.current.visibility);
+      else await api.put('/me', { [tab]: payload !== undefined ? payload : profileRef.current[tab] });
       if (showToast) toast.success('Saved!');
     } catch {
       if (showToast) toast.error('Save failed');
@@ -202,11 +189,18 @@ export default function ProfileEdit() {
     }
   };
 
-  // Auto-save to localStorage on every section change so data survives refresh
+  // Auto-save to API on every section change so data survives refresh
   const set = (k: string, v: any) => {
     setProfile((p: any) => {
       const newProfile = { ...p, [k]: v };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newProfile)); } catch { /* silent */ }
+      profileRef.current = newProfile;
+
+      // Auto-save to API with debounce
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        api.put('/me', { [k]: v }).catch(console.error);
+      }, 1000);
+
       return newProfile;
     });
   };
@@ -229,7 +223,7 @@ export default function ProfileEdit() {
   const setVis = (k: string, v: boolean) => {
     setProfile((p: any) => {
       const newProfile = { ...p, visibility: { ...p.visibility, [k]: v } };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newProfile)); } catch { /* silent */ }
+      profileRef.current = newProfile;
       return newProfile;
     });
   };
@@ -297,15 +291,15 @@ export default function ProfileEdit() {
               {tab === 'fdpWorkshops' && <FdpWorkshops data={profile.fdpWorkshops} onChange={v => set('fdpWorkshops', v)} />}
               {tab === 'onlineCourses' && <OnlineCourses data={profile.onlineCourses} onChange={v => set('onlineCourses', v)} />}
               {tab === 'internationalExperience' && <InternationalExp data={profile.internationalExperience} onChange={v => set('internationalExperience', v)} />}
-              {tab === 'adminNonAcademicResponsibilities' && <AdminNonAcademicResp data={profile.adminNonAcademicResponsibilities} onChange={v => set('adminNonAcademicResponsibilities', v)} />}
+              {tab === 'adminNonAcademicResponsibilities' && <AdminNonAcademicResp data={profile.adminNonAcademicResponsibilities} onChange={v => set('adminNonAcademicResponsibilities', v)} onPersist={save} />}
               {tab === 'academicAdministration' && <AcademicAdmin data={profile.academicAdministration} onChange={v => set('academicAdministration', v)} />}
               {tab === 'qualityAssurance' && <QualityAssurance data={profile.qualityAssurance} onChange={v => set('qualityAssurance', v)} />}
               {tab === 'researchAndInnovation' && <ResearchInnovation data={profile.researchAndInnovation} onChange={v => set('researchAndInnovation', v)} />}
               {tab === 'examinationAndEvaluation' && <ExaminationAndEvaluation data={profile.examinationAndEvaluation} onChange={v => set('examinationAndEvaluation', v)} />}
               {tab === 'administrativeSupport' && <AdministrativeSupport data={profile.administrativeSupport} onChange={v => set('administrativeSupport', v)} />}
-              {tab === 'departmentalCharges' && <DepartmentalCharges data={profile.departmentalCharges} onChange={v => set('departmentalCharges', v)} />}
-              {tab === 'specialAssignments' && <SpecialAssignments data={profile.specialAssignments} onChange={v => set('specialAssignments', v)} />}
-              {tab === 'extraInstitutionalActivities' && <ExtraInstitutionalActivities data={profile.extraInstitutionalActivities} onChange={v => set('extraInstitutionalActivities', v)} />}
+              {tab === 'departmentalCharges' && <DepartmentalCharges data={profile.departmentalCharges} onChange={v => set('departmentalCharges', v)} onPersist={save} />}
+              {tab === 'specialAssignments' && <SpecialAssignments data={profile.specialAssignments} onChange={v => set('specialAssignments', v)} onPersist={save} />}
+              {tab === 'extraInstitutionalActivities' && <ExtraInstitutionalActivities data={profile.extraInstitutionalActivities} onChange={v => set('extraInstitutionalActivities', v)} onPersist={save} />}
               {tab === 'documents' && <Documents data={profile.documents} onChange={v => set('documents', v)} />}
 
 

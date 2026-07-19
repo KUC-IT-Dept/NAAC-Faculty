@@ -295,7 +295,7 @@ function ResponsibilityEditor({
   item: any;
   onChange: (item: any) => void;
   onCancel: () => void;
-  onSave: () => void;
+  onSave: () => Promise<void> | void;
   title: string;
 }) {
   const adminCharges = useDropdownOptions(adminChargeOptions);
@@ -314,7 +314,7 @@ function ResponsibilityEditor({
           </button>
           <button
             type="button"
-            onClick={onSave}
+            onClick={async () => await onSave()}
             disabled={!isComplete(item)}
             style={isComplete(item) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
           >
@@ -330,7 +330,7 @@ function ResponsibilityEditor({
   );
 }
 
-export default function AdminNonAcademicResponsibilities({ data, onChange }: { data: any; onChange: (d: any) => void }) {
+export default function AdminNonAcademicResponsibilities({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (d: any, showToast?: boolean) => Promise<void> | void }) {
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
@@ -343,10 +343,12 @@ export default function AdminNonAcademicResponsibilities({ data, onChange }: { d
     update(a);
   };
 
-  const handleSavePending = (item: any) => {
+  const handleSavePending = async (item: any) => {
     if (isComplete(item)) {
-      update([item, ...responsibilities]);
+      const updated = [item, ...responsibilities];
+      update(updated);
       setPending(null);
+      if (onPersist) await onPersist(updated, true);
     }
   };
 
@@ -391,14 +393,14 @@ export default function AdminNonAcademicResponsibilities({ data, onChange }: { d
                     item={r}
                     onChange={item => updItem(i, item)}
                     onCancel={() => setEditingIndex(null)}
-                    onSave={() => setEditingIndex(null)}
+                    onSave={async () => { setEditingIndex(null); if (onPersist) await onPersist(responsibilities, true); }}
                     title="Editing Responsibility"
                   />
                 ) : (
                   <RespPreviewCard
                     r={r}
                     onEdit={() => setEditingIndex(i)}
-                    onDelete={() => update(responsibilities.filter((_: any, j: number) => j !== i))}
+                    onDelete={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); if (onPersist) await onPersist(updated, false); }}
                     disabled={pending !== null}
                   />
                 )}
