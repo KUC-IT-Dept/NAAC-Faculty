@@ -660,7 +660,7 @@ const facultySchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-facultySchema.pre('save', function(next) {
+facultySchema.pre('save', function() {
   if (this.employmentDetails) {
     if (this.isModified('employmentDetails.dateOfJoining')) {
       this.employmentDetails.dateOfAppointment = this.employmentDetails.dateOfJoining;
@@ -674,7 +674,6 @@ facultySchema.pre('save', function(next) {
       }
     }
   }
-  next();
 });
 
 facultySchema.post('init', function(doc) {
