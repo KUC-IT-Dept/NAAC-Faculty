@@ -16,9 +16,8 @@ export default function SearchableSelect({
   onChange, 
   options = [], 
   placeholder = "— Select —",
-  maxOptions = 100,
-  inputRef
-}: SearchableSelectProps & { inputRef?: React.Ref<HTMLDivElement> }) {
+  maxOptions = 100 
+}: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -75,8 +74,6 @@ export default function SearchableSelect({
   return (
     <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
       <div 
-        ref={inputRef}
-        tabIndex={0}
         onClick={handleOpen}
         className="form-input"
         style={{ 
