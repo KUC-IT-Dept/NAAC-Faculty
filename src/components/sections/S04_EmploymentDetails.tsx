@@ -115,6 +115,7 @@ export default function EmploymentDetails({ data, onChange, onPersist }: { data:
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -564,14 +565,35 @@ export default function EmploymentDetails({ data, onChange, onPersist }: { data:
                       <ExternalLink size={14} />
                     </button>
                     {isEditing && (
-                      <button 
-                        type="button" 
-                        onClick={() => updateEditingData('documentUrl', '')}
-                        title="Remove Document"
-                        style={{ padding: '6px', backgroundColor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
-                      >
-                        <X size={14} />
-                      </button>
+                      <>
+                        <button 
+                          type="button" 
+                          onClick={() => setShowDeleteConfirm(true)}
+                          title="Remove Document"
+                          style={{ padding: '6px', backgroundColor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
+                        >
+                          <X size={14} />
+                        </button>
+                        {showDeleteConfirm ? (
+                          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteConfirm(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.72)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div className="modal" style={{ maxWidth: 420, backgroundColor: 'white', borderRadius: 12, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
+                              <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #e2e8f0' }}>
+                                <h3 style={{ margin: 0, fontSize: 18, color: '#0f172a' }}>Delete document?</h3>
+                                <button type="button" style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }} onClick={() => setShowDeleteConfirm(false)}><X size={18} /></button>
+                              </div>
+                              <div className="modal-body" style={{ padding: '20px' }}>
+                                <p style={{ margin: 0, color: '#475569', lineHeight: 1.6 }}>
+                                  Are you sure you want to delete this document? This action cannot be undone.
+                                </p>
+                              </div>
+                              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '16px 20px', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                                <button type="button" style={{ padding: '8px 16px', border: '1px solid #cbd5e1', background: 'white', borderRadius: 6, cursor: 'pointer', fontWeight: 600, color: '#475569' }} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                                <button type="button" style={{ padding: '8px 16px', border: 'none', background: '#ef4444', color: 'white', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }} onClick={() => { updateEditingData('documentUrl', ''); setShowDeleteConfirm(false); }}>Delete</button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+                      </>
                     )}
                   </div>
                 </div>

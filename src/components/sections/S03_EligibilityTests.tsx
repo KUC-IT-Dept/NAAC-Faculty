@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, prefer-const, @typescript-eslint/no-unused-expressions */
 import { Plus, Trash2, Edit2, CheckCircle, ChevronDown, ChevronUp, Check, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
-import { fg, sel, yearSel, FileInp } from './sectionUtils';
+import { fg, sel, yearSel, FileInp, DocumentPreviewLink } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions } from '../../shared/dropdownOptions';
 
@@ -305,15 +305,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                   {e.documentUrl && (
                     <div style={{ display: 'flex', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
                       <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '13px', width: '220px', flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.03em' }}>Certificate</span>
-                      <a
-                        href={`${import.meta.env.VITE_API_URL || ''}${e.documentUrl}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="preview-file-link"
-                        style={{ fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#4f46e5' }}
-                      >
-                        <ExternalLink size={14} /> View Certificate
-                      </a>
+                        <DocumentPreviewLink url={e.documentUrl} label="View Certificate" />
                     </div>
                   )}
                 </div>

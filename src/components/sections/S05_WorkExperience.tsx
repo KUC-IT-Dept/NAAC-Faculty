@@ -1,4 +1,4 @@
-import { fg, inp, dateInp, FileInp, sel } from './sectionUtils';
+import { fg, inp, dateInp, FileInp, sel, DocumentPreviewLink } from './sectionUtils';
 import { useState } from 'react';
 import { Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, Edit2, ExternalLink } from 'lucide-react';
 import { departmentOptions, affiliatedUniversityOptions, designationPostOptions, institutionTypeWorkOptions, natureOfAppointmentOptions, reasonForLeavingOptions, institutionsOptions } from '../../shared/dropdownOptions';
@@ -391,15 +391,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
                   {e.documentUrl && (
                     <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
                       <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Experience Document</span>
-                      <a
-                        href={`${import.meta.env.VITE_API_URL || ''}${e.documentUrl}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="preview-file-link"
-                        style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                      >
-                        <ExternalLink size={12} /> View Document
-                      </a>
+                      <DocumentPreviewLink url={e.documentUrl} label="View Document" />
                     </div>
                   )}
                 </div>

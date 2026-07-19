@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { fg, inp, sel, ta, FileInp } from './sectionUtils';
+import { fg, inp, sel, ta, FileInp, DocumentPreviewLink } from './sectionUtils';
 import { awardLevelOptions, awardCategoryOptions, awardingAgencyTypeOptions, honourTypeOptions, recognitionStatusOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
@@ -96,9 +96,7 @@ function AwardPreviewCard({
           <PreviewRow label="Description" value={a.description} />
           {a.documentUrl && (
             <div style={{ marginTop: 8 }}>
-              <a href={`${import.meta.env.VITE_API_URL}${a.documentUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
-                <ExternalLink size={14} /> View Proof
-              </a>
+              <DocumentPreviewLink url={a.documentUrl} label="View Proof" />
             </div>
           )}
         </div>

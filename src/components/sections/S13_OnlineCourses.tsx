@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { fg, inp, sel, FileInp, dateInp } from './sectionUtils';
+import { fg, inp, sel, FileInp, dateInp, DocumentPreviewLink } from './sectionUtils';
 import { coursePlatformOptions, courseLevelOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
@@ -69,9 +69,7 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
           <PreviewRow label="Score" value={item.score} />
           {item.certificateUrl && (
             <div style={{ marginTop: 8 }}>
-              <a href={`${import.meta.env.VITE_API_URL || ''}${item.certificateUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
-                <ExternalLink size={14} /> View Certificate
-              </a>
+              <DocumentPreviewLink url={item.certificateUrl} label="View Certificate" />
             </div>
           )}
         </div>

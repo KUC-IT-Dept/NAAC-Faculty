@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { fg, inp, sel, FileInp, DropdownWithCustom } from './sectionUtils';
+import { fg, inp, sel, FileInp, DropdownWithCustom, DocumentPreviewLink } from './sectionUtils';
 import { publicationLevelOptions, peerReviewedStatusOptions, indexedInOptions, publicationTypeOptions, authorRoleOptions, journalCategoryOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
@@ -301,13 +301,7 @@ function PreviewDetails({ p }: { p: Publication }) {
 
       {p.documentUrl && (
         <div style={{ marginTop: 8 }}>
-          <a
-            href={`${import.meta.env.VITE_API_URL || ''}${p.documentUrl}`}
-            target="_blank" rel="noreferrer"
-            className="preview-file-link"
-          >
-            <ExternalLink size={13} /> View Proof
-          </a>
+          <DocumentPreviewLink url={p.documentUrl} label="View Proof" />
         </div>
       )}
     </div>

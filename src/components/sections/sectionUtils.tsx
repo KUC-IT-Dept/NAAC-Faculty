@@ -179,17 +179,19 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
   }, [v]);
 
   const handleRemove = async () => {
-    if (!fieldKey || !v) return;
-
-    try {
-      await api.delete('/upload', { data: { field: fieldKey, url: v } });
-      fn('');
-      setShowDeleteConfirm(false);
-      toast.success('Document removed');
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Failed to remove document';
-      toast.error(msg);
+    if (fieldKey && v) {
+      try {
+        await api.delete('/upload', { data: { field: fieldKey, url: v } });
+        toast.success('Document removed');
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || 'Failed to remove document';
+        toast.error(msg);
+        return; // Don't clear if api call failed
+      }
     }
+    
+    fn('');
+    setShowDeleteConfirm(false);
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -612,5 +614,79 @@ export function SearchableDropdown({
         </div>
       )}
     </div>
+  );
+}
+
+/** Document Preview Link */
+export const DocumentPreviewLink = ({ url, label = "View Document" }: { url: string, label?: string }) => {
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
+  const previewUrl = url ? getAuthenticatedFileUrl(url) : '';
+
+  const ext = (url || '').toLowerCase().split('?')[0].split('/').pop() || '';
+  const extension = (ext.includes('.') ? ext.split('.').pop() : '') || '';
+  let previewType: 'image' | 'pdf' | 'other' = 'other';
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension)) {
+    previewType = 'image';
+  } else if (extension === 'pdf') {
+    previewType = 'pdf';
+  }
+
+  if (!url) return null;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewError(false); setShowPreview(true); }}
+        className="preview-file-link"
+        style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', padding: 0 }}
+      >
+        <ExternalLink size={12} /> {label}
+      </button>
+      {showPreview && previewUrl ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Document preview"
+          onClick={(e) => { e.stopPropagation(); setShowPreview(false); }}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '20px' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ position: 'relative', width: 'min(900px, 100%)', maxHeight: '90vh', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 20px 60px rgba(15, 23, 42, 0.25)', overflow: 'hidden' }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              aria-label="Close preview"
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 1, border: 'none', backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: '999px', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#334155' }}
+            >
+              <X size={18} />
+            </button>
+            <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+              Document Preview
+            </div>
+            <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '420px', maxHeight: '70vh', overflow: 'auto' }}>
+              {previewError ? (
+                <div style={{ textAlign: 'center', color: '#475569' }}>
+                  <div style={{ marginBottom: 10, fontWeight: 700 }}>Unable to preview this file right now.</div>
+                  <a href={previewUrl} target="_blank" rel="noreferrer" style={{ color: '#2563eb' }}>Open the file in a new tab</a>
+                </div>
+              ) : previewType === 'image' ? (
+                <img src={previewUrl} alt="Uploaded document preview" onError={() => setPreviewError(true)} style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px' }} />
+              ) : previewType === 'pdf' ? (
+                <iframe src={previewUrl} title="PDF preview" onError={() => setPreviewError(true)} style={{ width: '100%', minHeight: '70vh', border: 'none', borderRadius: '8px' }} />
+              ) : (
+                <div style={{ textAlign: 'center', color: '#475569' }}>
+                  <div style={{ marginBottom: 10, fontWeight: 700 }}>This file type cannot be previewed inline.</div>
+                  <a href={previewUrl} target="_blank" rel="noreferrer" style={{ color: '#2563eb' }}>Open the file in a new tab</a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

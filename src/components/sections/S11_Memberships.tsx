@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { fg, inp, sel, FileInp, yearSel } from './sectionUtils';
+import { fg, inp, sel, FileInp, yearSel, DocumentPreviewLink } from './sectionUtils';
 import { membershipTypeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
@@ -67,9 +67,7 @@ function PreviewCard({ m, onEdit, onDelete, disabled }: { m: any; onEdit: () => 
           <PreviewRow label="Year of Joining" value={m.yearOfJoining} />
           {m.documentUrl && (
             <div style={{ marginTop: 8 }}>
-              <a href={`${import.meta.env.VITE_API_URL || ''}${m.documentUrl}`} target="_blank" rel="noreferrer" className="preview-file-link" style={{ display: 'inline-flex' }}>
-                <ExternalLink size={14} /> View Proof
-              </a>
+              <DocumentPreviewLink url={m.documentUrl} label="View Proof" />
             </div>
           )}
         </div>

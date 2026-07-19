@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, prefer-const */
 import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
-import { fg, inp, FileInp, sel } from './sectionUtils';
+import { fg, inp, FileInp, sel, DocumentPreviewLink } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { degreeLevelOptions, divisionOptions, studyModeOptions, countryOptions, stateOptions, degreeNameOptions, specializationOptions, gradeTypeOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import SearchableSelect from '../SearchableSelect';
@@ -494,14 +494,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           {(q.phdCertificate || q.documentUrl) && (
             <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
               <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>PhD Certificate</span>
-              <a
-                href={`${import.meta.env.VITE_API_URL || ''}${q.phdCertificate || q.documentUrl}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: '#2563eb', fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              >
-                <ExternalLink size={14} /> View Certificate
-              </a>
+              <DocumentPreviewLink url={q.phdCertificate || q.documentUrl} label="View Certificate" />
             </div>
           )}
           {renderPreview('Institution / University Name', q.institution)}
@@ -531,14 +524,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
         {q.documentUrl && (
           <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
             <span style={{ color: '#7c8b9d', fontWeight: 600, fontSize: '14px', width: '250px', flexShrink: 0 }}>Certificate / Document</span>
-            <a
-              href={`${import.meta.env.VITE_API_URL || ''}${q.documentUrl}`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: '#2563eb', fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-            >
-              <ExternalLink size={14} /> View Certificate
-            </a>
+            <DocumentPreviewLink url={q.documentUrl} label="View Certificate" />
           </div>
         )}
       </>
