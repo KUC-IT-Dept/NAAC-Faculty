@@ -49,10 +49,10 @@ export const RequestableSelect = ({ v, fn, opts, ph = '— Select —', inputRef
     if (dropdownKey) {
       setSubmitting(true);
       try {
-        await api.post('/me/requests', { 
-          dropdownKey, 
+        await api.post('/me/requests', {
+          dropdownKey,
           requestedValue: customValue.trim(),
-          previousValue: v || '' 
+          previousValue: v || ''
         });
         toast.success('Request sent for approval. You can continue saving.');
       } catch (err) {
@@ -235,16 +235,16 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
         </div>
       </div>
       <div style={{ display: 'flex', gap: 4 }}>
-        <button 
-          type="button" 
+        <button
+          type="button"
           onClick={() => window.open(getAuthenticatedFileUrl(v), '_blank')}
           title="View Document"
           style={{ padding: '6px', backgroundColor: 'white', border: '1px solid #e0f2fe', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
         >
           <ExternalLink size={14} />
         </button>
-        <button 
-          type="button" 
+        <button
+          type="button"
           onClick={() => fn('')}
           title="Remove Document"
           style={{ padding: '6px', backgroundColor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
@@ -256,18 +256,18 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
   );
 
   return (
-    <div 
+    <div
       onClick={() => !uploading && fileRef.current?.click()}
-      style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        gap: '10px', 
-        padding: '12px 20px', 
-        backgroundColor: uploading ? '#f1f5f9' : '#ffffff', 
-        border: '2px dashed #cbd5e1', 
-        borderRadius: '8px', 
-        cursor: uploading ? 'not-allowed' : 'pointer', 
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '10px',
+        padding: '12px 20px',
+        backgroundColor: uploading ? '#f1f5f9' : '#ffffff',
+        border: '2px dashed #cbd5e1',
+        borderRadius: '8px',
+        cursor: uploading ? 'not-allowed' : 'pointer',
         transition: 'all 0.2s ease',
         color: '#64748b',
         position: 'relative',
@@ -277,17 +277,17 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
       onMouseLeave={(e) => { if (!uploading) e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.backgroundColor = uploading ? '#f1f5f9' : '#ffffff'; }}
     >
       <input type="file" ref={fileRef} hidden onChange={handleUpload} accept={accept} />
-      
+
       {uploading ? (
         <RefreshCw size={18} className="animate-spin" color="#3b82f6" />
       ) : (
         <Upload size={18} color="#94a3b8" />
       )}
-      
+
       <span style={{ fontSize: '14px', fontWeight: 600, color: uploading ? '#3b82f6' : '#475569' }}>
         {uploading ? 'Uploading...' : label}
       </span>
-      
+
       {uploading && (
         <div style={{ position: 'absolute', bottom: 0, left: 0, height: '3px', backgroundColor: '#3b82f6', width: '100%', transition: 'width 0.3s ease' }} />
       )}
@@ -379,8 +379,8 @@ export function SearchableDropdown({
           cursor: 'pointer',
           textAlign: 'left',
           ...(open ? {
-             borderColor: 'var(--primary-light)',
-             boxShadow: '0 0 0 3px rgba(28, 53, 87, 0.1)'
+            borderColor: 'var(--primary-light)',
+            boxShadow: '0 0 0 3px rgba(28, 53, 87, 0.1)'
           } : {})
         }}
       >
