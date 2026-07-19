@@ -660,4 +660,31 @@ const facultySchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+facultySchema.pre('save', function(next) {
+  if (this.employmentDetails) {
+    if (this.isModified('employmentDetails.dateOfJoining')) {
+      this.employmentDetails.dateOfAppointment = this.employmentDetails.dateOfJoining;
+    } else if (this.isModified('employmentDetails.dateOfAppointment')) {
+      this.employmentDetails.dateOfJoining = this.employmentDetails.dateOfAppointment;
+    } else {
+      if (this.employmentDetails.dateOfJoining && !this.employmentDetails.dateOfAppointment) {
+        this.employmentDetails.dateOfAppointment = this.employmentDetails.dateOfJoining;
+      } else if (this.employmentDetails.dateOfAppointment && !this.employmentDetails.dateOfJoining) {
+        this.employmentDetails.dateOfJoining = this.employmentDetails.dateOfAppointment;
+      }
+    }
+  }
+  next();
+});
+
+facultySchema.post('init', function(doc) {
+  if (doc.employmentDetails) {
+    if (doc.employmentDetails.dateOfAppointment && !doc.employmentDetails.dateOfJoining) {
+      doc.employmentDetails.dateOfJoining = doc.employmentDetails.dateOfAppointment;
+    } else if (doc.employmentDetails.dateOfJoining && !doc.employmentDetails.dateOfAppointment) {
+      doc.employmentDetails.dateOfAppointment = doc.employmentDetails.dateOfJoining;
+    }
+  }
+});
+
 module.exports = mongoose.model('Faculty', facultySchema);

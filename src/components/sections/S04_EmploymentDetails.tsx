@@ -74,6 +74,31 @@ const parseBankDetails = (str: string) => {
   };
 };
 
+const formatDateForInput = (dateStr: string) => {
+  if (!dateStr) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+  } catch (e) {
+    // Ignore and fallback
+  }
+  return dateStr;
+};
+
+const normalizeInstitutionType = (val: string) => {
+  if (!val) return '';
+  const match = ['State', 'Central', 'Private', 'Deemed'].find(
+    opt => opt.toLowerCase() === val.toLowerCase()
+  );
+  return match || val;
+};
+
 export default function EmploymentDetails({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any) => void }) {
   const dynamicDepartmentOptions = useDropdownOptions(departmentOptions);
   const dynamicAffiliatedUniversityOptions = useDropdownOptions(affiliatedUniversityOptions);
@@ -95,11 +120,14 @@ export default function EmploymentDetails({ data, onChange, onPersist }: { data:
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
   useEffect(() => {
-    if (data && typeof data === 'object' && data.employeeId) {
+    if (data && typeof data === 'object' && (data.employeeId || data.designation || data.department || data.institution)) {
       const bankInfo = parseBankDetails(data.bankAccountDetails || '');
       setEditingData({
         ...EMPTY,
         ...data,
+        dateOfJoining: formatDateForInput(data.dateOfJoining || data.dateOfAppointment || ''),
+        dateOfConfirmation: formatDateForInput(data.dateOfConfirmation || ''),
+        typeOfInstitution: normalizeInstitutionType(data.typeOfInstitution || ''),
         bankName: data.bankName || bankInfo.bankName || '',
         accountNumber: data.accountNumber || bankInfo.accountNumber || '',
         ifscCode: data.ifscCode || bankInfo.ifscCode || '',
@@ -248,11 +276,14 @@ export default function EmploymentDetails({ data, onChange, onPersist }: { data:
   };
 
   const cancelEdit = () => {
-    if (data && typeof data === 'object' && data.employeeId) {
+    if (data && typeof data === 'object' && (data.employeeId || data.designation || data.department || data.institution)) {
       const bankInfo = parseBankDetails(data.bankAccountDetails || '');
       setEditingData({
         ...EMPTY,
         ...data,
+        dateOfJoining: formatDateForInput(data.dateOfJoining || data.dateOfAppointment || ''),
+        dateOfConfirmation: formatDateForInput(data.dateOfConfirmation || ''),
+        typeOfInstitution: normalizeInstitutionType(data.typeOfInstitution || ''),
         bankName: data.bankName || bankInfo.bankName || '',
         accountNumber: data.accountNumber || bankInfo.accountNumber || '',
         ifscCode: data.ifscCode || bankInfo.ifscCode || '',
