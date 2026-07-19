@@ -65,9 +65,10 @@ router.get('/photo/:userId/:filename', (req, res) => {
 // Authenticated access to general documents
 router.get('/:userId/*filePath', authFileAccess, (req, res) => {
   const { userId } = req.params;
-  const rawFilePath = Array.isArray(req.params.filePath)
-    ? req.params.filePath.join('/')
-    : req.params.filePath || req.params[0] || '';
+  let rawFilePath = req.params.filePath || req.params[0] || '';
+  if (Array.isArray(rawFilePath)) {
+    rawFilePath = rawFilePath.join('/');
+  }
 
   // Check authorization: user can only access their own files, unless admin/hod/vc
   if (
