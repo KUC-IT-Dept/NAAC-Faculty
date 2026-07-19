@@ -119,6 +119,17 @@ const EMPTY: any = {
   documents: {}, visibility: {},
 };
 
+// Optional sections that can be skipped (must match server-side OPTIONAL_SECTIONS)
+const SKIPPABLE = new Set([
+  'eligibilityTests', 'workExperience', 'publications', 'awards', 'projects',
+  'patents', 'researchGuidance', 'adminResponsibilities', 'fdpWorkshops',
+  'onlineCourses', 'memberships', 'internationalExperience',
+  'adminNonAcademicResponsibilities', 'academicAdministration', 'qualityAssurance',
+  'researchAndInnovation', 'examinationAndEvaluation', 'administrativeSupport',
+  'departmentalCharges', 'specialAssignments', 'extraInstitutionalActivities',
+  'internshipAndProjects'
+]);
+
 export default function ProfileEdit() {
   const { sectionId } = useParams();
   const { user } = useAuth();
@@ -129,6 +140,8 @@ export default function ProfileEdit() {
   const [profile, setProfile] = useState<any>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [skippedSections, setSkippedSections] = useState<string[]>([]);
+  const [skipping, setSkipping] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -138,6 +151,7 @@ export default function ProfileEdit() {
 
         // Server is the source of truth — always use it when available
         setProfile(serverData);
+        setSkippedSections(r.data.skippedSections || []);
         // Clear any stale localStorage draft now that we have fresh server data
         localStorage.removeItem(STORAGE_KEY);
       } catch {
@@ -180,11 +194,11 @@ export default function ProfileEdit() {
       // Clear localStorage draft after successful save — DB is now up to date
       localStorage.removeItem(STORAGE_KEY);
       if (showToast) toast.success('Saved!');
-    } catch { 
-      if (showToast) toast.error('Save failed'); 
+    } catch {
+      if (showToast) toast.error('Save failed');
     }
-    finally { 
-      if (showToast) setSaving(false); 
+    finally {
+      if (showToast) setSaving(false);
     }
   };
 
@@ -196,6 +210,22 @@ export default function ProfileEdit() {
       return newProfile;
     });
   };
+
+  const handleSkip = async () => {
+    if (!tab || !SKIPPABLE.has(tab)) return;
+    setSkipping(true);
+    try {
+      const r = await api.patch('/me/skip', { section: tab });
+      setSkippedSections(r.data.skippedSections || []);
+      const isNowSkipped = r.data.skippedSections.includes(tab);
+      toast.success(isNowSkipped ? 'Section skipped — excluded from completion %' : 'Section unskipped — included in completion %');
+    } catch {
+      toast.error('Failed to update skip state');
+    } finally {
+      setSkipping(false);
+    }
+  };
+
   const setVis = (k: string, v: boolean) => {
     setProfile((p: any) => {
       const newProfile = { ...p, visibility: { ...p.visibility, [k]: v } };
