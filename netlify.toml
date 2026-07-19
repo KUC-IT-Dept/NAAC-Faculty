@@ -8,13 +8,13 @@
 # ── Proxy all API calls to the backend server ───────────────────────────────
 [[redirects]]
   from = "/api/*"
-  to = "https://naac-faculty.onrender.com/api/:splat"
+  to = "https://profcv-production-4927.up.railway.app/api/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/uploads/*"
-  to = "https://naac-faculty.onrender.com/uploads/:splat"
+  to = "https://profcv-production-4927.up.railway.app/uploads/:splat"
   status = 200
   force = true
 
