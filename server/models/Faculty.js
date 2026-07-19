@@ -534,6 +534,14 @@ const facultySchema = new mongoose.Schema({
     totalExperienceYears: { type: String, default: '' },
     totalExperienceMonths: { type: String, default: '' },
     dateOfRetirement: { type: String, default: '' },
+    typeOfInstitution: { type: String, default: '' },
+    dateOfJoining: { type: String, default: '' },
+    dateOfConfirmation: { type: String, default: '' },
+    payBand: { type: String, default: '' },
+    bankAccountDetails: { type: String, default: '' },
+    pfNumber: { type: String, default: '' },
+    serviceBookNumber: { type: String, default: '' },
+    documentUrl: { type: String, default: '' },
   },
 
   // Section 5: Work Experience (previous)
