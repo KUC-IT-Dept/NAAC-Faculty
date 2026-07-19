@@ -102,6 +102,7 @@ export default function Documents({ data, onChange }: { data: any; onChange: (d:
                     fn={v => s(doc.key, v)}
                     accept={['photo', 'signature', 'dobProof', 'nationalId'].includes(doc.key) ? "image/*,.pdf" : ".pdf"}
                     section="documents"
+                    fieldKey={doc.key}
                   />
                   {data[doc.key] && (
                     <div style={{ marginTop: 8, fontSize: '11px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>

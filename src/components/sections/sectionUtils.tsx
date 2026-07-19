@@ -157,9 +157,40 @@ export const DropdownWithCustom = ({ v, fn, opts, ph = 'Select or type custom...
 };
 
 /** File Upload Component */
-export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image/*", section = "" }: { v: string, fn: (s: string) => void, label?: string, accept?: string, section?: string }) => {
+export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image/*", section = "", fieldKey }: { v: string, fn: (s: string) => void, label?: string, accept?: string, section?: string, fieldKey?: string }) => {
   const [uploading, setUploading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewType, setPreviewType] = useState<'image' | 'pdf' | 'other'>('other');
+  const [previewError, setPreviewError] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const previewUrl = v ? getAuthenticatedFileUrl(v) : '';
+
+  useEffect(() => {
+    const ext = (v || '').toLowerCase().split('?')[0].split('/').pop() || '';
+    const extension = ext.includes('.') ? ext.split('.').pop() : '';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension)) {
+      setPreviewType('image');
+    } else if (extension === 'pdf') {
+      setPreviewType('pdf');
+    } else {
+      setPreviewType('other');
+    }
+  }, [v]);
+
+  const handleRemove = async () => {
+    if (!fieldKey || !v) return;
+
+    try {
+      await api.delete('/upload', { data: { field: fieldKey, url: v } });
+      fn('');
+      setShowDeleteConfirm(false);
+      toast.success('Document removed');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Failed to remove document';
+      toast.error(msg);
+    }
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -208,7 +239,10 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
     const uploadFile = new File([finalFile], file.name, { type: file.type });
     fd.append('file', uploadFile);
     try {
-      const endpoint = section ? `/upload?section=${encodeURIComponent(section)}` : '/upload';
+      const params = new URLSearchParams();
+      if (section) params.set('section', section);
+      if (fieldKey) params.set('field', fieldKey);
+      const endpoint = `/upload${params.toString() ? `?${params.toString()}` : ''}`;
       const r = await api.post(endpoint, fd);
       fn(r.data.url);
       toast.success('File uploaded successfully!');
@@ -237,7 +271,7 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
       <div style={{ display: 'flex', gap: 4 }}>
         <button 
           type="button" 
-          onClick={() => window.open(getAuthenticatedFileUrl(v), '_blank')}
+          onClick={() => { if (previewUrl) { setPreviewError(false); setShowPreview(true); } }}
           title="View Document"
           style={{ padding: '6px', backgroundColor: 'white', border: '1px solid #e0f2fe', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
         >
@@ -245,13 +279,75 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
         </button>
         <button 
           type="button" 
-          onClick={() => fn('')}
+          onClick={() => setShowDeleteConfirm(true)}
           title="Remove Document"
           style={{ padding: '6px', backgroundColor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
         >
           <X size={14} />
         </button>
       </div>
+      {showDeleteConfirm ? (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteConfirm(false)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ margin: 0, fontSize: 18, color: 'var(--text)' }}>Delete document?</h3>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowDeleteConfirm(false)}><X size={18} /></button>
+            </div>
+            <div className="modal-body" style={{ paddingTop: 8 }}>
+              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                Are you sure you want to delete this document? This action cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-ghost" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={handleRemove}>Delete</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {showPreview && previewUrl ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Document preview"
+          onClick={() => setShowPreview(false)}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '20px' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ position: 'relative', width: 'min(900px, 100%)', maxHeight: '90vh', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 20px 60px rgba(15, 23, 42, 0.25)', overflow: 'hidden' }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              aria-label="Close preview"
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 1, border: 'none', backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: '999px', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#334155' }}
+            >
+              <X size={18} />
+            </button>
+            <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+              Document Preview
+            </div>
+            <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '420px', maxHeight: '70vh', overflow: 'auto' }}>
+              {previewError ? (
+                <div style={{ textAlign: 'center', color: '#475569' }}>
+                  <div style={{ marginBottom: 10, fontWeight: 700 }}>Unable to preview this file right now.</div>
+                  <a href={previewUrl} target="_blank" rel="noreferrer" style={{ color: '#2563eb' }}>Open the file in a new tab</a>
+                </div>
+              ) : previewType === 'image' ? (
+                <img src={previewUrl} alt="Uploaded document preview" onError={() => setPreviewError(true)} style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px' }} />
+              ) : previewType === 'pdf' ? (
+                <iframe src={previewUrl} title="PDF preview" onError={() => setPreviewError(true)} style={{ width: '100%', minHeight: '70vh', border: 'none', borderRadius: '8px' }} />
+              ) : (
+                <div style={{ textAlign: 'center', color: '#475569' }}>
+                  <div style={{ marginBottom: 10, fontWeight: 700 }}>This file type cannot be previewed inline.</div>
+                  <a href={previewUrl} target="_blank" rel="noreferrer" style={{ color: '#2563eb' }}>Open the file in a new tab</a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 
