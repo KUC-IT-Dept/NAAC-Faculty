@@ -806,6 +806,10 @@ a:hover {
   margin-bottom: 16px;
 }
 
+.form-field-wrapper {
+  width: 100%;
+}
+
 .form-label {
   display: block;
   font-size: 0.755rem;
@@ -814,6 +818,44 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 5px;
+}
+
+.form-label.invalid-label {
+  color: #dc2626;
+}
+
+.required-star {
+  color: #dc2626;
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+.invalid-field {
+  border: 1px solid #d1d5db;
+  border-left: 4px solid #dc2626;
+  border-radius: 7px;
+  background: #ffffff;
+  padding: 2px;
+  transition: all .25s ease;
+}
+
+.invalid-field:focus-within {
+  border-left: 4px solid #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.08);
+}
+
+.invalid-field .form-input,
+.invalid-field .form-select,
+.invalid-field .form-textarea {
+  border-color: #d1d5db;
+  background-color: #ffffff;
+}
+
+.error-message {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #dc2626;
 }
 
 .form-input,
