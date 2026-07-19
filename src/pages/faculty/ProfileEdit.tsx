@@ -16,21 +16,21 @@ import Awards from '../../components/sections/S07_Awards';
 import ResearchProjects from '../../components/sections/S08_ResearchProjects';
 import ResearchSupervision from '../../components/sections/S09_ResearchSupervision';
 import Internship from '../../components/sections/S10_InternshipAndProjects';
-import AcademicResp from '../../components/sections/S11_AcademicResponsibilities';
-import Memberships from '../../components/sections/S12_Memberships';
-import FdpWorkshops from '../../components/sections/S13_FdpWorkshops';
-import OnlineCourses from '../../components/sections/S14_OnlineCourses';
-import InternationalExp from '../../components/sections/S15_InternationalExperience';
-import Documents from '../../components/sections/S16_Documents';
-import AdminNonAcademicResp from '../../components/sections/S17_AdminNonAcademicResponsibilities';
-import AcademicAdmin from '../../components/sections/S18_AcademicAdministration';
-import QualityAssurance from '../../components/sections/S19_QualityAssurance';
-import ResearchInnovation from '../../components/sections/S20_ResearchAndInnovation';
-import ExaminationAndEvaluation from '../../components/sections/S21_ExaminationAndEvaluation';
-import AdministrativeSupport from '../../components/sections/S22_AdministrativeSupport';
-import DepartmentalCharges from '../../components/sections/S23_DepartmentalCharges';
-import SpecialAssignments from '../../components/sections/S24_SpecialAssignments';
-import ExtraInstitutionalActivities from '../../components/sections/S25_ExtraInstitutionalActivities';
+import AcademicResp from '../../components/sections/S10_AcademicResponsibilities';
+import Memberships from '../../components/sections/S11_Memberships';
+import FdpWorkshops from '../../components/sections/S12_FdpWorkshops';
+import OnlineCourses from '../../components/sections/S13_OnlineCourses';
+import InternationalExp from '../../components/sections/S14_InternationalExperience';
+import Documents from '../../components/sections/S15_Documents';
+import AdminNonAcademicResp from '../../components/sections/S16_AdminNonAcademicResponsibilities';
+import AcademicAdmin from '../../components/sections/S17_AcademicAdministration';
+import QualityAssurance from '../../components/sections/S18_QualityAssurance';
+import ResearchInnovation from '../../components/sections/S19_ResearchAndInnovation';
+import ExaminationAndEvaluation from '../../components/sections/S20_ExaminationAndEvaluation';
+import AdministrativeSupport from '../../components/sections/S21_AdministrativeSupport';
+import DepartmentalCharges from '../../components/sections/S22_DepartmentalCharges';
+import SpecialAssignments from '../../components/sections/S23_SpecialAssignments';
+import ExtraInstitutionalActivities from '../../components/sections/S24_ExtraInstitutionalActivities';
 
 
 
