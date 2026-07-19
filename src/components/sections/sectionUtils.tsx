@@ -168,7 +168,7 @@ export const FileInp = ({ v, fn, label = 'Upload Document', accept = ".pdf,image
 
   useEffect(() => {
     const ext = (v || '').toLowerCase().split('?')[0].split('/').pop() || '';
-    const extension = ext.includes('.') ? ext.split('.').pop() : '';
+    const extension = (ext.includes('.') ? ext.split('.').pop() : '') || '';
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension)) {
       setPreviewType('image');
     } else if (extension === 'pdf') {
