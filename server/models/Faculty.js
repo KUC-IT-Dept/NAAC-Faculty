@@ -534,6 +534,14 @@ const facultySchema = new mongoose.Schema({
     totalExperienceYears: { type: String, default: '' },
     totalExperienceMonths: { type: String, default: '' },
     dateOfRetirement: { type: String, default: '' },
+    typeOfInstitution: { type: String, default: '' },
+    dateOfJoining: { type: String, default: '' },
+    dateOfConfirmation: { type: String, default: '' },
+    payBand: { type: String, default: '' },
+    bankAccountDetails: { type: String, default: '' },
+    pfNumber: { type: String, default: '' },
+    serviceBookNumber: { type: String, default: '' },
+    documentUrl: { type: String, default: '' },
   },
 
   // Section 5: Work Experience (previous)
@@ -629,5 +637,31 @@ const facultySchema = new mongoose.Schema({
   },
 
 }, { timestamps: true });
+
+facultySchema.pre('save', function() {
+  if (this.employmentDetails) {
+    if (this.isModified('employmentDetails.dateOfJoining')) {
+      this.employmentDetails.dateOfAppointment = this.employmentDetails.dateOfJoining;
+    } else if (this.isModified('employmentDetails.dateOfAppointment')) {
+      this.employmentDetails.dateOfJoining = this.employmentDetails.dateOfAppointment;
+    } else {
+      if (this.employmentDetails.dateOfJoining && !this.employmentDetails.dateOfAppointment) {
+        this.employmentDetails.dateOfAppointment = this.employmentDetails.dateOfJoining;
+      } else if (this.employmentDetails.dateOfAppointment && !this.employmentDetails.dateOfJoining) {
+        this.employmentDetails.dateOfJoining = this.employmentDetails.dateOfAppointment;
+      }
+    }
+  }
+});
+
+facultySchema.post('init', function(doc) {
+  if (doc.employmentDetails) {
+    if (doc.employmentDetails.dateOfAppointment && !doc.employmentDetails.dateOfJoining) {
+      doc.employmentDetails.dateOfJoining = doc.employmentDetails.dateOfAppointment;
+    } else if (doc.employmentDetails.dateOfJoining && !doc.employmentDetails.dateOfAppointment) {
+      doc.employmentDetails.dateOfAppointment = doc.employmentDetails.dateOfJoining;
+    }
+  }
+});
 
 module.exports = mongoose.model('Faculty', facultySchema);

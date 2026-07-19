@@ -40,7 +40,7 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'personal-information': { key: 'personalInfo', label: 'Personal Information' },
   'qualifications': { key: 'qualifications', label: 'Qualifications' },
   'eligibility-tests': { key: 'eligibilityTests', label: 'Eligibility Tests' },
-  'employment-details': { key: 'employmentDetails', label: 'Employment Details' },
+  'employment-details': { key: 'employmentDetails', label: 'Current Employment Details' },
   'work-experience': { key: 'workExperience', label: 'Work Experience' },
   'research-publications': { key: 'publications', label: 'Research & Publications' },
   'awards-honours': { key: 'awards', label: 'Awards & Honours' },
@@ -70,7 +70,7 @@ const VIS_ITEMS = [
   { key: 'photo', label: 'Profile Photo', desc: 'Show photo publicly' },
   { key: 'qualifications', label: 'Qualifications', desc: 'Degrees & education' },
   { key: 'eligibilityTests', label: 'Eligibility Tests', desc: 'NET / SET / GATE' },
-  { key: 'employmentDetails', label: 'Employment Details', desc: 'Current and previous positions' },
+  { key: 'employmentDetails', label: 'Current Employment Details', desc: 'Current and previous positions' },
   { key: 'publications', label: 'Publications', desc: 'Journals, books, conferences' },
   { key: 'projects', label: 'Research Projects', desc: 'Funded projects' },
   { key: 'awards', label: 'Awards & Honours', desc: 'Recognition' },
@@ -285,7 +285,7 @@ export default function ProfileEdit() {
               {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} onPersist={save} saving={saving} />}
               {tab === 'qualifications' && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
               {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
-              {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} />}
+              {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} onPersist={save} />}
               {tab === 'workExperience' && <WorkExperience data={profile.workExperience} onChange={v => set('workExperience', v)} />}
               {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
               {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} onPersist={save} />}
