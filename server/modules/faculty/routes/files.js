@@ -64,7 +64,10 @@ router.get('/photo/:userId/:filename', (req, res) => {
 // ── GET /api/faculty/files/:userId/* ──────────────────────────────────────
 // Authenticated access to general documents
 router.get('/:userId/*filePath', authFileAccess, (req, res) => {
-  const { userId, filePath: filePathParam } = req.params;
+  const { userId } = req.params;
+  const rawFilePath = Array.isArray(req.params.filePath)
+    ? req.params.filePath.join('/')
+    : req.params.filePath || req.params[0] || '';
 
   // Check authorization: user can only access their own files, unless admin/hod/vc
   if (
@@ -75,15 +78,39 @@ router.get('/:userId/*filePath', authFileAccess, (req, res) => {
   }
 
   // Path traversal protection
-  const safePath = path.normalize(filePathParam).replace(/^(\.\.(\/|\\|$))+/, '');
-  
-  if (safePath.includes('..')) {
+  const safePath = path.normalize(rawFilePath).replace(/^(\.\.(\/|\\|$))+/, '');
+  if (!safePath || safePath.includes('..')) {
     return res.status(400).json({ message: 'Invalid path' });
   }
 
-  const filePath = path.join(process.cwd(), 'uploads', userId, 'documents', safePath);
+  const baseDir = path.resolve(process.cwd(), 'uploads', userId, 'documents');
+  const filePath = path.resolve(baseDir, safePath);
 
-  if (fs.existsSync(filePath)) {
+  if (!filePath.startsWith(baseDir + path.sep) && filePath !== baseDir) {
+    return res.status(400).json({ message: 'Invalid path' });
+  }
+
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    const ext = path.extname(filePath).toLowerCase();
+    const contentTypeMap = {
+      '.pdf': 'application/pdf',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp',
+      '.txt': 'text/plain',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.xls': 'application/vnd.ms-excel',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.ppt': 'application/vnd.ms-powerpoint',
+      '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      '.zip': 'application/zip'
+    };
+
+    res.setHeader('Content-Disposition', 'inline');
+    res.type(contentTypeMap[ext] || 'application/octet-stream');
     return res.sendFile(filePath);
   }
 
@@ -91,7 +118,27 @@ router.get('/:userId/*filePath', authFileAccess, (req, res) => {
   const legacyFilename = path.basename(safePath);
   const legacyPath = path.join(process.cwd(), 'uploads', legacyFilename);
   
-  if (fs.existsSync(legacyPath)) {
+  if (fs.existsSync(legacyPath) && fs.statSync(legacyPath).isFile()) {
+    const ext = path.extname(legacyPath).toLowerCase();
+    const contentTypeMap = {
+      '.pdf': 'application/pdf',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp',
+      '.txt': 'text/plain',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.xls': 'application/vnd.ms-excel',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.ppt': 'application/vnd.ms-powerpoint',
+      '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      '.zip': 'application/zip'
+    };
+
+    res.setHeader('Content-Disposition', 'inline');
+    res.type(contentTypeMap[ext] || 'application/octet-stream');
     return res.sendFile(legacyPath);
   }
 

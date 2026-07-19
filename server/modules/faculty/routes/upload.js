@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { auth, facultyOnly } = require('../middleware/auth');
+const Faculty = require('../models/Faculty');
 
 const router = express.Router();
 
@@ -76,22 +77,114 @@ const generalUpload = multer({
   }
 });
 
+const DOCUMENT_FIELDS = new Set([
+  'photo', 'signature', 'aadhar', 'pan', 'ssc', 'hsc', 'ug', 'pg', 'phd', 'mphil',
+  'net', 'gate', 'apptLetter', 'experienceCert', 'publications', 'noc', 'casteCert',
+  'disabilityCert', 'dobProof', 'nationalId'
+]);
+
+const persistDocumentReference = async (userId, fieldKey, url) => {
+  if (!fieldKey || !DOCUMENT_FIELDS.has(fieldKey)) return;
+
+  try {
+    const faculty = await Faculty.findOne({ userId });
+    if (!faculty) return;
+
+    if (!faculty.documents) {
+      faculty.documents = {};
+    }
+
+    faculty.documents[fieldKey] = url;
+    await faculty.save();
+  } catch (err) {
+    console.error('Failed to persist uploaded document reference:', err);
+  }
+};
+
+const removeDocumentReference = async (userId, fieldKey, url) => {
+  if (!fieldKey || !DOCUMENT_FIELDS.has(fieldKey)) return { removed: false, fileRemoved: false };
+
+  try {
+    const faculty = await Faculty.findOne({ userId });
+    if (!faculty) return { removed: false, fileRemoved: false };
+
+    if (!faculty.documents) {
+      faculty.documents = {};
+    }
+
+    const previousValue = faculty.documents[fieldKey];
+    faculty.documents[fieldKey] = '';
+    await faculty.save();
+
+    let fileRemoved = false;
+    const candidateUrls = [];
+    if (typeof url === 'string' && url) candidateUrls.push(url);
+    if (typeof previousValue === 'string' && previousValue) candidateUrls.push(previousValue);
+
+    for (const candidateUrl of candidateUrls) {
+      try {
+        const normalized = candidateUrl.replace(/\\/g, '/');
+        const prefix = `/api/faculty/files/${userId}/`;
+        const relativePath = normalized.startsWith(prefix)
+          ? normalized.slice(prefix.length)
+          : normalized.replace(/^\/uploads\//, '');
+
+        if (!relativePath) continue;
+
+        const absolutePath = path.resolve(process.cwd(), 'uploads', userId.toString(), 'documents', relativePath);
+        if (fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()) {
+          fs.unlinkSync(absolutePath);
+          fileRemoved = true;
+        }
+      } catch (fileErr) {
+        console.error('Failed to remove document file:', fileErr);
+      }
+    }
+
+    return { removed: true, fileRemoved };
+  } catch (err) {
+    console.error('Failed to remove uploaded document reference:', err);
+    return { removed: false, fileRemoved: false };
+  }
+};
+
 // ── POST /api/faculty/upload  (general file upload — PDFs, docs, images) ────
-router.post('/', facultyOnly, generalUpload.single('file'), (req, res) => {
+router.post('/', facultyOnly, generalUpload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
-    
+
     const section = req.query.section || '';
     const safeSection = section.replace(/[^a-zA-Z0-9_-]/g, '');
     const urlPath = safeSection ? `${safeSection}/${req.file.filename}` : req.file.filename;
     const url = `/api/faculty/files/${req.user._id}/${urlPath}`;
-    
+
+    const fieldKey = typeof req.query.field === 'string' ? req.query.field : '';
+    await persistDocumentReference(req.user._id, fieldKey, url);
+
     res.json({ url, filename: req.file.originalname, size: req.file.size });
   } catch (err) {
     console.error('Upload error:', err);
     res.status(500).json({ message: 'Upload failed' });
+  }
+});
+
+// ── DELETE /api/faculty/upload  (remove a previously uploaded document) ────
+router.delete('/', facultyOnly, async (req, res) => {
+  try {
+    const fieldKey = typeof req.query.field === 'string' ? req.query.field : (req.body && typeof req.body.field === 'string' ? req.body.field : '');
+    const url = typeof req.query.url === 'string' ? req.query.url : (req.body && typeof req.body.url === 'string' ? req.body.url : '');
+
+    const result = await removeDocumentReference(req.user._id, fieldKey, url);
+    if (!result.removed) {
+      return res.status(400).json({ message: 'Unable to remove document reference' });
+    }
+
+    return res.json({ success: true, removed: true, fileRemoved: result.fileRemoved });
+  } catch (err) {
+    console.error('Delete upload error:', err);
+    return res.status(500).json({ message: 'Delete failed' });
   }
 });
 
