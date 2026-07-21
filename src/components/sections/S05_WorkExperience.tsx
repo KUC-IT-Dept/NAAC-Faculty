@@ -166,12 +166,12 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
   const renderFormFields = () => (
     <>
       <div className="form-row form-row-2">
-        {fg('Employee ID / Staff Code', inp(editingData.employeeId || '', v => updateField('employeeId', v)))}
+        {fg('College / Institution Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateField('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
         {fg('Designation', <CustomSelect value={editingData.designation || ''} onChange={(v: string) => updateField('designation', v)} options={dynamicDesignationPostOptions} />)}
       </div>
       <div className="form-row form-row-2">
         {fg('Department', <CustomSelect value={editingData.department || ''} onChange={(v: string) => updateField('department', v)} options={dynamicDepartmentOptions} />)}
-        {fg('College / Institution Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateField('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
+        {fg('Employee ID / Staff Code', inp(editingData.employeeId || '', v => updateField('employeeId', v)))}
       </div>
       <div className="form-row form-row-2">
         {fg('University Affiliated to', <CustomSelect value={editingData.affiliatedUniversity || ''} onChange={(v: string) => updateField('affiliatedUniversity', v)} options={dynamicAffiliatedUniversityOptions} />)}
@@ -377,10 +377,10 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
               {/* Expanded preview */}
               {expandedCards.has(i) && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {renderPreview('Employee ID / Staff Code', e.employeeId)}
+                  {renderPreview('College / Institution Name', e.institution)}
                   {renderPreview('Designation', e.designation)}
                   {renderPreview('Department', e.department)}
-                  {renderPreview('College / Institution Name', e.institution)}
+                  {renderPreview('Employee ID / Staff Code', e.employeeId)}
                   {renderPreview('University Affiliated to', e.affiliatedUniversity)}
                   {renderPreview('Type of Institution', e.typeOfInstitution)}
                   {renderPreview('Nature of Appointment', e.natureOfAppointment)}

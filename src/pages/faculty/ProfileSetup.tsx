@@ -39,7 +39,7 @@ const STEPS = [
   { id: 1, label: 'Personal', title: 'Personal Information', key: 'personalInfo' },
   { id: 2, label: 'Qualifications', title: 'Educational Qualifications', key: 'qualifications' },
   { id: 3, label: 'Eligibility', title: 'Eligibility Tests', key: 'eligibilityTests' },
-  { id: 4, label: 'Employment', title: 'Employment Details', key: 'employmentDetails' },
+  { id: 4, label: 'Employment', title: 'Current Employment Details', key: 'employmentDetails' },
   { id: 5, label: 'Work Exp.', title: 'Work Experience', key: 'workExperience' },
   { id: 6, label: 'Publications', title: 'Research & Publications', key: 'publications' },
   { id: 7, label: 'Awards', title: 'Awards & Honours', key: 'awards' },
@@ -258,7 +258,7 @@ export default function ProfileSetup() {
             {step === 1 && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} />}
             {step === 2 && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
             {step === 3 && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
-            {step === 4 && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} />}
+            {step === 4 && <EmploymentDetails data={profile.employmentDetails} personalInfo={profile.personalInfo} onChange={v => set('employmentDetails', v)} />}
             {step === 5 && <WorkExperience data={profile.workExperience} onChange={v => set('workExperience', v)} />}
             {step === 6 && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
             {step === 7 && <Awards data={profile.awards} onChange={v => set('awards', v)} onPersist={saveAwardsSection} />}
