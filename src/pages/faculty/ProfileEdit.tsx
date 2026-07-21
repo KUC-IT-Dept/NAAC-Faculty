@@ -279,7 +279,7 @@ export default function ProfileEdit() {
               {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} onPersist={save} saving={saving} />}
               {tab === 'qualifications' && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
               {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
-              {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} onChange={v => set('employmentDetails', v)} onPersist={save} />}
+              {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} personalInfo={profile.personalInfo} onChange={v => set('employmentDetails', v)} onPersist={save} />}
               {tab === 'workExperience' && <WorkExperience data={profile.workExperience} onChange={v => set('workExperience', v)} />}
               {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
               {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} onPersist={save} />}

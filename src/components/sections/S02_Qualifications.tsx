@@ -133,6 +133,45 @@ const BOARD_OPTIONS_10TH = ['vhse', 'cbse', 'icse', 'kerala board of higher educ
 const BOARD_OPTIONS_12TH = ['vhse', 'cbse', 'icse', 'kerala board of higher secondary education', 'other'];
 const UNIVERSITY_OPTIONS_HIGHER = ['kannur university', 'calicut university', 'kerala university', 'mg university', 'central university', 'open university', 'foreign university', 'other'];
 
+const SCHOOL_OPTIONS_10TH = [
+  'Government High School',
+  'Government Upper Primary School',
+  'Government Model High School',
+  'Aided High School',
+  'Aided Upper Primary School',
+  'Kendriya Vidyalaya',
+  'Navodaya Vidyalaya',
+  'Sainik School',
+  'CBSE Affiliated Private School',
+  'ICSE Affiliated Private School',
+  'State Board Private School',
+  'Anglo-Indian School',
+  'Missionary School',
+  'Matriculation School',
+  'Municipal Corporation School',
+  'Tribal Welfare School',
+  'Social Welfare School',
+];
+
+const SCHOOL_OPTIONS_12TH = [
+  'Government Higher Secondary School',
+  'Government Model Higher Secondary School',
+  'Aided Higher Secondary School',
+  'Kendriya Vidyalaya (Senior Secondary)',
+  'Navodaya Vidyalaya (Senior Secondary)',
+  'Sainik School (Senior Secondary)',
+  'CBSE Affiliated Private School',
+  'ICSE / ISC Affiliated Private School',
+  'State Board Private Higher Secondary School',
+  'Vocational Higher Secondary School (VHSE)',
+  'Anglo-Indian Higher Secondary School',
+  'Missionary Higher Secondary School',
+  'Matriculation Higher Secondary School',
+  'Municipal Corporation Higher Secondary School',
+  'Tribal Welfare Higher Secondary School',
+  'Social Welfare Higher Secondary School',
+];
+
 const saveBtnStyle: React.CSSProperties = {
   padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
   backgroundColor: '#16a34a', color: 'white', border: 'none',
@@ -235,37 +274,38 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
 
     const level = editingData.degreeLevel || '';
     const isPhD = isPhDLevel(level);
+    const sanitizedData = { ...editingData };
     const normalizedData = isPhD
       ? {
           degreeLevel: level,
-          degreeName: normalizeQualificationName(level, editingData.degreeName),
-          specialization: editingData.specialization || '',
-          institution: editingData.institution || '',
-          yearOfPassing: editingData.yearOfPassing || '',
-          thesisTitle: editingData.thesisTitle || '',
-          mode: editingData.mode || '',
-          phdCertificate: editingData.phdCertificate || editingData.documentUrl || '',
-          documentUrl: editingData.documentUrl || editingData.phdCertificate || '',
-          country: editingData.country || '',
-          state: editingData.state || '',
-          countryAndState: editingData.country && editingData.state
-            ? `${editingData.country}, ${editingData.state}`
-            : editingData.country || '',
+          degreeName: normalizeQualificationName(level, sanitizedData.degreeName),
+          specialization: sanitizedData.specialization || '',
+          institution: sanitizedData.institution || '',
+          yearOfPassing: sanitizedData.yearOfPassing || '',
+          thesisTitle: sanitizedData.thesisTitle || '',
+          mode: sanitizedData.mode || '',
+          phdCertificate: sanitizedData.phdCertificate || sanitizedData.documentUrl || '',
+          documentUrl: sanitizedData.documentUrl || sanitizedData.phdCertificate || '',
+          country: sanitizedData.country || '',
+          state: sanitizedData.state || '',
+          countryAndState: sanitizedData.country && sanitizedData.state
+            ? `${sanitizedData.country}, ${sanitizedData.state}`
+            : sanitizedData.country || '',
           university: '',
           percentageCGPA: '',
           gradeType: '',
           division: '',
         }
       : {
-          ...editingData,
-          degreeName: normalizeQualificationName(level, editingData.degreeName),
-          specialization: showSpecialization(level) ? editingData.specialization : '',
+          ...sanitizedData,
+          degreeName: normalizeQualificationName(level, sanitizedData.degreeName),
+          specialization: showSpecialization(level) ? sanitizedData.specialization : '',
           thesisTitle: '',
           phdCertificate: '',
-          documentUrl: editingData.documentUrl || '',
-          countryAndState: editingData.country && editingData.state
-            ? `${editingData.country}, ${editingData.state}`
-            : editingData.countryAndState || `${editingData.country || ''}${editingData.state ? `, ${editingData.state}` : ''}`,
+          documentUrl: sanitizedData.documentUrl || '',
+          countryAndState: sanitizedData.country && sanitizedData.state
+            ? `${sanitizedData.country}, ${sanitizedData.state}`
+            : sanitizedData.countryAndState || `${sanitizedData.country || ''}${sanitizedData.state ? `, ${sanitizedData.state}` : ''}`,
         };
 
     let newData = [...data];
@@ -418,13 +458,32 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
         </div>
 
         <div className="form-row form-row-2">
-          {fg('Institution / University Name', <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
-          {fg('Board / University', <CustomSelect
-            value={editingData.university}
-            onChange={(v: string) => updateEditingData('university', v)}
-            options={getBoardUniversityOptions(level)}
-            placeholder="Select Board / University"
-          />)}
+          {fg('Institution Name',
+            (level === '10th' || level === '12th')
+              ? <SearchableSelect
+                  value={editingData.institution || ''}
+                  onChange={(v: string) => updateEditingData('institution', v)}
+                  options={level === '10th' ? SCHOOL_OPTIONS_10TH : SCHOOL_OPTIONS_12TH}
+                  placeholder="Search or Enter Institution"
+                />
+              : <SearchableSelect value={editingData.institution || ''} onChange={(v: string) => updateEditingData('institution', v)} options={institutionsOpts} placeholder="Search or Enter Institution" />
+          )}
+          {fg(
+            (level === '10th' || level === '12th') ? 'Board' : 'Board / University',
+            (level === '10th' || level === '12th')
+              ? <SearchableSelect
+                  value={editingData.university || ''}
+                  onChange={(v: string) => updateEditingData('university', v)}
+                  options={level === '10th' ? BOARD_OPTIONS_10TH : BOARD_OPTIONS_12TH}
+                  placeholder="Search or Enter Board"
+                />
+              : <CustomSelect
+                  value={editingData.university}
+                  onChange={(v: string) => updateEditingData('university', v)}
+                  options={getBoardUniversityOptions(level)}
+                  placeholder="Select Board / University"
+                />
+          )}
         </div>
 
         <div className="form-row form-row-4">
@@ -440,7 +499,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             options={dynamicGradeTypeOptions}
             placeholder="Select Grade Type"
           />)}
-          {fg('Score (Percentage / CGPA)', inp(editingData.percentageCGPA, v => updateEditingData('percentageCGPA', v), '85 / 8.5'))}
+          {fg('Score (Percentage or CGPA)', inp(editingData.percentageCGPA, v => updateEditingData('percentageCGPA', v), '85 or 8.5'))}
           {fg('Division', <CustomSelect
             value={editingData.division}
             onChange={(v: string) => updateEditingData('division', v)}
@@ -512,11 +571,11 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
         {renderPreview('Qualification Level', q.degreeLevel)}
         {renderPreview('Degree / Qualification Name', q.degreeName)}
         {renderPreview('Specialization / Subject', q.specialization)}
-        {renderPreview('Institution / University Name', q.institution)}
-        {renderPreview('Board / University', q.university)}
+        {renderPreview('Institution Name', q.institution)}
+        {renderPreview((q.degreeLevel === '10th' || q.degreeLevel === '12th') ? 'Board' : 'Board / University', q.university)}
         {renderPreview('Year of Passing', q.yearOfPassing)}
         {renderPreview('Grade Type', q.gradeType)}
-        {renderPreview('Score (Percentage / CGPA)', q.percentageCGPA)}
+        {renderPreview('Score (Percentage or CGPA)', q.percentageCGPA)}
         {renderPreview('Division', q.division)}
         {renderPreview('Mode', q.mode)}
         {renderPreview('Country', q.country)}

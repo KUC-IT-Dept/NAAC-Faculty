@@ -62,7 +62,7 @@ export default function FacultyDashboard() {
 
   const sections = [
     { key: 'qualifications', label: 'Qualifications', icon: <GraduationCap size={20} />, count: profile?.qualifications?.length },
-    { key: 'employmentDetails', label: 'Employment Details', icon: <Briefcase size={20} />, count: profile?.employmentDetails?.length },
+    { key: 'employmentDetails', label: 'Current Employment Details', icon: <Briefcase size={20} />, count: profile?.employmentDetails?.length },
     { key: 'publications', label: 'Publications', icon: <BookOpen size={20} />, count: profile?.publications?.length },
     { key: 'projects', label: 'Research Projects', icon: <FlaskConical size={20} />, count: profile?.projects?.length },
     { key: 'awards', label: 'Awards & Honors', icon: <Award size={20} />, count: profile?.awards?.length },

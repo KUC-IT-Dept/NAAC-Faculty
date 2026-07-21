@@ -18,6 +18,8 @@ type Publication = {
   issn: string;
   isbn: string;
   pages: string;
+  pageFrom: string;
+  pageTo: string;
   impactFactor: string;
   indexedIn: string;
   peerReviewed: string;
@@ -36,7 +38,7 @@ type Publication = {
 
 const EMPTY: Publication = {
   type: 'Journal Articles', title: '', authors: '', authorRole: '', journal: '', journalCategory: '',
-  year: '', volume: '', issue: '', issn: '', isbn: '', pages: '',
+  year: '', volume: '', issue: '', issn: '', isbn: '', pages: '', pageFrom: '', pageTo: '',
   impactFactor: '', indexedIn: '', peerReviewed: '', doi: '', level: '',
   presentationType: '', venue: '', conferenceDates: '', documentUrl: '',
   editors: '', bookType: '', organizedBy: '', publishedInProceedings: ''
@@ -97,7 +99,8 @@ function PubForm({ item, onChange, levels, yesNo, indexedInOpts, authorRoleOpts,
           <div className="form-row form-row-4">
             {fg('Volume', <DropdownWithCustom v={item.volume} fn={v => onChange('volume', v)} opts={VOLUME_OPTS} ph="Vol" />)}
             {fg('Issue', <DropdownWithCustom v={item.issue} fn={v => onChange('issue', v)} opts={ISSUE_OPTS} ph="Issue" />)}
-            {fg('Pages', <DropdownWithCustom v={item.pages} fn={v => onChange('pages', v)} opts={PAGES_OPTS} ph="Pages" />)}
+            {fg('Page From', <input className="form-input" type="number" min="1" placeholder="e.g. 100" value={item.pageFrom || ''} onChange={e => onChange('pageFrom', e.target.value)} />)}
+            {fg('Page To', <input className="form-input" type="number" min="1" placeholder="e.g. 120" value={item.pageTo || ''} onChange={e => onChange('pageTo', e.target.value)} />)}
             {fg('Impact Factor', inp(item.impactFactor, v => onChange('impactFactor', v)))}
           </div>
           <div className="form-row form-row-3">
@@ -244,10 +247,13 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
 function PreviewDetails({ p }: { p: Publication }) {
   const t = p.type;
 
+  const pageRange = p.pageFrom && p.pageTo
+    ? `${p.pageFrom} – ${p.pageTo}`
+    : p.pageFrom || p.pageTo || p.pages || '';
   const citationParts = [
     p.volume && `Vol. ${p.volume}`,
     p.issue && `No. ${p.issue}`,
-    p.pages && `pp. ${p.pages}`,
+    pageRange && `pp. ${pageRange}`,
   ].filter(Boolean).join(', ');
 
   const dateFmt = (d?: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
