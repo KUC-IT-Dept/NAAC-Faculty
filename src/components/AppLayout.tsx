@@ -45,7 +45,7 @@ const profileDropdownItems = (role?: 'admin' | 'faculty' | 'vc' | 'hod') => {
     { id: 'personal-information', label: '01 - Personal Information', path: `${base}/personal-information` },
     { id: 'qualifications', label: '02 - Qualifications', path: `${base}/qualifications` },
     { id: 'eligibility-tests', label: '03 - Eligibility Tests', path: `${base}/eligibility-tests` },
-    { id: 'employment-details', label: '04 - Employment Details', path: `${base}/employment-details` },
+    { id: 'employment-details', label: '04 - Current Employment Details', path: `${base}/employment-details` },
     { id: 'work-experience', label: '05 - Work Experience', path: `${base}/work-experience` },
     { id: 'research-publications', label: '06 - Research & Publications', path: `${base}/research-publications` },
     { id: 'awards-honours', label: '07 - Awards & Honours', path: `${base}/awards-honours` },

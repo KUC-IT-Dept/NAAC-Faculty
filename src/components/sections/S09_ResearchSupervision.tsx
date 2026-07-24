@@ -133,18 +133,104 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
 
   return (
     <div className="section-container" style={{ padding: 24, backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border)' }}>
-      <div className="form-row form-row-1">
-        {fg('Names of completed Ph.D. students', <textarea className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed', minHeight: 60 }} value={completedStudentsNames} readOnly placeholder="No completed Ph.D. students added yet..." />)}
+      {/* ── Summary Stats ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+        {/* Ph.D. Awarded */}
+        <div style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)', border: '1px solid #c7d2fe', borderRadius: 14, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#3730a3', lineHeight: 1 }}>{phdAwardedCount}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ph.D. Awarded</div>
+          </div>
+        </div>
+
+        {/* Ph.D. Ongoing */}
+        <div style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', border: '1px solid #fde68a', borderRadius: 14, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#92400e', lineHeight: 1 }}>{phdOngoingCount}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#b45309', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ph.D. Ongoing</div>
+          </div>
+        </div>
+
+        {/* M.Phil. Completed */}
+        <div style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0', borderRadius: 14, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#14532d', lineHeight: 1 }}>{mphilGuidedCount}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#15803d', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>M.Phil. Completed</div>
+          </div>
+        </div>
       </div>
 
-      <div className="form-row form-row-2">
-        {fg('Number of Ph.D. students Awarded (Completed)', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={phdAwardedCount} readOnly />)}
-        {fg('Number of Ph.D. students Ongoing', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={phdOngoingCount} readOnly />)}
+      {/* ── Completed Ph.D. Student Names ── */}
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, overflow: 'hidden', marginBottom: 8, boxShadow: '0 1px 4px rgba(79,70,229,0.06)' }}>
+        {/* Header */}
+        <div style={{ background: 'linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%)', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Completed Ph.D. Students</span>
+          {completedStudentsNames && (
+            <span style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20 }}>
+              {completedStudentsNames.split(', ').length} student{completedStudentsNames.split(', ').length !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: completedStudentsNames ? '8px 0' : '20px' }}>
+          {completedStudentsNames ? (
+            completedStudentsNames.split(', ').map((name: string, idx: number) => {
+              const avatarColors = [
+                { bg: '#eef2ff', text: '#4338ca', border: '#c7d2fe' },
+                { bg: '#f5f3ff', text: '#6d28d9', border: '#ddd6fe' },
+                { bg: '#fdf4ff', text: '#7e22ce', border: '#e9d5ff' },
+                { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
+              ];
+              const color = avatarColors[idx % avatarColors.length];
+              const initials = name.trim().split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+              return (
+                <div key={idx} style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '10px 20px',
+                  borderBottom: idx < completedStudentsNames.split(', ').length - 1 ? '1px solid #f1f5f9' : 'none',
+                  transition: 'background 0.15s',
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  {/* Number badge */}
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', width: 20, textAlign: 'right', flexShrink: 0 }}>{idx + 1}.</div>
+                  {/* Avatar */}
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: color.bg, border: `1.5px solid ${color.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: color.text }}>{initials}</span>
+                  </div>
+                  {/* Name */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{name.trim()}</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>Ph.D. Awarded</div>
+                  </div>
+                  {/* Checkmark */}
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#dcfce7', border: '1.5px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="12" height="12" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#94a3b8' }}>
+              <svg width="32" height="32" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              <span style={{ fontSize: 13, fontStyle: 'italic' }}>No completed Ph.D. students yet.</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="form-row form-row-1">
-        {fg('Number of M.Phil. students Guided (Completed)', <input className="form-input" style={{ backgroundColor: '#f8fafc', cursor: 'not-allowed' }} value={mphilGuidedCount} readOnly />)}
-      </div>
 
       <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
