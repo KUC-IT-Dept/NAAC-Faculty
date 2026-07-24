@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest } from 'lucide-react';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
@@ -10,6 +10,7 @@ const adminNav: NavItem[] = [
   { label: 'Org Hierarchy', path: '/admin/hierarchy', icon: <GraduationCap size={18} /> },
   { label: 'Departments', path: '/admin/departments', icon: <Building2 size={18} /> },
   { label: 'Students', path: '/admin/students', icon: <UserPlus size={18} /> },
+  { label: 'Student Request', path: '/admin/student-request', icon: <GitPullRequest size={18} /> },
   { label: 'Notifications', path: '/admin/requests', icon: <Bell size={18} /> },
   { label: 'Analytics', path: '/admin/analytics', icon: <BarChart2 size={18} /> },
   { label: 'Edit Form', path: '/admin/edit-profile', icon: <UserPen size={18} /> },

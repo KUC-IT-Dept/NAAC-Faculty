@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminGeneral from './pages/admin/AdminGeneral';
+import StudentRequest from './pages/admin/StudentRequest';
 import { EditProfileLayout, AdminProfileSection } from './pages/admin/AdminProfileManagement';
 import FacultyDashboard from './pages/faculty/FacultyDashboard';
 import ProfileSetup from './pages/faculty/ProfileSetup';
@@ -47,6 +48,7 @@ function AppRoutes() {
 
       {/* Admin */}
       <Route path="/admin" element={<Navigate to="/admin/accounts" replace />} />
+      <Route path="/admin/student-request" element={<ProtectedRoute role="admin"><StudentRequest /></ProtectedRoute>} />
       <Route path="/admin/:tabId" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/general" element={<ProtectedRoute role="admin"><AdminGeneral /></ProtectedRoute>} />
       <Route path="/admin/edit-profile" element={<ProtectedRoute role="admin"><EditProfileLayout /></ProtectedRoute>}>

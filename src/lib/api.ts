@@ -16,6 +16,14 @@ if (rawBaseUrl) {
 
 const api = axios.create({ baseURL: apiBaseUrl });
 
+const rawStudentBaseUrl = import.meta.env.VITE_STUDENT_API_URL || 'https://kuc-backend-1.onrender.com';
+const studentBase = rawStudentBaseUrl.replace(/\/$/, '');
+const studentBaseUrl = studentBase.endsWith('/api') ? studentBase : `${studentBase}/api`;
+
+export const apiRoot = axios.create({
+  baseURL: studentBaseUrl
+});
+
 export const getFileUrl = (url?: string) => {
   if (!url) return '';
   if (url.startsWith('http')) return url;
@@ -40,6 +48,24 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('iqac_token');
+      localStorage.removeItem('iqac_user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  }
+);
+
+apiRoot.interceptors.request.use((config) => {
+  const token = localStorage.getItem('iqac_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+apiRoot.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {

@@ -259,11 +259,30 @@ export default function AdminDashboard() {
 
   const handleUpdateFacultyDept = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editFacultyDeptForm.department) {
+      toast.error('Please select a department');
+      return;
+    }
     setSubmitting(true);
     try {
-      await api.put(`/admin/faculty/${editFacultyDeptForm.userId}/department`, { department: editFacultyDeptForm.department });
-      toast.success('Faculty department updated successfully');
+      const res = await api.put(`/admin/faculty/${editFacultyDeptForm.userId}/department`, { department: editFacultyDeptForm.department });
+      toast.success(res.data?.message || 'Faculty department updated successfully');
       setShowEditFacultyDeptModal(false);
+      setFaculty(prev => prev.map(f => f._id === editFacultyDeptForm.userId ? {
+        ...f,
+        department: editFacultyDeptForm.department,
+        profile: f.profile ? {
+          ...f.profile,
+          employmentDetails: {
+            ...f.profile.employmentDetails,
+            department: editFacultyDeptForm.department
+          },
+          personalInfo: {
+            ...f.profile.personalInfo,
+            department: editFacultyDeptForm.department
+          }
+        } : null
+      } : f));
       fetchData();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Update failed');
