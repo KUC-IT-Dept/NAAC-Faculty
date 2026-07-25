@@ -266,28 +266,96 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-        {fg('TOTAL NUMBER OF INTERNSHIPS / PROJECTS COMPLETED', <div style={summaryBoxStyle}>{summary.totalCompleted}</div>)}
-        {fg('NUMBER OF ONGOING INTERNSHIPS / PROJECTS', <div style={summaryBoxStyle}>{summary.ongoingCount}</div>)}
-      </div>
-
-      <div style={{ marginBottom: 12 }}>
-        {fg(
-          'NAMES OF COMPLETED INTERNSHIPS / PROJECTS',
-          <div style={{ ...summaryBoxStyle, alignItems: 'stretch', padding: '10px 12px' }}>
-            {summary.completedNames.length ? (
-              <ul style={summaryListStyle}>
-                {summary.completedNames.map((name, index) => <li key={`${name}-${index}`}>{name}</li>)}
-              </ul>
-            ) : (
-              <span style={{ color: 'var(--text-muted)' }}>No completed internships / projects added yet...</span>
-            )}
+      {/* ── Summary Stats ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+        {/* Completed */}
+        <div style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)', border: '1px solid #c7d2fe', borderRadius: 14, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           </div>
-        )}
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#3730a3', lineHeight: 1 }}>{summary.totalCompleted}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Completed</div>
+          </div>
+        </div>
+
+        {/* Ongoing */}
+        <div style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', border: '1px solid #fde68a', borderRadius: 14, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#92400e', lineHeight: 1 }}>{summary.ongoingCount}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#b45309', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ongoing</div>
+          </div>
+        </div>
+
+        {/* Students Involved */}
+        <div style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0', borderRadius: 14, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#14532d', lineHeight: 1 }}>{summary.numberStudents}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#15803d', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Students Involved</div>
+          </div>
+        </div>
       </div>
 
-      <div style={{ marginBottom: 18 }}>
-        {fg('NUMBER OF STUDENTS INVOLVED (COMPLETED)', <div style={summaryBoxStyle}>{summary.numberStudents}</div>)}
+      {/* ── Completed Names ── */}
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, overflow: 'hidden', marginBottom: 24, boxShadow: '0 1px 4px rgba(79,70,229,0.06)' }}>
+        <div style={{ background: 'linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%)', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Completed Internships / Projects</span>
+          {summary.completedNames.length > 0 && (
+            <span style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20 }}>
+              {summary.completedNames.length} name{summary.completedNames.length !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+
+        <div style={{ padding: summary.completedNames.length ? '8px 0' : '20px' }}>
+          {summary.completedNames.length ? (
+            summary.completedNames.map((name, idx) => {
+              const avatarColors = [
+                { bg: '#eef2ff', text: '#4338ca', border: '#c7d2fe' },
+                { bg: '#f5f3ff', text: '#6d28d9', border: '#ddd6fe' },
+                { bg: '#fdf4ff', text: '#7e22ce', border: '#e9d5ff' },
+                { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
+              ];
+              const color = avatarColors[idx % avatarColors.length];
+              const initials = name.trim().split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+              return (
+                <div key={`${name}-${idx}`} style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '10px 20px',
+                  borderBottom: idx < summary.completedNames.length - 1 ? '1px solid #f1f5f9' : 'none',
+                  transition: 'background 0.15s',
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', width: 20, textAlign: 'right', flexShrink: 0 }}>{idx + 1}.</div>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: color.bg, border: `1.5px solid ${color.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: color.text }}>{initials || 'IP'}</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{name.trim()}</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>Completed</div>
+                  </div>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#dcfce7', border: '1.5px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="12" height="12" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#94a3b8' }}>
+              <svg width="32" height="32" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              <span style={{ fontSize: 13, fontStyle: 'italic' }}>No completed internships / projects added yet.</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
