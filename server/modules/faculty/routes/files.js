@@ -61,13 +61,59 @@ router.get('/photo/:userId/:filename', (req, res) => {
   return res.status(404).json({ message: 'Photo not found' });
 });
 
+// ── GET /api/faculty/files/secure/:resourceType/* ───────────────────────
+// Secure signed URL generation for Cloudinary files using clean paths
+router.get('/secure/:resourceType/*filePath', authFileAccess, (req, res) => {
+  const resourceType = req.params.resourceType;
+  let publicIdWithExt = req.params.filePath || req.params[0] || '';
+  if (Array.isArray(publicIdWithExt)) {
+    publicIdWithExt = publicIdWithExt.join('/');
+  }
+
+  if (!publicIdWithExt) {
+    return res.status(400).json({ message: 'Invalid secure file path' });
+  }
+
+  let publicId = publicIdWithExt;
+  const lastDotIndex = publicIdWithExt.lastIndexOf('.');
+  if (lastDotIndex !== -1) {
+    publicId = publicIdWithExt.substring(0, lastDotIndex);
+  }
+
+  const userIdStr = req.user._id.toString();
+  if (
+    !publicId.includes(userIdStr) &&
+    !['admin', 'superadmin', 'hod', 'vc'].includes(req.user.role)
+  ) {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+
+  const cloudinary = require('../../student/configs/cloudinary');
+  
+  try {
+    const signedUrl = cloudinary.url(publicId, {
+      resource_type: resourceType,
+      type: 'authenticated',
+      sign_url: true,
+      secure: true,
+      expires_at: Math.floor(Date.now() / 1000) + (15 * 60)
+    });
+
+    res.redirect(signedUrl);
+  } catch (err) {
+    console.error('Error generating signed URL:', err);
+    res.status(500).json({ message: 'Failed to generate secure access URL' });
+  }
+});
+
 // ── GET /api/faculty/files/:userId/* ──────────────────────────────────────
 // Authenticated access to general documents
 router.get('/:userId/*filePath', authFileAccess, (req, res) => {
   const { userId } = req.params;
-  const rawFilePath = Array.isArray(req.params.filePath)
-    ? req.params.filePath.join('/')
-    : req.params.filePath || req.params[0] || '';
+  let rawFilePath = req.params.filePath || req.params[0] || '';
+  if (Array.isArray(rawFilePath)) {
+    rawFilePath = rawFilePath.join('/');
+  }
 
   // Check authorization: user can only access their own files, unless admin/hod/vc
   if (

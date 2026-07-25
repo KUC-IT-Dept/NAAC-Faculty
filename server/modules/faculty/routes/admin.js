@@ -140,6 +140,58 @@ router.delete('/faculty/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
+// PUT & PATCH /api/faculty/admin/faculty/:id/department
+const updateFacultyDepartment = async (req, res) => {
+  try {
+    const { department } = req.body;
+    if (!department || typeof department !== 'string' || !department.trim()) {
+      return res.status(400).json({ message: 'Department is required' });
+    }
+
+    const trimmedDept = department.trim();
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'Faculty user not found' });
+    }
+
+    // Update User department
+    user.department = trimmedDept;
+    await user.save();
+
+    // Update Faculty profile department
+    const faculty = await Faculty.findOneAndUpdate(
+      { userId: user._id },
+      {
+        $set: {
+          'employmentDetails.department': trimmedDept,
+          'personalInfo.department': trimmedDept
+        }
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    res.json({
+      message: 'Faculty department updated successfully',
+      user: {
+        _id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        department: user.department
+      },
+      faculty
+    });
+  } catch (err) {
+    console.error('[PUT /admin/faculty/:id/department]', err);
+    res.status(500).json({ message: 'Server error while updating faculty department' });
+  }
+};
+
+router.put('/faculty/:id/department', updateFacultyDepartment);
+router.patch('/faculty/:id/department', updateFacultyDepartment);
+
+
 // GET /api/admin/stats
 router.get('/stats', async (req, res) => {
   try {

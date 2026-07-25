@@ -47,6 +47,7 @@ const studentUnlockRoutes     = require('./modules/student/routes/unlockRequest.
 const studentFileRoutes       = require('./modules/student/routes/file.routes');
 const studentSearchRoutes     = require('./modules/student/routes/search.route');
 const studentUserRoutes       = require('./modules/student/routes/user.router');
+const studentRequestsAdmin    = require('./routes/studentRequestsAdmin');
 
 // ── Temp file cleanup (every hour) ───────────────────────────────────────────
 const { cleanupTemp } = require('./modules/student/utils/cleanupTemp');
@@ -151,6 +152,9 @@ app.use('/api/student/unlock-request', studentUnlockRoutes);
 app.use('/api/student/file',           studentFileRoutes);      // /compress
 app.use('/api/student/search',         studentSearchRoutes);    // /users, /users/:id
 app.use('/api/student/user',           studentUserRoutes);      // /can-edit
+
+// Admin Student Requests Route (Unlock, Profile Updates, Dropdown Requests, Forgot Password)
+app.use('/api', studentRequestsAdmin);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
