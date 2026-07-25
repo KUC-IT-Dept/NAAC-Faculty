@@ -68,7 +68,7 @@ export interface ForgotPasswordRequest {
 export const studentRequestApi = {
   // Unlock Requests
   getUnlockRequestsPending: async (department: string): Promise<UnlockRequest[]> => {
-    const res = await apiRoot.get<UnlockRequest[]>(`/unlock-request/pending?department=${encodeURIComponent(department)}`);
+    const res = await apiRoot.get<UnlockRequest[]>(`/unlock-request/pending?department=${encodeURIComponent(department)}`, { data: { department } });
     return res.data;
   },
   getUnlockRequestById: async (id: string): Promise<UnlockRequest> => {
@@ -86,7 +86,7 @@ export const studentRequestApi = {
 
   // Profile Update Requests
   getProfileUpdateRequestsPending: async (department: string): Promise<ProfileUpdateRequest[]> => {
-    const res = await apiRoot.get<ProfileUpdateRequest[]>(`/profile-update-request/pending?department=${encodeURIComponent(department)}`);
+    const res = await apiRoot.get<ProfileUpdateRequest[]>(`/profile-update-request/pending?department=${encodeURIComponent(department)}`, { data: { department } });
     return res.data;
   },
   getProfileUpdateRequestById: async (id: string): Promise<{ request: ProfileUpdateRequest; currentProfile: any }> => {
@@ -104,7 +104,7 @@ export const studentRequestApi = {
 
   // Dropdown Requests
   getDropdownRequestsPending: async (department: string): Promise<DropdownRequest[]> => {
-    const res = await apiRoot.get<DropdownRequest[]>(`/dropdown-request/pending?department=${encodeURIComponent(department)}`);
+    const res = await apiRoot.get<DropdownRequest[]>(`/dropdown-request/pending?department=${encodeURIComponent(department)}`, { data: { department } });
     return res.data;
   },
   approveDropdownRequest: async (id: string, approvedValue: string): Promise<any> => {

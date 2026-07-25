@@ -281,7 +281,7 @@ export default function AdminDashboard() {
             ...f.profile.personalInfo,
             department: editFacultyDeptForm.department
           }
-        } : null
+        } : undefined
       } : f));
       fetchData();
     } catch (err: any) {
