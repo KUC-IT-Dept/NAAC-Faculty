@@ -3,6 +3,8 @@ import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { fg, inp, sel } from './sectionUtils';
 import { fundingAgencyOptions, projectStatusOptions, roleInProjectOptions, projectCategoryOptions, fundingTypeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { useConfirmDelete } from '../useConfirmDelete';
+
 
 const EMPTY = { 
   title: '', 
@@ -24,6 +26,7 @@ const btnSave: React.CSSProperties = { display: 'inline-flex', alignItems: 'cent
 const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', color: '#9f1239', padding: '7px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid #fecdd3', cursor: 'pointer' };
 
 export default function ResearchProjects({ data, onChange, onPersist }: { data: any[]; onChange: (d: any[]) => void; onPersist?: (updatedProjects: any[], showToast?: boolean) => Promise<void> | void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   // Reactive dropdown options
   const fundingAgencies = useDropdownOptions(fundingAgencyOptions);
   const statuses = useDropdownOptions(projectStatusOptions);
@@ -230,10 +233,12 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
                           </button>
                           <button 
                             type="button" 
-                            onClick={async () => {
-                              const updated = data.filter((_, j) => j !== originalIndex);
-                              onChange(updated);
-                              await persist(updated, false);
+                            onClick={() => {
+                              confirmDelete(async () => {
+                                const updated = data.filter((_, j) => j !== originalIndex);
+                                onChange(updated);
+                                await persist(updated, false);
+                              });
                             }} 
                             style={{ ...btnDelete, padding: '6px' }} 
                             disabled={pendingNewItem !== null || editingItemIndex !== null}
@@ -251,6 +256,7 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
           </div>
         )}
       </div>
+      <ConfirmDeleteDialog />
     </>
   );
 }

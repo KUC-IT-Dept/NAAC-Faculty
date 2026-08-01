@@ -4,6 +4,8 @@ import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } f
 import { fg, inp, sel, ta, FileInp, DocumentPreviewLink } from './sectionUtils';
 import { awardLevelOptions, awardCategoryOptions, awardingAgencyTypeOptions, honourTypeOptions, recognitionStatusOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { useConfirmDelete } from '../useConfirmDelete';
+
 
 const EMPTY = { name: '', awardingAgency: '', awardCategory: '', honourType: '', recognitionStatus: '', dateOfAward: '', yearReceived: '', level: '', description: '', documentUrl: '' };
 
@@ -106,6 +108,7 @@ function AwardPreviewCard({
 }
 
 export default function Awards({ data, onChange, onPersist }: { data: any[]; onChange: (d: any[]) => void; onPersist?: (updatedAwards: any[], showToast?: boolean) => Promise<void> | void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   // Reactive dropdown options
   const levels = useDropdownOptions(awardLevelOptions);
   const dynamicAwardCategoryOptions = useDropdownOptions(awardCategoryOptions);
@@ -235,7 +238,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
                       <button type="button" onClick={async () => { setEditingItemIndex(null); await persist(data, true); }} style={saveBtnStyle}>
                         <Check size={14} /> Done
                       </button>
-                      <button type="button" onClick={async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); setEditingItemIndex(null); await persist(updated, false); }} style={deleteBtnStyle}>
+                      <button type="button" onClick={() => confirmDelete(async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); setEditingItemIndex(null); await persist(updated, false); })} style={deleteBtnStyle}>
                         <Trash2 size={14} /> Delete
                       </button>
                     </div>
@@ -266,7 +269,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
                 <AwardPreviewCard
                   a={a}
                   onEdit={() => setEditingItemIndex(i)}
-                  onDelete={async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); await persist(updated, false); }}
+                  onDelete={() => confirmDelete(async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); await persist(updated, false); })}
                   disabled={pendingNewItem !== null}
                 />
               )}
@@ -274,6 +277,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
           );
         })}
       </div>
+      <ConfirmDeleteDialog />
     </>
   );
 }

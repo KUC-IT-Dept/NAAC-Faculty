@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { fg, inp, sel, ta, yearSel } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { useConfirmDelete } from '../useConfirmDelete';
 import { researchDegreeOptions, scholarGenderOptions, researchStatusOptions, guidanceTypeOptions, supervisionCategoryOptions } from '../../shared/dropdownOptions';
 
 const saveBtnStyle: React.CSSProperties = {
@@ -33,6 +34,7 @@ const isMphil = (deg: string) => {
 };
 
 export default function ResearchSupervision({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (updated: any, showToast?: boolean) => Promise<void> | void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const degrees = useDropdownOptions(researchDegreeOptions);
   const statuses = useDropdownOptions(researchStatusOptions);
   const genders = useDropdownOptions(scholarGenderOptions);
@@ -324,7 +326,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                     }}>
                       <Edit2 size={12} /> Edit
                     </button>
-                    <button type="button" onClick={() => deleteRow(i)} style={{
+                    <button type="button" onClick={() => confirmDelete(() => deleteRow(i))} style={{
                       marginLeft: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
                       backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3',
                       borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px',
@@ -339,6 +341,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
           })}
         </div>
       </div>
+      <ConfirmDeleteDialog />
     </div>
   );
 }

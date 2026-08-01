@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { Briefcase, Plus, ChevronDown, ChevronUp, Trash2, Check, X, Edit2, ExternalLink } from 'lucide-react';
 import { departmentOptions, affiliatedUniversityOptions, designationPostOptions, institutionTypeWorkOptions, natureOfAppointmentOptions, reasonForLeavingOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { useConfirmSave } from '../useConfirmSave';
+import { useConfirmDelete } from '../useConfirmDelete';
+
+
 import SearchableSelect from '../SearchableSelect';
 
 const EMPTY = {
@@ -73,6 +77,8 @@ const getDurationText = (from: string, to?: string) => {
 };
 
 export default function WorkExperience({ data, onChange }: { data: WorkExperienceEntry[]; onChange: (d: WorkExperienceEntry[]) => void }) {
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const dynamicDepartmentOptions = useDropdownOptions(departmentOptions);
   const dynamicAffiliatedUniversityOptions = useDropdownOptions(affiliatedUniversityOptions);
   const dynamicDesignationPostOptions = useDropdownOptions(designationPostOptions);
@@ -240,7 +246,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
               </button>
               <button
                 type="button"
-                onClick={saveEdit}
+                onClick={() => confirmSave(saveEdit)}
                 style={{
                   padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
                   backgroundColor: '#16a34a', color: 'white', border: 'none',
@@ -361,7 +367,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
                   </button>
                   <button
                     type="button"
-                    onClick={() => removeEntry(i)}
+                    onClick={() => confirmDelete(() => removeEntry(i))}
                     style={{
                       padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
                       backgroundColor: '#fff1f2', color: '#e11d48',
@@ -400,6 +406,8 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
           )}
         </div>
       ))}
+      <ConfirmDialog />
+      <ConfirmDeleteDialog />
     </div>
   );
 }

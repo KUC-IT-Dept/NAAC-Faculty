@@ -8,6 +8,10 @@ import { Users, UserCheck, UserX, BookOpen, Plus, Trash2, ToggleLeft, ToggleRigh
 import OrgHierarchy from '../../components/admin/OrgHierarchy';
 import SearchableSelect from '../../components/SearchableSelect';
 import axios from 'axios';
+import { useConfirmSave } from '../../components/useConfirmSave';
+import { useConfirmDelete } from '../../components/useConfirmDelete';
+
+
 
 const dropdownKeyToFormMap: Record<string, string> = {
   genderOptions: '01 - Personal Information',
@@ -122,6 +126,7 @@ interface FacultyUser {
 interface Stats { total: number; active: number; inactive: number; profilesComplete: number; }
 
 export default function AdminDashboard() {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const [faculty, setFaculty] = useState<FacultyUser[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, inactive: 0, profilesComplete: 0 });
   const [requests, setRequests] = useState<any[]>([]);
@@ -257,160 +262,177 @@ export default function AdminDashboard() {
     } catch { toast.error('Action failed'); }
   };
 
-  const handleUpdateFacultyDept = async (e: React.FormEvent) => {
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
+
+  const handleUpdateFacultyDept = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editFacultyDeptForm.department) {
       toast.error('Please select a department');
       return;
     }
-    setSubmitting(true);
-    try {
-      const res = await api.put(`/admin/faculty/${editFacultyDeptForm.userId}/department`, { department: editFacultyDeptForm.department });
-      toast.success(res.data?.message || 'Faculty department updated successfully');
-      setShowEditFacultyDeptModal(false);
-      setFaculty(prev => prev.map(f => f._id === editFacultyDeptForm.userId ? {
-        ...f,
-        department: editFacultyDeptForm.department,
-        profile: f.profile ? {
-          ...f.profile,
-          employmentDetails: {
-            ...f.profile.employmentDetails,
-            department: editFacultyDeptForm.department
-          },
-          personalInfo: {
-            ...f.profile.personalInfo,
-            department: editFacultyDeptForm.department
-          }
-        } : undefined
-      } : f));
-      fetchData();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Update failed');
-    } finally {
-      setSubmitting(false);
-    }
+    confirmSave(async () => {
+      setSubmitting(true);
+      try {
+        const res = await api.put(`/admin/faculty/${editFacultyDeptForm.userId}/department`, { department: editFacultyDeptForm.department });
+        toast.success(res.data?.message || 'Faculty department updated successfully');
+        setShowEditFacultyDeptModal(false);
+        setFaculty(prev => prev.map(f => f._id === editFacultyDeptForm.userId ? {
+          ...f,
+          department: editFacultyDeptForm.department,
+          profile: f.profile ? {
+            ...f.profile,
+            employmentDetails: {
+              ...f.profile.employmentDetails,
+              department: editFacultyDeptForm.department
+            },
+            personalInfo: {
+              ...f.profile.personalInfo,
+              department: editFacultyDeptForm.department
+            }
+          } : undefined
+        } : f));
+        fetchData();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Update failed');
+      } finally {
+        setSubmitting(false);
+      }
+    });
   };
 
-  const deleteFaculty = async (id: string, username: string) => {
-    if (!confirm(`Delete account for ${username}? This cannot be undone.`)) return;
-    try {
-      await api.delete(`/admin/faculty/${id}`);
-      toast.success('Faculty account deleted');
-      fetchData();
-    } catch { toast.error('Delete failed'); }
+  const deleteFaculty = (id: string, _username: string) => {
+    confirmDelete(async () => {
+      try {
+        await api.delete(`/admin/faculty/${id}`);
+        toast.success('Faculty account deleted');
+        fetchData();
+      } catch { toast.error('Delete failed'); }
+    });
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.department) {
       toast.error('Department is required');
       return;
     }
-    setSubmitting(true);
-    try {
-      await api.post('/admin/faculty', form);
-      toast.success(`Account created for ${form.email}`);
-      setShowModal(false);
-      setForm({ email: '', fullName: '', department: '' });
-      fetchData();
-    } catch (e: any) { toast.error(e.response?.data?.message || 'Creation failed'); }
-    finally { setSubmitting(false); }
+    confirmSave(async () => {
+      setSubmitting(true);
+      try {
+        await api.post('/admin/faculty', form);
+        toast.success(`Account created for ${form.email}`);
+        setShowModal(false);
+        setForm({ email: '', fullName: '', department: '' });
+        fetchData();
+      } catch (e: any) { toast.error(e.response?.data?.message || 'Creation failed'); }
+      finally { setSubmitting(false); }
+    });
   };
 
-  const handleCreateDept = async (e: React.FormEvent) => {
+  const handleCreateDept = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    try {
-      await api.post('/departments', deptForm);
-      toast.success(`Department ${deptForm.name} created successfully!`);
-      setShowDeptModal(false);
-      setDeptForm({ name: '', hodEmail: '' });
-      fetchData();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Creation failed');
-    } finally {
-      setSubmitting(false);
-    }
+    confirmSave(async () => {
+      setSubmitting(true);
+      try {
+        await api.post('/departments', deptForm);
+        toast.success(`Department ${deptForm.name} created successfully!`);
+        setShowDeptModal(false);
+        setDeptForm({ name: '', hodEmail: '' });
+        fetchData();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Creation failed');
+      } finally {
+        setSubmitting(false);
+      }
+    });
   };
 
-  const handleCreateStudent = async (e: React.FormEvent) => {
+  const handleCreateStudent = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    try {
-      const payload = { ...studentForm, role: 'student' };
-      const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
-      await axios.post(`${backendBase}/api/student/auth/register`, payload);
-      toast.success(`Student account created for ${studentForm.email}`);
-      setShowStudentModal(false);
-      setStudentForm({ name: '', email: '', phone: '', password: '', department: '', tutorName: '', tutorEmail: '' });
-      fetchStudents();
-    } catch (e: any) {
-      toast.error(e.response?.data?.message || 'Student creation failed');
-    } finally {
-      setSubmitting(false);
-    }
+    confirmSave(async () => {
+      setSubmitting(true);
+      try {
+        const payload = { ...studentForm, role: 'student' };
+        const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+        await axios.post(`${backendBase}/api/student/auth/register`, payload);
+        toast.success(`Student account created for ${studentForm.email}`);
+        setShowStudentModal(false);
+        setStudentForm({ name: '', email: '', phone: '', password: '', department: '', tutorName: '', tutorEmail: '' });
+        fetchStudents();
+      } catch (e: any) {
+        toast.error(e.response?.data?.message || 'Student creation failed');
+      } finally {
+        setSubmitting(false);
+      }
+    });
   };
 
-  const handleUpdateDept = async (e: React.FormEvent) => {
+  const handleUpdateDept = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    try {
-      await api.put(`/departments/${editDeptForm.id}`, { name: editDeptForm.name });
-      toast.success('Department updated successfully');
-      setShowEditDeptModal(false);
-      fetchData();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Update failed');
-    } finally {
-      setSubmitting(false);
-    }
+    confirmSave(async () => {
+      setSubmitting(true);
+      try {
+        await api.put(`/departments/${editDeptForm.id}`, { name: editDeptForm.name });
+        toast.success('Department updated successfully');
+        setShowEditDeptModal(false);
+        fetchData();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Update failed');
+      } finally {
+        setSubmitting(false);
+      }
+    });
   };
 
-  const handleDeleteDept = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete the department "${name}"? This action cannot be undone.`)) return;
-    try {
-      await api.delete(`/departments/${id}`);
-      toast.success('Department deleted successfully');
-      fetchData();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Delete failed');
-    }
+  const handleDeleteDept = (id: string, _name: string) => {
+    confirmDelete(async () => {
+      try {
+        await api.delete(`/departments/${id}`);
+        toast.success('Department deleted successfully');
+        fetchData();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Delete failed');
+      }
+    });
   };
 
-  const handleUpdateStudent = async (e: React.FormEvent) => {
+  const handleUpdateStudent = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    try {
-      const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
-      await axios.put(`${backendBase}/api/student/${editStudentForm.id}`, {
-        department: editStudentForm.department,
-        tutorName: editStudentForm.tutorName,
-        tutorEmail: editStudentForm.tutorEmail
-      }, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('iqac_token')}` }
-      });
-      toast.success('Student updated successfully');
-      setShowEditStudentModal(false);
-      fetchStudents();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Update failed');
-    } finally {
-      setSubmitting(false);
-    }
+    confirmSave(async () => {
+      setSubmitting(true);
+      try {
+        const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+        await axios.put(`${backendBase}/api/student/${editStudentForm.id}`, {
+          department: editStudentForm.department,
+          tutorName: editStudentForm.tutorName,
+          tutorEmail: editStudentForm.tutorEmail
+        }, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('iqac_token')}` }
+        });
+        toast.success('Student updated successfully');
+        setShowEditStudentModal(false);
+        fetchStudents();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Update failed');
+      } finally {
+        setSubmitting(false);
+      }
+    });
   };
 
-  const handleDeleteStudent = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete the student "${name}"? This action cannot be undone.`)) return;
-    try {
-      const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
-      await axios.delete(`${backendBase}/api/student/${id}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('iqac_token')}` }
-      });
-      toast.success('Student deleted successfully');
-      fetchStudents();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Delete failed');
-    }
+  const handleDeleteStudent = (id: string, _name: string) => {
+    confirmDelete(async () => {
+      try {
+        const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/faculty\/?$/, '').replace(/\/$/, '');
+        await axios.delete(`${backendBase}/api/student/${id}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('iqac_token')}` }
+        });
+        toast.success('Student deleted successfully');
+        fetchStudents();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Delete failed');
+      }
+    });
   };
 
   const handleRequestAction = async (e?: React.FormEvent, overrideId?: string, overrideType?: 'undo') => {
@@ -1356,6 +1378,9 @@ export default function AdminDashboard() {
     </div>
   )
 }
-    </AppLayout >
+      <ConfirmDialog />
+      <ConfirmDeleteDialog />
+    </AppLayout>
   );
 }
+

@@ -3,6 +3,10 @@ import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, Chevro
 import { fg, inp, sel, FileInp, DropdownWithCustom, DocumentPreviewLink } from './sectionUtils';
 import { publicationLevelOptions, peerReviewedStatusOptions, indexedInOptions, publicationTypeOptions, authorRoleOptions, journalCategoryOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { useConfirmSave } from '../useConfirmSave';
+import { useConfirmDelete } from '../useConfirmDelete';
+
+
 
 /* --- Types --- */
 type Publication = {
@@ -320,7 +324,8 @@ function PreviewCard({
   data,
   onChange,
   toggleEdit,
-  disabled
+  disabled,
+  onDelete
 }: {
   p: Publication;
   i: number;
@@ -328,6 +333,7 @@ function PreviewCard({
   onChange: (d: Publication[]) => void;
   toggleEdit: (i: number, state: boolean) => void;
   disabled?: boolean;
+  onDelete?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -362,7 +368,7 @@ function PreviewCard({
           <button type="button" style={btnStyles.edit} onClick={(e) => { e.stopPropagation(); toggleEdit(i, true); }} disabled={disabled}>
             <Edit2 size={14} /> Edit
           </button>
-          <button type="button" style={btnStyles.delete} onClick={(e) => { e.stopPropagation(); onChange(data.filter((_, idx) => idx !== i)); }} disabled={disabled}>
+          <button type="button" style={btnStyles.delete} onClick={(e) => { e.stopPropagation(); if (onDelete) onDelete(); else onChange(data.filter((_, idx) => idx !== i)); }} disabled={disabled}>
             <Trash2 size={14} /> Delete
           </button>
         </div>
@@ -423,6 +429,8 @@ export default function Publications({
   data: Publication[];
   onChange: (d: Publication[]) => void;
 }) {
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   // Reactive dropdown options
   const levels = useDropdownOptions(publicationLevelOptions);
   const yesNo = useDropdownOptions(peerReviewedStatusOptions);
@@ -508,7 +516,7 @@ export default function Publications({
                   type="button"
                   style={isComplete(pendingNewItem) ? btnStyles.save : btnStyles.saveDisabled}
                   disabled={!isComplete(pendingNewItem)}
-                  onClick={handleSavePending}
+                  onClick={() => confirmSave(handleSavePending)}
                 >
                   <Check size={14} /> Save
                 </button>
@@ -549,16 +557,18 @@ export default function Publications({
                         type="button"
                         style={isComplete(p) ? btnStyles.save : btnStyles.saveDisabled}
                         disabled={!isComplete(p)}
-                        onClick={() => toggleEdit(i, false)}
+                        onClick={() => confirmSave(() => toggleEdit(i, false))}
                       >
                         <Check size={14} /> Done
                       </button>
                       <button
                         type="button" style={btnStyles.delete}
                         onClick={() => {
-                          const arr = data.filter((_, idx) => idx !== i);
-                          setEditingItemIndex(null);
-                          onChange(arr);
+                          confirmDelete(() => {
+                            const arr = data.filter((_, idx) => idx !== i);
+                            setEditingItemIndex(null);
+                            onChange(arr);
+                          });
                         }}
                       >
                         <Trash2 size={14} /> Delete
@@ -585,12 +595,20 @@ export default function Publications({
                   onChange={onChange}
                   toggleEdit={toggleEdit}
                   disabled={pendingNewItem !== null || editingItemIndex !== null}
+                  onDelete={() => {
+                    confirmDelete(() => {
+                      const arr = data.filter((_, idx) => idx !== i);
+                      onChange(arr);
+                    });
+                  }}
                 />
               )}
             </div>
           );
         })}
       </div>
+      <ConfirmDialog />
+      <ConfirmDeleteDialog />
     </>
   );
 }

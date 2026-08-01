@@ -3,6 +3,10 @@ import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check, E
 import { useState } from 'react';
 import { fg, inp, FileInp, sel, DocumentPreviewLink } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { useConfirmSave } from '../useConfirmSave';
+import { useConfirmDelete } from '../useConfirmDelete';
+
+
 import { degreeLevelOptions, divisionOptions, studyModeOptions, countryOptions, stateOptions, degreeNameOptions, specializationOptions, gradeTypeOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import SearchableSelect from '../SearchableSelect';
 
@@ -223,6 +227,8 @@ const parseCountryState = (countryAndState: string) => {
 };
 
 export default function Qualifications({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const dynamicDegreeLevelOptions = useDropdownOptions(degreeLevelOptions);
   const dynamicDivisionOptions = useDropdownOptions(divisionOptions);
   const dynamicStudyModeOptions = useDropdownOptions(studyModeOptions);
@@ -650,7 +656,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 </button>
                 <button
                   type="button"
-                  onClick={saveEdit}
+                  onClick={() => confirmSave(saveEdit)}
                   style={saveBtnStyle}
                 >
                   <Check size={14} /> Save
@@ -682,7 +688,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                     </button>
                     <button
                       type="button"
-                      onClick={saveEdit}
+                      onClick={() => confirmSave(saveEdit)}
                       style={saveBtnStyle}
                     >
                       <Check size={14} /> Save
@@ -761,7 +767,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                     </button>
                     <button
                       type="button"
-                      onClick={() => removeQualification(i)}
+                      onClick={() => confirmDelete(() => removeQualification(i))}
                       style={deleteBtnStyle}
                     >
                       <Trash2 size={12} /> Delete
@@ -780,6 +786,8 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           );
         })
       )}
+      <ConfirmDialog />
+      <ConfirmDeleteDialog />
     </div>
   );
 }

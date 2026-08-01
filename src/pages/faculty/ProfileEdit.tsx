@@ -5,6 +5,8 @@ import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { SkipForward } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useConfirmSave } from '../../components/useConfirmSave';
+
 
 import PersonalInfo from '../../components/sections/S01_PersonalInfo';
 import Qualifications from '../../components/sections/S02_Qualifications';
@@ -172,6 +174,7 @@ export default function ProfileEdit() {
     );
   }
 
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
   const tab = section?.key;
 
   const save = async (payload?: any, showToast = true) => {
@@ -187,6 +190,15 @@ export default function ProfileEdit() {
     finally {
       if (showToast) setSaving(false);
     }
+  };
+
+  const saveWithConfirm = (payload?: any, showToast = true) => {
+    return new Promise<void>((resolve) => {
+      confirmSave(async () => {
+        await save(payload, showToast);
+        resolve();
+      });
+    });
   };
 
   // Auto-save to API on every section change so data survives refresh
@@ -276,30 +288,30 @@ export default function ProfileEdit() {
               </div>
             </div>
             <div className="card-body" style={{ paddingTop: 20 }}>
-              {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} onPersist={save} saving={saving} />}
+              {tab === 'personalInfo' && <PersonalInfo data={profile.personalInfo} onChange={v => set('personalInfo', v)} onPersist={saveWithConfirm} saving={saving} />}
               {tab === 'qualifications' && <Qualifications data={profile.qualifications} onChange={v => set('qualifications', v)} />}
               {tab === 'eligibilityTests' && <EligibilityTests data={profile.eligibilityTests} onChange={v => set('eligibilityTests', v)} />}
-              {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} personalInfo={profile.personalInfo} onChange={v => set('employmentDetails', v)} onPersist={save} />}
+              {tab === 'employmentDetails' && <EmploymentDetails data={profile.employmentDetails} personalInfo={profile.personalInfo} onChange={v => set('employmentDetails', v)} onPersist={saveWithConfirm} />}
               {tab === 'workExperience' && <WorkExperience data={profile.workExperience} onChange={v => set('workExperience', v)} />}
               {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
-              {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} onPersist={save} />}
-              {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} onPersist={save} />}
-              {tab === 'researchGuidance' && <ResearchSupervision data={profile.researchGuidance} onChange={v => set('researchGuidance', v)} onPersist={save} />}
+              {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} onPersist={saveWithConfirm} />}
+              {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} onPersist={saveWithConfirm} />}
+              {tab === 'researchGuidance' && <ResearchSupervision data={profile.researchGuidance} onChange={v => set('researchGuidance', v)} onPersist={saveWithConfirm} />}
               {tab === 'academicResponsibilities' && <AcademicResp data={profile.academicResponsibilities} onChange={v => set('academicResponsibilities', v)} />}
               {tab === 'internshipAndProjects' && <Internship data={profile.internshipAndProjects} onChange={v => set('internshipAndProjects', v)} />}
               {tab === 'memberships' && <Memberships data={profile.memberships} onChange={v => set('memberships', v)} />}
               {tab === 'fdpWorkshops' && <FdpWorkshops data={profile.fdpWorkshops} onChange={v => set('fdpWorkshops', v)} />}
               {tab === 'onlineCourses' && <OnlineCourses data={profile.onlineCourses} onChange={v => set('onlineCourses', v)} />}
               {tab === 'internationalExperience' && <InternationalExp data={profile.internationalExperience} onChange={v => set('internationalExperience', v)} />}
-              {tab === 'adminNonAcademicResponsibilities' && <AdminNonAcademicResp data={profile.adminNonAcademicResponsibilities} onChange={v => set('adminNonAcademicResponsibilities', v)} onPersist={save} />}
+              {tab === 'adminNonAcademicResponsibilities' && <AdminNonAcademicResp data={profile.adminNonAcademicResponsibilities} onChange={v => set('adminNonAcademicResponsibilities', v)} onPersist={saveWithConfirm} />}
               {tab === 'academicAdministration' && <AcademicAdmin data={profile.academicAdministration} onChange={v => set('academicAdministration', v)} />}
               {tab === 'qualityAssurance' && <QualityAssurance data={profile.qualityAssurance} onChange={v => set('qualityAssurance', v)} />}
               {tab === 'researchAndInnovation' && <ResearchInnovation data={profile.researchAndInnovation} onChange={v => set('researchAndInnovation', v)} />}
               {tab === 'examinationAndEvaluation' && <ExaminationAndEvaluation data={profile.examinationAndEvaluation} onChange={v => set('examinationAndEvaluation', v)} />}
               {tab === 'administrativeSupport' && <AdministrativeSupport data={profile.administrativeSupport} onChange={v => set('administrativeSupport', v)} />}
-              {tab === 'departmentalCharges' && <DepartmentalCharges data={profile.departmentalCharges} onChange={v => set('departmentalCharges', v)} onPersist={save} />}
-              {tab === 'specialAssignments' && <SpecialAssignments data={profile.specialAssignments} onChange={v => set('specialAssignments', v)} onPersist={save} />}
-              {tab === 'extraInstitutionalActivities' && <ExtraInstitutionalActivities data={profile.extraInstitutionalActivities} onChange={v => set('extraInstitutionalActivities', v)} onPersist={save} />}
+              {tab === 'departmentalCharges' && <DepartmentalCharges data={profile.departmentalCharges} onChange={v => set('departmentalCharges', v)} onPersist={saveWithConfirm} />}
+              {tab === 'specialAssignments' && <SpecialAssignments data={profile.specialAssignments} onChange={v => set('specialAssignments', v)} onPersist={saveWithConfirm} />}
+              {tab === 'extraInstitutionalActivities' && <ExtraInstitutionalActivities data={profile.extraInstitutionalActivities} onChange={v => set('extraInstitutionalActivities', v)} onPersist={saveWithConfirm} />}
               {tab === 'documents' && <Documents data={profile.documents} onChange={v => set('documents', v)} />}
 
 
@@ -326,6 +338,7 @@ export default function ProfileEdit() {
           </div>
         </div>
       </div>
+      <ConfirmDialog />
     </AppLayout>
   );
 }

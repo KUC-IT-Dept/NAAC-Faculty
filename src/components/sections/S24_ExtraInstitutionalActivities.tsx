@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-re
 import { fg, inp, dateInp, sel, ta } from './sectionUtils';
 import { extraInstitutionalOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { useConfirmDelete } from '../useConfirmDelete';
 import SearchableSelect from '../SearchableSelect';
 
 const EMPTY_RESPONSIBILITY: Record<string, string> = {
@@ -280,6 +281,7 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
 }
 
 export default function ExtraInstitutionalActivities({ data, onChange, onPersist }: { data: any; onChange: (d: any) => void; onPersist?: (d: any, showToast?: boolean) => Promise<void> | void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const responsibilities = Array.isArray(data) ? data : (data?.responsibilities || []);
   const update = (val: any) => onChange(val);
 
@@ -400,7 +402,7 @@ export default function ExtraInstitutionalActivities({ data, onChange, onPersist
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button type="button" onClick={() => setEditingIndex(null)} style={btnCancel}><X size={14} /> Cancel</button>
                         <button type="button" onClick={async () => { setEditingIndex(null); if (onPersist) await onPersist(responsibilities, true); }} style={btnSave}><Check size={14} /> Save</button>
-                        <button type="button" onClick={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); setEditingIndex(null); if (onPersist) await onPersist(updated, false); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
+                        <button type="button" onClick={() => confirmDelete(async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); setEditingIndex(null); if (onPersist) await onPersist(updated, false); })} style={btnDelete}><Trash2 size={14} /> Delete</button>
                       </div>
                     </div>
                     {renderForm(r, false, i)}
@@ -409,7 +411,7 @@ export default function ExtraInstitutionalActivities({ data, onChange, onPersist
                   <RespPreviewCard
                     r={r}
                     onEdit={() => setEditingIndex(i)}
-                    onDelete={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); if (onPersist) await onPersist(updated, false); }}
+                    onDelete={() => confirmDelete(async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); if (onPersist) await onPersist(updated, false); })}
                     disabled={pending !== null}
                   />
                 )}
@@ -418,6 +420,7 @@ export default function ExtraInstitutionalActivities({ data, onChange, onPersist
           })}
         </div>
       </div>
+      <ConfirmDeleteDialog />
     </>
   );
 }

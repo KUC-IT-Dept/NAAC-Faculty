@@ -1,6 +1,8 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { useDropdownOptions } from '../shared/useDropdownOptions';
 import { patentStatusOptions, patentTypeOptions } from '../shared/dropdownOptions';
+import { useConfirmDelete } from './useConfirmDelete';
+
 
 const fg = (label: string, children: React.ReactNode) => (
   <div className="form-group"><label className="form-label">{label}</label>{children}</div>
@@ -18,12 +20,13 @@ const sel = (val: string, onChange: (v: string) => void, opts: string[]) => (
 // ── Section 6: Publications ────────────────────────────────────
 const PB = { type: 'journal', title: '', authors: '', authorRole: '', journal: '', year: '', volume: '', issue: '', issn: '', isbn: '', pages: '', impactFactor: '', indexedIn: '', peerReviewed: '', doi: '', level: '', presentationType: '', venueDates: '' };
 export function PublicationsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
   return (
     <div>
       {data.map((p, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
+          <button type="button" className="list-item-remove" onClick={() => confirmDelete(() => onChange(data.filter((_, j) => j !== i)))}><Trash2 size={14} /></button>
           <div className="form-row form-row-2">
             {fg('Publication Type', sel(p.type, v => u(i, 'type', v), ['journal', 'conference', 'book', 'bookChapter']))}
             {fg('Level', sel(p.level, v => u(i, 'level', v), ['International', 'National']))}
@@ -58,6 +61,7 @@ export function PublicationsForm({ data, onChange }: { data: any[]; onChange: (d
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={() => onChange([...data, { ...PB }])}><Plus size={15} />Add Publication</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -65,12 +69,13 @@ export function PublicationsForm({ data, onChange }: { data: any[]; onChange: (d
 // ── Section 7: Awards ──────────────────────────────────────────
 const AW = { name: '', awardingAgency: '', dateOfAward: '', level: '' };
 export function AwardsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
   return (
     <div>
       {data.map((a, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
+          <button type="button" className="list-item-remove" onClick={() => confirmDelete(() => onChange(data.filter((_, j) => j !== i)))}><Trash2 size={14} /></button>
           <div className="form-row form-row-2">
             {fg('Award / Honour Name', inp(a.name, v => u(i, 'name', v)))}
             {fg('Awarding Agency / Body', inp(a.awardingAgency, v => u(i, 'awardingAgency', v)))}
@@ -82,6 +87,7 @@ export function AwardsForm({ data, onChange }: { data: any[]; onChange: (d: any[
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={() => onChange([...data, { ...AW }])}><Plus size={15} />Add Award</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -89,12 +95,13 @@ export function AwardsForm({ data, onChange }: { data: any[]; onChange: (d: any[
 // ── Section 8: Research Projects ──────────────────────────────
 const PR = { title: '', fundingAgency: '', amountSanctioned: '', duration: '', status: '', role: '' };
 export function ProjectsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
   return (
     <div>
       {data.map((p, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
+          <button type="button" className="list-item-remove" onClick={() => confirmDelete(() => onChange(data.filter((_, j) => j !== i)))}><Trash2 size={14} /></button>
           {fg('Project Title', inp(p.title, v => u(i, 'title', v)))}
           <div className="form-row form-row-2">
             {fg('Funding Agency', inp(p.fundingAgency, v => u(i, 'fundingAgency', v), 'DST-SERB / ICMR / AICTE'))}
@@ -108,6 +115,7 @@ export function ProjectsForm({ data, onChange }: { data: any[]; onChange: (d: an
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={() => onChange([...data, { ...PR }])}><Plus size={15} />Add Project</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -115,6 +123,7 @@ export function ProjectsForm({ data, onChange }: { data: any[]; onChange: (d: an
 // ── Section 9: Patents ─────────────────────────────────────────
 const PT = { title: '', patentNumber: '', dateOfFiling: '', status: '', patentType: '' };
 export function PatentsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const statuses = useDropdownOptions(patentStatusOptions);
   const types = useDropdownOptions(patentTypeOptions);
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
@@ -122,7 +131,7 @@ export function PatentsForm({ data, onChange }: { data: any[]; onChange: (d: any
     <div>
       {data.map((p, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
+          <button type="button" className="list-item-remove" onClick={() => confirmDelete(() => onChange(data.filter((_, j) => j !== i)))}><Trash2 size={14} /></button>
           {fg('Patent Title', inp(p.title, v => u(i, 'title', v)))}
           <div className="form-row form-row-2">
             {fg('Patent Type', sel(p.patentType, v => u(i, 'patentType', v), types))}
@@ -135,6 +144,7 @@ export function PatentsForm({ data, onChange }: { data: any[]; onChange: (d: any
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={() => onChange([...data, { ...PT }])}><Plus size={15} />Add Patent</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -158,12 +168,13 @@ export function ResearchGuidanceForm({ data, onChange }: { data: any; onChange: 
 // ── Section 11: Admin Responsibilities ────────────────────────
 const AR = { committeeName: '', role: '', from: '', to: '' };
 export function AdminRespForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
   return (
     <div>
       {data.map((r, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
+          <button type="button" className="list-item-remove" onClick={() => confirmDelete(() => onChange(data.filter((_, j) => j !== i)))}><Trash2 size={14} /></button>
           <div className="form-row form-row-2">
             {fg('Committee / Role Name', inp(r.committeeName, v => u(i, 'committeeName', v), 'IQAC / BOS / Warden'))}
             {fg('Role / Designation', sel(r.role, v => u(i, 'role', v), ['Member', 'Coordinator', 'Chairperson', 'Convenor', 'Secretary']))}
@@ -175,6 +186,7 @@ export function AdminRespForm({ data, onChange }: { data: any[]; onChange: (d: a
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={() => onChange([...data, { ...AR }])}><Plus size={15} />Add Responsibility</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -182,12 +194,13 @@ export function AdminRespForm({ data, onChange }: { data: any[]; onChange: (d: a
 // ── Section 12: FDP / Workshops ───────────────────────────────
 const FD = { programTitle: '', type: '', duration: '', organizingInstitution: '', role: '' };
 export function FdpWorkshopsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
   return (
     <div>
       {data.map((f, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
+          <button type="button" className="list-item-remove" onClick={() => confirmDelete(() => onChange(data.filter((_, j) => j !== i)))}><Trash2 size={14} /></button>
           {fg('Programme Title', inp(f.programTitle, v => u(i, 'programTitle', v)))}
           <div className="form-row form-row-2">
             {fg('Type', sel(f.type, v => u(i, 'type', v), ['FDP', 'Workshop', 'Seminar', 'Conference', 'STTP', 'Webinar', 'Other']))}
@@ -200,6 +213,7 @@ export function FdpWorkshopsForm({ data, onChange }: { data: any[]; onChange: (d
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={() => onChange([...data, { ...FD }])}><Plus size={15} />Add FDP / Workshop</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -207,12 +221,13 @@ export function FdpWorkshopsForm({ data, onChange }: { data: any[]; onChange: (d
 // ── Section 13: Professional Memberships ──────────────────────
 const MB = { professionalBody: '', membershipType: '', membershipId: '' };
 export function MembershipsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
   return (
     <div>
       {data.map((m, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
+          <button type="button" className="list-item-remove" onClick={() => confirmDelete(() => onChange(data.filter((_, j) => j !== i)))}><Trash2 size={14} /></button>
           <div className="form-row form-row-3">
             {fg('Professional Body / Society', inp(m.professionalBody, v => u(i, 'professionalBody', v), 'IEEE / CSI / ISTE'))}
             {fg('Membership Type', sel(m.membershipType, v => u(i, 'membershipType', v), ['Life Member', 'Annual Member', 'Fellow', 'Senior Member']))}
@@ -221,6 +236,7 @@ export function MembershipsForm({ data, onChange }: { data: any[]; onChange: (d:
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={() => onChange([...data, { ...MB }])}><Plus size={15} />Add Membership</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -228,12 +244,13 @@ export function MembershipsForm({ data, onChange }: { data: any[]; onChange: (d:
 // ── Section 14: International Experience ──────────────────────
 const IE = { country: '', purpose: '', institution: '', duration: '', fundingSource: '' };
 export function InternationalExpForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
   return (
     <div>
       {data.map((e, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={() => onChange(data.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
+          <button type="button" className="list-item-remove" onClick={() => confirmDelete(() => onChange(data.filter((_, j) => j !== i)))}><Trash2 size={14} /></button>
           <div className="form-row form-row-2">
             {fg('Country', inp(e.country, v => u(i, 'country', v)))}
             {fg('Purpose', sel(e.purpose, v => u(i, 'purpose', v), ['Research', 'Teaching', 'Conference', 'Collaborative Project', 'Post-Doc', 'Other']))}
@@ -246,6 +263,7 @@ export function InternationalExpForm({ data, onChange }: { data: any[]; onChange
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={() => onChange([...data, { ...IE }])}><Plus size={15} />Add International Experience</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
