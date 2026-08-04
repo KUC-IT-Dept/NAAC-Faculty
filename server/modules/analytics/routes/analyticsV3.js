@@ -240,8 +240,8 @@ router.get(
           // resolve to null every time, which is why funding always showed ₹0.
           const [pubsResult, projsResult, patsResult, fundResult] = await Promise.all([
             calculateMetric('3.4.4.journal', dFilter, { viewMode: req.query.viewMode }),
-            calculateMetric('3.1.2.projects', dFilter, { viewMode: req.query.viewMode }),
-            calculateMetric('3.4.3.patents', dFilter, { viewMode: req.query.viewMode }),
+            calculateMetric('3.2.2', dFilter, { viewMode: req.query.viewMode }),
+            calculateMetric('3.4.5', dFilter, { viewMode: req.query.viewMode }),
             calculateMetric('3.2.1', dFilter, { viewMode: req.query.viewMode }),
           ]);
 

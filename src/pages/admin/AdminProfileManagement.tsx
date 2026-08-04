@@ -3,6 +3,10 @@ import { Outlet, useParams, Navigate, useOutletContext } from 'react-router-dom'
 import AppLayout from '../../components/AppLayout';
 import { Plus, Edit2, Trash2, ChevronDown } from 'lucide-react';
 import api from '../../lib/api';
+import { useConfirmSave } from '../../components/useConfirmSave';
+import { useConfirmDelete } from '../../components/useConfirmDelete';
+
+
 import {
   genderOptions, bloodGroupOptions, nationalityOptions, religionOptions, categoryOptions, subCategoryOptions,
   maritalStatusOptions, disabilityStatusOptions, disabilityTypeOptions, stateOptions, countryOptions,
@@ -247,6 +251,8 @@ const FIELD_STORAGE_KEYS: Record<string, string> = {
 };
 
 function DropdownConfigList({ config, sectionId }: { config: any; sectionId: string }) {
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const getOptionsRef = () => (config.optionsKey && optionArrays[config.optionsKey as keyof typeof optionArrays]) || config.options || [];
 
   const [options, setOptions] = useState<string[]>([...getOptionsRef()]);
@@ -265,35 +271,35 @@ function DropdownConfigList({ config, sectionId }: { config: any; sectionId: str
   }, [config.optionsKey, config.options]);
 
   useEffect(() => {
-    const handleConfigUpdate = () => {
-      const current = [...getOptionsRef()];
-      setOptions(current);
-      setSelected(current[0] || 'Select an option');
-    };
-    window.addEventListener('dropdownOptionsUpdated', handleConfigUpdate);
-    return () => window.removeEventListener('dropdownOptionsUpdated', handleConfigUpdate);
-  }, [config.options]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
-        setEditingIndex(null);
-        setShowNewInput(false);
       }
-    }
+    };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const persistOptions = (updated: string[]) => {
-    const optionsRef = getOptionsRef();
-    if (optionsRef) optionsRef.splice(0, optionsRef.length, ...updated);
-    setOptions(updated);
-    const storageKey = FIELD_STORAGE_KEYS[`${sectionId}::${config.name}`] || FIELD_STORAGE_KEYS[config.name] || config.optionsKey;
-    if (storageKey) {
-      persistDropdownOptions(storageKey, updated);
-      saveDropdownOptionsToServer(storageKey, updated);
+  const persistOptions = async (newOptions: string[]) => {
+    setOptions(newOptions);
+
+    if (config.optionsKey) {
+      const arr = optionArrays[config.optionsKey as keyof typeof optionArrays];
+      if (arr) {
+        arr.length = 0;
+        arr.push(...newOptions);
+      }
+    }
+
+    try {
+      await api.post('/admin/options', {
+        sectionId,
+        label: config.label,
+        optionsKey: config.optionsKey || '',
+        options: newOptions
+      });
+    } catch {
+      // Background sync, suppress error toast
     }
   };
 
@@ -304,23 +310,26 @@ function DropdownConfigList({ config, sectionId }: { config: any; sectionId: str
 
   const handleAddOption = () => {
     const trimmed = newOption.trim();
-    if (!trimmed) return;
-    if (!options.includes(trimmed)) {
+    if (!trimmed || options.includes(trimmed)) return;
+
+    confirmSave(() => {
       const updated = [...options, trimmed];
       persistOptions(updated);
-    }
-    setSelected(trimmed);
-    setNewOption('');
-    setShowNewInput(false);
-    setIsOpen(false);
+      setSelected(trimmed);
+      setNewOption('');
+      setShowNewInput(false);
+      setIsOpen(false);
+    });
   };
 
   const handleDeleteOption = (idx: number) => {
-    const updated = options.filter((_, i) => i !== idx);
-    persistOptions(updated);
-    if (selected === options[idx]) {
-      setSelected(updated[0] || 'Select an option');
-    }
+    confirmDelete(() => {
+      const updated = options.filter((_, i) => i !== idx);
+      persistOptions(updated);
+      if (selected === options[idx]) {
+        setSelected(updated[0] || 'Select an option');
+      }
+    });
   };
 
   const handleEditOption = (idx: number) => {
@@ -332,13 +341,15 @@ function DropdownConfigList({ config, sectionId }: { config: any; sectionId: str
     if (editingIndex === null) return;
     const trimmed = editingValue.trim();
     if (!trimmed) return;
-    const updated = options.map((opt, idx) => idx === editingIndex ? trimmed : opt);
-    persistOptions(updated);
-    if (selected === options[editingIndex]) {
-      setSelected(trimmed);
-    }
-    setEditingIndex(null);
-    setEditingValue('');
+    confirmSave(() => {
+      const updated = options.map((opt, idx) => idx === editingIndex ? trimmed : opt);
+      persistOptions(updated);
+      if (selected === options[editingIndex]) {
+        setSelected(trimmed);
+      }
+      setEditingIndex(null);
+      setEditingValue('');
+    });
   };
 
   return (
@@ -449,6 +460,8 @@ function DropdownConfigList({ config, sectionId }: { config: any; sectionId: str
           </div>
         )}
       </div>
+      <ConfirmDialog />
+      <ConfirmDeleteDialog />
     </div>
   );
 }

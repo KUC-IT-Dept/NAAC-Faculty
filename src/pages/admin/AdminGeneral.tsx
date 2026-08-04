@@ -3,6 +3,7 @@ import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { Save, Search, Settings } from 'lucide-react';
+import { useConfirmSave } from '../../components/useConfirmSave';
 
 export default function AdminGeneral() {
   const [institutions, setInstitutions] = useState<string[]>([]);
@@ -10,6 +11,7 @@ export default function AdminGeneral() {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [newInstitution, setNewInstitution] = useState('');
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
 
   const fetchDropdowns = async () => {
     try {
@@ -49,8 +51,10 @@ export default function AdminGeneral() {
       return;
     }
     const updated = [...institutions, trimmed].sort();
-    handleSave(updated);
-    setNewInstitution('');
+    confirmSave(async () => {
+      await handleSave(updated);
+      setNewInstitution('');
+    });
   };
 
   const handleRemove = (inst: string) => {
@@ -141,6 +145,7 @@ export default function AdminGeneral() {
           </div>
         </div>
       </div>
+      <ConfirmDialog />
     </AppLayout>
   );
 }

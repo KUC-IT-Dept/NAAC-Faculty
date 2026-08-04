@@ -2,6 +2,7 @@
 
 const Faculty = require('../../faculty/models/Faculty');
 const { buildFacultyFilter, mergeFilters } = require('./filterService');
+const { publicationTypeMatches } = require('../utils/publicationType');
 const {
   facultyProfileReport,
   departmentSummaryReport,
@@ -58,7 +59,7 @@ async function listReportGenerator(scope, query, listName, filterFn, mapFn, titl
 }
 
 async function booksReport(scope, query) {
-  return listReportGenerator(scope, query, 'publications', pub => pub.type === 'Books Authored / Edited', pub => ({
+  return listReportGenerator(scope, query, 'publications', pub => publicationTypeMatches(pub, 'Books Authored / Edited'), pub => ({
     'Title': pub.title,
     'Publisher': pub.journal,
     'Year': pub.year,

@@ -25,6 +25,7 @@ const {
   extractExperienceFilter,
   isInExperienceRange,
 } = require('./filterService');
+const { normalizePublicationType } = require('../utils/publicationType');
 
 // ── Headline KPI metric IDs shown in the department faculty list ──────────────
 // These are the most universally meaningful per-faculty headline metrics.
@@ -76,7 +77,14 @@ function computeForFaculty(faculty, metric) {
       case 'conditionalCount': {
         const arr = getNestedValue(faculty, metric.fieldPath);
         if (!Array.isArray(arr)) return 0;
-        return arr.filter(item => item[metric.conditionField] === metric.conditionValue).length;
+        const isPublicationType =
+          metric.fieldPath === 'publications' && metric.conditionField === 'type';
+        return arr.filter(item => {
+          const actual = isPublicationType
+            ? normalizePublicationType(item[metric.conditionField])
+            : item[metric.conditionField];
+          return actual === metric.conditionValue;
+        }).length;
       }
       case 'sum': {
         const arr = getNestedValue(faculty, metric.fieldPath);
@@ -177,8 +185,9 @@ async function getDepartmentFacultyList(deptName, scope, query = {}) {
 
   for (const faculty of filteredFacultyRecords) {
     for (const publication of faculty.publications || []) {
-      if (publication.type && publicationTypeBreakdown[publication.type] !== undefined) {
-        publicationTypeBreakdown[publication.type] += 1;
+      const normalizedType = normalizePublicationType(publication.type);
+      if (normalizedType && publicationTypeBreakdown[normalizedType] !== undefined) {
+        publicationTypeBreakdown[normalizedType] += 1;
       }
     }
   }

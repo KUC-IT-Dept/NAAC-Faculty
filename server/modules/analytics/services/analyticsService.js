@@ -2,6 +2,7 @@ const Metric = require("../models/Metric");
 const Faculty = require("../../faculty/models/Faculty");
 const StudentProfile =
 require("../../student/models/StudentProfile");
+const { normalizePublicationType } = require("../utils/publicationType");
 
 // Phase 6: calculateMetricFromDoc accepts an already-fetched Metric document,
 // eliminating redundant Metric.findOne in batch callers like /dashboard-v3.
@@ -83,12 +84,19 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
         const items =
             faculty[metric.fieldPath] || [];
 
-        const matches = items.filter(item =>
+        const isPublicationType =
+            metric.fieldPath === 'publications' &&
+            metric.conditionField === 'type';
 
-            item[metric.conditionField] ===
-            metric.conditionValue
+        const matches = items.filter(item => {
 
-        ).length;
+            const actual = isPublicationType
+                ? normalizePublicationType(item[metric.conditionField])
+                : item[metric.conditionField];
+
+            return actual === metric.conditionValue;
+
+        }).length;
 
         return total + matches;
 
@@ -299,6 +307,9 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
 async function calculateMetric(metricId, filter = {}, options = {}) {
     const { getMetric } = require('./referenceDataCache');
     const metric = await getMetric(metricId);
+    if (!metric) {
+        console.warn(`[analyticsService] calculateMetric: unknown metricId "${metricId}" — no seeded Metric document found. Returning null (unchanged behavior).`);
+    }
     return calculateMetricFromDoc(metric, filter, options);
 }
 async function getStudentProfileCompletion() {
@@ -413,7 +424,7 @@ async function getStudentDepartments() {
     students.forEach(student => {
 
         const department =
-            student.academic_details?.faculty ||
+            student.academic_details?.department ||
             "Unknown";
 
         if (!departments[department]) {

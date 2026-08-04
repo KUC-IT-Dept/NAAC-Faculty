@@ -3,6 +3,10 @@ import { Plus, Trash2, Edit2, CheckCircle, ChevronDown, ChevronUp, Check, X, Ext
 import { useState } from 'react';
 import { fg, sel, yearSel, FileInp, DocumentPreviewLink } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { useConfirmSave } from '../useConfirmSave';
+import { useConfirmDelete } from '../useConfirmDelete';
+
+
 import { examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions } from '../../shared/dropdownOptions';
 
 /* ─── Constants ─────────────────────────────────────────── */
@@ -74,6 +78,8 @@ const cancelBtnStyle: React.CSSProperties = {
 
 /* ─── Component ─────────────────────────────────────────── */
 export default function EligibilityTests({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const dynamicExamNameOptions = useDropdownOptions(examNameOptions);
   const dynamicSubjectPaperOptions = useDropdownOptions(subjectPaperOptions);
   const dynamicStateForSetOptions = useDropdownOptions(stateForSetOptions);
@@ -199,7 +205,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
         <button type="button" onClick={cancelEdit} style={cancelBtnStyle}>
           <X size={14} /> Cancel
         </button>
-        <button type="button" onClick={saveEdit} style={saveBtnStyle}>
+        <button type="button" onClick={() => confirmSave(saveEdit)} style={saveBtnStyle}>
           <Check size={14} /> Save
         </button>
       </div>
@@ -281,7 +287,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
                   }}>
                     <Edit2 size={12} /> Edit
                   </button>
-                  <button type="button" onClick={() => removeTest(i)} style={{
+                  <button type="button" onClick={() => confirmDelete(() => removeTest(i))} style={{
                     padding: '6px 12px', fontSize: '13px', cursor: 'pointer',
                     backgroundColor: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3',
                     borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px',
@@ -314,6 +320,8 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
           )}
         </div>
       ))}
+      <ConfirmDialog />
+      <ConfirmDeleteDialog />
     </div>
   );
 }

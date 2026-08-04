@@ -1,4 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
+import { useConfirmDelete } from './useConfirmDelete';
+
 
 const fg = (label: string, children: React.ReactNode) => (
   <div className="form-group"><label className="form-label">{label}</label>{children}</div>
@@ -101,12 +103,13 @@ export function PersonalInfoForm({ data, onChange }: { data: any; onChange: (d: 
 // ── Section 2: Qualifications ──────────────────────────────────
 const EQ = { degreeLevel:'', degreeName:'', specialization:'', institution:'', university:'', boardUniversity:'', yearOfPassing:'', percentageCGPA:'', division:'', mode:'' };
 export function QualificationsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a=[...data]; a[i]={...a[i],[k]:v}; onChange(a); };
   return (
     <div>
       {data.map((q, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={()=>onChange(data.filter((_,j)=>j!==i))}><Trash2 size={14}/></button>
+          <button type="button" className="list-item-remove" onClick={()=>confirmDelete(()=>onChange(data.filter((_,j)=>j!==i)))}><Trash2 size={14}/></button>
           <div className="form-row form-row-3">
             {fg('Degree Level', sel(q.degreeLevel, v=>u(i,'degreeLevel',v), ['10th','12th','UG','PG','M.Phil','Ph.D','Post-Doc','Other']))}
             {fg('Degree / Certificate Name', inp(q.degreeName, v=>u(i,'degreeName',v), 'B.Sc / M.Tech / Ph.D'))}
@@ -125,6 +128,7 @@ export function QualificationsForm({ data, onChange }: { data: any[]; onChange: 
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={()=>onChange([...data,{...EQ}])}><Plus size={15}/>Add Qualification</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -132,12 +136,13 @@ export function QualificationsForm({ data, onChange }: { data: any[]; onChange: 
 // ── Section 3: Eligibility Tests ───────────────────────────────
 const ET = { examName:'', subject:'', year:'', certificateNo:'', score:'', state:'' };
 export function EligibilityTestsForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a=[...data]; a[i]={...a[i],[k]:v}; onChange(a); };
   return (
     <div>
       {data.map((e, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={()=>onChange(data.filter((_,j)=>j!==i))}><Trash2 size={14}/></button>
+          <button type="button" className="list-item-remove" onClick={()=>confirmDelete(()=>onChange(data.filter((_,j)=>j!==i)))}><Trash2 size={14}/></button>
           <div className="form-row form-row-3">
             {fg('Exam Name', sel(e.examName, v=>u(i,'examName',v), ['NET','SET/SLET','GATE','JRF','Other']))}
             {fg('Subject / Paper', inp(e.subject, v=>u(i,'subject',v), 'Computer Science'))}
@@ -151,6 +156,7 @@ export function EligibilityTestsForm({ data, onChange }: { data: any[]; onChange
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={()=>onChange([...data,{...ET}])}><Plus size={15}/>Add Eligibility Test</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }
@@ -192,12 +198,13 @@ export function EmploymentDetailsForm({ data, onChange }: { data: any; onChange:
 // ── Section 5: Work Experience ────────────────────────────────
 const WE = { organization:'', designation:'', from:'', to:'', nature:'', reasonForLeaving:'' };
 export function WorkExperienceForm({ data, onChange }: { data: any[]; onChange: (d: any[]) => void }) {
+  const { confirmDelete, ConfirmDialog: ConfirmDeleteDialog } = useConfirmDelete();
   const u = (i: number, k: string, v: string) => { const a=[...data]; a[i]={...a[i],[k]:v}; onChange(a); };
   return (
     <div>
       {data.map((e, i) => (
         <div key={i} className="list-item-card">
-          <button type="button" className="list-item-remove" onClick={()=>onChange(data.filter((_,j)=>j!==i))}><Trash2 size={14}/></button>
+          <button type="button" className="list-item-remove" onClick={()=>confirmDelete(()=>onChange(data.filter((_,j)=>j!==i)))}><Trash2 size={14}/></button>
           <div className="form-row form-row-2">
             {fg('Organization / Institution', inp(e.organization, v=>u(i,'organization',v)))}
             {fg('Designation', inp(e.designation, v=>u(i,'designation',v)))}
@@ -211,6 +218,7 @@ export function WorkExperienceForm({ data, onChange }: { data: any[]; onChange: 
         </div>
       ))}
       <button type="button" className="add-item-btn" onClick={()=>onChange([...data,{...WE}])}><Plus size={15}/>Add Work Experience</button>
+      <ConfirmDeleteDialog />
     </div>
   );
 }

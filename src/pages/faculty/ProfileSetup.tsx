@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
+import { useConfirmSave } from '../../components/useConfirmSave';
+
 import { GraduationCap, ChevronRight, ChevronLeft, CheckCircle2, Lock } from 'lucide-react';
 import PersonalInfo from '../../components/sections/S01_PersonalInfo';
 import Qualifications from '../../components/sections/S02_Qualifications';
@@ -127,6 +129,8 @@ export default function ProfileSetup() {
     loadProfile();
   }, [STORAGE_KEY, user?.isFirstLogin]);
 
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
+
   const handlePwChange = async () => {
     setPwErr('');
     if (pw.next !== pw.confirm) return setPwErr('Passwords do not match');
@@ -157,6 +161,21 @@ export default function ProfileSetup() {
     else { toast.success('Profile setup complete! 🎉'); navigate('/faculty/dashboard'); }
   };
 
+  const handleSaveClick = () => {
+    if (step === 0) {
+      setPwErr('');
+      if (pw.next !== pw.confirm) return setPwErr('Passwords do not match');
+      if (pw.next.length < 8) return setPwErr('Minimum 8 characters required');
+      confirmSave(async () => {
+        await handlePwChange();
+      });
+    } else {
+      confirmSave(async () => {
+        await saveAndNext();
+      });
+    }
+  };
+
   // Auto-save to localStorage on every section change so data survives refresh
   const set = (k: string, v: any) => {
     setProfile((p: any) => {
@@ -167,25 +186,29 @@ export default function ProfileSetup() {
   };
 
   const saveAwardsSection = async (updatedAwards?: any[]) => {
-    setSaving(true);
-    try {
-      await api.put('/me', { awards: updatedAwards ?? profile.awards });
-      localStorage.removeItem(STORAGE_KEY);
-      toast.success('Saved!');
-    }
-    catch { toast.error('Save failed'); }
-    finally { setSaving(false); }
+    confirmSave(async () => {
+      setSaving(true);
+      try {
+        await api.put('/me', { awards: updatedAwards ?? profile.awards });
+        localStorage.removeItem(STORAGE_KEY);
+        toast.success('Saved!');
+      }
+      catch { toast.error('Save failed'); }
+      finally { setSaving(false); }
+    });
   };
 
   const saveResearchGuidance = async (updatedResearchGuidance?: any) => {
-    setSaving(true);
-    try {
-      await api.put('/me', { researchGuidance: updatedResearchGuidance ?? profile.researchGuidance });
-      localStorage.removeItem(STORAGE_KEY);
-      toast.success('Saved!');
-    }
-    catch { toast.error('Save failed'); }
-    finally { setSaving(false); }
+    confirmSave(async () => {
+      setSaving(true);
+      try {
+        await api.put('/me', { researchGuidance: updatedResearchGuidance ?? profile.researchGuidance });
+        localStorage.removeItem(STORAGE_KEY);
+        toast.success('Saved!');
+      }
+      catch { toast.error('Save failed'); }
+      finally { setSaving(false); }
+    });
   };
 
 
@@ -290,7 +313,7 @@ export default function ProfileSetup() {
               {step > 0 && step < STEPS.length - 1 && (
                 <button className="btn btn-ghost btn-sm" onClick={() => setStep(s => s + 1)}>Skip</button>
               )}
-              <button className="btn btn-primary" disabled={saving} onClick={step === 0 ? handlePwChange : saveAndNext}>
+              <button className="btn btn-primary" disabled={saving} onClick={handleSaveClick}>
                 {saving
                   ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Saving…</>
                   : step === STEPS.length - 1
@@ -301,6 +324,7 @@ export default function ProfileSetup() {
           </div>
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 }

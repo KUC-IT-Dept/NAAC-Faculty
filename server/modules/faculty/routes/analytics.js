@@ -11,6 +11,7 @@ const {
 const { auth } = require("../middleware/auth");
 const requireAnalyticsScope = require("../../analytics/middleware/requireAnalyticsScope");
 const { buildFacultyFilter, mergeFilters } = require("../../analytics/services/filterService");
+const { normalizePublicationType } = require("../../analytics/utils/publicationType");
 
 const router = express.Router();
 
@@ -63,6 +64,34 @@ router.get("/coverage", auth, requireAnalyticsScope("coverage"), async (req, res
                     }).lean();
 
                     recordsFound = facultyRecords.length;
+
+                } else if (metric.formulaType === "conditionalCount") {
+
+                    // "Non-empty array" is not the same question as "has at
+                    // least one item satisfying conditionField/conditionValue".
+                    // Several metrics share the same fieldPath (e.g. every
+                    // publications-derived metric), so without this check
+                    // they'd all report identical coverage.
+                    const candidateRecords = await Faculty.find({
+                        ...combinedFilter,
+                        [metric.fieldPath]: {
+                            $exists: true,
+                            $ne: []
+                        }
+                    }).lean();
+
+                    const isPublicationType =
+                        metric.fieldPath === "publications" && metric.conditionField === "type";
+
+                    recordsFound = candidateRecords.filter(record => {
+                        const items = record[metric.fieldPath] || [];
+                        return items.some(item => {
+                            const actual = isPublicationType
+                                ? normalizePublicationType(item[metric.conditionField])
+                                : item[metric.conditionField];
+                            return actual === metric.conditionValue;
+                        });
+                    }).length;
 
                 } else {
 
