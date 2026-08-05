@@ -440,6 +440,7 @@ const academicCourseSchema = new mongoose.Schema({
   toYear: { type: String, default: '' },
   programmes: { type: String, default: '' },
   subject: { type: String, default: '' },
+  semester: { type: String, default: '' },
 }, { _id: false });
 
 const academicRespItemSchema = new mongoose.Schema({

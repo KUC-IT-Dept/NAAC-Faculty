@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, sel, yearSel } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
-import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions } from '../../shared/dropdownOptions';
+import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions, semesterTypeOptions } from '../../shared/dropdownOptions';
 import SearchableSelect from '../SearchableSelect';
 
 const COURSE_NAMES = ['Advanced Algorithms', 'Database Systems', 'Operating Systems', 'Computer Networks', 'Software Engineering', 'Data Structures', 'Machine Learning', 'Artificial Intelligence', 'Web Development', 'Other'];
@@ -10,7 +10,7 @@ const PROGRAMMES_LIST = ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M
 const SUBJECTS_LIST = ['Computer Science', 'Physics', 'Mathematics', 'Chemistry', 'Biology', 'Electronics Engineering', 'Mechanical Engineering', 'Civil Engineering', 'English', 'Management', 'Other'];
 const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
-const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '' };
+const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '', semester: '' };
 const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
@@ -46,6 +46,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               {c.programmes && <span className="badge badge-secondary">{c.programmes}</span>}
+              {c.semester && <span className="badge badge-secondary">{c.semester}</span>}
               {c.subject && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Subject: {c.subject}</span>}
             </div>
           </div>
@@ -67,6 +68,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
           <PreviewRow label="Course Name" value={c.courseName} />
           <PreviewRow label="Duration" value={`${c.fromYear || '—'} - ${c.toYear || '—'}`} />
           <PreviewRow label="Programmes" value={c.programmes} />
+          <PreviewRow label="Semester" value={c.semester} />
           <PreviewRow label="Subject" value={c.subject} />
         </div>
       )}
@@ -118,6 +120,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
   const adminRoles = useDropdownOptions(responsibilityRoleOptions);
   const committees = useDropdownOptions(committeeTypeOptions);
   const teachingCategories = useDropdownOptions(teachingCategoryOptions);
+  const semesters = useDropdownOptions(semesterTypeOptions);
 
   const courses = data.courses || [];
   const otherResponsibilities = data.otherResponsibilities || [];
@@ -236,6 +239,9 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 {fg('Programmes', sel(pendingCourse.programmes, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, programmes: v }); }, PROGRAMMES_LIST))}
               </div>
               <div className="form-row form-row-1">
+                {fg('Semester', sel(pendingCourse.semester, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, semester: v }); }, semesters, 'Select Semester'))}
+              </div>
+              <div className="form-row form-row-1">
                 {fg('Subject', (
                   <SearchableSelect
                     value={pendingCourse.subject || ''}
@@ -314,6 +320,9 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Programmes', sel(c.programmes, v => updCourse(i, 'programmes', v), PROGRAMMES_LIST))}
+                    </div>
+                    <div className="form-row form-row-1">
+                      {fg('Semester', sel(c.semester, v => updCourse(i, 'semester', v), semesters, 'Select Semester'))}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Subject', (
