@@ -82,7 +82,7 @@ function PubForm({ item, onChange, levels, yesNo, indexedInOpts, authorRoleOpts,
       {t === 'Journal Articles' && (
         <>
           <div className="form-row form-row-2">
-            {fg('Title of Paper *', inp(item.title, v => onChange('title', v)))}
+            {fg('Type of Article *', inp(item.title, v => onChange('title', v)))}
             {fg('Journal Name *', inp(item.journal, v => onChange('journal', v)))}
           </div>
           <div className="form-row form-row-3">
@@ -267,7 +267,7 @@ function PreviewDetails({ p }: { p: Publication }) {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {t === 'Journal Articles' && (
         <>
-          <PreviewRow label="Title of Paper" value={p.title} />
+          <PreviewRow label="Type of Article" value={p.title} />
           <PreviewRow label="Journal Name" value={p.journal} />
           <PreviewRow label="ISSN Number" value={p.issn} />
           <PreviewRow label="Vol, Issue, Pages" value={citationParts} />

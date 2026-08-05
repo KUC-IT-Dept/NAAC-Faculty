@@ -31,7 +31,7 @@ export function PublicationsForm({ data, onChange }: { data: any[]; onChange: (d
             {fg('Publication Type', sel(p.type, v => u(i, 'type', v), ['journal', 'conference', 'book', 'bookChapter']))}
             {fg('Level', sel(p.level, v => u(i, 'level', v), ['International', 'National']))}
           </div>
-          {fg('Title of Paper / Book', inp(p.title, v => u(i, 'title', v)))}
+          {fg('Type of Article / Book', inp(p.title, v => u(i, 'title', v)))}
           <div className="form-row form-row-2">
             {fg('Author(s)', inp(p.authors, v => u(i, 'authors', v), 'Last F., Co-Author C.'))}
             {fg('Author Role', sel(p.authorRole, v => u(i, 'authorRole', v), ['Principal Author', 'Co-Author']))}
