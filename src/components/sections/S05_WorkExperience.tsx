@@ -180,7 +180,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
         {fg('Employee ID / Staff Code', inp(editingData.employeeId || '', v => updateField('employeeId', v)))}
       </div>
       <div className="form-row form-row-2">
-        {fg('University Affiliated to', <CustomSelect value={editingData.affiliatedUniversity || ''} onChange={(v: string) => updateField('affiliatedUniversity', v)} options={dynamicAffiliatedUniversityOptions} />)}
+        {fg('University/Institution Affiliated to', <CustomSelect value={editingData.affiliatedUniversity || ''} onChange={(v: string) => updateField('affiliatedUniversity', v)} options={dynamicAffiliatedUniversityOptions} />)}
         {fg('Type of Institution', <CustomSelect value={editingData.typeOfInstitution || ''} onChange={(v: string) => updateField('typeOfInstitution', v)} options={dynamicInstitutionTypeWorkOptions} />)}
       </div>
       <div className="form-row form-row-3">
@@ -387,7 +387,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
                   {renderPreview('Designation', e.designation)}
                   {renderPreview('Department', e.department)}
                   {renderPreview('Employee ID / Staff Code', e.employeeId)}
-                  {renderPreview('University Affiliated to', e.affiliatedUniversity)}
+                  {renderPreview('University/Institution Affiliated to', e.affiliatedUniversity)}
                   {renderPreview('Type of Institution', e.typeOfInstitution)}
                   {renderPreview('Nature of Appointment', e.natureOfAppointment)}
                   {renderPreview('From Date', e.from || e.dateOfJoining)}

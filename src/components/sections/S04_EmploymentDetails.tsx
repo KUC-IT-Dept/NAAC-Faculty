@@ -671,7 +671,7 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
             ), { required: isFieldRequired('institution'), error: errors.institution })}
           </div>
           <div className="form-row form-row-2">
-            {fg('University Affiliated to', renderSelect('affiliatedUniversity', dynamicAffiliatedUniversityOptions), { required: isFieldRequired('affiliatedUniversity'), error: errors.affiliatedUniversity })}
+            {fg('University/Institution Affiliated to', renderSelect('affiliatedUniversity', dynamicAffiliatedUniversityOptions), { required: isFieldRequired('affiliatedUniversity'), error: errors.affiliatedUniversity })}
             {fg('Type of Institution', renderSelect('typeOfInstitution', dynamicInstitutionTypeOptions), { required: isFieldRequired('typeOfInstitution'), error: errors.typeOfInstitution })}
           </div>
 
