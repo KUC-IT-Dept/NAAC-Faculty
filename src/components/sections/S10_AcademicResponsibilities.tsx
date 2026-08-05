@@ -130,13 +130,15 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
   // Courses state
   const [editingCourseIndex, setEditingCourseIndex] = useState<number | null>(null);
   const [pendingCourse, setPendingCourse] = useState<any>(null);
+  const [isCourseDirty, setIsCourseDirty] = useState(false);
 
   // Responsibilities state
   const [editingRespIndex, setEditingRespIndex] = useState<number | null>(null);
   const [pendingResp, setPendingResp] = useState<any>(null);
+  const [isRespDirty, setIsRespDirty] = useState(false);
 
-  const updCourse = (i: number, k: string, v: string) => { const a = [...courses]; a[i] = { ...a[i], [k]: v }; update('courses', a); };
-  const updResp = (i: number, k: string, v: string) => { const a = [...otherResponsibilities]; a[i] = { ...a[i], [k]: v }; update('otherResponsibilities', a); };
+  const updCourse = (i: number, k: string, v: string) => { setIsCourseDirty(true); const a = [...courses]; a[i] = { ...a[i], [k]: v }; update('courses', a); };
+  const updResp = (i: number, k: string, v: string) => { setIsRespDirty(true); const a = [...otherResponsibilities]; a[i] = { ...a[i], [k]: v }; update('otherResponsibilities', a); };
 
   const isCourseComplete = (c: any) => c.courseName;
   const isRespComplete = (r: any) => r.classesHandled || r.administrativeRoles || r.committeeMemberships;
@@ -149,6 +151,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
       updated.sort((a, b) => (parseInt(b.fromYear || b.toYear || '0') || 0) - (parseInt(a.fromYear || a.toYear || '0') || 0));
       update('courses', updated);
       setPendingCourse(null);
+      setIsCourseDirty(false);
     }
   };
 
@@ -158,6 +161,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
     if (isRespComplete(item)) {
       update('otherResponsibilities', [item, ...otherResponsibilities]);
       setPendingResp(null);
+      setIsRespDirty(false);
     }
   };
 
@@ -170,7 +174,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
           <h5 style={{ margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Courses / Subjects Taught</h5>
           <button
             type="button"
-            onClick={() => setPendingCourse({ ...EMPTY_COURSE })}
+            onClick={() => { setPendingCourse({ ...EMPTY_COURSE }); setIsCourseDirty(false); }}
             disabled={pendingCourse !== null || editingCourseIndex !== null}
             style={{ ...btnAdd, flexShrink: 0 }}
           >
@@ -188,7 +192,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Course</span>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={() => setPendingCourse(null)} style={btnCancel}>
+                  <button type="button" onClick={() => { setPendingCourse(null); setIsCourseDirty(false); }} style={btnCancel}>
                     <X size={14} /> Cancel
                   </button>
                   <button
@@ -205,7 +209,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 {fg('Courses / Subjects Taught', (
                   <SearchableSelect
                     value={pendingCourse.courseName || ''}
-                    onChange={v => setPendingCourse({ ...pendingCourse, courseName: v })}
+                    onChange={v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, courseName: v }); }}
                     options={COURSE_NAMES}
                     placeholder="Search or Select Course"
                   />
@@ -216,11 +220,11 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                     <div style={{ flex: '0 0 48%' }}>
                       <label className="form-label">From Year</label>
-                      {yearSel(pendingCourse.fromYear, v => setPendingCourse({ ...pendingCourse, fromYear: v }), 1960)}
+                      {yearSel(pendingCourse.fromYear, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, fromYear: v }); }, 1960)}
                     </div>
                     <div style={{ flex: '0 0 48%' }}>
                       <label className="form-label">To Year</label>
-                      {yearSel(pendingCourse.toYear, v => setPendingCourse({ ...pendingCourse, toYear: v }), 1960)}
+                      {yearSel(pendingCourse.toYear, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, toYear: v }); }, 1960)}
                     </div>
                   </div>
                 ))}
@@ -229,18 +233,33 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 )}
               </div>
               <div className="form-row form-row-1">
-                {fg('Programmes', sel(pendingCourse.programmes, v => setPendingCourse({ ...pendingCourse, programmes: v }), PROGRAMMES_LIST))}
+                {fg('Programmes', sel(pendingCourse.programmes, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, programmes: v }); }, PROGRAMMES_LIST))}
               </div>
               <div className="form-row form-row-1">
                 {fg('Subject', (
                   <SearchableSelect
                     value={pendingCourse.subject || ''}
-                    onChange={v => setPendingCourse({ ...pendingCourse, subject: v })}
+                    onChange={v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, subject: v }); }}
                     options={SUBJECTS_LIST}
                     placeholder="Search or Select Subject"
                   />
                 ))}
               </div>
+              {isCourseDirty && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                  <button type="button" onClick={() => { setPendingCourse(null); setIsCourseDirty(false); }} style={btnCancel}>
+                    <X size={14} /> Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSavePendingCourse(pendingCourse)}
+                    disabled={!isCourseComplete(pendingCourse) || (pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear))}
+                    style={!isCourseComplete(pendingCourse) || (pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear)) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                  >
+                    <Check size={14} /> Save
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -253,12 +272,12 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Course</span>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" onClick={() => setEditingCourseIndex(null)} style={btnCancel}>
+                        <button type="button" onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }} style={btnCancel}>
                           <X size={14} /> Cancel
                         </button>
                         <button
                           type="button"
-                          onClick={() => setEditingCourseIndex(null)}
+                          onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }}
                           disabled={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear)}
                           style={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
                         >
@@ -306,13 +325,28 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                         />
                       ))}
                     </div>
+                    {isCourseDirty && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                        <button type="button" onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }} style={btnCancel}>
+                          <X size={14} /> Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }}
+                          disabled={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear)}
+                          style={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                        >
+                          <Check size={14} /> Save
+                        </button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <CoursePreviewCard
                     c={c}
-                    onEdit={() => setEditingCourseIndex(i)}
+                    onEdit={() => { setEditingCourseIndex(i); setIsCourseDirty(false); }}
                     onDelete={() => update('courses', sortedCourses.filter((_, j) => j !== i))}
-                    disabled={pendingCourse !== null}
+                    disabled={pendingCourse !== null || editingCourseIndex !== null}
                   />
                 )}
               </div>
@@ -326,7 +360,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
           <h5 style={{ margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Other Academic Responsibilities</h5>
           <button
             type="button"
-            onClick={() => setPendingResp({ ...EMPTY_RESP })}
+            onClick={() => { setPendingResp({ ...EMPTY_RESP }); setIsRespDirty(false); }}
             disabled={pendingResp !== null || editingRespIndex !== null}
             style={{ ...btnAdd, flexShrink: 0 }}
           >
@@ -334,7 +368,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
           </button>
         </div>
 
-        {otherResponsibilities.length === 0 && (
+        {otherResponsibilities.length === 0 && !pendingResp && (
           <div className="empty-state">No other responsibilities added yet. Click Add Responsibility to get started.</div>
         )}
 
@@ -344,7 +378,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Responsibility</span>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={() => setPendingResp(null)} style={btnCancel}>
+                  <button type="button" onClick={() => { setPendingResp(null); setIsRespDirty(false); }} style={btnCancel}>
                     <X size={14} /> Cancel
                   </button>
                   <button
@@ -362,15 +396,15 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                     <div style={{ flex: '0 0 40%' }}>
                       <label className="form-label">Classes Handled (UG / PG / Ph.D.)</label>
-                      {sel(pendingResp.classesHandled, v => setPendingResp({ ...pendingResp, classesHandled: v }), CLASSES_HANDLED)}
+                      {sel(pendingResp.classesHandled, v => { setIsRespDirty(true); setPendingResp({ ...pendingResp, classesHandled: v }); }, CLASSES_HANDLED)}
                     </div>
                     <div style={{ flex: '0 0 28%' }}>
                       <label className="form-label">From Year</label>
-                      {yearSel(pendingResp.fromYear, v => setPendingResp({ ...pendingResp, fromYear: v }), 1960)}
+                      {yearSel(pendingResp.fromYear, v => { setIsRespDirty(true); setPendingResp({ ...pendingResp, fromYear: v }); }, 1960)}
                     </div>
                     <div style={{ flex: '0 0 28%' }}>
                       <label className="form-label">To Year</label>
-                      {yearSel(pendingResp.toYear, v => setPendingResp({ ...pendingResp, toYear: v }), 1960)}
+                      {yearSel(pendingResp.toYear, v => { setIsRespDirty(true); setPendingResp({ ...pendingResp, toYear: v }); }, 1960)}
                     </div>
                   </div>
                 ))}
@@ -379,11 +413,26 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 )}
               </div>
               <div className="form-row form-row-1">
-                {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(pendingResp.administrativeRoles, v => setPendingResp({ ...pendingResp, administrativeRoles: v }), adminRoles, "Select..."))}
+                {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(pendingResp.administrativeRoles, v => { setIsRespDirty(true); setPendingResp({ ...pendingResp, administrativeRoles: v }); }, adminRoles, "Select..."))}
               </div>
               <div className="form-row form-row-1">
-                {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(pendingResp.committeeMemberships, v => setPendingResp({ ...pendingResp, committeeMemberships: v }), committees, "Select..."))}
+                {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(pendingResp.committeeMemberships, v => { setIsRespDirty(true); setPendingResp({ ...pendingResp, committeeMemberships: v }); }, committees, "Select..."))}
               </div>
+              {isRespDirty && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                  <button type="button" onClick={() => { setPendingResp(null); setIsRespDirty(false); }} style={btnCancel}>
+                    <X size={14} /> Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSavePendingResp(pendingResp)}
+                    disabled={!isRespComplete(pendingResp) || (pendingResp && pendingResp.fromYear && pendingResp.toYear && parseInt(pendingResp.fromYear) > parseInt(pendingResp.toYear))}
+                    style={!pendingResp || !isRespComplete(pendingResp) || (pendingResp && pendingResp.fromYear && pendingResp.toYear && parseInt(pendingResp.fromYear) > parseInt(pendingResp.toYear)) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                  >
+                    <Check size={14} /> Save
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -396,12 +445,12 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Responsibility</span>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" onClick={() => setEditingRespIndex(null)} style={btnCancel}>
+                        <button type="button" onClick={() => { setEditingRespIndex(null); setIsRespDirty(false); }} style={btnCancel}>
                           <X size={14} /> Cancel
                         </button>
                         <button
                           type="button"
-                          onClick={() => setEditingRespIndex(null)}
+                          onClick={() => { setEditingRespIndex(null); setIsRespDirty(false); }}
                           disabled={r && r.fromYear && r.toYear && parseInt(r.fromYear) > parseInt(r.toYear)}
                           style={r && r.fromYear && r.toYear && parseInt(r.fromYear) > parseInt(r.toYear) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
                         >
@@ -436,13 +485,27 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                     <div className="form-row form-row-1">
                       {fg('Committee Memberships (Academic Council / BOS / etc.)', sel(r.committeeMemberships, v => updResp(i, 'committeeMemberships', v), committees, "Select..."))}
                     </div>
+                    {isRespDirty && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                        <button type="button" onClick={() => { setEditingRespIndex(null); setIsRespDirty(false); }} style={btnCancel}>
+                          <X size={14} /> Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setEditingRespIndex(null); setIsRespDirty(false); }}
+                          disabled={r && r.fromYear && r.toYear && parseInt(r.fromYear) > parseInt(r.toYear)}
+                          style={r && r.fromYear && r.toYear && parseInt(r.fromYear) > parseInt(r.toYear) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                        >
+                          <Check size={14} /> Save
+                        </button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <RespPreviewCard
                     r={r}
-                    onEdit={() => setEditingRespIndex(i)}
+                    onEdit={() => { setEditingRespIndex(i); setIsRespDirty(false); }}
                     onDelete={() => update('otherResponsibilities', otherResponsibilities.filter((_: any, j: number) => j !== i))}
-                    disabled={pendingResp !== null}
                   />
                 )}
               </div>

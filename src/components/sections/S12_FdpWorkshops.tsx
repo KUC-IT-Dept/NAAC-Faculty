@@ -80,32 +80,40 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
   const programmeTypes = useDropdownOptions(programmeTypeOptions);
   const learningModes = useDropdownOptions(learningModeOptions);
   const institutionsOpts = useDropdownOptions(institutionsOptions);
-
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
-  const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
+  const [isDirty, setIsDirty] = useState(false);
+
+  const upd = (i: number, k: string, v: string) => {
+    setIsDirty(true);
+    const a = [...data];
+    a[i] = { ...a[i], [k]: v };
+    onChange(a);
+  };
 
   const isItemComplete = (item: any) => item.programTitle && item.type && item.from && item.to;
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
+    setIsDirty(false);
   };
 
   const handleSavePending = (item: any) => {
     if (isItemComplete(item)) {
       const updated = [item, ...data];
-      updated.sort((a, b) => (b.from || '').localeCompare(a.from || ''));
+      updated.sort((a, b) => new Date(b.from || '1900-01-01').getTime() - new Date(a.from || '1900-01-01').getTime());
       onChange(updated);
       setPendingNewItem(null);
+      setIsDirty(false);
     }
   };
 
-  const sortedData = [...data].sort((a, b) => (b.from || '').localeCompare(a.from || ''));
+  const sortedData = [...data].sort((a, b) => new Date(b.from || '1900-01-01').getTime() - new Date(a.from || '1900-01-01').getTime());
 
   return (
     <>
       <div className="section-header-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 16 }}>
-        <h5 style={{ margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>FDPs / Workshops / Seminars</h5>
+        <h5 style={{ margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>FDP / Workshops / Training Programs</h5>
         <button
           type="button"
           onClick={handleAdd}
@@ -116,7 +124,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
         </button>
       </div>
 
-      {sortedData.length === 0 && (
+      {sortedData.length === 0 && !pendingNewItem && (
         <div className="empty-state">No programs added yet. Click Add Program to get started.</div>
       )}
 
@@ -126,7 +134,7 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Program</span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
                   <X size={14} /> Cancel
                 </button>
                 <button
@@ -139,18 +147,33 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
                 </button>
               </div>
             </div>
-            {fg('Program Name *', inp(pendingNewItem.programTitle, v => setPendingNewItem({ ...pendingNewItem, programTitle: v })))}
+            {fg('Program Name *', inp(pendingNewItem.programTitle, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, programTitle: v }); }))}
             <div className="form-row form-row-2">
-              {fg('Type *', sel(pendingNewItem.type, v => setPendingNewItem({ ...pendingNewItem, type: v }), programmeTypes))}
-              {fg('Organized by', <SearchableSelect value={pendingNewItem.organizingInstitution || ''} onChange={(v: string) => setPendingNewItem({ ...pendingNewItem, organizingInstitution: v })} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
+              {fg('Type *', sel(pendingNewItem.type, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, type: v }); }, programmeTypes))}
+              {fg('Organized by', <SearchableSelect value={pendingNewItem.organizingInstitution || ''} onChange={(v: string) => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, organizingInstitution: v }); }} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
             </div>
             <div className="form-row form-row-2">
-              {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
-              {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
+              {fg('From Date *', dateInp(pendingNewItem.from, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, from: v }); }))}
+              {fg('To Date *', dateInp(pendingNewItem.to, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, to: v }); }))}
             </div>
             <div className="form-row form-row-2">
-              {fg('Mode', sel(pendingNewItem.mode, v => setPendingNewItem({ ...pendingNewItem, mode: v }), learningModes))}
+              {fg('Mode', sel(pendingNewItem.mode, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, mode: v }); }, learningModes))}
             </div>
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                >
+                  <Check size={14} /> Save
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -163,10 +186,10 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Program</span>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnCancel}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
                         <X size={14} /> Cancel
                       </button>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
                         <Check size={14} /> Save
                       </button>
                     </div>
@@ -183,11 +206,21 @@ export default function FdpWorkshops({ data, onChange }: { data: any[]; onChange
                   <div className="form-row form-row-2">
                     {fg('Mode', sel(item.mode, v => upd(i, 'mode', v), learningModes))}
                   </div>
+                  {isDirty && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
+                        <X size={14} /> Cancel
+                      </button>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
+                        <Check size={14} /> Save
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <PreviewCard
                   item={item}
-                  onEdit={() => setEditingItemIndex(i)}
+                  onEdit={() => { setEditingItemIndex(i); setIsDirty(false); }}
                   onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
                   disabled={pendingNewItem !== null}
                 />

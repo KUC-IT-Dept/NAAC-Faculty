@@ -103,8 +103,24 @@ function EntryCard({
   onCancel: () => void;
   programOptions: string[];
 }) {
+  const [isDirty, setIsDirty] = useState(false);
   const displayName = getDisplayName(item);
   const duration = item.fromDate || item.toDate ? `${item.fromDate || '—'} to ${item.toDate || '—'}` : '';
+
+  const handleFieldChange = (key: string, value: any) => {
+    setIsDirty(true);
+    onChange(key, value);
+  };
+
+  const handleSave = () => {
+    setIsDirty(false);
+    onSave();
+  };
+
+  const handleCancel = () => {
+    setIsDirty(false);
+    onCancel();
+  };
 
   return (
     <div className="list-item-card" style={{ marginBottom: 12 }}>
@@ -113,34 +129,40 @@ function EntryCard({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <strong>{index === -1 ? 'New Student' : 'Edit Entry'}</strong>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" onClick={onCancel} style={btnCancel}><X size={14} /> Cancel</button>
-              <button type="button" onClick={onSave} style={btnSave}><Check size={14} /> Save</button>
+              <button type="button" onClick={handleCancel} style={btnCancel}><X size={14} /> Cancel</button>
+              <button type="button" onClick={handleSave} style={btnSave}><Check size={14} /> Save</button>
             </div>
           </div>
 
           <div className="form-row form-row-2">
-            {fg('STUDENT NAME *', inp(item.studentName, v => onChange('studentName', v), 'Enter student name'))}
+            {fg('STUDENT NAME *', inp(item.studentName, v => handleFieldChange('studentName', v), 'Enter student name'))}
             {fg('PROGRAM / COURSE *', (
               <SearchableSelect
                 value={item.program || ''}
-                onChange={v => onChange('program', v)}
+                onChange={v => handleFieldChange('program', v)}
                 options={programOptions}
                 placeholder="Search or Select Program/Course"
               />
             ))}
           </div>
           <div className="form-row form-row-2">
-            {fg('INTERNSHIP / PROJECT TITLE *', inp(item.title, v => onChange('title', v), 'Enter internship / project title'))}
-            {fg('STATUS *', sel(item.status, v => onChange('status', v), statusOptions))}
+            {fg('INTERNSHIP / PROJECT TITLE *', inp(item.title, v => handleFieldChange('title', v), 'Enter internship / project title'))}
+            {fg('STATUS *', sel(item.status, v => handleFieldChange('status', v), statusOptions))}
           </div>
           <div className="form-row form-row-2">
-            {fg('ORGANIZATION / COMPANY *', inp(item.organisation, v => onChange('organisation', v), 'Enter organization / company'))}
-            {fg('ROLE *', sel(item.role, v => onChange('role', v), roleOptions))}
+            {fg('ORGANIZATION / COMPANY *', inp(item.organisation, v => handleFieldChange('organisation', v), 'Enter organization / company'))}
+            {fg('ROLE *', sel(item.role, v => handleFieldChange('role', v), roleOptions))}
           </div>
           <div className="form-row form-row-2">
-            {fg('FROM DATE *', <input type="date" className="form-input" value={item.fromDate || ''} onChange={e => onChange('fromDate', e.target.value)} />)}
-            {fg('TO DATE *', <input type="date" className="form-input" value={item.toDate || ''} onChange={e => onChange('toDate', e.target.value)} />)}
+            {fg('FROM DATE *', <input type="date" className="form-input" value={item.fromDate || ''} onChange={e => handleFieldChange('fromDate', e.target.value)} />)}
+            {fg('TO DATE *', <input type="date" className="form-input" value={item.toDate || ''} onChange={e => handleFieldChange('toDate', e.target.value)} />)}
           </div>
+          {isDirty && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+              <button type="button" onClick={handleCancel} style={btnCancel}><X size={14} /> Cancel</button>
+              <button type="button" onClick={handleSave} style={btnSave}><Check size={14} /> Save</button>
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -215,12 +237,15 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
 
   const refreshParent = (arr: any[]) => { setStudents(arr); try { onChange(arr); } catch { /* ignore */ } };
 
-  const handleAddRow = () => setPending({ ...emptyStudent });
+  const [isPendingDirty, setIsPendingDirty] = useState(false);
+
+  const handleAddRow = () => { setPending({ ...emptyStudent }); setIsPendingDirty(false); };
   const savePending = (item: any) => {
     if (!item?.title?.trim()) return;
     const updated = [item, ...students];
     refreshParent(updated);
     setPending(null);
+    setIsPendingDirty(false);
   };
 
   const updateStudent = (i: number, k: string, v: any) => { const a = [...students]; a[i] = { ...a[i], [k]: v }; refreshParent(a); };
@@ -262,7 +287,10 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
     });
   };
 
-  const updatePending = (k: string, v: any) => setPending((prev: any) => ({ ...prev, [k]: v }));
+  const updatePending = (k: string, v: any) => {
+    setIsPendingDirty(true);
+    setPending((prev: any) => ({ ...prev, [k]: v }));
+  };
 
   return (
     <>
@@ -397,6 +425,12 @@ export default function InternshipAndProjects({ data, onChange }: { data: any[];
             {fg('FROM DATE *', <input type="date" className="form-input" value={pending.fromDate || ''} onChange={e => updatePending('fromDate', e.target.value)} />)}
             {fg('TO DATE *', <input type="date" className="form-input" value={pending.toDate || ''} onChange={e => updatePending('toDate', e.target.value)} />)}
           </div>
+          {isPendingDirty && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+              <button type="button" onClick={() => { setPending(null); setIsPendingDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
+              <button type="button" onClick={() => savePending(pending)} style={btnSave}><Check size={14} /> Save</button>
+            </div>
+          )}
         </div>
       )}
 

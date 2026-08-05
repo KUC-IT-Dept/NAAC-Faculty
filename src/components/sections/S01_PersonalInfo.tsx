@@ -4,46 +4,19 @@ import { Copy } from 'lucide-react';
 import ProfilePictureUpload from '../ProfilePictureUpload';
 import { genderOptions, bloodGroupOptions, nationalityOptions, maritalStatusOptions, disabilityStatusOptions, religionOptions, categoryOptions, subCategoryOptions, disabilityTypeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
-import { Save } from 'lucide-react';
+import { Save, Check, X } from 'lucide-react';
+
+import FormActionButtons from '../FormActionButtons';
 
 export default function PersonalInfo({ data, onChange, onPersist, saving }: { data: any; onChange: (d: any) => void; onPersist?: (payload?: any, showToast?: boolean) => void; saving?: boolean }) {
-  // Ensure data is an object
-  const safeData = data || {};
-  const s = (k: string, v: string) => onChange({ ...safeData, [k]: v });
-
-  // Calculate age from date of birth
-  const calculateAge = (dateOfBirth: string) => {
-    if (!dateOfBirth) return '';
-    const dob = new Date(dateOfBirth);
-    const today = new Date();
-
-    // Check if date is valid
-    if (isNaN(dob.getTime())) return '';
-
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDiff = today.getMonth() - dob.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
-
-    // Ensure age is not negative
-    return Math.max(0, age).toString();
-  };
-
-  // Format date to dd-mm-yyyy
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const [year, month, day] = parts;
-      return `${day}-${month}-${year}`;
-    }
-    return dateStr;
-  };
-
-
-  // Single edit state for entire form
   const [isEditing, setIsEditing] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+
+  const safeData = data || {};
+  const s = (k: string, v: string) => {
+    setIsDirty(true);
+    onChange({ ...safeData, [k]: v });
+  };
 
   // // Debug: Log current data on every render
   // console.log('Current safeData:', safeData);
@@ -140,14 +113,12 @@ export default function PersonalInfo({ data, onChange, onPersist, saving }: { da
         </div>
       )}
       {isEditing && (
-        <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-          <button 
-            className="btn btn-primary btn-sm" 
-            onClick={() => { setIsEditing(false); onPersist && onPersist(); }} 
-            disabled={saving}
-          >
-            {saving ? <><span className="spinner" style={{ width: 13, height: 13 }} /> Saving…</> : <><Save size={14} /> Save</>}
-          </button>
+        <div style={{ marginBottom: '16px' }}>
+          <FormActionButtons
+            onSave={() => { setIsEditing(false); setIsDirty(false); onPersist && onPersist(); }}
+            onCancel={() => { setIsEditing(false); setIsDirty(false); }}
+            saving={saving}
+          />
         </div>
       )}
 
@@ -465,6 +436,15 @@ export default function PersonalInfo({ data, onChange, onPersist, saving }: { da
           </div>
         </div>
       </div>
+      {isEditing && isDirty && (
+        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+          <FormActionButtons
+            onSave={() => { setIsEditing(false); setIsDirty(false); onPersist && onPersist(); }}
+            onCancel={() => { setIsEditing(false); setIsDirty(false); }}
+            saving={saving}
+          />
+        </div>
+      )}
     </div>
   );
 }

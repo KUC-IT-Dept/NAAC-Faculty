@@ -136,6 +136,7 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
   const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [editingData, setEditingData] = useState<any>(getEmpty());
   const [hasSavedData, setHasSavedData] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -203,6 +204,7 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
   };
 
   const updateEditingData = (key: string, value: string) => {
+    setIsDirty(true);
     markFieldTouched(key);
     
     // Auto-fetch bank details when IFSC code is fully typed (11 characters)
@@ -336,6 +338,7 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
     }
     setIsEditing(false);
     setHasSavedData(true);
+    setIsDirty(false);
   };
 
   const cancelEdit = () => {
@@ -360,10 +363,12 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
     }
     setErrors({});
     setTouchedFields({});
+    setIsDirty(false);
   };
 
   const startEditingForm = () => {
     setIsEditing(true);
+    setIsDirty(false);
   };
 
   const renderInput = (key: string, placeholder = "") => {
@@ -769,6 +774,25 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
             </div>
             {errors.documentUrl ? <div className="error-message">{errors.documentUrl}</div> : null}
           </div>
+
+          {isDirty && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                style={{ padding: '7px 20px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#fff1f2', color: '#9f1239', border: '1px solid #fecdd3', borderRadius: '8px', marginRight: '8px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <X size={14} /> Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveEdit}
+                style={{ padding: '7px 20px', fontSize: '14px', cursor: 'pointer', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Check size={14} /> Save
+              </button>
+            </div>
+          )}
         </div>
 
       )}

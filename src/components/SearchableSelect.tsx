@@ -9,6 +9,7 @@ interface SearchableSelectProps {
   options: string[];
   placeholder?: string;
   maxOptions?: number;
+  emptyMessage?: string;
 }
 
 export default function SearchableSelect({ 
@@ -17,12 +18,17 @@ export default function SearchableSelect({
   options = [], 
   placeholder = "— Select —",
   maxOptions = 100,
+  emptyMessage = "No departments found",
   inputRef
 }: SearchableSelectProps & { inputRef?: React.Ref<HTMLDivElement> }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const optionListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -34,10 +40,40 @@ export default function SearchableSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const dropdownKey = (options as any).dropdownKey;
+  const dropdownKey = (options as any)?.dropdownKey;
   const trimmedSearch = searchTerm.trim();
   const hasExactMatch = options.some(opt => opt.toLowerCase() === trimmedSearch.toLowerCase());
   const showAddOption = trimmedSearch !== '' && !hasExactMatch;
+  const showAddOtherOption = dropdownKey && trimmedSearch === '';
+
+  const filteredOptions = options
+    .filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()))
+    .slice(0, maxOptions);
+
+  const hasExtraOption = showAddOption || showAddOtherOption;
+  const totalItems = filteredOptions.length + (hasExtraOption ? 1 : 0);
+
+  useEffect(() => {
+    if (isOpen) {
+      setHighlightedIndex(0);
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 0);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (isOpen && optionListRef.current) {
+      const children = optionListRef.current.children;
+      if (children[highlightedIndex]) {
+        (children[highlightedIndex] as HTMLElement).scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex, isOpen]);
 
   const handleRequestAdd = async (newValue: string) => {
     if (!newValue.trim()) return;
@@ -64,16 +100,49 @@ export default function SearchableSelect({
   };
 
   const handleOpen = () => {
-    setIsOpen(true);
-    setSearchTerm(''); // reset search when opening to see all initial options
+    setIsOpen(!isOpen);
+    if (!isOpen) {
+      setSearchTerm('');
+    }
   };
 
-  const filteredOptions = options
-    .filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()))
-    .slice(0, maxOptions);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setIsOpen(true);
+      }
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsOpen(false);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (totalItems > 0 ? (prev + 1) % totalItems : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (totalItems > 0 ? (prev - 1 + totalItems) % totalItems : 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
+        onChange(filteredOptions[highlightedIndex]);
+        setIsOpen(false);
+      } else if (highlightedIndex === filteredOptions.length && showAddOption) {
+        handleRequestAdd(trimmedSearch);
+      } else if (highlightedIndex === filteredOptions.length && showAddOtherOption) {
+        searchInputRef.current?.focus();
+      }
+    }
+  };
 
   return (
-    <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+    <div 
+      ref={wrapperRef} 
+      onKeyDown={handleKeyDown}
+      style={{ position: 'relative', width: '100%' }}
+    >
       <div 
         ref={inputRef}
         tabIndex={0}
@@ -119,6 +188,7 @@ export default function SearchableSelect({
           <div style={{ padding: '8px', borderBottom: '1px solid #e2e8f0', position: 'relative', backgroundColor: '#ffffff' }}>
             <Search size={14} style={{ position: 'absolute', left: '16px', top: '16px', color: '#94a3b8' }} />
             <input
+              ref={searchInputRef}
               autoFocus
               type="text"
               placeholder="Search..."
@@ -136,47 +206,48 @@ export default function SearchableSelect({
               }}
             />
           </div>
-          <div style={{ overflowY: 'auto', flex: 1, padding: '4px 0', backgroundColor: '#ffffff' }}>
+          <div ref={optionListRef} style={{ overflowY: 'auto', flex: 1, padding: '4px 0', backgroundColor: '#ffffff' }}>
             {filteredOptions.length === 0 ? (
-              !showAddOption && (
-                <div style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center' }}>
-                  No options found
-                </div>
-              )
+              <div style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center' }}>
+                {emptyMessage}
+              </div>
             ) : (
-              filteredOptions.map((opt, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => {
-                    onChange(opt);
-                    setIsOpen(false);
-                  }}
-                  style={{
-                    padding: '8px 16px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    backgroundColor: value === opt ? '#ede9fe' : '#ffffff',
-                    color: value === opt ? '#4f46e5' : '#1e293b',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (value !== opt) e.currentTarget.style.backgroundColor = '#f1f5f9';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (value !== opt) e.currentTarget.style.backgroundColor = '#ffffff';
-                  }}
-                >
-                  {opt}
-                </div>
-              ))
+              filteredOptions.map((opt, idx) => {
+                const isSelected = value === opt;
+                const isHighlighted = highlightedIndex === idx;
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      onChange(opt);
+                      setIsOpen(false);
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    style={{
+                      padding: '8px 16px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      backgroundColor: isSelected ? '#ede9fe' : isHighlighted ? '#f1f5f9' : '#ffffff',
+                      color: isSelected ? '#4f46e5' : '#1e293b',
+                      fontWeight: isSelected ? 600 : 400
+                    }}
+                  >
+                    {opt}
+                  </div>
+                );
+              })
             )}
             {filteredOptions.length === maxOptions && (
               <div style={{ padding: '8px 16px', fontSize: '0.8rem', color: '#94a3b8', textAlign: 'center', fontStyle: 'italic', backgroundColor: '#ffffff' }}>
                 Type to see more specific results...
               </div>
             )}
-            {showAddOption && (
+            {showAddOtherOption && (
               <div
-                onClick={() => handleRequestAdd(trimmedSearch)}
+                onClick={() => {
+                  searchInputRef.current?.focus();
+                }}
+                onMouseEnter={() => setHighlightedIndex(filteredOptions.length)}
                 style={{
                   padding: '10px 16px',
                   cursor: 'pointer',
@@ -184,13 +255,31 @@ export default function SearchableSelect({
                   color: '#4f46e5',
                   fontWeight: 600,
                   borderTop: '1px solid #e2e8f0',
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: highlightedIndex === filteredOptions.length ? '#f1f5f9' : '#f8fafc',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+              >
+                + Add Other...
+              </div>
+            )}
+            {showAddOption && (
+              <div
+                onClick={() => handleRequestAdd(trimmedSearch)}
+                onMouseEnter={() => setHighlightedIndex(filteredOptions.length)}
+                style={{
+                  padding: '10px 16px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  color: '#4f46e5',
+                  fontWeight: 600,
+                  borderTop: '1px solid #e2e8f0',
+                  backgroundColor: highlightedIndex === filteredOptions.length ? '#f1f5f9' : '#f8fafc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
               >
                 {submitting ? 'Sending Request...' : `+ Add "${trimmedSearch}" ${dropdownKey ? '(Request HOD Approval)' : ''}`}
               </div>

@@ -35,17 +35,17 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
   const fundingTypes = useDropdownOptions(fundingTypeOptions);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   const persist = async (updatedProjects: any[], showToast = false) => {
-    if (!onPersist) return;
-    try {
-      await onPersist(updatedProjects, showToast);
-    } catch (err) {
-      console.error('Failed to persist research projects', err);
+    if (onPersist) {
+      try { await onPersist(updatedProjects, showToast); }
+      catch (err) { console.error('Failed to persist projects section', err); }
     }
   };
 
   const upd = (i: number, k: string, v: string) => {
+    setIsDirty(true);
     const a = [...data];
     a[i] = { ...a[i], [k]: v };
     onChange(a);
@@ -55,37 +55,37 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
 
   const handleAddProject = () => {
     setPendingNewItem({ ...EMPTY });
-    setEditingItemIndex(null);
+    setIsDirty(false);
   };
 
   const handleSavePending = async (item: any) => {
     if (isItemComplete(item)) {
       const updated = [item, ...data];
       updated.sort((a, b) => {
-        const getYear = (d: any) => {
-          if (!d.startDate) return 0;
-          return new Date(d.startDate).getTime();
-        };
-        return getYear(b) - getYear(a);
+        if (!a.startDate && !b.startDate) return 0;
+        if (!a.startDate) return 1;
+        if (!b.startDate) return -1;
+        return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
       });
       onChange(updated);
       setPendingNewItem(null);
+      setIsDirty(false);
       await persist(updated, true);
     }
   };
 
   const sortedData = [...data].sort((a, b) => {
-    const getYear = (d: any) => {
-      if (!d.startDate) return 0;
-      return new Date(d.startDate).getTime();
-    };
-    return getYear(b) - getYear(a);
+    if (!a.startDate && !b.startDate) return 0;
+    if (!a.startDate) return 1;
+    if (!b.startDate) return -1;
+    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
   });
 
   const renderForm = (item: any, isPending: boolean, idx?: number) => {
-    const setVal = (k: string, v: any) => {
+    const setVal = (k: string, v: string) => {
+      setIsDirty(true);
       if (isPending) {
-        setPendingNewItem({ ...item, [k]: v });
+        setPendingNewItem({ ...pendingNewItem, [k]: v });
       } else {
         upd(idx!, k, v);
       }
@@ -136,7 +136,7 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Project</span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
                   <X size={14} /> Cancel
                 </button>
                 <button
@@ -150,6 +150,21 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
               </div>
             </div>
             {renderForm(pendingNewItem, true)}
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#16a34a', color: '#ffffff', cursor: 'not-allowed' }}
+                >
+                  <Check size={14} /> Save
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -158,12 +173,19 @@ export default function ResearchProjects({ data, onChange, onPersist }: { data: 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Project</span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={async () => { setEditingItemIndex(null); await persist(data, true); }} style={btnSave}>
+                <button type="button" onClick={async () => { setEditingItemIndex(null); setIsDirty(false); await persist(data, true); }} style={btnSave}>
                   <Check size={14} /> Done
                 </button>
               </div>
             </div>
             {renderForm(data[editingItemIndex], false, editingItemIndex)}
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" onClick={async () => { setEditingItemIndex(null); setIsDirty(false); await persist(data, true); }} style={btnSave}>
+                  <Check size={14} /> Done
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

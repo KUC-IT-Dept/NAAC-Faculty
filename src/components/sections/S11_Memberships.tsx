@@ -82,12 +82,20 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
-  const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
+  const [isDirty, setIsDirty] = useState(false);
+
+  const upd = (i: number, k: string, v: string) => {
+    setIsDirty(true);
+    const a = [...data];
+    a[i] = { ...a[i], [k]: v };
+    onChange(a);
+  };
 
   const isItemComplete = (item: any) => item.professionalBody && item.membershipType && item.yearOfJoining;
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
+    setIsDirty(false);
   };
 
   const handleSavePending = (item: any) => {
@@ -96,6 +104,7 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
       updated.sort((a, b) => (parseInt(b.yearOfJoining) || 0) - (parseInt(a.yearOfJoining) || 0));
       onChange(updated);
       setPendingNewItem(null);
+      setIsDirty(false);
     }
   };
 
@@ -125,7 +134,7 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Membership</span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
                   <X size={14} /> Cancel
                 </button>
                 <button
@@ -138,15 +147,30 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
                 </button>
               </div>
             </div>
-            {fg('Organization Name *', inp(pendingNewItem.professionalBody, v => setPendingNewItem({ ...pendingNewItem, professionalBody: v })))}
+            {fg('Organization Name *', inp(pendingNewItem.professionalBody, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, professionalBody: v }); }))}
             <div className="form-row form-row-2">
-              {fg('Membership Type *', sel(pendingNewItem.membershipType, v => setPendingNewItem({ ...pendingNewItem, membershipType: v }), membershipTypes))}
-              {fg('Membership ID', inp(pendingNewItem.membershipId, v => setPendingNewItem({ ...pendingNewItem, membershipId: v })))}
+              {fg('Membership Type *', sel(pendingNewItem.membershipType, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, membershipType: v }); }, membershipTypes))}
+              {fg('Membership ID', inp(pendingNewItem.membershipId, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, membershipId: v }); }))}
             </div>
             <div className="form-row form-row-1">
-              {fg('Year of Joining *', yearSel(pendingNewItem.yearOfJoining, v => setPendingNewItem({ ...pendingNewItem, yearOfJoining: v })))}
+              {fg('Year of Joining *', yearSel(pendingNewItem.yearOfJoining, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, yearOfJoining: v }); }))}
             </div>
-            {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} section="memberships" />)}
+            {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, documentUrl: v }); }} section="memberships" />)}
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                >
+                  <Check size={14} /> Save
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -159,10 +183,10 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Membership</span>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnCancel}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
                         <X size={14} /> Cancel
                       </button>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
                         <Check size={14} /> Save
                       </button>
                     </div>
@@ -176,11 +200,21 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
                     {fg('Year of Joining *', yearSel(m.yearOfJoining, v => upd(i, 'yearOfJoining', v)))}
                   </div>
                   {fg('Certificate / Proof', <FileInp v={m.documentUrl} fn={v => upd(i, 'documentUrl', v)} section="memberships" />)}
+                  {isDirty && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
+                        <X size={14} /> Cancel
+                      </button>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
+                        <Check size={14} /> Save
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <PreviewCard
                   m={m}
-                  onEdit={() => setEditingItemIndex(i)}
+                  onEdit={() => { setEditingItemIndex(i); setIsDirty(false); }}
                   onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
                   disabled={pendingNewItem !== null}
                 />

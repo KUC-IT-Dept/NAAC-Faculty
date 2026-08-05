@@ -89,6 +89,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<WorkExperienceEntry>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [isDirty, setIsDirty] = useState(false);
   const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   const dataArray = (Array.isArray(data) ? data : []).filter(Boolean);
@@ -99,6 +100,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
     if (base.dateOfJoining && !base.from) base.from = base.dateOfJoining;
     if (base.dateOfConfirmation && !base.to) base.to = base.dateOfConfirmation;
     setEditingData({ ...base });
+    setIsDirty(false);
   };
 
   const saveEdit = () => {
@@ -135,14 +137,17 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
     onChange(newData);
     setEditingIndex(null);
     setEditingData(EMPTY);
+    setIsDirty(false);
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
     setEditingData(EMPTY);
+    setIsDirty(false);
   };
 
   const updateField = (key: keyof WorkExperienceEntry, value: string) => {
+    setIsDirty(true);
     setEditingData((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -176,7 +181,7 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
         {fg('Designation', <CustomSelect value={editingData.designation || ''} onChange={(v: string) => updateField('designation', v)} options={dynamicDesignationPostOptions} />)}
       </div>
       <div className="form-row form-row-2">
-        {fg('Department', <CustomSelect value={editingData.department || ''} onChange={(v: string) => updateField('department', v)} options={dynamicDepartmentOptions} />)}
+        {fg('Department', <SearchableSelect value={editingData.department || ''} onChange={(v: string) => updateField('department', v)} options={dynamicDepartmentOptions} />)}
         {fg('Employee ID / Staff Code', inp(editingData.employeeId || '', v => updateField('employeeId', v)))}
       </div>
       <div className="form-row form-row-2">
@@ -259,6 +264,35 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
             </div>
           </div>
           {renderFormFields()}
+          {isDirty && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                style={{
+                  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+                  backgroundColor: '#fff1f2', color: '#9f1239',
+                  border: '1px solid #fecdd3', borderRadius: '8px',
+                  marginRight: '8px', fontWeight: 600,
+                  display: 'inline-flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                <X size={14} /> Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmSave(saveEdit)}
+                style={{
+                  padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+                  backgroundColor: '#16a34a', color: 'white', border: 'none',
+                  borderRadius: '8px', fontWeight: 600,
+                  display: 'inline-flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                <Check size={14} /> Save
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -307,6 +341,35 @@ export default function WorkExperience({ data, onChange }: { data: WorkExperienc
                 </div>
               </div>
               {renderFormFields()}
+              {isDirty && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    style={{
+                      padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+                      backgroundColor: '#fff1f2', color: '#9f1239',
+                      border: '1px solid #fecdd3', borderRadius: '8px',
+                      marginRight: '8px', fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', gap: '6px'
+                    }}
+                  >
+                    <X size={14} /> Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveEdit}
+                    style={{
+                      padding: '7px 20px', fontSize: '14px', cursor: 'pointer',
+                      backgroundColor: '#16a34a', color: 'white', border: 'none',
+                      borderRadius: '8px', fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', gap: '6px'
+                    }}
+                  >
+                    <Check size={14} /> Save
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <>
