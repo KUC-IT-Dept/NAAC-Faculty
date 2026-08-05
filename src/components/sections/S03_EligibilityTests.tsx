@@ -88,15 +88,17 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [isDirty, setIsDirty] = useState(false);
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
     setEditingData({ ...data[index] });
+    setIsDirty(false);
   };
 
   const saveEdit = () => {
     const hasContent = Object.values(editingData).some((v: any) => v && typeof v === 'string' && v.trim() !== '');
-    if (!hasContent) { setEditingIndex(null); setEditingData(EMPTY); return; }
+    if (!hasContent) { setEditingIndex(null); setEditingData(EMPTY); setIsDirty(false); return; }
 
     let newData = [...data];
     if (editingIndex === -1) {
@@ -108,16 +110,19 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
     onChange(newData);
     setEditingIndex(null);
     setEditingData(EMPTY);
+    setIsDirty(false);
   };
 
-  const cancelEdit = () => { setEditingIndex(null); setEditingData(EMPTY); };
+  const cancelEdit = () => { setEditingIndex(null); setEditingData(EMPTY); setIsDirty(false); };
 
-  const addNewTest = () => { setEditingIndex(-1); setEditingData({ ...EMPTY }); };
+  const addNewTest = () => { setEditingIndex(-1); setEditingData({ ...EMPTY }); setIsDirty(false); };
 
   const removeTest = (index: number) => onChange(data.filter((_, j) => j !== index));
 
-  const upd = (key: string, value: string) =>
+  const upd = (key: string, value: string) => {
+    setIsDirty(true);
     setEditingData((prev: any) => ({ ...prev, [key]: value }));
+  };
 
   const toggleCard = (index: number) => {
     setExpandedCards(prev => {
@@ -212,6 +217,17 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
     </div>
   );
 
+  const renderEditFooter = () => isDirty ? (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+      <button type="button" onClick={cancelEdit} style={cancelBtnStyle}>
+        <X size={14} /> Cancel
+      </button>
+      <button type="button" onClick={() => confirmSave(saveEdit)} style={saveBtnStyle}>
+        <Check size={14} /> Save
+      </button>
+    </div>
+  ) : null;
+
   /* ── Main render ────────────────────────────────────── */
   return (
     <div>
@@ -232,6 +248,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
         <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
           {renderEditHeader('Add New Eligibility Test')}
           {renderFormFields()}
+          {renderEditFooter()}
         </div>
       )}
 
@@ -242,6 +259,7 @@ export default function EligibilityTests({ data, onChange }: { data: any[]; onCh
             <>
               {renderEditHeader('Edit Eligibility Test')}
               {renderFormFields()}
+              {renderEditFooter()}
             </>
           ) : (
             <>

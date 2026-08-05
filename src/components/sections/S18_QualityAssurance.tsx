@@ -437,8 +437,10 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   const updItem = (i: number, k: string, v: string) => {
+    setIsDirty(true);
     const a = [...responsibilities];
     a[i] = { ...a[i], [k]: v };
     update(a);
@@ -447,11 +449,12 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
   const isComplete = (r: any) => !!r.administrativeCharge;
 
   const handleSavePending = (item: any) => {
-    if (isComplete(item)) { update([item, ...responsibilities]); setPending(null); }
+    if (isComplete(item)) { update([item, ...responsibilities]); setPending(null); setIsDirty(false); }
   };
 
   /** When charge type changes, reset charge-specific fields but keep common ones */
   const handleChargeChange = (currentItem: any, newCharge: string, isPending: boolean, idx?: number) => {
+    setIsDirty(true);
     const reset: Record<string, string> = {
       ...EMPTY_RESPONSIBILITY,
       administrativeCharge: newCharge,
@@ -469,6 +472,7 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
 
   const renderForm = (item: any, isPending: boolean, idx?: number) => {
     const setVal = (k: string, v: string) => {
+      setIsDirty(true);
       if (isPending) {
         setPending({ ...item, [k]: v });
       } else if (idx !== undefined) {
@@ -498,7 +502,7 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
           <h5 style={{ margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Quality Assurance</h5>
           <button
             type="button"
-            onClick={() => setPending({ ...EMPTY_RESPONSIBILITY })}
+            onClick={() => { setPending({ ...EMPTY_RESPONSIBILITY }); setIsDirty(false); }}
             disabled={pending !== null || editingIndex !== null}
             style={{ ...btnAdd, flexShrink: 0 }}
           >
@@ -516,7 +520,7 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Responsibility</span>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={() => setPending(null)} style={btnCancel}><X size={14} /> Cancel</button>
+                  <button type="button" onClick={() => { setPending(null); setIsDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
                   <button
                     type="button"
                     onClick={() => handleSavePending(pending)}
@@ -528,6 +532,19 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
                 </div>
               </div>
               {renderForm(pending, true)}
+              {isDirty && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                  <button type="button" onClick={() => { setPending(null); setIsDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
+                  <button
+                    type="button"
+                    onClick={() => handleSavePending(pending)}
+                    disabled={!isComplete(pending)}
+                    style={isComplete(pending) ? btnSave : { ...btnSave, backgroundColor: '#16a34a', color: '#ffffff', cursor: 'not-allowed', opacity: 0.6 }}
+                  >
+                    <Check size={14} /> Save
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -540,17 +557,24 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Responsibility</span>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" onClick={() => setEditingIndex(null)} style={btnCancel}><X size={14} /> Cancel</button>
-                        <button type="button" onClick={() => setEditingIndex(null)} style={btnSave}><Check size={14} /> Save</button>
-                        <button type="button" onClick={() => { update(responsibilities.filter((_: any, j: number) => j !== i)); setEditingIndex(null); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
+                        <button type="button" onClick={() => { setEditingIndex(null); setIsDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
+                        <button type="button" onClick={() => { setEditingIndex(null); setIsDirty(false); }} style={btnSave}><Check size={14} /> Save</button>
+                        <button type="button" onClick={() => { update(responsibilities.filter((_: any, j: number) => j !== i)); setEditingIndex(null); setIsDirty(false); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
                       </div>
                     </div>
                     {renderForm(r, false, i)}
+                    {isDirty && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                        <button type="button" onClick={() => { setEditingIndex(null); setIsDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
+                        <button type="button" onClick={() => { setEditingIndex(null); setIsDirty(false); }} style={btnSave}><Check size={14} /> Save</button>
+                        <button type="button" onClick={() => { update(responsibilities.filter((_: any, j: number) => j !== i)); setEditingIndex(null); setIsDirty(false); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <RespPreviewCard
                     r={r}
-                    onEdit={() => setEditingIndex(i)}
+                    onEdit={() => { setEditingIndex(i); setIsDirty(false); }}
                     onDelete={() => update(responsibilities.filter((_: any, j: number) => j !== i))}
                     disabled={pending !== null}
                   />

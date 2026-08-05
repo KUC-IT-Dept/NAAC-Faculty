@@ -85,12 +85,20 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
-  const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
+  const [isDirty, setIsDirty] = useState(false);
+
+  const upd = (i: number, k: string, v: string) => {
+    setIsDirty(true);
+    const a = [...data];
+    a[i] = { ...a[i], [k]: v };
+    onChange(a);
+  };
 
   const isItemComplete = (item: any) => item.courseName && item.platform && item.from && item.to;
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
+    setIsDirty(false);
   };
 
   const handleSavePending = (item: any) => {
@@ -99,6 +107,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
       updated.sort((a, b) => (b.from || '').localeCompare(a.from || ''));
       onChange(updated);
       setPendingNewItem(null);
+      setIsDirty(false);
     }
   };
 
@@ -128,7 +137,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Course</span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
                   <X size={14} /> Cancel
                 </button>
                 <button
@@ -141,20 +150,35 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                 </button>
               </div>
             </div>
-            {fg('Course / Certification Name *', inp(pendingNewItem.courseName, v => setPendingNewItem({ ...pendingNewItem, courseName: v })))}
+            {fg('Course / Certification Name *', inp(pendingNewItem.courseName, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, courseName: v }); }))}
             <div className="form-row form-row-2">
-              {fg('Platform / Provider *', sel(pendingNewItem.platform, v => setPendingNewItem({ ...pendingNewItem, platform: v }), platformOpts, "Select..."))}
-              {fg('Course Level', sel(pendingNewItem.courseLevel, v => setPendingNewItem({ ...pendingNewItem, courseLevel: v }), levelOpts, "Select..."))}
+              {fg('Platform / Provider *', sel(pendingNewItem.platform, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, platform: v }); }, platformOpts, "Select..."))}
+              {fg('Course Level', sel(pendingNewItem.courseLevel, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, courseLevel: v }); }, levelOpts, "Select..."))}
             </div>
             <div className="form-row form-row-2">
-              {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
-              {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
+              {fg('From Date *', dateInp(pendingNewItem.from, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, from: v }); }))}
+              {fg('To Date *', dateInp(pendingNewItem.to, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, to: v }); }))}
             </div>
             <div className="form-row form-row-2">
-              {fg('Certificate ID', inp(pendingNewItem.certificateId, v => setPendingNewItem({ ...pendingNewItem, certificateId: v })))}
-              {fg('Score / Grade', inp(pendingNewItem.score, v => setPendingNewItem({ ...pendingNewItem, score: v })))}
+              {fg('Certificate ID', inp(pendingNewItem.certificateId, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, certificateId: v }); }))}
+              {fg('Score / Grade', inp(pendingNewItem.score, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, score: v }); }))}
             </div>
-            {fg('Upload Certificate', <FileInp v={pendingNewItem.certificateUrl} fn={v => setPendingNewItem({ ...pendingNewItem, certificateUrl: v })} section="onlineCourses" />)}
+            {fg('Upload Certificate', <FileInp v={pendingNewItem.certificateUrl} fn={v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, certificateUrl: v }); }} section="onlineCourses" />)}
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#16a34a', color: '#ffffff', cursor: 'not-allowed', opacity: 0.6 }}
+                >
+                  <Check size={14} /> Save
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -167,10 +191,10 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Course</span>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnCancel}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
                         <X size={14} /> Cancel
                       </button>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
                         <Check size={14} /> Save
                       </button>
                     </div>
@@ -189,11 +213,21 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                     {fg('Score / Grade', inp(item.score, v => upd(i, 'score', v)))}
                   </div>
                   {fg('Upload Certificate', <FileInp v={item.certificateUrl} fn={v => upd(i, 'certificateUrl', v)} section="onlineCourses" />)}
+                  {isDirty && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
+                        <X size={14} /> Cancel
+                      </button>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
+                        <Check size={14} /> Save
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <PreviewCard
                   item={item}
-                  onEdit={() => setEditingItemIndex(i)}
+                  onEdit={() => { setEditingItemIndex(i); setIsDirty(false); }}
                   onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
                   disabled={pendingNewItem !== null}
                 />

@@ -101,7 +101,10 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
     }
   };
 
+  const [isDirty, setIsDirty] = useState(false);
+
   const updStudent = (i: number, k: string, v: string) => {
+    setIsDirty(true);
     const arr = [...studentDetails];
     arr[i] = { ...arr[i], [k]: v };
     setStudentDetails(arr);
@@ -109,6 +112,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
   };
 
   const toggleEdit = (i: number, state: boolean) => {
+    setIsDirty(false);
     const arr = [...studentDetails];
     arr[i] = { ...arr[i], isEditing: state };
     setStudentDetails(arr);
@@ -116,12 +120,14 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
   };
 
   const deleteRow = (i: number) => {
+    setIsDirty(false);
     const arr = studentDetails.filter((_: any, idx: number) => idx !== i);
     setStudentDetails(arr);
     update('studentDetails', arr, true);
   };
 
   const addRow = () => {
+    setIsDirty(false);
     const tempId = 'student-' + Math.random().toString(36).substr(2, 9);
     const arr = [
       { id: tempId, studentName: '', topic: '', year: '', fellowship: '', degree: 'Ph.D', status: 'Ongoing', scholarGender: '', guidanceType: '', supervisionCategory: '', isEditing: true },
@@ -294,6 +300,22 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                     {fg('Year', yearSel(st.year, v => updStudent(i, 'year', v)))}
                     {fg('Fellowship Details', inp(st.fellowship, v => updStudent(i, 'fellowship', v), 'Enter fellowship details (optional)'))}
                   </div>
+                  {isDirty && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                      <button type="button" onClick={() => deleteRow(i)} style={cancelBtnStyle}>
+                        <X size={14} /> Delete
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleEdit(i, false)}
+                        disabled={!isComplete(st)}
+                        title={!isComplete(st) ? 'Please enter student name, degree and status' : 'Save'}
+                        style={isComplete(st) ? saveBtnStyle : { ...saveBtnStyle, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                      >
+                        <Check size={14} /> Save
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

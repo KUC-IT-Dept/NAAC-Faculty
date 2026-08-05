@@ -118,7 +118,14 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
-  const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
+  const [isDirty, setIsDirty] = useState(false);
+
+  const upd = (i: number, k: string, v: string) => {
+    setIsDirty(true);
+    const a = [...data];
+    a[i] = { ...a[i], [k]: v };
+    onChange(a);
+  };
 
   const persist = async (updatedAwards: any[], showToast = false) => {
     if (onPersist) {
@@ -133,6 +140,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
   // Handle adding a new award
   const handleAddAward = () => {
     setPendingNewItem({ ...EMPTY });
+    setIsDirty(false);
   };
 
   // Handle saving a pending new item (insert at top, then sort)
@@ -148,6 +156,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
       });
       onChange(updated);
       setPendingNewItem(null);
+      setIsDirty(false);
       await persist(updated, true);
     }
   };
@@ -201,26 +210,41 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
               </div>
             </div>
             <div className="form-row form-row-2">
-              {fg('Award / Fellowship / Honour Name *', inp(pendingNewItem.name, v => setPendingNewItem({ ...pendingNewItem, name: v })))}
-              {fg('Awarding Body / Agency *', sel(pendingNewItem.awardingAgency, v => setPendingNewItem({ ...pendingNewItem, awardingAgency: v }), dynamicAwardingAgencyTypeOptions, "Select..."))}
+              {fg('Award / Fellowship / Honour Name *', inp(pendingNewItem.name, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, name: v }); }))}
+              {fg('Awarding Body / Agency *', sel(pendingNewItem.awardingAgency, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, awardingAgency: v }); }, dynamicAwardingAgencyTypeOptions, "Select..."))}
             </div>
             <div className="form-row form-row-3">
-              {fg('Award Category', sel(pendingNewItem.awardCategory, v => setPendingNewItem({ ...pendingNewItem, awardCategory: v }), dynamicAwardCategoryOptions, "Select..."))}
-              {fg('Honour Type', sel(pendingNewItem.honourType, v => setPendingNewItem({ ...pendingNewItem, honourType: v }), dynamicHonourTypeOptions, "Select..."))}
-              {fg('Recognition Status', sel(pendingNewItem.recognitionStatus, v => setPendingNewItem({ ...pendingNewItem, recognitionStatus: v }), dynamicRecognitionStatusOptions, "Select..."))}
+              {fg('Award Category', sel(pendingNewItem.awardCategory, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, awardCategory: v }); }, dynamicAwardCategoryOptions, "Select..."))}
+              {fg('Honour Type', sel(pendingNewItem.honourType, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, honourType: v }); }, dynamicHonourTypeOptions, "Select..."))}
+              {fg('Recognition Status', sel(pendingNewItem.recognitionStatus, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, recognitionStatus: v }); }, dynamicRecognitionStatusOptions, "Select..."))}
             </div>
             <div className="form-row form-row-2">
-              {fg('Date / Year of Award', <input type="date" value={pendingNewItem.dateOfAward} onChange={e => setPendingNewItem({ ...pendingNewItem, dateOfAward: e.target.value })} className="form-input" />)}
-              {fg('Year Received', <select className="form-select" value={pendingNewItem.yearReceived || ''} onChange={e => setPendingNewItem({ ...pendingNewItem, yearReceived: e.target.value })}><option value="">— Select Year —</option>{YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}</select>)}
+              {fg('Date / Year of Award', <input type="date" value={pendingNewItem.dateOfAward} onChange={e => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, dateOfAward: e.target.value }); }} className="form-input" />)}
+              {fg('Year Received', <select className="form-select" value={pendingNewItem.yearReceived || ''} onChange={e => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, yearReceived: e.target.value }); }}><option value="">— Select Year —</option>{YEAR_OPTS.map(y => <option key={y} value={y}>{y}</option>)}</select>)}
             </div>
             <div className="form-row form-row-2">
-              {fg('Level', sel(pendingNewItem.level, v => setPendingNewItem({ ...pendingNewItem, level: v }), levels))}
-              {fg('Brief Description (optional)', ta(pendingNewItem.description, v => setPendingNewItem({ ...pendingNewItem, description: v }), 'Details about the award...'))}
+              {fg('Level', sel(pendingNewItem.level, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, level: v }); }, levels))}
+              {fg('Brief Description (optional)', ta(pendingNewItem.description, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, description: v }); }, 'Details about the award...'))}
             </div>
             <div className="form-row form-row-2">
-              {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => setPendingNewItem({ ...pendingNewItem, documentUrl: v })} section="awards" />)}
+              {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, documentUrl: v }); }} section="awards" />)}
               <div></div>
             </div>
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={cancelBtnStyle}>
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={saveBtnStyle}
+                >
+                  <Check size={14} /> Save
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -235,10 +259,10 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Award</span>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={async () => { setEditingItemIndex(null); await persist(data, true); }} style={saveBtnStyle}>
+                      <button type="button" onClick={async () => { setEditingItemIndex(null); setIsDirty(false); await persist(data, true); }} style={saveBtnStyle}>
                         <Check size={14} /> Done
                       </button>
-                      <button type="button" onClick={() => confirmDelete(async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); setEditingItemIndex(null); await persist(updated, false); })} style={deleteBtnStyle}>
+                      <button type="button" onClick={() => confirmDelete(async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); setEditingItemIndex(null); setIsDirty(false); await persist(updated, false); })} style={deleteBtnStyle}>
                         <Trash2 size={14} /> Delete
                       </button>
                     </div>
@@ -264,6 +288,16 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
                     {fg('Certificate / Proof', <FileInp v={a.documentUrl} fn={v => upd(originalIndex, 'documentUrl', v)} section="awards" />)}
                     <div></div>
                   </div>
+                  {isDirty && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                      <button type="button" onClick={async () => { setEditingItemIndex(null); setIsDirty(false); await persist(data, true); }} style={saveBtnStyle}>
+                        <Check size={14} /> Done
+                      </button>
+                      <button type="button" onClick={() => confirmDelete(async () => { const updated = data.filter((_, j) => j !== originalIndex); onChange(updated); setEditingItemIndex(null); setIsDirty(false); await persist(updated, false); })} style={deleteBtnStyle}>
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <AwardPreviewCard

@@ -80,12 +80,20 @@ export default function InternationalExperience({ data, onChange }: { data: any[
 
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [pendingNewItem, setPendingNewItem] = useState<any>(null);
-  const upd = (i: number, k: string, v: string) => { const a = [...data]; a[i] = { ...a[i], [k]: v }; onChange(a); };
+  const [isDirty, setIsDirty] = useState(false);
+
+  const upd = (i: number, k: string, v: string) => {
+    setIsDirty(true);
+    const a = [...data];
+    a[i] = { ...a[i], [k]: v };
+    onChange(a);
+  };
 
   const isItemComplete = (item: any) => item.country && item.purpose && item.from && item.to && item.institution;
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
+    setIsDirty(false);
   };
 
   const handleSavePending = (item: any) => {
@@ -94,6 +102,7 @@ export default function InternationalExperience({ data, onChange }: { data: any[
       updated.sort((a, b) => (b.from || '').localeCompare(a.from || ''));
       onChange(updated);
       setPendingNewItem(null);
+      setIsDirty(false);
     }
   };
 
@@ -123,7 +132,7 @@ export default function InternationalExperience({ data, onChange }: { data: any[
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Experience</span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => setPendingNewItem(null)} style={btnCancel}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
                   <X size={14} /> Cancel
                 </button>
                 <button
@@ -137,15 +146,30 @@ export default function InternationalExperience({ data, onChange }: { data: any[
               </div>
             </div>
             <div className="form-row form-row-2">
-              {fg('Visited Country *', sel(pendingNewItem.country, v => setPendingNewItem({ ...pendingNewItem, country: v }), countryOpts))}
-              {fg('Purpose *', sel(pendingNewItem.purpose, v => setPendingNewItem({ ...pendingNewItem, purpose: v }), purposeOpts))}
+              {fg('Visited Country *', sel(pendingNewItem.country, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, country: v }); }, countryOpts))}
+              {fg('Purpose *', sel(pendingNewItem.purpose, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, purpose: v }); }, purposeOpts))}
             </div>
-            {fg('Institution / University *', <SearchableSelect value={pendingNewItem.institution || ''} onChange={(v: string) => setPendingNewItem({ ...pendingNewItem, institution: v })} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
+            {fg('Institution / University *', <SearchableSelect value={pendingNewItem.institution || ''} onChange={(v: string) => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, institution: v }); }} options={institutionsOpts} placeholder="Search or Enter Institution" />)}
             <div className="form-row form-row-3">
-              {fg('From Date *', dateInp(pendingNewItem.from, v => setPendingNewItem({ ...pendingNewItem, from: v })))}
-              {fg('To Date *', dateInp(pendingNewItem.to, v => setPendingNewItem({ ...pendingNewItem, to: v })))}
-              {fg('Funding Source', inp(pendingNewItem.fundingSource, v => setPendingNewItem({ ...pendingNewItem, fundingSource: v })))}
+              {fg('From Date *', dateInp(pendingNewItem.from, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, from: v }); }))}
+              {fg('To Date *', dateInp(pendingNewItem.to, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, to: v }); }))}
+              {fg('Funding Source', inp(pendingNewItem.fundingSource, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, fundingSource: v }); }))}
             </div>
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" onClick={() => { setPendingNewItem(null); setIsDirty(false); }} style={btnCancel}>
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSavePending(pendingNewItem)}
+                  disabled={!isItemComplete(pendingNewItem)}
+                  style={isItemComplete(pendingNewItem) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                >
+                  <Check size={14} /> Save
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -158,10 +182,10 @@ export default function InternationalExperience({ data, onChange }: { data: any[
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Experience</span>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnCancel}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
                         <X size={14} /> Cancel
                       </button>
-                      <button type="button" onClick={() => setEditingItemIndex(null)} style={btnSave}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
                         <Check size={14} /> Save
                       </button>
                     </div>
@@ -176,11 +200,21 @@ export default function InternationalExperience({ data, onChange }: { data: any[
                     {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}
                     {fg('Funding Source', inp(item.fundingSource, v => upd(i, 'fundingSource', v)))}
                   </div>
+                  {isDirty && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
+                        <X size={14} /> Cancel
+                      </button>
+                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
+                        <Check size={14} /> Save
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <PreviewCard
                   item={item}
-                  onEdit={() => setEditingItemIndex(i)}
+                  onEdit={() => { setEditingItemIndex(i); setIsDirty(false); }}
                   onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
                   disabled={pendingNewItem !== null}
                 />

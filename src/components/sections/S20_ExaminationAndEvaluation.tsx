@@ -282,9 +282,26 @@ function ResponsibilityEditor({
   title: string;
 }) {
   const examEvalOpts = useDropdownOptions(examinationEvaluationOptions);
+  const [isDirty, setIsDirty] = useState(false);
+
+  const handleChange = (newItem: any) => {
+    setIsDirty(true);
+    onChange(newItem);
+  };
 
   const handleChargeChange = (v: string) => {
+    setIsDirty(true);
     onChange({ ...EMPTY_RESPONSIBILITY, administrativeCharge: v });
+  };
+
+  const handleCancel = () => {
+    setIsDirty(false);
+    onCancel();
+  };
+
+  const handleSave = () => {
+    setIsDirty(false);
+    onSave();
   };
 
   return (
@@ -292,10 +309,10 @@ function ResponsibilityEditor({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{title}</span>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" onClick={onCancel} style={btnCancel}><X size={14} /> Cancel</button>
+          <button type="button" onClick={handleCancel} style={btnCancel}><X size={14} /> Cancel</button>
           <button
             type="button"
-            onClick={onSave}
+            onClick={handleSave}
             disabled={!isComplete(item)}
             style={isComplete(item) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
           >
@@ -306,7 +323,20 @@ function ResponsibilityEditor({
       <div className="form-row form-row-1">
         {fg('Administrative Charge *', sel(item.administrativeCharge, handleChargeChange, examEvalOpts))}
       </div>
-      <ResponsibilityFormFields item={item} onChange={onChange} />
+      <ResponsibilityFormFields item={item} onChange={handleChange} />
+      {isDirty && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+          <button type="button" onClick={handleCancel} style={btnCancel}><X size={14} /> Cancel</button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!isComplete(item)}
+            style={isComplete(item) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+          >
+            <Check size={14} /> Save
+          </button>
+        </div>
+      )}
     </>
   );
 }

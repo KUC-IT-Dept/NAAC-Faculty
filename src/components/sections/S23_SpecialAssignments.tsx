@@ -340,8 +340,10 @@ export default function SpecialAssignments({ data, onChange, onPersist }: { data
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [pending, setPending] = useState<any>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   const updItem = (i: number, k: string, v: string) => {
+    setIsDirty(true);
     const a = [...responsibilities];
     a[i] = { ...a[i], [k]: v };
     update(a);
@@ -354,12 +356,14 @@ export default function SpecialAssignments({ data, onChange, onPersist }: { data
       const updated = [item, ...responsibilities];
       update(updated); 
       setPending(null); 
+      setIsDirty(false);
       if (onPersist) await onPersist(updated, true);
     }
   };
 
   /** When charge type changes, reset charge-specific fields but keep common ones */
   const handleChargeChange = (currentItem: any, newCharge: string, isPending: boolean, idx?: number) => {
+    setIsDirty(true);
     const reset: Record<string, string> = {
       ...EMPTY_RESPONSIBILITY,
       administrativeCharge: newCharge,
@@ -379,6 +383,7 @@ export default function SpecialAssignments({ data, onChange, onPersist }: { data
 
   const renderForm = (item: any, isPending: boolean, idx?: number) => {
     const setVal = (k: string, v: string) => {
+      setIsDirty(true);
       if (isPending) {
         setPending((prev: any) => ({ ...prev, [k]: v }));
       } else if (idx !== undefined) {
@@ -408,7 +413,7 @@ export default function SpecialAssignments({ data, onChange, onPersist }: { data
           <h5 style={{ margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Special Assignments</h5>
           <button
             type="button"
-            onClick={() => setPending({ ...EMPTY_RESPONSIBILITY })}
+            onClick={() => { setPending({ ...EMPTY_RESPONSIBILITY }); setIsDirty(false); }}
             disabled={pending !== null || editingIndex !== null}
             style={{ ...btnAdd, flexShrink: 0 }}
           >
@@ -426,7 +431,7 @@ export default function SpecialAssignments({ data, onChange, onPersist }: { data
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>New Responsibility</span>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={() => setPending(null)} style={btnCancel}><X size={14} /> Cancel</button>
+                  <button type="button" onClick={() => { setPending(null); setIsDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
                   <button
                     type="button"
                     onClick={() => handleSavePending(pending)}
@@ -438,6 +443,19 @@ export default function SpecialAssignments({ data, onChange, onPersist }: { data
                 </div>
               </div>
               {renderForm(pending, true)}
+              {isDirty && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                  <button type="button" onClick={() => { setPending(null); setIsDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
+                  <button
+                    type="button"
+                    onClick={() => handleSavePending(pending)}
+                    disabled={!isComplete(pending)}
+                    style={isComplete(pending) ? btnSave : { ...btnSave, backgroundColor: '#16a34a', color: '#ffffff', cursor: 'not-allowed', opacity: 0.6 }}
+                  >
+                    <Check size={14} /> Save
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -450,17 +468,24 @@ export default function SpecialAssignments({ data, onChange, onPersist }: { data
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Editing Responsibility</span>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" onClick={() => setEditingIndex(null)} style={btnCancel}><X size={14} /> Cancel</button>
-                        <button type="button" onClick={async () => { setEditingIndex(null); if (onPersist) await onPersist(responsibilities, true); }} style={btnSave}><Check size={14} /> Save</button>
-                        <button type="button" onClick={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); setEditingIndex(null); if (onPersist) await onPersist(updated, false); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
+                        <button type="button" onClick={() => { setEditingIndex(null); setIsDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
+                        <button type="button" onClick={async () => { setEditingIndex(null); setIsDirty(false); if (onPersist) await onPersist(responsibilities, true); }} style={btnSave}><Check size={14} /> Save</button>
+                        <button type="button" onClick={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); setEditingIndex(null); setIsDirty(false); if (onPersist) await onPersist(updated, false); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
                       </div>
                     </div>
                     {renderForm(r, false, i)}
+                    {isDirty && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                        <button type="button" onClick={() => { setEditingIndex(null); setIsDirty(false); }} style={btnCancel}><X size={14} /> Cancel</button>
+                        <button type="button" onClick={async () => { setEditingIndex(null); setIsDirty(false); if (onPersist) await onPersist(responsibilities, true); }} style={btnSave}><Check size={14} /> Save</button>
+                        <button type="button" onClick={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); setEditingIndex(null); setIsDirty(false); if (onPersist) await onPersist(updated, false); }} style={btnDelete}><Trash2 size={14} /> Delete</button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <RespPreviewCard
                     r={r}
-                    onEdit={() => setEditingIndex(i)}
+                    onEdit={() => { setEditingIndex(i); setIsDirty(false); }}
                     onDelete={async () => { const updated = responsibilities.filter((_: any, j: number) => j !== i); update(updated); if (onPersist) await onPersist(updated, false); }}
                     disabled={pending !== null}
                   />

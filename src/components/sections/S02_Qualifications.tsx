@@ -334,17 +334,20 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
     onChange(newData);
     setEditingIndex(null);
     setEditingData(EMPTY);
+    setIsDirty(false);
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
     setEditingData(EMPTY);
+    setIsDirty(false);
   };
 
   const addNewQualification = () => {
     // Don't add empty qualification - just open edit mode with empty data
     setEditingIndex(-1);
     setEditingData({ ...EMPTY });
+    setIsDirty(false);
   };
 
   const removeQualification = (index: number) => {
@@ -355,6 +358,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
   };
 
   const updateEditingData = (key: string, value: string) => {
+    setIsDirty(true);
     setEditingData((prev: any) => ({ ...prev, [key]: value }));
   };
 
@@ -665,6 +669,24 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             </div>
 
             {renderQualificationFormFields()}
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  style={cancelBtnStyle}
+                >
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => confirmSave(saveEdit)}
+                  style={saveBtnStyle}
+                >
+                  <Check size={14} /> Save
+                </button>
+              </div>
+            )}
           </>
         </div>
       ) : (
@@ -697,6 +719,24 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                 </div>
 
                 {renderQualificationFormFields()}
+                {isDirty && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      style={cancelBtnStyle}
+                    >
+                      <X size={14} /> Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => confirmSave(saveEdit)}
+                      style={saveBtnStyle}
+                    >
+                      <Check size={14} /> Save
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <>

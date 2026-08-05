@@ -457,8 +457,10 @@ export default function Publications({
 
   const [pendingNewItem, setPendingNewItem] = useState<Publication | null>(null);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   const upd = (i: number, k: keyof Publication, v: string) => {
+    setIsDirty(true);
     const arr = [...data];
     arr[i] = { ...arr[i], [k]: v };
     onChange(arr);
@@ -469,6 +471,7 @@ export default function Publications({
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
     setEditingItemIndex(null);
+    setIsDirty(false);
   };
 
   const handleSavePending = () => {
@@ -477,10 +480,12 @@ export default function Publications({
       arr.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
       onChange(arr);
       setPendingNewItem(null);
+      setIsDirty(false);
     }
   };
 
   const toggleEdit = (i: number, state: boolean) => {
+    setIsDirty(false);
     if (state) {
       setEditingItemIndex(i);
       setPendingNewItem(null);
@@ -541,7 +546,14 @@ export default function Publications({
 
             <div style={{ marginBottom: '24px', maxWidth: 420 }}>
               {fg('Publication Type *',
-                <select className="form-select" value={normalizeType(pendingNewItem.type)} onChange={e => setPendingNewItem({ ...pendingNewItem, type: normalizeType(e.target.value) })}>
+                <select
+                  className="form-select"
+                  value={normalizeType(pendingNewItem.type)}
+                  onChange={e => {
+                    setIsDirty(true);
+                    setPendingNewItem({ ...pendingNewItem, type: normalizeType(e.target.value) });
+                  }}
+                >
                   <option value="">— Select Publication Type —</option>
                   {dynamicPublicationTypeOptions.map(tab => <option key={tab} value={normalizeType(tab)}>{tab}</option>)}
                 </select>
@@ -550,13 +562,32 @@ export default function Publications({
 
             <PubForm 
               item={pendingNewItem} 
-              onChange={(k, v) => setPendingNewItem({ ...pendingNewItem, [k]: v })} 
+              onChange={(k, v) => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, [k]: v }); }} 
               levels={levels}
               yesNo={yesNo}
               indexedInOpts={dynamicIndexedInOptions}
               authorRoleOpts={dynamicAuthorRoleOptions}
               journalCategoryOpts={dynamicJournalCategoryOptions}
             />
+            {isDirty && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                <button
+                  type="button"
+                  style={btnStyles.cancel}
+                  onClick={() => setPendingNewItem(null)}
+                >
+                  <X size={14} /> Cancel
+                </button>
+                <button
+                  type="button"
+                  style={isComplete(pendingNewItem) ? btnStyles.save : btnStyles.saveDisabled}
+                  disabled={!isComplete(pendingNewItem)}
+                  onClick={() => confirmSave(handleSavePending)}
+                >
+                  <Check size={14} /> Save
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -602,6 +633,30 @@ export default function Publications({
                   </div>
 
                   <PubForm item={p} onChange={(k, v) => upd(i, k, v)} levels={levels} yesNo={yesNo} indexedInOpts={dynamicIndexedInOptions} authorRoleOpts={dynamicAuthorRoleOptions} journalCategoryOpts={dynamicJournalCategoryOptions} />
+                  {isDirty && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                      <button
+                        type="button"
+                        style={isComplete(p) ? btnStyles.save : btnStyles.saveDisabled}
+                        disabled={!isComplete(p)}
+                        onClick={() => confirmSave(() => toggleEdit(i, false))}
+                      >
+                        <Check size={14} /> Done
+                      </button>
+                      <button
+                        type="button" style={btnStyles.delete}
+                        onClick={() => {
+                          confirmDelete(() => {
+                            const arr = data.filter((_, idx) => idx !== i);
+                            setEditingItemIndex(null);
+                            onChange(arr);
+                          });
+                        }}
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <PreviewCard
