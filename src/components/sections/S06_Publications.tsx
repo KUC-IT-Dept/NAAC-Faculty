@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink, BookOpen, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, BookOpen, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, DropdownWithCustom, DocumentPreviewLink } from './sectionUtils';
 import { publicationLevelOptions, peerReviewedStatusOptions, indexedInOptions, publicationTypeOptions, authorRoleOptions, journalCategoryOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
@@ -48,12 +48,6 @@ const EMPTY: Publication = {
   editors: '', bookType: '', organizedBy: '', publishedInProceedings: ''
 };
 
-const PUB_TABS = [
-  { id: 'Journal Articles', label: 'Journal Articles' },
-  { id: 'Book Chapters', label: 'Book Chapters' },
-  { id: 'Books Authored / Edited', label: 'Books Authored / Edited' },
-  { id: 'Conference Papers', label: 'Conference Papers' },
-];
 
 const BOOK_TYPES = ['Authored', 'Edited', 'Co-authored'];
 
@@ -63,7 +57,26 @@ for (let y = currentYear; y >= 1970; y--) YEAR_OPTS.push(String(y));
 
 const VOLUME_OPTS: string[] = Array.from({ length: 50 }, (_, i) => String(i + 1));
 const ISSUE_OPTS: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1));
-const PAGES_OPTS: string[] = ['1-5', '1-8', '1-10', '1-12', '1-15', '1-20', '100-110'];
+
+const normalizeType = (type: string): string => {
+  if (!type) return 'Journal Articles';
+  const lower = type.trim().toLowerCase();
+  
+  if (lower === 'journal' || lower === 'journal articles' || lower === 'journal article' || lower === 'article' || lower === 'thesis' || lower === 'patent') {
+    return 'Journal Articles';
+  }
+  if (lower === 'book chapter' || lower === 'book chapters' || lower === 'bookchapter') {
+    return 'Book Chapters';
+  }
+  if (lower === 'book' || lower === 'books authored / edited' || lower === 'books authored/edited' || lower === 'books authored & edited') {
+    return 'Books Authored / Edited';
+  }
+  if (lower === 'conference' || lower === 'conference paper' || lower === 'conference papers') {
+    return 'Conference Papers';
+  }
+  
+  return 'Journal Articles'; // Safe fallback
+};
 
 /* --- Form --- */
 function PubForm({ item, onChange, levels, yesNo, indexedInOpts, authorRoleOpts, journalCategoryOpts }: {
@@ -75,7 +88,7 @@ function PubForm({ item, onChange, levels, yesNo, indexedInOpts, authorRoleOpts,
   authorRoleOpts: string[];
   journalCategoryOpts: string[];
 }) {
-  const t = item.type;
+  const t = normalizeType(item.type);
 
   return (
     <>
@@ -249,7 +262,7 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
 }
 
 function PreviewDetails({ p }: { p: Publication }) {
-  const t = p.type;
+  const t = normalizeType(p.type);
 
   const pageRange = p.pageFrom && p.pageTo
     ? `${p.pageFrom} – ${p.pageTo}`
@@ -353,8 +366,8 @@ function PreviewCard({
               {p.title || 'Untitled Publication'}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              <span className="badge badge-secondary">{p.type}</span>
-              {p.type === 'Conference Papers' && p.level && <span className="badge badge-secondary">{p.level}</span>}
+              <span className="badge badge-secondary">{normalizeType(p.type)}</span>
+              {normalizeType(p.type) === 'Conference Papers' && p.level && <span className="badge badge-secondary">{p.level}</span>}
               <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{p.journal || p.organizedBy}</span>
             </div>
           </div>
@@ -388,7 +401,10 @@ function SummaryBanner({ data }: { data: Publication[] }) {
   const counts: Record<string, number> = {
     'Journal Articles': 0, 'Conference Papers': 0, 'Books Authored / Edited': 0, 'Book Chapters': 0
   };
-  data.forEach(p => { if (counts[p.type] !== undefined) counts[p.type]++; });
+  data.forEach(p => {
+    const t = normalizeType(p.type);
+    if (counts[t] !== undefined) counts[t]++;
+  });
 
   return (
     <div style={{
@@ -525,9 +541,9 @@ export default function Publications({
 
             <div style={{ marginBottom: '24px', maxWidth: 420 }}>
               {fg('Publication Type *',
-                <select className="form-select" value={pendingNewItem.type} onChange={e => setPendingNewItem({ ...pendingNewItem, type: e.target.value })}>
+                <select className="form-select" value={normalizeType(pendingNewItem.type)} onChange={e => setPendingNewItem({ ...pendingNewItem, type: normalizeType(e.target.value) })}>
                   <option value="">— Select Publication Type —</option>
-                  {dynamicPublicationTypeOptions.map(tab => <option key={tab} value={tab}>{tab}</option>)}
+                  {dynamicPublicationTypeOptions.map(tab => <option key={tab} value={normalizeType(tab)}>{tab}</option>)}
                 </select>
               )}
             </div>
@@ -578,9 +594,9 @@ export default function Publications({
                   
                   <div style={{ marginBottom: '24px', maxWidth: 420 }}>
                     {fg('Publication Type *',
-                      <select className="form-select" value={p.type} onChange={e => upd(i, 'type', e.target.value)}>
+                      <select className="form-select" value={normalizeType(p.type)} onChange={e => upd(i, 'type', normalizeType(e.target.value))}>
                         <option value="">— Select Publication Type —</option>
-                        {dynamicPublicationTypeOptions.map(tab => <option key={tab} value={tab}>{tab}</option>)}
+                        {dynamicPublicationTypeOptions.map(tab => <option key={tab} value={normalizeType(tab)}>{tab}</option>)}
                       </select>
                     )}
                   </div>
