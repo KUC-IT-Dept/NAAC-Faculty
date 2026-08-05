@@ -10,7 +10,7 @@ const PROGRAMMES_LIST = ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M
 const SUBJECTS_LIST = ['Computer Science', 'Physics', 'Mathematics', 'Chemistry', 'Biology', 'Electronics Engineering', 'Mechanical Engineering', 'Civil Engineering', 'English', 'Management', 'Other'];
 const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
-const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '', semester: '' };
+const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '', semester: '', semesterFrom: '', semesterTo: '' };
 const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
@@ -46,7 +46,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               {c.programmes && <span className="badge badge-secondary">{c.programmes}</span>}
-              {c.semester && <span className="badge badge-secondary">{c.semester}</span>}
+              {(c.semesterFrom || c.semesterTo) && <span className="badge badge-secondary">{c.semesterFrom && c.semesterTo ? `${c.semesterFrom} – ${c.semesterTo}` : c.semesterFrom || c.semesterTo}</span>}
               {c.subject && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Subject: {c.subject}</span>}
             </div>
           </div>
@@ -68,7 +68,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
           <PreviewRow label="Course Name" value={c.courseName} />
           <PreviewRow label="Duration" value={`${c.fromYear || '—'} - ${c.toYear || '—'}`} />
           <PreviewRow label="Programmes" value={c.programmes} />
-          <PreviewRow label="Semester" value={c.semester} />
+          <PreviewRow label="Semester" value={c.semesterFrom && c.semesterTo ? `${c.semesterFrom} – ${c.semesterTo}` : c.semesterFrom || c.semesterTo} />
           <PreviewRow label="Subject" value={c.subject} />
         </div>
       )}
@@ -239,7 +239,18 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 {fg('Programmes', sel(pendingCourse.programmes, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, programmes: v }); }, PROGRAMMES_LIST))}
               </div>
               <div className="form-row form-row-1">
-                {fg('Semester', sel(pendingCourse.semester, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, semester: v }); }, semesters, 'Select Semester'))}
+                {fg('Semester', (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ flex: '0 0 48%' }}>
+                      <label className="form-label">From Semester</label>
+                      {sel(pendingCourse.semesterFrom, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, semesterFrom: v }); }, semesters, 'Select...')}
+                    </div>
+                    <div style={{ flex: '0 0 48%' }}>
+                      <label className="form-label">To Semester</label>
+                      {sel(pendingCourse.semesterTo, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, semesterTo: v }); }, semesters, 'Select...')}
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className="form-row form-row-1">
                 {fg('Subject', (
@@ -322,7 +333,18 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                       {fg('Programmes', sel(c.programmes, v => updCourse(i, 'programmes', v), PROGRAMMES_LIST))}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Semester', sel(c.semester, v => updCourse(i, 'semester', v), semesters, 'Select Semester'))}
+                      {fg('Semester', (
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <div style={{ flex: '0 0 48%' }}>
+                            <label className="form-label">From Semester</label>
+                            {sel(c.semesterFrom, v => updCourse(i, 'semesterFrom', v), semesters, 'Select...')}
+                          </div>
+                          <div style={{ flex: '0 0 48%' }}>
+                            <label className="form-label">To Semester</label>
+                            {sel(c.semesterTo, v => updCourse(i, 'semesterTo', v), semesters, 'Select...')}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                     <div className="form-row form-row-1">
                       {fg('Subject', (

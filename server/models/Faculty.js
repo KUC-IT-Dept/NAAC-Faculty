@@ -441,6 +441,8 @@ const academicCourseSchema = new mongoose.Schema({
   programmes: { type: String, default: '' },
   subject: { type: String, default: '' },
   semester: { type: String, default: '' },
+  semesterFrom: { type: String, default: '' },
+  semesterTo: { type: String, default: '' },
 }, { _id: false });
 
 const academicRespItemSchema = new mongoose.Schema({
