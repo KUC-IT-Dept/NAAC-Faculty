@@ -2,12 +2,9 @@ import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, sel, yearSel } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
-import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions } from '../../shared/dropdownOptions';
+import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions, courseNameOptions, programmeOptions, departmentOptions } from '../../shared/dropdownOptions';
 import SearchableSelect from '../SearchableSelect';
 
-const COURSE_NAMES = ['Advanced Algorithms', 'Database Systems', 'Operating Systems', 'Computer Networks', 'Software Engineering', 'Data Structures', 'Machine Learning', 'Artificial Intelligence', 'Web Development', 'Other'];
-const PROGRAMMES_LIST = ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M.A.', 'B.Com', 'M.Com', 'BBA', 'MBA', 'BCA', 'MCA', 'Other'];
-const SUBJECTS_LIST = ['Computer Science', 'Physics', 'Mathematics', 'Chemistry', 'Biology', 'Electronics Engineering', 'Mechanical Engineering', 'Civil Engineering', 'English', 'Management', 'Other'];
 const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
 const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '' };
@@ -46,7 +43,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               {c.programmes && <span className="badge badge-secondary">{c.programmes}</span>}
-              {c.subject && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Subject: {c.subject}</span>}
+              {c.subject && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Department: {c.subject}</span>}
             </div>
           </div>
         </div>
@@ -67,7 +64,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
           <PreviewRow label="Course Name" value={c.courseName} />
           <PreviewRow label="Duration" value={`${c.fromYear || '—'} - ${c.toYear || '—'}`} />
           <PreviewRow label="Programmes" value={c.programmes} />
-          <PreviewRow label="Subject" value={c.subject} />
+          <PreviewRow label="Department" value={c.subject} />
         </div>
       )}
     </>
@@ -118,6 +115,9 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
   const adminRoles = useDropdownOptions(responsibilityRoleOptions);
   const committees = useDropdownOptions(committeeTypeOptions);
   const teachingCategories = useDropdownOptions(teachingCategoryOptions);
+  const courseNames = useDropdownOptions(courseNameOptions);
+  const programmes = useDropdownOptions(programmeOptions);
+  const departments = useDropdownOptions(departmentOptions);
 
   const courses = data.courses || [];
   const otherResponsibilities = data.otherResponsibilities || [];
@@ -210,7 +210,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                   <SearchableSelect
                     value={pendingCourse.courseName || ''}
                     onChange={v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, courseName: v }); }}
-                    options={COURSE_NAMES}
+                    options={courseNames}
                     placeholder="Search or Select Course"
                   />
                 ))}
@@ -233,15 +233,22 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 )}
               </div>
               <div className="form-row form-row-1">
-                {fg('Programmes', sel(pendingCourse.programmes, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, programmes: v }); }, PROGRAMMES_LIST))}
+                {fg('Programmes', (
+                  <SearchableSelect
+                    value={pendingCourse.programmes || ''}
+                    onChange={v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, programmes: v }); }}
+                    options={programmes}
+                    placeholder="Search or Select Programme"
+                  />
+                ))}
               </div>
               <div className="form-row form-row-1">
-                {fg('Subject', (
+                {fg('Department', (
                   <SearchableSelect
                     value={pendingCourse.subject || ''}
                     onChange={v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, subject: v }); }}
-                    options={SUBJECTS_LIST}
-                    placeholder="Search or Select Subject"
+                    options={departments}
+                    placeholder="Search or Select Department"
                   />
                 ))}
               </div>
@@ -290,7 +297,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                         <SearchableSelect
                           value={c.courseName || ''}
                           onChange={v => updCourse(i, 'courseName', v)}
-                          options={COURSE_NAMES}
+                          options={courseNames}
                           placeholder="Search or Select Course"
                         />
                       ))}
@@ -313,15 +320,22 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                       )}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Programmes', sel(c.programmes, v => updCourse(i, 'programmes', v), PROGRAMMES_LIST))}
+                      {fg('Programmes', (
+                        <SearchableSelect
+                          value={c.programmes || ''}
+                          onChange={v => updCourse(i, 'programmes', v)}
+                          options={programmes}
+                          placeholder="Search or Select Programme"
+                        />
+                      ))}
                     </div>
                     <div className="form-row form-row-1">
-                      {fg('Subject', (
+                      {fg('Department', (
                         <SearchableSelect
                           value={c.subject || ''}
                           onChange={v => updCourse(i, 'subject', v)}
-                          options={SUBJECTS_LIST}
-                          placeholder="Search or Select Subject"
+                          options={departments}
+                          placeholder="Search or Select Department"
                         />
                       ))}
                     </div>

@@ -72,6 +72,8 @@ const dropdownKeyToFormMap: Record<string, string> = {
   academicSessionTypeOptions: '09 - Academic Responsibilities',
   teachingCategoryOptions: '09 - Academic Responsibilities',
   responsibilityStatusOptions: '09 - Academic Responsibilities',
+  courseNameOptions: '09 - Academic Responsibilities',
+  programmeOptions: '09 - Academic Responsibilities',
   organisationOptions: '10 - Internship and Projects',
   internRoleOptions: '10 - Internship and Projects',
   projectTypeOptions: '10 - Internship and Projects',

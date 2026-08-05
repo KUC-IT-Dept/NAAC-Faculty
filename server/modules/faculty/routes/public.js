@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const Faculty = require('../models/Faculty');
 const User = require('../../../auth/models/User.model');
 const DropdownConfig = require('../models/DropdownConfig');
@@ -16,7 +16,7 @@ const ALLOWED_DROPDOWN_KEYS = [
   'award_category', 'award_level', 'awarding_agency_type', 'honour_type', 'recognition_status',
   'funding_agency', 'project_status', 'role_in_project', 'project_category', 'funding_type',
   'research_degree', 'scholar_gender', 'research_status', 'guidance_type', 'patent_status', 'patent_type', 'supervision_category',
-  'committee_type', 'responsibility_role', 'course_level', 'semester_type', 'academic_session_type', 'teaching_category', 'responsibility_status',
+  'committee_type', 'responsibility_role', 'course_level', 'semester_type', 'academic_session_type', 'teaching_category', 'responsibility_status', 'course_name', 'programme',
   'admin_charge', 'academic_admin', 'quality_assurance', 'research_innovation', 'examination_evaluation', 'admin_support', 'departmental_charges', 'special_assignments', 'extra_institutional',
   'country_visit', 'purpose_of_visit', 'funding_source', 'visit_category', 'collaboration_type', 'visit_status',
   'document_type', 'institutions'

@@ -102,6 +102,8 @@ export const semesterTypeOptions = ['Semester I', 'Semester II', 'Semester III',
 export const academicSessionTypeOptions = ['Odd Semester', 'Even Semester', 'Annual', 'Trimester'];
 export const teachingCategoryOptions = ['Core Subject', 'Elective', 'Laboratory', 'Project Guidance', 'Seminar'];
 export const responsibilityStatusOptions = ['Active', 'Completed', 'Ongoing', 'Inactive'];
+export const courseNameOptions = ['Advanced Algorithms', 'Database Systems', 'Operating Systems', 'Computer Networks', 'Software Engineering', 'Data Structures', 'Machine Learning', 'Artificial Intelligence', 'Web Development'];
+export const programmeOptions = ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M.A.', 'B.Com', 'M.Com', 'BBA', 'MBA', 'BCA', 'MCA'];
 
 // Memberships
 export const professionalBodyOptions = ['IEEE', 'CSI', 'ACM', 'ISTE', 'IETE', 'IEI', 'IAENG', 'ACM India'];
@@ -247,7 +249,7 @@ export const optionArrays = {
   awardCategoryOptions, awardLevelOptions, awardingAgencyTypeOptions, honourTypeOptions, recognitionStatusOptions,
   fundingAgencyOptions, projectStatusOptions, roleInProjectOptions, projectCategoryOptions, fundingTypeOptions,
   researchDegreeOptions, scholarGenderOptions, researchStatusOptions, guidanceTypeOptions, patentStatusOptions, patentTypeOptions, supervisionCategoryOptions,
-  committeeTypeOptions, responsibilityRoleOptions, courseLevelOptions, semesterTypeOptions, academicSessionTypeOptions, teachingCategoryOptions, responsibilityStatusOptions,
+  committeeTypeOptions, responsibilityRoleOptions, courseLevelOptions, semesterTypeOptions, academicSessionTypeOptions, teachingCategoryOptions, responsibilityStatusOptions, courseNameOptions, programmeOptions,
   adminChargeOptions, academicAdminOptions, qualityAssuranceOptions, researchInnovationOptions, examinationEvaluationOptions, adminSupportOptions, departmentalChargesOptions, specialAssignmentsOptions, extraInstitutionalOptions,
   countryVisitOptions, purposeOfVisitOptions, fundingSourceOptions, visitCategoryOptions, collaborationTypeOptions, visitStatusOptions,
   documentTypeOptions
