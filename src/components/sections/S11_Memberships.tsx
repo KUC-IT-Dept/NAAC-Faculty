@@ -1,14 +1,21 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, inp, sel, FileInp, yearSel, DocumentPreviewLink } from './sectionUtils';
 import { membershipTypeOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
-const EMPTY = { professionalBody: '', membershipType: '', membershipId: '', yearOfJoining: '', documentUrl: '' };
+const EMPTY = { professionalBody: '', membershipType: '', membershipId: '', yearOfJoining: '', expiryYear: '', documentUrl: '' };
+
+const isExpiryRequired = (type?: string) => {
+  if (!type) return false;
+  return type === 'Student' || type === 'Annual';
+};
 
 const currentYear = new Date().getFullYear();
-const YEAR_OPTS: string[] = [];
-for (let y = currentYear; y >= 1970; y--) YEAR_OPTS.push(String(y));
+const EXPIRY_YEAR_OPTS: string[] = [];
+for (let y = currentYear; y <= currentYear + 30; y++) {
+  EXPIRY_YEAR_OPTS.push(String(y));
+}
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -44,6 +51,9 @@ function PreviewCard({ m, onEdit, onDelete, disabled }: { m: any; onEdit: () => 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               {m.membershipType && <span className="badge badge-secondary">{m.membershipType}</span>}
               {m.membershipId && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>ID: {m.membershipId}</span>}
+              {isExpiryRequired(m.membershipType) && m.expiryYear && (
+                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Expires: {m.expiryYear}</span>
+              )}
             </div>
           </div>
         </div>
@@ -65,6 +75,9 @@ function PreviewCard({ m, onEdit, onDelete, disabled }: { m: any; onEdit: () => 
           <PreviewRow label="Membership Type" value={m.membershipType} />
           <PreviewRow label="Membership ID" value={m.membershipId} />
           <PreviewRow label="Year of Joining" value={m.yearOfJoining} />
+          {isExpiryRequired(m.membershipType) && (
+            <PreviewRow label="Expiry Year" value={m.expiryYear} />
+          )}
           {m.documentUrl && (
             <div style={{ marginTop: 8 }}>
               <DocumentPreviewLink url={m.documentUrl} label="View Proof" />
@@ -87,11 +100,23 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
   const upd = (i: number, k: string, v: string) => {
     setIsDirty(true);
     const a = [...data];
-    a[i] = { ...a[i], [k]: v };
+    const item = { ...a[i], [k]: v };
+    if (k === 'membershipType' && !isExpiryRequired(v)) {
+      item.expiryYear = '';
+    }
+    a[i] = item;
     onChange(a);
   };
 
-  const isItemComplete = (item: any) => item.professionalBody && item.membershipType && item.yearOfJoining;
+  const isItemComplete = (item: any) => {
+    if (!item || !item.professionalBody || !item.membershipType || !item.yearOfJoining) {
+      return false;
+    }
+    if (isExpiryRequired(item.membershipType)) {
+      return !!item.expiryYear;
+    }
+    return true;
+  };
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
@@ -149,11 +174,22 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
             </div>
             {fg('Organization Name *', inp(pendingNewItem.professionalBody, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, professionalBody: v }); }))}
             <div className="form-row form-row-2">
-              {fg('Membership Type *', sel(pendingNewItem.membershipType, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, membershipType: v }); }, membershipTypes))}
+              {fg('Membership Type *', sel(pendingNewItem.membershipType, v => {
+                setIsDirty(true);
+                const req = isExpiryRequired(v);
+                setPendingNewItem({
+                  ...pendingNewItem,
+                  membershipType: v,
+                  ...(req ? {} : { expiryYear: '' }),
+                });
+              }, membershipTypes))}
               {fg('Membership ID', inp(pendingNewItem.membershipId, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, membershipId: v }); }))}
             </div>
-            <div className="form-row form-row-1">
+            <div className={isExpiryRequired(pendingNewItem.membershipType) ? "form-row form-row-2" : "form-row form-row-1"}>
               {fg('Year of Joining *', yearSel(pendingNewItem.yearOfJoining, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, yearOfJoining: v }); }))}
+              {isExpiryRequired(pendingNewItem.membershipType) && (
+                fg('Expiry Year *', sel(pendingNewItem.expiryYear || '', v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, expiryYear: v }); }, EXPIRY_YEAR_OPTS, 'Select Year...'))
+              )}
             </div>
             {fg('Certificate / Proof', <FileInp v={pendingNewItem.documentUrl} fn={v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, documentUrl: v }); }} section="memberships" />)}
             {isDirty && (
@@ -186,7 +222,12 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
                       <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
                         <X size={14} /> Cancel
                       </button>
-                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
+                      <button
+                        type="button"
+                        onClick={() => { setEditingItemIndex(null); setIsDirty(false); }}
+                        disabled={!isItemComplete(m)}
+                        style={isItemComplete(m) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                      >
                         <Check size={14} /> Save
                       </button>
                     </div>
@@ -196,8 +237,11 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
                     {fg('Membership Type *', sel(m.membershipType, v => upd(i, 'membershipType', v), membershipTypes))}
                     {fg('Membership ID', inp(m.membershipId, v => upd(i, 'membershipId', v)))}
                   </div>
-                  <div className="form-row form-row-1">
+                  <div className={isExpiryRequired(m.membershipType) ? "form-row form-row-2" : "form-row form-row-1"}>
                     {fg('Year of Joining *', yearSel(m.yearOfJoining, v => upd(i, 'yearOfJoining', v)))}
+                    {isExpiryRequired(m.membershipType) && (
+                      fg('Expiry Year *', sel(m.expiryYear || '', v => upd(i, 'expiryYear', v), EXPIRY_YEAR_OPTS, 'Select Year...'))
+                    )}
                   </div>
                   {fg('Certificate / Proof', <FileInp v={m.documentUrl} fn={v => upd(i, 'documentUrl', v)} section="memberships" />)}
                   {isDirty && (
@@ -205,7 +249,12 @@ export default function Memberships({ data, onChange }: { data: any[]; onChange:
                       <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnCancel}>
                         <X size={14} /> Cancel
                       </button>
-                      <button type="button" onClick={() => { setEditingItemIndex(null); setIsDirty(false); }} style={btnSave}>
+                      <button
+                        type="button"
+                        onClick={() => { setEditingItemIndex(null); setIsDirty(false); }}
+                        disabled={!isItemComplete(m)}
+                        style={isItemComplete(m) ? btnSave : { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' }}
+                      >
                         <Check size={14} /> Save
                       </button>
                     </div>

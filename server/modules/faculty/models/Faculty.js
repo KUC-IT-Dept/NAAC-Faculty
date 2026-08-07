@@ -195,6 +195,7 @@ const membershipSchema = new mongoose.Schema({
   membershipType: { type: String, default: '' }, // Life / Annual
   membershipId: { type: String, default: '' },
   yearOfJoining: { type: String, default: '' },
+  expiryYear: { type: String, default: '' },
   documentUrl: { type: String, default: '' },
 }, { _id: false });
 
