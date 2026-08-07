@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { fg, sel, yearSel } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
-import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions, courseNameOptions, programmeOptions, departmentOptions } from '../../shared/dropdownOptions';
+import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions, courseNameOptions, programmeOptions, departmentOptions, semesterTypeOptions } from '../../shared/dropdownOptions';
 import SearchableSelect from '../SearchableSelect';
 
 const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
-const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '' };
+const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '', semester: '', semesterFrom: '', semesterTo: '' };
 const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
@@ -43,6 +43,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               {c.programmes && <span className="badge badge-secondary">{c.programmes}</span>}
+              {(c.semesterFrom || c.semesterTo) && <span className="badge badge-secondary">{c.semesterFrom && c.semesterTo ? `${c.semesterFrom} – ${c.semesterTo}` : c.semesterFrom || c.semesterTo}</span>}
               {c.subject && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Department: {c.subject}</span>}
             </div>
           </div>
@@ -64,6 +65,7 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
           <PreviewRow label="Course Name" value={c.courseName} />
           <PreviewRow label="Duration" value={`${c.fromYear || '—'} - ${c.toYear || '—'}`} />
           <PreviewRow label="Programmes" value={c.programmes} />
+          <PreviewRow label="Semester" value={c.semesterFrom && c.semesterTo ? `${c.semesterFrom} – ${c.semesterTo}` : c.semesterFrom || c.semesterTo} />
           <PreviewRow label="Department" value={c.subject} />
         </div>
       )}
@@ -118,6 +120,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
   const courseNames = useDropdownOptions(courseNameOptions);
   const programmes = useDropdownOptions(programmeOptions);
   const departments = useDropdownOptions(departmentOptions);
+  const semesters = useDropdownOptions(semesterTypeOptions);
 
   const courses = data.courses || [];
   const otherResponsibilities = data.otherResponsibilities || [];
@@ -243,6 +246,20 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 ))}
               </div>
               <div className="form-row form-row-1">
+                {fg('Semester', (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ flex: '0 0 48%' }}>
+                      <label className="form-label">From Semester</label>
+                      {sel(pendingCourse.semesterFrom, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, semesterFrom: v }); }, semesters, 'Select...')}
+                    </div>
+                    <div style={{ flex: '0 0 48%' }}>
+                      <label className="form-label">To Semester</label>
+                      {sel(pendingCourse.semesterTo, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, semesterTo: v }); }, semesters, 'Select...')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="form-row form-row-1">
                 {fg('Department', (
                   <SearchableSelect
                     value={pendingCourse.subject || ''}
@@ -327,6 +344,20 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                           options={programmes}
                           placeholder="Search or Select Programme"
                         />
+                      ))}
+                    </div>
+                    <div className="form-row form-row-1">
+                      {fg('Semester', (
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <div style={{ flex: '0 0 48%' }}>
+                            <label className="form-label">From Semester</label>
+                            {sel(c.semesterFrom, v => updCourse(i, 'semesterFrom', v), semesters, 'Select...')}
+                          </div>
+                          <div style={{ flex: '0 0 48%' }}>
+                            <label className="form-label">To Semester</label>
+                            {sel(c.semesterTo, v => updCourse(i, 'semesterTo', v), semesters, 'Select...')}
+                          </div>
+                        </div>
                       ))}
                     </div>
                     <div className="form-row form-row-1">
