@@ -194,7 +194,9 @@ const sectionsData = [
       { name: 'Semester Type', optionsKey: 'semesterTypeOptions' },
       { name: 'Academic Session Type', optionsKey: 'academicSessionTypeOptions' },
       { name: 'Teaching Category', optionsKey: 'teachingCategoryOptions' },
-      { name: 'Responsibility Status', optionsKey: 'responsibilityStatusOptions' }
+      { name: 'Responsibility Status', optionsKey: 'responsibilityStatusOptions' },
+      { name: 'Course Name', optionsKey: 'courseNameOptions' },
+      { name: 'Programme', optionsKey: 'programmeOptions' }
     ]
   },
   {
@@ -1570,6 +1572,8 @@ const defaults = {
   academic_session_type: ['Odd Semester', 'Even Semester', 'Annual', 'Trimester'],
   teaching_category: ['Core Subject', 'Elective', 'Laboratory', 'Project Guidance', 'Seminar'],
   responsibility_status: ['Active', 'Completed', 'Ongoing', 'Inactive'],
+  course_name: ['Advanced Algorithms', 'Database Systems', 'Operating Systems', 'Computer Networks', 'Software Engineering', 'Data Structures', 'Machine Learning', 'Artificial Intelligence', 'Web Development'],
+  programme: ['B.Tech', 'M.Tech', 'B.Sc', 'M.Sc', 'Ph.D.', 'B.A.', 'M.A.', 'B.Com', 'M.Com', 'BBA', 'MBA', 'BCA', 'MCA'],
 
   // Memberships
   professional_body: ['IEEE', 'CSI', 'ACM', 'ISTE', 'IETE', 'IEI', 'IAENG', 'ACM India'],

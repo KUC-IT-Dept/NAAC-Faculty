@@ -65,6 +65,8 @@ export declare const semesterTypeOptions: string[];
 export declare const academicSessionTypeOptions: string[];
 export declare const teachingCategoryOptions: string[];
 export declare const responsibilityStatusOptions: string[];
+export declare const courseNameOptions: string[];
+export declare const programmeOptions: string[];
 export declare const professionalBodyOptions: string[];
 export declare const membershipTypeOptions: string[];
 export declare const membershipCategoryOptions: string[];
