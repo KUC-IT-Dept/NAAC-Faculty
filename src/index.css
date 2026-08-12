@@ -1427,6 +1427,7 @@ tbody tr:last-child td {
 
 /* ── Login page ─────────────────────────────────────────────── */
 .login-page {
+  height: 100vh;
   min-height: 100vh;
   display: flex;
   position: relative;
@@ -1440,7 +1441,7 @@ tbody tr:last-child td {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 48px;
+  padding: 40px 48px;
   position: relative;
   overflow: hidden;
   border-right: 3px solid var(--accent);
@@ -1474,8 +1475,9 @@ tbody tr:last-child td {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 56px 48px;
+  padding: 36px 44px;
   box-shadow: -4px 0 32px rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
 }
 
 @media(max-width:768px) {
@@ -1510,10 +1512,10 @@ tbody tr:last-child td {
 }
 
 .login-desc {
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 0.92rem;
-  line-height: 1.7;
-  max-width: 340px;
+  line-height: 1.6;
+  max-width: 440px;
 }
 
 /* ── Animations ─────────────────────────────────────────────── */

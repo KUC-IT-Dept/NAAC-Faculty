@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { GraduationCap, Lock, Mail, ArrowRight, BookOpen, Award, Users } from 'lucide-react';
+import qaiLogo from '../assets/qai-logo-transparent.png';
 
 const features = [
   { icon: <BookOpen size={18} />, text: 'Comprehensive faculty profile management' },
@@ -50,21 +51,29 @@ export default function LoginPage() {
     <div className="login-page">
       {/* Left panel */}
       <div className="login-left">
-        <div style={{ maxWidth: 380, position: 'relative', zIndex: 1 }}>
-          <div className="login-brand-icon">
-            <GraduationCap size={36} color="rgba(255,255,255,0.9)" />
-          </div>
+        <div style={{ maxWidth: 440, width: '100%', position: 'relative', zIndex: 1 }}>
+          <img 
+            src={qaiLogo} 
+            alt="QAI / QARTINT Logo" 
+            style={{ 
+              width: '100%', 
+              maxWidth: 250, 
+              height: 'auto', 
+              marginBottom: 20, 
+              display: 'block' 
+            }} 
+          />
           <div className="login-tagline">IQAC Faculty<br />Profile Portal</div>
           <p className="login-desc">
             Internal Quality Assurance Cell — a unified system for faculty to manage, update, and publicly showcase their academic credentials.
           </p>
-          <div style={{ marginTop: 36, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {features.map((f, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 34, height: 34, background: 'rgba(232,160,32,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-light)', flexShrink: 0 }}>
+                <div style={{ width: 32, height: 32, background: 'rgba(232,160,32,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-light)', flexShrink: 0 }}>
                   {f.icon}
                 </div>
-                <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '0.875rem' }}>{f.text}</span>
+                <span style={{ color: 'rgba(255,255,255,0.78)', fontSize: '0.875rem' }}>{f.text}</span>
               </div>
             ))}
           </div>
@@ -73,19 +82,19 @@ export default function LoginPage() {
 
       {/* Right panel */}
       <div className="login-right">
-        <div style={{ marginBottom: 36 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-            <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 34, height: 34, background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <GraduationCap size={18} color="#fff" />
             </div>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>IQAC Portal</span>
           </div>
-          <h2 style={{ fontSize: '1.7rem', marginBottom: 6, color: 'var(--primary-dark)' }}>Welcome back</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>Sign in to access your faculty profile dashboard.</p>
+          <h2 style={{ fontSize: '1.65rem', marginBottom: 4, color: 'var(--primary-dark)' }}>Welcome back</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Sign in to access your faculty profile dashboard.</p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: 14 }}>
             <label className="form-label">Email Address</label>
             <div style={{ position: 'relative' }}>
               <Mail size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
@@ -103,7 +112,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: 14 }}>
             <label className="form-label">Password</label>
             <div style={{ position: 'relative' }}>
               <Lock size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
@@ -131,9 +140,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ marginTop: 28, padding: '14px 16px', background: 'var(--bg)', borderRadius: 10, border: '1px solid var(--border)' }}>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Demo Credentials</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ marginTop: 20, padding: '12px 14px', background: 'var(--bg)', borderRadius: 10, border: '1px solid var(--border)' }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Demo Credentials</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {[
               { label: 'Vice Chancellor', email: 'vc@profcv.edu', pass: 'password123' },
               { label: 'Admin', email: 'admin@profcv.edu', pass: 'password123' },
@@ -144,12 +153,12 @@ export default function LoginPage() {
                 key={c.email}
                 type="button"
                 onClick={() => setForm({ email: c.email, password: c.pass })}
-                style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 11px', textAlign: 'left', cursor: 'pointer', transition: 'border-color .15s', fontFamily: 'var(--font-body)' }}
+                style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 7, padding: '6px 10px', textAlign: 'left', cursor: 'pointer', transition: 'border-color .15s', fontFamily: 'var(--font-body)' }}
                 onMouseOver={e => (e.currentTarget.style.borderColor = 'var(--primary-light)')}
                 onMouseOut={e => (e.currentTarget.style.borderColor = 'var(--border)')}
               >
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', marginBottom: 2 }}>{c.label}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.email}</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', marginBottom: 1 }}>{c.label}</div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{c.email}</div>
               </button>
             ))}
           </div>
