@@ -7,7 +7,7 @@ import { useConfirmSave } from '../useConfirmSave';
 import { useConfirmDelete } from '../useConfirmDelete';
 
 
-import { degreeLevelOptions, divisionOptions, studyModeOptions, countryOptions, stateOptions, degreeNameOptions, specializationOptions, gradeTypeOptions, institutionsOptions } from '../../shared/dropdownOptions';
+import { degreeLevelOptions, divisionOptions, studyModeOptions, countryOptions, stateOptions, degreeNameOptions, specializationOptions, gradeTypeOptions, institutionsOptions, rankOptions } from '../../shared/dropdownOptions';
 import SearchableSelect from '../SearchableSelect';
 
 const EMPTY = {
@@ -27,6 +27,7 @@ const EMPTY = {
   phdCertificate: '',
   thesisTitle: '',
   documentUrl: '',
+  rank: '',
 };
 
 const QUALIFICATION_LEVELS = ['10th', '12th', 'UG', 'PG', 'Ph.D', 'M.Phil'];
@@ -237,6 +238,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
   const dynamicDegreeNameOptions = useDropdownOptions(degreeNameOptions);
   const dynamicSpecializationOptions = useDropdownOptions(specializationOptions);
   const dynamicGradeTypeOptions = useDropdownOptions(gradeTypeOptions);
+  const dynamicRankOptions = useDropdownOptions(rankOptions);
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
@@ -302,6 +304,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           percentageCGPA: '',
           gradeType: '',
           division: '',
+          rank: '',
         }
       : {
           ...sanitizedData,
@@ -516,6 +519,12 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
             onChange={(v: string) => updateEditingData('division', v)}
             options={dynamicDivisionOptions}
           />)}
+          {fg('Rank', <CustomSelect
+            value={editingData.rank}
+            onChange={(v: string) => updateEditingData('rank', v)}
+            options={dynamicRankOptions}
+            placeholder="Select Rank"
+          />)}
           {fg('Mode', <CustomSelect
             value={editingData.mode}
             onChange={(v: string) => updateEditingData('mode', v)}
@@ -588,6 +597,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
         {renderPreview('Grade Type', q.gradeType)}
         {renderPreview('Score (Percentage or CGPA)', q.percentageCGPA)}
         {renderPreview('Division', q.division)}
+        {renderPreview('Rank', q.rank)}
         {renderPreview('Mode', q.mode)}
         {renderPreview('Country', q.country)}
         {renderPreview('State', q.state)}

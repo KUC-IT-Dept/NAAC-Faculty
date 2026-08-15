@@ -17,6 +17,7 @@ export declare const specializationOptions: string[];
 export declare const divisionOptions: string[];
 export declare const studyModeOptions: string[];
 export declare const gradeTypeOptions: string[];
+export declare const rankOptions: string[];
 export declare const examNameOptions: string[];
 export declare const subjectPaperOptions: string[];
 export declare const stateForSetOptions: string[];

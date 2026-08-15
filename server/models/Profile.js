@@ -22,6 +22,7 @@ const qualificationSchema = new mongoose.Schema({
   // Legacy fields kept for backward compatibility.
   year: String,
   grade: String,
+  rank: String,
 });
 
 const publicationSchema = new mongoose.Schema({

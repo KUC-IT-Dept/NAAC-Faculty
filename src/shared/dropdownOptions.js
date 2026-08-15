@@ -24,6 +24,7 @@ export const specializationOptions = ['Computer Science', 'Physics', 'Mathematic
 export const divisionOptions = ['First', 'Second', 'Third'];
 export const studyModeOptions = ['Regular', 'Distance'];
 export const gradeTypeOptions = ['CGPA', 'Percentage', 'Grade'];
+export const rankOptions = ['1st Rank', '2nd Rank', '3rd Rank', '4th Rank', '5th Rank', 'None'];
 
 // Eligibility Tests
 export const examNameOptions = ['NET', 'SET / SLET', 'GATE', 'JRF'];
@@ -241,7 +242,7 @@ export const extraInstitutionalOptions = [
 export const optionArrays = {
   institutionsOptions,
   genderOptions, bloodGroupOptions, nationalityOptions, religionOptions, categoryOptions, subCategoryOptions, maritalStatusOptions, disabilityStatusOptions, disabilityTypeOptions, stateOptions, countryOptions,
-  degreeLevelOptions, degreeNameOptions, specializationOptions, divisionOptions, studyModeOptions, gradeTypeOptions,
+  degreeLevelOptions, degreeNameOptions, specializationOptions, divisionOptions, studyModeOptions, gradeTypeOptions, rankOptions,
   examNameOptions, subjectPaperOptions, stateForSetOptions, validityStatusOptions, fellowshipAgencyOptions,
   designationOptions, departmentOptions, institutionTypeOptions, affiliatedUniversityOptions, natureOfAppointmentOptions, approvalStatusOptions, payScaleOptions,
   designationPostOptions, natureOfWorkOptions, employmentTypeOptions, institutionTypeWorkOptions, experienceCategoryOptions, reasonForLeavingOptions,

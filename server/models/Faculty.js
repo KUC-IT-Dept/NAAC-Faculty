@@ -38,6 +38,7 @@ const qualificationSchema = new mongoose.Schema({
   phdCertificate: { type: String, default: '' },
   thesisTitle: { type: String, default: '' },
   documentUrl: { type: String, default: '' },
+  rank: { type: String, default: '' },
 }, { _id: false });
 
 // Section 3: Eligibility Tests
