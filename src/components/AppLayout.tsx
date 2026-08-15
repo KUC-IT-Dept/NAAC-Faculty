@@ -50,6 +50,7 @@ const profileDropdownItems = (role?: 'admin' | 'faculty' | 'vc' | 'hod') => {
     { id: 'research-publications', label: '06 - Research & Publications', path: `${base}/research-publications` },
     { id: 'awards-honours', label: '07 - Awards & Honours', path: `${base}/awards-honours` },
     { id: 'research-projects', label: '08 - Research Projects', path: `${base}/research-projects` },
+    { id: 'patents', label: '08B - Patents', path: `${base}/patents` },
     { id: 'research-supervision', label: '09 - Research Supervision', path: `${base}/research-supervision` },
     { id: 'academic-responsibilities', label: '10 - Academic Responsibilities', path: `${base}/academic-responsibilities` },
     { id: 'internship-projects', label: '11 - Internship and Projects', path: `${base}/internship-projects` },

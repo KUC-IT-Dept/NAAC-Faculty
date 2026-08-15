@@ -181,9 +181,13 @@ const sectionsData = [
       { name: 'Scholar Gender', optionsKey: 'scholarGenderOptions' },
       { name: 'Research Status', optionsKey: 'researchStatusOptions' },
       { name: 'Guidance Type', optionsKey: 'guidanceTypeOptions' },
-      { name: 'Patent Status', optionsKey: 'patentStatusOptions' },
-      { name: 'Patent Type', optionsKey: 'patentTypeOptions' },
       { name: 'Supervision Category', optionsKey: 'supervisionCategoryOptions' }
+    ]
+  },
+  {
+    id: 'patents', title: '08B - Patents', configs: [
+      { name: 'Patent Status', optionsKey: 'patentStatusOptions' },
+      { name: 'Patent Type', optionsKey: 'patentTypeOptions' }
     ]
   },
   {

@@ -16,6 +16,7 @@ import WorkExperience from '../../components/sections/S05_WorkExperience';
 import Publications from '../../components/sections/S06_Publications';
 import Awards from '../../components/sections/S07_Awards';
 import ResearchProjects from '../../components/sections/S08_ResearchProjects';
+import Patents from '../../components/sections/S08B_Patents';
 import ResearchSupervision from '../../components/sections/S09_ResearchSupervision';
 import Internship from '../../components/sections/S10_InternshipAndProjects';
 import AcademicResp from '../../components/sections/S10_AcademicResponsibilities';
@@ -47,6 +48,7 @@ const SECTION_MAP: Record<string, { key: string, label: string }> = {
   'research-publications': { key: 'publications', label: 'Research & Publications' },
   'awards-honours': { key: 'awards', label: 'Awards & Honours' },
   'research-projects': { key: 'projects', label: 'Research Projects' },
+  'patents': { key: 'patents', label: 'Patents' },
   'research-supervision': { key: 'researchGuidance', label: 'Research Supervision' },
   'academic-responsibilities': { key: 'academicResponsibilities', label: 'Academic Responsibilities' },
   'internship-projects': { key: 'internshipAndProjects', label: 'Internship & Projects' },
@@ -76,6 +78,7 @@ const VIS_ITEMS = [
   { key: 'publications', label: 'Publications', desc: 'Journals, books, conferences' },
   { key: 'projects', label: 'Research Projects', desc: 'Funded projects' },
   { key: 'awards', label: 'Awards & Honours', desc: 'Recognition' },
+  { key: 'patents', label: 'Patents', desc: 'Granted & filed patents' },
   { key: 'researchGuidance', label: 'Research Supervision', desc: 'Ph.D / M.Phil scholars' },
   { key: 'academicResponsibilities', label: 'Academic Responsibilities', desc: 'Committees & courses' },
   { key: 'internshipAndProjects', label: 'Internship & Projects', desc: 'Industrial internships & projects' },
@@ -97,7 +100,7 @@ const VIS_ITEMS = [
 const EMPTY: any = {
   personalInfo: {}, qualifications: [], eligibilityTests: [], employmentDetails: {},
   workExperience: [],
-  publications: [], awards: [], projects: [],
+  publications: [], awards: [], projects: [], patents: [],
   researchGuidance: {
     phdCompleted: '',
     phdInProgress: '',
@@ -296,6 +299,7 @@ export default function ProfileEdit() {
               {tab === 'publications' && <Publications data={profile.publications} onChange={v => set('publications', v)} />}
               {tab === 'awards' && <Awards data={profile.awards} onChange={v => set('awards', v)} onPersist={saveWithConfirm} />}
               {tab === 'projects' && <ResearchProjects data={profile.projects} onChange={v => set('projects', v)} onPersist={saveWithConfirm} />}
+              {tab === 'patents' && <Patents data={profile.patents} onChange={v => set('patents', v)} onPersist={saveWithConfirm} />}
               {tab === 'researchGuidance' && <ResearchSupervision data={profile.researchGuidance} onChange={v => set('researchGuidance', v)} onPersist={saveWithConfirm} />}
               {tab === 'academicResponsibilities' && <AcademicResp data={profile.academicResponsibilities} onChange={v => set('academicResponsibilities', v)} />}
               {tab === 'internshipAndProjects' && <Internship data={profile.internshipAndProjects} onChange={v => set('internshipAndProjects', v)} />}
