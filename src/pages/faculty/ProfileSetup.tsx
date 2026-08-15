@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import qaiLogo from '../../assets/qai-logo-transparent.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
@@ -219,7 +220,7 @@ export default function ProfileSetup() {
       {/* Header */}
       <div style={{ background: 'var(--sidebar-bg)', padding: '16px 28px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '3px solid var(--accent)' }}>
         <div style={{ width: 36, height: 36, background: 'var(--accent)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <GraduationCap size={19} color="#fff" />
+          <img src={qaiLogo} alt="Logo" style={{ width: 19, height: 19, objectFit: 'contain' }} />
         </div>
         <div>
           <h1 style={{ color: '#fff', fontSize: '0.95rem', fontFamily: 'var(--font-heading)', margin: 0 }}>IQAC Faculty Profile Setup</h1>

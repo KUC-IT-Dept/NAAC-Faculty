@@ -2,12 +2,13 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest } from 'lucide-react';
+import qaiLogo from '../assets/qai-logo-transparent.png';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
 const adminNav: NavItem[] = [
   { label: 'Faculty Accounts', path: '/admin/accounts', icon: <Users size={18} /> },
-  { label: 'Org Hierarchy', path: '/admin/hierarchy', icon: <GraduationCap size={18} /> },
+  { label: 'Org Hierarchy', path: '/admin/hierarchy', icon: <img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /> },
   { label: 'Departments', path: '/admin/departments', icon: <Building2 size={18} /> },
   { label: 'Students', path: '/admin/students', icon: <UserPlus size={18} /> },
   { label: 'Student Request', path: '/admin/student-request', icon: <GitPullRequest size={18} /> },
@@ -24,7 +25,7 @@ const facultyNav: NavItem[] = [
 
 const vcNav: NavItem[] = [
   { label: 'Faculty Accounts', path: '/vc/accounts', icon: <Users size={18} /> },
-  { label: 'Org Hierarchy', path: '/vc/hierarchy', icon: <GraduationCap size={18} /> },
+  { label: 'Org Hierarchy', path: '/vc/hierarchy', icon: <img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /> },
   { label: 'Dashboard', path: '/vc/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Departments', path: '/vc/departments', icon: <Building2 size={18} /> },
   { label: 'Students', path: '/vc/students', icon: <UserPlus size={18} /> },
@@ -32,7 +33,7 @@ const vcNav: NavItem[] = [
 ];
 
 const hodNav: NavItem[] = [
-  { label: 'Org Hierarchy', path: '/hod/hierarchy', icon: <GraduationCap size={18} /> },
+  { label: 'Org Hierarchy', path: '/hod/hierarchy', icon: <img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /> },
   { label: 'Department Faculty', path: '/hod/faculty', icon: <Users size={18} /> },
   { label: 'Department Students', path: '/hod/students', icon: <Users size={18} /> },
   { label: 'Notifications', path: '/hod/notifications', icon: <Bell size={18} /> },
@@ -108,12 +109,17 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             </button>
           ) : (
             <button type="button" className="sidebar-logo-button" onClick={() => setCollapsed(false)}>
-              <GraduationCap size={20} />
+              <img src={qaiLogo} alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} />
             </button>
           )}
         </div>
 
         <nav className="sidebar-nav">
+          {!collapsed && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', width: '100%' }}>
+              <img src={qaiLogo} alt="QAI Logo" style={{ width: '85%', maxHeight: '120px', objectFit: 'contain' }} />
+            </div>
+          )}
           {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : user?.role === 'vc' ? 'University Overview' : user?.role === 'hod' ? (facultyProfile?.employmentDetails?.department || 'Department Panel') : 'My Account'}</div>}
           {navItems.map(item => {
             if (item.label === 'Edit Profile' || item.label === 'Edit Form') {

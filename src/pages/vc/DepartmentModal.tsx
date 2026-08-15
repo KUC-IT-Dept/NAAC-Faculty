@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import qaiLogo from '../../assets/qai-logo-transparent.png';
 import api from '../../lib/api';
 import { Users, BookOpen, Briefcase, GraduationCap, TrendingUp, X } from 'lucide-react';
 
@@ -124,7 +125,7 @@ export default function DepartmentModal({ name, onClose }: { name: string; onClo
 
                 <div className={`card dept-summary-card ${activeCard === 'qualifications' ? 'active' : ''}`} onClick={() => handleCardClick('qualifications')}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div className="summary-icon"><GraduationCap size={20} /></div>
+                    <div className="summary-icon"><img src={qaiLogo} alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} /></div>
                     <div>
                       <div className="summary-value">{overview?.stats?.totalQualifications ?? 0}</div>
                       <div className="summary-label">Qualifications</div>

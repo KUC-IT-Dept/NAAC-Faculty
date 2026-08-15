@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import qaiLogo from '../../assets/qai-logo-transparent.png';
 import AppLayout from '../../components/AppLayout';
 import OrgHierarchy from '../../components/admin/OrgHierarchy';
 import api from '../../lib/api';
@@ -1105,7 +1106,7 @@ export default function VCDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>Qualifications</span>
               <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(16,185,129,0.08)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <GraduationCap size={16} />
+                <img src={qaiLogo} alt="Logo" style={{ width: 16, height: 16, objectFit: 'contain' }} />
               </div>
             </div>
             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', marginTop: '4px' }}>{stats.totalQualifications}</div>

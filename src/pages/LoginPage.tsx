@@ -85,7 +85,7 @@ export default function LoginPage() {
         <div style={{ marginBottom: 22 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <div style={{ width: 34, height: 34, background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <GraduationCap size={18} color="#fff" />
+              <img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} />
             </div>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>IQAC Portal</span>
           </div>

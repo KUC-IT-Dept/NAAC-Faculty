@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import qaiLogo from '../../assets/qai-logo-transparent.png';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import { useAuth } from '../../context/AuthContext';
@@ -61,7 +62,7 @@ export default function FacultyDashboard() {
   const displayHeadline = pi.professionalHeadline;
 
   const sections = [
-    { key: 'qualifications', label: 'Qualifications', icon: <GraduationCap size={20} />, count: profile?.qualifications?.length },
+    { key: 'qualifications', label: 'Qualifications', icon: <img src={qaiLogo} alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} />, count: profile?.qualifications?.length },
     { key: 'employmentDetails', label: 'Current Employment Details', icon: <Briefcase size={20} />, count: profile?.employmentDetails?.length },
     { key: 'publications', label: 'Publications', icon: <BookOpen size={20} />, count: profile?.publications?.length },
     { key: 'projects', label: 'Research Projects', icon: <FlaskConical size={20} />, count: profile?.projects?.length },

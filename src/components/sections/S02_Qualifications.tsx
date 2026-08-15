@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, prefer-const */
 import { Plus, Trash2, Edit2, GraduationCap, ChevronDown, ChevronUp, X, Check, ExternalLink } from 'lucide-react';
+import qaiLogo from '../../assets/qai-logo-transparent.png';
 import { useState } from 'react';
 import { fg, inp, FileInp, sel, DocumentPreviewLink } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
@@ -659,7 +660,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <GraduationCap size={20} color="#4f46e5" /> Add New Qualification
+                <img src={qaiLogo} alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} /> Add New Qualification
               </h3>
               <div>
                 <button
@@ -709,7 +710,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
                   <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <GraduationCap size={20} color="#111827" /> Edit Qualification
+                    <img src={qaiLogo} alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} /> Edit Qualification
                   </h3>
                   <div>
                     <button

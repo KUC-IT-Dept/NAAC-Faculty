@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import qaiLogo from '../../assets/qai-logo-transparent.png';
 import AppLayout from '../../components/AppLayout';
 import api from '../../lib/api';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -90,7 +91,7 @@ export default function DepartmentDetails() {
               {/* Student Count */}
               <div className="card" style={{ padding: 12 }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(236,72,153,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ec4899' }}><GraduationCap size={18} /></div>
+                  <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(236,72,153,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ec4899' }}><img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /></div>
                   <div>
                     <div style={{ fontWeight: 700 }}>{data?.stats?.studentCount ?? 0}</div>
                     <div className="text-muted">Students</div>

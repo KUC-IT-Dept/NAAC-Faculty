@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
+import qaiLogo from '../assets/qai-logo-transparent.png';
 import { useParams, Link } from 'react-router-dom';
 import api, { getFileUrl } from '../lib/api';
 import { GraduationCap, Briefcase, BookOpen, FlaskConical, Award, Users, Shield, Mail, Phone, Globe, Link2, ExternalLink } from 'lucide-react';
@@ -26,7 +27,7 @@ export default function PublicProfile() {
   if (notFound || !profile) return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', gap: 16 }}>
       <div style={{ width: 72, height: 72, background: 'var(--border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <GraduationCap size={32} color="var(--text-muted)" />
+        <img src={qaiLogo} alt="Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
       </div>
       <h2 style={{ color: 'var(--navy)', fontFamily: 'var(--font-heading)' }}>Profile Not Found</h2>
       <p className="text-muted text-sm">This faculty profile is not available or has not been published yet.</p>
@@ -83,7 +84,7 @@ export default function PublicProfile() {
         {/* Qualifications */}
         {profile.qualifications?.length > 0 && (
           <div className="profile-section">
-            <div className="profile-section-title"><GraduationCap size={18} color="var(--navy)" /> Academic Qualifications</div>
+            <div className="profile-section-title"><img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /> Academic Qualifications</div>
             <div className="profile-section-body">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead><tr><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Degree</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Specialization</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>University</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year</th><th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Grade</th></tr></thead>
@@ -117,7 +118,7 @@ export default function PublicProfile() {
         {/* Eligibility Tests */}
         {profile.eligibilityTests?.length > 0 && (
           <div className="profile-section">
-            <div className="profile-section-title"><GraduationCap size={18} color="var(--navy)" /> Eligibility Tests</div>
+            <div className="profile-section-title"><img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /> Eligibility Tests</div>
             <div className="profile-section-body">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
