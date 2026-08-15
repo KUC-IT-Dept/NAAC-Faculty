@@ -8,6 +8,25 @@ import { Save, Check, X } from 'lucide-react';
 
 import FormActionButtons from '../FormActionButtons';
 
+const calculateAge = (dob: string | undefined): string => {
+  if (!dob) return '';
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age.toString();
+};
+
+const formatDate = (dateString: string | undefined): string => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString('en-GB');
+};
+
 export default function PersonalInfo({ data, onChange, onPersist, saving }: { data: any; onChange: (d: any) => void; onPersist?: (payload?: any, showToast?: boolean) => void; saving?: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDirty, setIsDirty] = useState(false);

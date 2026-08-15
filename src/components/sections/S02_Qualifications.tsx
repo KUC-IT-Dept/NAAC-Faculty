@@ -241,6 +241,7 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<any>(EMPTY);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [isDirty, setIsDirty] = useState<boolean>(false);
   const institutionsOpts = useDropdownOptions(institutionsOptions);
 
   // Sort data by yearOfPassing descending (latest year at the top)

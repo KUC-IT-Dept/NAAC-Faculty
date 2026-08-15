@@ -551,6 +551,7 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                     r={r}
                     onEdit={() => { setEditingRespIndex(i); setIsRespDirty(false); }}
                     onDelete={() => update('otherResponsibilities', otherResponsibilities.filter((_: any, j: number) => j !== i))}
+                    disabled={pendingResp !== null || editingRespIndex !== null}
                   />
                 )}
               </div>
