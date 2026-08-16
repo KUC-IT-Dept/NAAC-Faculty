@@ -16,15 +16,12 @@ import DepartmentDetails from './pages/vc/DepartmentDetails';
 import HODDashboard from './pages/hod/HODDashboard';
 import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
 import { loadDropdownOptionsFromServer } from './shared/dropdownOptions';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import InitialLoadingScreen from './components/InitialLoadingScreen';
 
 function ProtectedRoute({ children, role }: { children: ReactElement; role?: 'admin' | 'faculty' | 'vc' | 'hod' }) {
   const { user, loading } = useAuth();
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="spinner" style={{ width: 40, height: 40, borderWidth: 3, borderColor: 'var(--navy)', borderTopColor: 'transparent' }} />
-    </div>
-  );
+  if (loading) return <InitialLoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   if (role && user.role !== role) return <Navigate to="/login" replace />;
   return children;
@@ -32,12 +29,17 @@ function ProtectedRoute({ children, role }: { children: ReactElement; role?: 'ad
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  const [initLoading, setInitLoading] = useState(true);
   
   useEffect(() => {
-    loadDropdownOptionsFromServer();
+    const init = async () => {
+      await loadDropdownOptionsFromServer();
+      setInitLoading(false);
+    };
+    init();
   }, []);
 
-  if (loading) return null;
+  if (loading || initLoading) return <InitialLoadingScreen />;
 
   return (
     <Routes>
