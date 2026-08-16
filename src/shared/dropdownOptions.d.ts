@@ -58,6 +58,8 @@ export declare const researchStatusOptions: string[];
 export declare const guidanceTypeOptions: string[];
 export declare const patentStatusOptions: string[];
 export declare const patentTypeOptions: string[];
+export declare const jurisdictionTypeOptions: string[];
+export declare const licensingStatusOptions: string[];
 export declare const supervisionCategoryOptions: string[];
 export declare const committeeTypeOptions: string[];
 export declare const responsibilityRoleOptions: string[];

@@ -229,6 +229,8 @@ const FIELD_STORAGE_KEYS: Record<string, string> = {
   'Guidance Type': 'guidanceTypeOptions',
   'Patent Status': 'patentStatusOptions',
   'Patent Type': 'patentTypeOptions',
+  'Jurisdiction Type': 'jurisdictionTypeOptions',
+  'Licensing Status': 'licensingStatusOptions',
   'Supervision Category': 'supervisionCategoryOptions',
   'Committee Type': 'committeeTypeOptions',
   'Responsibility Role': 'responsibilityRoleOptions',

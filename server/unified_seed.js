@@ -187,7 +187,9 @@ const sectionsData = [
   {
     id: 'patents', title: '08B - Patents', configs: [
       { name: 'Patent Status', optionsKey: 'patentStatusOptions' },
-      { name: 'Patent Type', optionsKey: 'patentTypeOptions' }
+      { name: 'Patent Type', optionsKey: 'patentTypeOptions' },
+      { name: 'Jurisdiction Type', optionsKey: 'jurisdictionTypeOptions' },
+      { name: 'Licensing Status', optionsKey: 'licensingStatusOptions' }
     ]
   },
   {

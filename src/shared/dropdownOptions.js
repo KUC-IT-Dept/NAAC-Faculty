@@ -93,6 +93,8 @@ export const researchStatusOptions = ['Ongoing', 'Completed', 'Submitted', 'Awar
 export const guidanceTypeOptions = ['Supervisor', 'Co-Supervisor', 'Mentor', 'Advisor'];
 export const patentStatusOptions = ['Filed', 'Published', 'Granted', 'Pending'];
 export const patentTypeOptions = ['Utility Patent', 'Design Patent', 'Copyright', 'Trademark'];
+export const jurisdictionTypeOptions = ['National', 'International'];
+export const licensingStatusOptions = ['Not Licensed', 'Licensed', 'Under Negotiation'];
 export const supervisionCategoryOptions = ['Academic', 'Research', 'Industrial Research'];
 
 // Academic Responsibilities

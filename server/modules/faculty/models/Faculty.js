@@ -132,6 +132,23 @@ const patentSchema = new mongoose.Schema({
   dateOfFiling: { type: String, default: '' },
   status: { type: String, default: '' }, // Filed / Published / Granted
   patentType: { type: String, default: '' },
+  grantDate: { type: String, default: '' },
+  patentOffice: { type: String, default: '' },
+  jurisdictionType: { type: String, default: '' },
+  inventorNames: { type: String, default: '' },
+  departmentAffiliation: { type: String, default: '' },
+  collaborators: { type: String, default: '' },
+  subjectArea: { type: String, default: '' },
+  abstractSummary: { type: String, default: '' },
+  keywordsClassification: { type: String, default: '' },
+  associatedProjects: { type: String, default: '' },
+  fundingSource: { type: String, default: '' },
+  licensingStatus: { type: String, default: '' },
+  revenueGenerated: { type: String, default: '' },
+  technologyTransfer: { type: String, default: '' },
+  citations: { type: String, default: '' },
+  awardsRecognition: { type: String, default: '' },
+  societalImpact: { type: String, default: '' },
 }, { _id: false });
 
 // Section 11: Admin Responsibilities
