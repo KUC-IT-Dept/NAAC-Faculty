@@ -1,6 +1,6 @@
 import qaiLogo from '../assets/qai-logo-transparent.png';
 
-export default function InitialLoadingScreen() {
+export default function InitialLoadingScreen({ error }: { error?: string }) {
   return (
     <div
       style={{
@@ -9,6 +9,7 @@ export default function InitialLoadingScreen() {
         zIndex: 99999,
         backgroundColor: 'var(--primary-dark, #1d4ed8)',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 24,
@@ -22,9 +23,15 @@ export default function InitialLoadingScreen() {
           maxWidth: 220,
           height: 'auto',
           objectFit: 'contain',
-          animation: 'subtlePulse 2s ease-in-out infinite',
+          animation: error ? 'none' : 'subtlePulse 2s ease-in-out infinite',
+          opacity: error ? 0.5 : 1,
         }}
       />
+      {error && (
+        <div style={{ marginTop: 24, color: '#fff', fontSize: '1.1rem', textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 }

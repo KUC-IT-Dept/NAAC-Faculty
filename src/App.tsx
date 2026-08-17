@@ -30,15 +30,40 @@ function ProtectedRoute({ children, role }: { children: ReactElement; role?: 'ad
 function AppRoutes() {
   const { user, loading } = useAuth();
   const [initLoading, setInitLoading] = useState(true);
+  const [backendError, setBackendError] = useState('');
   
   useEffect(() => {
     const init = async () => {
-      await loadDropdownOptionsFromServer();
-      setInitLoading(false);
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL || '/api/faculty';
+        const healthUrl = baseUrl.endsWith('/faculty') 
+            ? baseUrl.replace('/faculty', '/health') 
+            : baseUrl.endsWith('/api') ? `${baseUrl}/health` : `${baseUrl}/api/health`;
+
+        const healthPromise = fetch(healthUrl)
+          .then(res => {
+            if (!res.ok) throw new Error('Backend is not responding properly.');
+            return res.json();
+          })
+          .catch(() => {
+            throw new Error('Cannot connect to the backend server. Please check your connection or try again later.');
+          });
+
+        await Promise.all([
+          loadDropdownOptionsFromServer(),
+          healthPromise,
+          new Promise(r => setTimeout(r, 1000))
+        ]);
+      } catch (err: any) {
+        setBackendError(err.message || 'Error connecting to server.');
+      } finally {
+        setInitLoading(false);
+      }
     };
     init();
   }, []);
 
+  if (backendError) return <InitialLoadingScreen error={backendError} />;
   if (loading || initLoading) return <InitialLoadingScreen />;
 
   return (
