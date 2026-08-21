@@ -452,6 +452,11 @@ export default function PersonalInfo({ data, onChange, onPersist, saving }: { da
             ) : (
               renderPreview('Passport Number', safeData.passportNumber)
             )}
+            {isEditing ? (
+              fg('Vehicle Number', inp(data.vehicleNumber, v => s('vehicleNumber', v), 'e.g., MH 12 AB 1234'))
+            ) : (
+              renderPreview('Vehicle Number', safeData.vehicleNumber)
+            )}
           </div>
         </div>
       </div>

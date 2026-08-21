@@ -8,7 +8,7 @@ import SearchableSelect from '../SearchableSelect';
 const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
 const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '', semester: '', semesterFrom: '', semesterTo: '' };
-const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '' };
+const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '', fromSemester: '', toSemester: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -105,6 +105,7 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Classes Handled" value={r.classesHandled} />
           { (r.fromYear || r.toYear) && <PreviewRow label="Duration" value={`${r.fromYear || '—'} - ${r.toYear || '—'}`} /> }
+          { (r.fromSemester || r.toSemester) && <PreviewRow label="Semester" value={r.fromSemester && r.toSemester ? `${r.fromSemester} – ${r.toSemester}` : r.fromSemester || r.toSemester} /> }
           <PreviewRow label="Administrative Roles" value={r.administrativeRoles} />
           <PreviewRow label="Committee Memberships" value={r.committeeMemberships} />
         </div>
@@ -458,6 +459,23 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 )}
               </div>
               <div className="form-row form-row-1">
+                {fg('Semester', (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ flex: '0 0 48%' }}>
+                      <label className="form-label">From Semester</label>
+                      {sel(pendingResp.fromSemester, v => { setIsRespDirty(true); setPendingResp({ ...pendingResp, fromSemester: v }); }, semesters, 'Select...')}
+                    </div>
+                    <div style={{ flex: '0 0 48%' }}>
+                      <label className="form-label">To Semester</label>
+                      {sel(pendingResp.toSemester, v => { setIsRespDirty(true); setPendingResp({ ...pendingResp, toSemester: v }); }, semesters, 'Select...')}
+                    </div>
+                  </div>
+                ))}
+                {pendingResp.fromYear && pendingResp.toYear && parseInt(pendingResp.fromYear) > parseInt(pendingResp.toYear) && (
+                  <div style={{ marginTop: 8, color: '#b91c1c', fontSize: 13 }}>From Year cannot be greater than To Year.</div>
+                )}
+              </div>
+              <div className="form-row form-row-1">
                 {fg('Administrative Roles (HOD / Dean / IQAC / Warden etc.)', sel(pendingResp.administrativeRoles, v => { setIsRespDirty(true); setPendingResp({ ...pendingResp, administrativeRoles: v }); }, adminRoles, "Select..."))}
               </div>
               <div className="form-row form-row-1">
@@ -517,6 +535,23 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                           <div style={{ flex: '0 0 28%' }}>
                             <label className="form-label">To Year</label>
                             {yearSel(r.toYear, v => updResp(i, 'toYear', v), 1960)}
+                          </div>
+                        </div>
+                      ))}
+                      {r.fromYear && r.toYear && parseInt(r.fromYear) > parseInt(r.toYear) && (
+                        <div style={{ marginTop: 8, color: '#b91c1c', fontSize: 13 }}>From Year cannot be greater than To Year.</div>
+                      )}
+                    </div>
+                    <div className="form-row form-row-1">
+                      {fg('Semester', (
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <div style={{ flex: '0 0 48%' }}>
+                            <label className="form-label">From Semester</label>
+                            {sel(r.fromSemester, v => updResp(i, 'fromSemester', v), semesters, 'Select...')}
+                          </div>
+                          <div style={{ flex: '0 0 48%' }}>
+                            <label className="form-label">To Semester</label>
+                            {sel(r.toSemester, v => updResp(i, 'toSemester', v), semesters, 'Select...')}
                           </div>
                         </div>
                       ))}

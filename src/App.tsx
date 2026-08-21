@@ -52,7 +52,7 @@ function AppRoutes() {
         await Promise.all([
           loadDropdownOptionsFromServer(),
           healthPromise,
-          new Promise(r => setTimeout(r, 1000))
+          new Promise(r => setTimeout(r, 500))
         ]);
       } catch (err: any) {
         setBackendError(err.message || 'Error connecting to server.');

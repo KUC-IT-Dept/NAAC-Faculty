@@ -23,7 +23,7 @@ export default function InitialLoadingScreen({ error }: { error?: string }) {
           maxWidth: 220,
           height: 'auto',
           objectFit: 'contain',
-          animation: error ? 'none' : 'subtlePulse 2s ease-in-out infinite',
+          animation: error ? 'none' : 'subtlePulse 1s ease-in-out infinite',
           opacity: error ? 0.5 : 1,
         }}
       />

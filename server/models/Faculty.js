@@ -470,6 +470,8 @@ const academicRespItemSchema = new mongoose.Schema({
   committeeMemberships: { type: String, default: '' },
   fromYear: { type: String, default: '' },
   toYear: { type: String, default: '' },
+  fromSemester: { type: String, default: '' },
+  toSemester: { type: String, default: '' },
 }, { _id: false });
 
 // Section 10: Internship & Projects
@@ -541,6 +543,7 @@ const facultySchema = new mongoose.Schema({
     aadhaarNumber: { type: String, default: '' },
     passportNumber: { type: String, default: '' },
     panNumber: { type: String, default: '' },
+    vehicleNumber: { type: String, default: '' },
     // Social
     religion: { type: String, default: '' },
     category: { type: String, default: '' }, // General / OBC / SC / ST / EWS
