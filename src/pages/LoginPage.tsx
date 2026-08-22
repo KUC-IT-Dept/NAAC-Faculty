@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { GraduationCap, Lock, Mail, ArrowRight, BookOpen, Award, Users } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
+import kannurLogo from '../assets/kannur-university-logo.png';
 
 const features = [
   { icon: <BookOpen size={18} />, text: 'Comprehensive faculty profile management' },
@@ -51,18 +52,10 @@ export default function LoginPage() {
     <div className="login-page">
       {/* Left panel */}
       <div className="login-left">
+        <div className="login-left-header">
+          <img src={qaiLogo} alt="QAI / QARTINT Logo" className="login-left-logo" />
+        </div>
         <div style={{ maxWidth: 440, width: '100%', position: 'relative', zIndex: 1 }}>
-          <img 
-            src={qaiLogo} 
-            alt="QAI / QARTINT Logo" 
-            style={{ 
-              width: '100%', 
-              maxWidth: 250, 
-              height: 'auto', 
-              marginBottom: 20, 
-              display: 'block' 
-            }} 
-          />
           <div className="login-tagline">IQAC Faculty<br />Profile Portal</div>
           <p className="login-desc">
             Internal Quality Assurance Cell — a unified system for faculty to manage, update, and publicly showcase their academic credentials.
@@ -84,10 +77,7 @@ export default function LoginPage() {
       <div className="login-right">
         <div style={{ marginBottom: 22 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <div style={{ width: 34, height: 34, background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} />
-            </div>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>IQAC Portal</span>
+            <img src={kannurLogo} alt="Kannur University Logo" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
           </div>
           <h2 style={{ fontSize: '1.65rem', marginBottom: 4, color: 'var(--primary-dark)' }}>Welcome back</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Sign in to access your faculty profile dashboard.</p>
