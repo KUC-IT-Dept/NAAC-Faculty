@@ -1436,15 +1436,36 @@ tbody tr:last-child td {
 
 .login-left {
   flex: 1;
-  background: var(--primary-dark);
+  background: linear-gradient(135deg, #1e40af 0%, #1e3b8a 50%, #0f172a 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 48px;
+  padding: 160px 48px 40px;
   position: relative;
   overflow: hidden;
   border-right: 3px solid var(--accent);
+}
+
+.login-left-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: #ffffff;
+  padding: 0 48px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.login-left-logo {
+  height: 72px;
+  width: auto;
+  display: block;
 }
 
 .login-left::before {

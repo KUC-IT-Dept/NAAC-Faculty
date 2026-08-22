@@ -116,8 +116,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
 
         <nav className="sidebar-nav">
           {!collapsed && (
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', width: '100%' }}>
-              <img src={qaiLogo} alt="QAI Logo" style={{ width: '85%', maxHeight: '120px', objectFit: 'contain' }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px', width: '100%', paddingLeft: '8px', paddingTop: '8px' }}>
+              <img src={qaiLogo} alt="QAI Logo" style={{ width: '55px', height: 'auto', objectFit: 'contain' }} />
             </div>
           )}
           {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : user?.role === 'vc' ? 'University Overview' : user?.role === 'hod' ? (facultyProfile?.employmentDetails?.department || 'Department Panel') : 'My Account'}</div>}
