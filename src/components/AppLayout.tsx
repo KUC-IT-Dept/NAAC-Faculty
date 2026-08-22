@@ -1,14 +1,15 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
+import kannurLogoOld from '../assets/kannur-university-logo-old.png';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
 const adminNav: NavItem[] = [
   { label: 'Faculty Accounts', path: '/admin/accounts', icon: <Users size={18} /> },
-  { label: 'Org Hierarchy', path: '/admin/hierarchy', icon: <img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /> },
+  { label: 'Org Hierarchy', path: '/admin/hierarchy', icon: <GitBranch size={18} /> },
   { label: 'Departments', path: '/admin/departments', icon: <Building2 size={18} /> },
   { label: 'Students', path: '/admin/students', icon: <UserPlus size={18} /> },
   { label: 'Student Request', path: '/admin/student-request', icon: <GitPullRequest size={18} /> },
@@ -25,7 +26,7 @@ const facultyNav: NavItem[] = [
 
 const vcNav: NavItem[] = [
   { label: 'Faculty Accounts', path: '/vc/accounts', icon: <Users size={18} /> },
-  { label: 'Org Hierarchy', path: '/vc/hierarchy', icon: <img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /> },
+  { label: 'Org Hierarchy', path: '/vc/hierarchy', icon: <GitBranch size={18} /> },
   { label: 'Dashboard', path: '/vc/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Departments', path: '/vc/departments', icon: <Building2 size={18} /> },
   { label: 'Students', path: '/vc/students', icon: <UserPlus size={18} /> },
@@ -33,7 +34,7 @@ const vcNav: NavItem[] = [
 ];
 
 const hodNav: NavItem[] = [
-  { label: 'Org Hierarchy', path: '/hod/hierarchy', icon: <img src={qaiLogo} alt="Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} /> },
+  { label: 'Org Hierarchy', path: '/hod/hierarchy', icon: <GitBranch size={18} /> },
   { label: 'Department Faculty', path: '/hod/faculty', icon: <Users size={18} /> },
   { label: 'Department Students', path: '/hod/students', icon: <Users size={18} /> },
   { label: 'Notifications', path: '/hod/notifications', icon: <Bell size={18} /> },
@@ -116,7 +117,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
 
         <nav className="sidebar-nav">
           {!collapsed && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px', width: '100%', paddingLeft: '8px', paddingTop: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', width: '100%', paddingTop: '8px' }}>
               <img src={qaiLogo} alt="QAI Logo" style={{ width: '55px', height: 'auto', objectFit: 'contain' }} />
             </div>
           )}
@@ -215,6 +216,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         <header className="top-bar">
           <span className="top-bar-title">{title}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img src={kannurLogoOld} alt="Kannur University" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
               {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Vice Chancellor' : user?.role === 'hod' ? '⭐ HOD' : '👤 Faculty'}
             </span>
