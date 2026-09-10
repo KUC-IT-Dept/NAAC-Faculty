@@ -76,7 +76,7 @@ export default function FacultyProfileAnalytics({ facultyId, onBack }: Props) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
         <button type="button" onClick={onBack}
           style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 14px', cursor: 'pointer', fontSize: '0.85rem' }}>
-          ← Back
+          ← {data.department}
         </button>
         <div>
           <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--navy,#1e3a5f)' }}>{data.facultyName}</div>

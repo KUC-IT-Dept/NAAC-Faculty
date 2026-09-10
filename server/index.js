@@ -49,6 +49,18 @@ const studentSearchRoutes     = require('./modules/student/routes/search.route')
 const studentUserRoutes       = require('./modules/student/routes/user.router');
 const studentRequestsAdmin    = require('./routes/studentRequestsAdmin');
 
+// ── Phase 1 gap-close: new student-facing routes (flat-mounted below) ───────
+const studentDropdownRoutes            = require('./modules/student/routes/dropdown.routes');
+const studentNotificationRoutes        = require('./modules/student/routes/notification.routes');
+const studentProfileUpdateRequestRoutes = require('./modules/student/routes/profileUpdateRequest.routes');
+const studentForgotPasswordRequestRoutes = require('./modules/student/routes/forgotPasswordRequest.routes');
+
+// ── Phase 3: Library institutional module ────────────────────────────────────
+const libraryRoutes = require('./modules/library/routes/library.routes');
+
+// ── Phase 4: MMTTC institutional module ──────────────────────────────────────
+const mmttcRoutes = require('./modules/mmttc/routes/mmttc.routes');
+
 // ── Temp file cleanup (every hour) ───────────────────────────────────────────
 const { cleanupTemp } = require('./modules/student/utils/cleanupTemp');
 setInterval(cleanupTemp, 60 * 60 * 1000);
@@ -155,6 +167,29 @@ app.use('/api/student/user',           studentUserRoutes);      // /can-edit
 
 // Admin Student Requests Route (Unlock, Profile Updates, Dropdown Requests, Forgot Password)
 app.use('/api', studentRequestsAdmin);
+
+// ── Phase 1: compatibility aliases ───────────────────────────────────────────
+// The Student frontend (kuc-student-frontend-main) calls these flat paths
+// (carried over from kuc-backend-main's mount shape), not the /api/student/*
+// nesting used above. These are additive aliases pointing at the exact same
+// routers - nothing above this line is changed or removed.
+app.use('/api/auth',           studentAuthRoutes);
+app.use('/api/unlock-request', studentUnlockRoutes);
+app.use('/api/user',           studentUserRoutes);
+
+// ── Phase 1: new flat-mounted routes (gap close) ─────────────────────────────
+// Mounted flat (not under /api/student) to match the exact paths the
+// Student frontend already expects.
+app.use('/api/dropdowns',              studentDropdownRoutes);
+app.use('/api/notifications',          studentNotificationRoutes);
+app.use('/api/profile-update-request', studentProfileUpdateRequestRoutes);
+app.use('/api/forgot-password-request', studentForgotPasswordRequestRoutes);
+
+// ── Phase 3: Library institutional module ────────────────────────────────────
+app.use('/api/library', libraryRoutes);
+
+// ── Phase 4: MMTTC institutional module ──────────────────────────────────────
+app.use('/api/mmttc', mmttcRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

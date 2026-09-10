@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -15,16 +16,38 @@ import VCDashboard from './pages/vc/VCDashboard';
 import DepartmentDetails from './pages/vc/DepartmentDetails';
 import HODDashboard from './pages/hod/HODDashboard';
 import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
+import LibraryPage from './pages/institutional/LibraryPage';
+import MMTTCPage from './pages/institutional/MMTTCPage';
+import InstitutionalRedirect from './pages/institutional/InstitutionalRedirect';
 import { loadDropdownOptionsFromServer } from './shared/dropdownOptions';
 import { useEffect, useState } from 'react';
 import InitialLoadingScreen from './components/InitialLoadingScreen';
 
-function ProtectedRoute({ children, role }: { children: ReactElement; role?: 'admin' | 'faculty' | 'vc' | 'hod' }) {
+type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff';
+
+// role now accepts a single role (unchanged existing behavior) OR an array
+// of roles (Phase 5 addition - Library/MMTTC pages are reachable by both
+// 'admin' (superadmin/iqac_director) and 'staff'). This is a
+// backward-compatible generalization of the existing mechanism, not a new
+// permission model - a plain string still behaves exactly as before.
+function ProtectedRoute({ children, role }: { children: ReactElement; role?: Role | Role[] }) {
   const { user, loading } = useAuth();
   if (loading) return <InitialLoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
-  if (role && user.role !== role) return <Navigate to="/login" replace />;
+  if (role) {
+    const allowed = Array.isArray(role) ? role.includes(user.role) : user.role === role;
+    if (!allowed) return <Navigate to="/login" replace />;
+  }
   return children;
+}
+
+function homeForRole(user: { role: Role } | null) {
+  if (!user) return '/login';
+  if (user.role === 'admin') return '/admin/accounts';
+  if (user.role === 'vc') return '/vc/hierarchy';
+  if (user.role === 'hod') return '/hod/hierarchy';
+  if (user.role === 'staff') return '/institutional';
+  return '/faculty/dashboard';
 }
 
 function AppRoutes() {
@@ -70,7 +93,7 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/login"
-        element={user ? <Navigate to={user.role === 'admin' ? '/admin/accounts' : user.role === 'vc' ? '/vc/hierarchy' : user.role === 'hod' ? '/hod/hierarchy' : '/faculty/dashboard'} replace /> : <LoginPage />}
+        element={user ? <Navigate to={homeForRole(user)} replace /> : <LoginPage />}
       />
 
       {/* Admin */}
@@ -107,13 +130,22 @@ function AppRoutes() {
       <Route path="/vc/analytics"    element={<ProtectedRoute role="vc"><AnalyticsDashboard /></ProtectedRoute>} />
       <Route path="/admin/analytics" element={<ProtectedRoute role="admin"><AnalyticsDashboard /></ProtectedRoute>} />
 
+      {/* Institutional / NAAC (Phase 5) — reachable by admin (superadmin/
+          iqac_director, via the existing role coercion) and by staff (whose
+          modulePermissions determine which of these two pages actually
+          shows usable data - see LibraryPage/MMTTCPage for the client-side
+          permission check, backed by the server's own 403 either way). */}
+      <Route path="/institutional" element={<ProtectedRoute role={['admin', 'staff']}><InstitutionalRedirect /></ProtectedRoute>} />
+      <Route path="/institutional/library" element={<ProtectedRoute role={['admin', 'staff']}><LibraryPage /></ProtectedRoute>} />
+      <Route path="/institutional/mmttc" element={<ProtectedRoute role={['admin', 'staff']}><MMTTCPage /></ProtectedRoute>} />
+
       {/* Public — no auth */}
       <Route path="/profile/:username" element={<PublicProfile />} />
 
       {/* Default redirect */}
       <Route
         path="/"
-        element={<Navigate to={user ? (user.role === 'admin' ? '/admin/accounts' : user.role === 'vc' ? '/vc/hierarchy' : user.role === 'hod' ? '/hod/hierarchy' : '/faculty/dashboard') : '/login'} replace />}
+        element={<Navigate to={user ? homeForRole(user) : '/login'} replace />}
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

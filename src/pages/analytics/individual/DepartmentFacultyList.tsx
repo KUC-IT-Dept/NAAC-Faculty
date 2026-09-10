@@ -12,6 +12,11 @@ interface Props {
   deptName: string;
   filters?: AnalyticsFilters;
   onSelectFaculty: (facultyId: string) => void;
+  /** Optional — when provided, renders a "← All Departments" link above
+   *  the faculty list. Omitted by callers (like the Charts tab's
+   *  filter-driven single-department view) where "back" means changing
+   *  the filter instead of a page-state navigation. */
+  onBack?: () => void;
 }
 
 interface FacultyRow {
@@ -33,7 +38,7 @@ interface DeptFacultyResult {
   faculty: FacultyRow[];
 }
 
-export default function DepartmentFacultyList({ deptName, filters, onSelectFaculty }: Props) {
+export default function DepartmentFacultyList({ deptName, filters, onSelectFaculty, onBack }: Props) {
   const [result,  setResult]  = useState<DeptFacultyResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
@@ -77,6 +82,12 @@ export default function DepartmentFacultyList({ deptName, filters, onSelectFacul
 
   return (
     <div>
+      {onBack && (
+        <button type="button" onClick={onBack}
+          style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 14px', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 14 }}>
+          ← All Departments
+        </button>
+      )}
       <div style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
         <strong style={{ color: 'var(--navy,#1e3a5f)' }}>{deptName}</strong>
         <span style={{ color: '#64748b', fontSize: '0.85rem' }}>— {result.total} faculty</span>

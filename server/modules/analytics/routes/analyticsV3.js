@@ -238,11 +238,21 @@ router.get(
           // sum of projects[].amountSanctioned — see reportService.js for
           // the equivalent V2 calculation). That typo made calculateMetric()
           // resolve to null every time, which is why funding always showed ₹0.
+          //
+          // View Mode is intentionally NOT passed here. This endpoint feeds
+          // Publications by Department, Research Funding by Department, and
+          // the Department Performance table — all defined as absolute
+          // institutional counts/amounts. Per-faculty or percentage views of
+          // these belong on the Rankings tab (/rankings/:metricId), which
+          // already supports and explicitly labels that normalization.
+          // Silently dividing "Research Funding (₹)" by faculty count when
+          // the global View Mode changes would misrepresent it as something
+          // it doesn't claim to be.
           const [pubsResult, projsResult, patsResult, fundResult] = await Promise.all([
-            calculateMetric('3.4.4.journal', dFilter, { viewMode: req.query.viewMode }),
-            calculateMetric('3.2.2', dFilter, { viewMode: req.query.viewMode }),
-            calculateMetric('3.4.5', dFilter, { viewMode: req.query.viewMode }),
-            calculateMetric('3.2.1', dFilter, { viewMode: req.query.viewMode }),
+            calculateMetric('3.4.4', dFilter),
+            calculateMetric('3.2.2', dFilter),
+            calculateMetric('3.4.5', dFilter),
+            calculateMetric('3.2.1', dFilter),
           ]);
 
           return {

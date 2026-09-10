@@ -85,6 +85,22 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    // ── Module-level permissions (Phase 2) ───────────────────────────────────
+    // Simple flat list of module keys a non-role-privileged user (typically
+    // "staff") has been granted access to, e.g. ["library", "mmttc"].
+    // Additive/backward-compatible: defaults to an empty array, so existing
+    // documents that predate this field behave exactly as before (Mongoose
+    // returns [] for the missing field rather than undefined - no query or
+    // existing authorization check is affected by this addition).
+    // Not yet consumed by any route in this phase - see
+    // auth/middleware/authorize.js's authorizeModule() for the middleware
+    // this field is intended to be checked by, once wired into routes in a
+    // later phase.
+    modulePermissions: {
+      type: [String],
+      default: [],
+    },
+
     // ── OTP (from naac) ───────────────────────────────────────────────────────
     // Used for 2-factor login flow in the naac module.
     otp: {

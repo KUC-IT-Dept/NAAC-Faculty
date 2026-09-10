@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api from '../lib/api';
 
@@ -5,9 +6,20 @@ interface AuthUser {
   id: string;
   username: string;
   email: string;
-  role: 'admin' | 'faculty' | 'vc' | 'hod';
+  // 'superadmin' and 'iqac_director' are both coerced to 'admin' below (see
+  // coerceRole) - they share the same institutional-bypass access on the
+  // backend (auth/constants/roles.js ROLE_GROUPS.ADMIN_ONLY), and reusing
+  // the existing 'admin' UI is the existing pattern already established
+  // here for 'superadmin', not a new one invented for this phase.
+  // 'staff' is new: a staff account has no role-based bypass, only
+  // whatever modulePermissions it's been granted (e.g. ["library"]).
+  role: 'admin' | 'faculty' | 'vc' | 'hod' | 'staff';
   isFirstLogin: boolean;
   isActive: boolean;
+  // Present for 'staff' users (and harmless/absent for others). Mirrors
+  // auth/models/User.model.js's modulePermissions field exactly - this is
+  // the existing backend permission model, not a new frontend one.
+  modulePermissions?: string[];
 }
 
 interface AuthContextType {
@@ -21,6 +33,20 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// Coerces the backend's raw role into the frontend's existing role set.
+// 'superadmin' -> 'admin' already existed before this phase. 'iqac_director'
+// -> 'admin' is added here for the same reason: both are exactly
+// ROLE_GROUPS.ADMIN_ONLY on the backend (see auth/constants/roles.js), the
+// two roles that bypass module permissions entirely for Library/MMTTC (and
+// any other institutional module). Any other role (including 'staff') is
+// passed through unchanged.
+function coerceRole(rawUser: any) {
+  if (rawUser && (rawUser.role === 'superadmin' || rawUser.role === 'iqac_director')) {
+    rawUser.role = 'admin';
+  }
+  return rawUser;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -31,10 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const u = localStorage.getItem('iqac_user');
     if (t && u) {
       setToken(t);
-      const parsedUser = JSON.parse(u);
-      if (parsedUser && parsedUser.role === 'superadmin') {
-        parsedUser.role = 'admin';
-      }
+      const parsedUser = coerceRole(JSON.parse(u));
       setUser(parsedUser);
     }
     setLoading(false);
@@ -42,14 +65,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/auth/login', { username: email, password });
-    if (data.user && data.user.role === 'superadmin') {
-      data.user.role = 'admin';
-    }
     localStorage.setItem('iqac_token', data.token);
-    localStorage.setItem('iqac_user', JSON.stringify(data.user));
-    if (data.faculty) localStorage.setItem('iqac_faculty', JSON.stringify(data.faculty));
     setToken(data.token);
-    setUser(data.user);
+
+    // The login response's user object is a hand-picked subset (see
+    // modules/faculty/routes/auth.js) that does not include
+    // modulePermissions. /auth/me returns the full, live database
+    // document instead (it's already used elsewhere via refreshUser()),
+    // so fetch it once right after login to get the complete, current
+    // user - this is the existing enrichment endpoint, not a new one.
+    let finalUser = coerceRole(data.user);
+    try {
+      const meRes = await api.get('/auth/me');
+      finalUser = coerceRole(meRes.data.user);
+    } catch {
+      // If /auth/me fails for some reason, fall back to the login
+      // response's user object rather than blocking login entirely -
+      // modulePermissions will simply be treated as absent (no institutional
+      // module access shown), which is the safe default.
+    }
+
+    localStorage.setItem('iqac_user', JSON.stringify(finalUser));
+    if (data.faculty) localStorage.setItem('iqac_faculty', JSON.stringify(data.faculty));
+    setUser(finalUser);
     return { faculty: data.faculty };
   };
 
@@ -68,12 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = async () => {
     try {
       const { data } = await api.get('/auth/me');
-      if (data.user && data.user.role === 'superadmin') {
-        data.user.role = 'admin';
-      }
-      localStorage.setItem('iqac_user', JSON.stringify(data.user));
+      const finalUser = coerceRole(data.user);
+      localStorage.setItem('iqac_user', JSON.stringify(finalUser));
       if (data.faculty) localStorage.setItem('iqac_faculty', JSON.stringify(data.faculty));
-      setUser(data.user);
+      setUser(finalUser);
     } catch { /* silent */ }
   };
 

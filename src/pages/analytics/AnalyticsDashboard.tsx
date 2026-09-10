@@ -16,7 +16,6 @@ import CategoryDonutChart from '../../components/analytics/charts/CategoryDonutC
 import CriterionPieChart from '../../components/analytics/charts/CriterionPieChart';
 import CoverageHeatMap from '../../components/analytics/charts/CoverageHeatMap';
 import HierarchyTreemap from '../../components/analytics/charts/HierarchyTreemap';
-import CorrelationScatterChart from '../../components/analytics/charts/CorrelationScatterChart';
 import StackedBarChart from '../../components/analytics/charts/StackedBarChart';
 import BenchmarkPage from './benchmark/BenchmarkPage';
 import ReportsPage from './reports/ReportsPage';
@@ -64,6 +63,21 @@ const CRITERION_TITLES: Record<number, string> = {
   7: 'Institutional Values and Best Practices',
 };
 
+// Requirement 5: charts that legitimately change meaning under View Mode
+// must say so in their title rather than silently changing values under
+// an unchanged label. Criterion Value Distribution is the only Charts-tab
+// visualization left that varies with View Mode (it sums /dashboard-v3
+// metrics, which are normalized server-side); everything else on that
+// page (Publications, Funding, Faculty Size, Publication Type Mix,
+// Coverage, Students by Department) is defined as an absolute
+// institutional count and is fetched without viewMode.
+const VIEW_MODE_TITLE_SUFFIX: Record<ViewMode, string> = {
+  absolute:   '',
+  perFaculty: ' — Per Faculty',
+  percentage: ' — Percentage',
+  perStudent: ' — Per Student',
+};
+
 interface DepartmentFacultyChartRow {
   facultyId: string;
   facultyName: string;
@@ -85,6 +99,22 @@ function SectionHeading({ title }: { title: string }) {
     <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy, #1e3a5f)', margin: '28px 0 12px' }}>
       {title}
     </h2>
+  );
+}
+
+// Requirement 4: top-level group heading for the reorganized Charts page —
+// visually distinct from SectionHeading (individual chart titles) so the
+// page reads as grouped sections rather than a flat dump of charts.
+function GroupHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div style={{ marginTop: 40, marginBottom: 4, paddingBottom: 8, borderBottom: '2px solid #e2e8f0' }}>
+      <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--navy, #1e3a5f)', margin: 0 }}>
+        {title}
+      </h2>
+      {subtitle && (
+        <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0' }}>{subtitle}</p>
+      )}
+    </div>
   );
 }
 
@@ -272,8 +302,15 @@ export default function AnalyticsDashboard() {
     switch (tab) {
       case 'overview':
       case 'charts':
-      case 'individual':
         return true;
+      case 'individual':
+        // Individual Faculty Analytics is a single-person profile view —
+        // "Per Faculty" or "Per Student" normalization doesn't mean
+        // anything for one person, and neither fetch (faculty profile,
+        // department faculty list) consumes viewMode at all. Leaving the
+        // selector interactive here would look functional while silently
+        // doing nothing, which is worse than disabling it.
+        return false;
       case 'comparisons':
       case 'benchmark':
       case 'reports':
@@ -337,19 +374,6 @@ export default function AnalyticsDashboard() {
       ),
     })),
     [chartDepartmentData, publicationStackKeys]
-  );
-
-  const experienceScatterData = useMemo(
-    () => (chartDepartmentData || []).flatMap(department =>
-      department.faculty
-        .filter(faculty => typeof faculty.experienceYears === 'number' && !Number.isNaN(faculty.experienceYears))
-        .map(faculty => ({
-          x: faculty.experienceYears || 0,
-          y: faculty.kpis['3.4.4']?.value || 0,
-          name: `${faculty.facultyName} (${department.department})`,
-        }))
-    ),
-    [chartDepartmentData]
   );
 
   useEffect(() => {
@@ -609,7 +633,7 @@ export default function AnalyticsDashboard() {
                   {/* ── Dashboard (metrics) ── */}
                   {dashboard && dashboard.length > 0 && (
                     <>
-                      <SectionHeading title="Metrics Overview" />
+                      <SectionHeading title={`Metrics Overview${VIEW_MODE_TITLE_SUFFIX[viewMode]}`} />
                       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                         {dashboard.map(m => (
                           <StatCard key={m.metricId} label={m.metricName} value={m.value} />
@@ -716,12 +740,14 @@ export default function AnalyticsDashboard() {
             {visitedTabs.charts && (
               <div style={{ display: activeTab === 'charts' ? 'block' : 'none' }}>
                 <>
-                  {/* Department performance: comparison charts when multiple
-                      (or zero) departments are selected, department-specific
-                      analytics when exactly one is selected (Task 2). */}
+                  {/* ══ Department Performance ══ */}
                   {deptPerf && deptPerf.length > 0 && (
                     singleSelectedDept ? (
                       <>
+                        <GroupHeading
+                          title="Department Performance"
+                          subtitle={`Single-department view — showing ${singleSelectedDept} only. Clear the department filter to see all departments compared.`}
+                        />
                         <SectionHeading title={`${singleSelectedDept} — Department Analytics`} />
                         {(() => {
                           const dept = deptPerf.find(d => d.department === singleSelectedDept);
@@ -732,10 +758,10 @@ export default function AnalyticsDashboard() {
                             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
                               <StatCard label="Faculty"                 value={dept.facultyCount} />
                               <StatCard label="Avg. Completion (%)"     value={dept.averageCompletion} />
-                              <StatCard label="Publications"            value={dept.publications} />
+                              <StatCard label="Publications (all types)" value={dept.publications} />
                               <StatCard label="Projects"                value={dept.projects} />
                               <StatCard label="Patents"                 value={dept.patents} />
-                              <StatCard label="Research Funding"        value={formatFunding(dept.funding)} />
+                              <StatCard label="Research Funding (₹)"    value={formatFunding(dept.funding)} />
                             </div>
                           );
                         })()}
@@ -754,9 +780,18 @@ export default function AnalyticsDashboard() {
                       </>
                     ) : (
                       <>
+                        <GroupHeading
+                          title="Department Performance"
+                          subtitle="Absolute institutional counts — always shown as totals, regardless of the global View Mode."
+                        />
                         <SectionHeading title="Publications by Department" />
+                        <p style={{ color: '#64748b', fontSize: '0.8rem', margin: '-6px 0 12px' }}>
+                          Total publications of every supported type (Journal Articles, Book Chapters,
+                          Books Authored / Edited, Conference Papers) recorded against each faculty
+                          member's department.
+                        </p>
                         <DepartmentBarChart
-                          data={deptPerf.map(d => ({ department: d.department, value: d.publications }))}
+                          data={deptPerf.map(d => ({ department: d.department, value: d.publications ?? 0 }))}
                           valueLabel="Publications"
                           color="#2563eb"
                         />
@@ -766,35 +801,67 @@ export default function AnalyticsDashboard() {
                         ) : (
                           <DepartmentBarChart
                             data={deptPerf.map(d => ({ department: d.department, value: d.funding ?? 0 }))}
-                            valueLabel="Funding (₹)"
+                            valueLabel="Funding"
                             color="#16a34a"
+                            formatValue={(v) => `₹${v.toLocaleString('en-IN')}`}
                           />
                         )}
+                        <SectionHeading title="Faculty Size by Department" />
+                        <HierarchyTreemap data={hierarchyTreemapData} height={320} />
                       </>
                     )
                   )}
 
-                  {/* Coverage heatmap */}
-                  {coverage && coverage.length > 0 && (
+                  {/* ══ Research & Publications ══ */}
+                  {!chartDataLoading && publicationStackData.length > 0 && publicationStackKeys.length > 0 && (
                     <>
-                      <SectionHeading title="Data Coverage Heatmap" />
-                      <CoverageHeatMap data={coverage} />
+                      <GroupHeading
+                        title="Research & Publications"
+                        subtitle="Publication counts by type — always absolute counts."
+                      />
+                      <SectionHeading title="Publication Type Mix by Department" />
+                      <StackedBarChart data={publicationStackData} stacks={publicationStackKeys} height={340} />
                     </>
                   )}
+                  {chartDataLoading && (
+                    <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Loading chart insights…</p>
+                  )}
 
-                  {/* Metrics pie */}
+                  {/* ══ NAAC Criterion Distribution ══ */}
                   {dashboard && dashboard.length > 0 && (
                     <>
-                      <SectionHeading title="Criterion Value Distribution" />
+                      <GroupHeading
+                        title="NAAC Criterion Distribution"
+                        subtitle={viewMode !== 'absolute'
+                          ? `Currently showing ${VIEW_MODE_TITLE_SUFFIX[viewMode].replace(' — ', '')} values — this section does respond to the global View Mode.`
+                          : 'Institutional metric totals grouped by NAAC criterion.'}
+                      />
+                      <SectionHeading title={`Criterion Value Distribution${VIEW_MODE_TITLE_SUFFIX[viewMode]}`} />
                       <div style={{ maxWidth: 480 }}>
                         <CriterionPieChart metrics={criterionPieMetrics} />
                       </div>
                     </>
                   )}
 
-                  {/* Student departments donut */}
+                  {/* ══ Institutional Data Coverage ══ */}
+                  {coverage && coverage.length > 0 && (
+                    <>
+                      <GroupHeading
+                        title="Institutional Data Coverage"
+                        subtitle="What share of faculty records have each data point on file — always shown as a percentage, unaffected by View Mode."
+                      />
+                      <SectionHeading title="Data Coverage Heatmap" />
+                      <CoverageHeatMap data={coverage} />
+                    </>
+                  )}
+
+                  {/* ══ Student Analytics ══ */}
                   {studentDepts && studentDepts.length > 0 && (
                     <>
+                      <GroupHeading
+                        title="Student Analytics"
+                        subtitle="Student counts by department — always absolute counts."
+                      />
                       <SectionHeading title="Students by Department" />
                       <div style={{ maxWidth: 480 }}>
                         <CategoryDonutChart
@@ -804,38 +871,25 @@ export default function AnalyticsDashboard() {
                     </>
                   )}
 
-                  {deptPerf && deptPerf.length > 0 && (
-                    <>
-                      <SectionHeading title="Faculty Size Treemap" />
-                      <HierarchyTreemap data={hierarchyTreemapData} height={320} />
-                    </>
-                  )}
+                  {/* Requirement 1 (removed): "Experience vs Publications" was an
+                      ungrouped, institution-wide scatter of two individual-level
+                      attributes (one point per faculty member — x = raw years of
+                      experience from employmentDetails.totalExperienceYears, y =
+                      that faculty's total publication count via metric 3.4.4).
+                      It carried no department grouping, no NAAC criterion mapping,
+                      and fed no benchmark/criterion calculation elsewhere — it
+                      didn't answer an institutional analytics question, so per
+                      the review it was removed rather than reskinned. The
+                      underlying per-faculty experience/publication data is still
+                      available in chartDepartmentData/DepartmentFacultyList for
+                      anyone who wants to reintroduce a scoped, department-level
+                      version later with a clear NAAC-relevant purpose. */}
 
-                  {chartDataLoading && (
-                    <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Loading chart insights…</p>
-                  )}
-
-                  {!chartDataLoading && publicationStackData.length > 0 && publicationStackKeys.length > 0 && (
-                    <>
-                      <SectionHeading title="Publication Type Mix by Department" />
-                      <StackedBarChart data={publicationStackData} stacks={publicationStackKeys} height={340} />
-                    </>
-                  )}
-
-                  {!chartDataLoading && experienceScatterData.length > 0 && (
-                    <>
-                      <SectionHeading title="Experience vs Publications" />
-                      <CorrelationScatterChart
-                        data={experienceScatterData}
-                        xAxisLabel="Experience (Years)"
-                        yAxisLabel="Publications"
-                        height={340}
-                      />
-                    </>
-                  )}
-
-                  {/* V2: drill-down quick-launch buttons */}
-                  <SectionHeading title="Drill-Down" />
+                  {/* ══ Drill-Down (utility, not a chart) ══ */}
+                  <GroupHeading
+                    title="Detailed Drill-Down"
+                    subtitle="Row-level records behind any KPI above."
+                  />
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
                     {['publications', 'projects', 'patents', 'faculty'].map(kpi => (
                       <button
@@ -919,6 +973,7 @@ export default function AnalyticsDashboard() {
                       deptName={selectedDept}
                       filters={filters}
                       onSelectFaculty={setSelectedFaculty}
+                      onBack={() => setSelectedDept(null)}
                     />
                   ) : (
                     <div>

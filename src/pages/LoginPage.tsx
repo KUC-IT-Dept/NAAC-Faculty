@@ -35,6 +35,9 @@ export default function LoginPage() {
       } else if (u.role === 'hod') {
         toast.success('Welcome back, HOD!');
         navigate('/hod');
+      } else if (u.role === 'staff') {
+        toast.success('Welcome back!');
+        navigate('/institutional');
       } else if (u.isFirstLogin) {
         navigate('/faculty/setup');
       } else {

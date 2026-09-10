@@ -1,9 +1,11 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
 import kannurLogoOld from '../assets/kannur-university-logo-old.png';
+
+type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
@@ -15,6 +17,12 @@ const adminNav: NavItem[] = [
   { label: 'Student Request', path: '/admin/student-request', icon: <GitPullRequest size={18} /> },
   { label: 'Notifications', path: '/admin/requests', icon: <Bell size={18} /> },
   { label: 'Analytics', path: '/admin/analytics', icon: <BarChart2 size={18} /> },
+  // Phase 5: Institutional / NAAC modules. Visible here because 'admin' in
+  // this frontend already represents both 'superadmin' and 'iqac_director'
+  // (see AuthContext's coerceRole) - both are the backend's
+  // ROLE_GROUPS.ADMIN_ONLY bypass roles for these modules.
+  { label: 'Library', path: '/institutional/library', icon: <BookOpen size={18} /> },
+  { label: 'MMTTC', path: '/institutional/mmttc', icon: <GraduationCap size={18} /> },
   { label: 'Edit Form', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
   { label: 'General', path: '/admin/general', icon: <Globe size={18} /> },
 ];
@@ -41,7 +49,25 @@ const hodNav: NavItem[] = [
   { label: 'Analytics', path: '/hod/analytics', icon: <BarChart2 size={18} /> },
 ];
 
-const profileDropdownItems = (role?: 'admin' | 'faculty' | 'vc' | 'hod') => {
+// Phase 5: staff accounts have no role-based bypass - they only see the
+// specific institutional module(s) their modulePermissions actually grant.
+// This is the SAME NavItem[] pattern as adminNav/facultyNav/vcNav/hodNav
+// above (an existing mechanism), just filtered by an existing backend
+// field (modulePermissions) instead of hardcoded per role - not a new
+// permission model.
+function buildStaffNav(modulePermissions: string[] | undefined): NavItem[] {
+  const perms = modulePermissions || [];
+  const items: NavItem[] = [];
+  if (perms.includes('library')) {
+    items.push({ label: 'Library', path: '/institutional/library', icon: <BookOpen size={18} /> });
+  }
+  if (perms.includes('mmttc')) {
+    items.push({ label: 'MMTTC', path: '/institutional/mmttc', icon: <GraduationCap size={18} /> });
+  }
+  return items;
+}
+
+const profileDropdownItems = (role?: Role) => {
   const base = role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   return [
     { id: 'personal-information', label: '01 - Personal Information', path: `${base}/personal-information` },
@@ -81,9 +107,14 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const facultyProfile = JSON.parse(localStorage.getItem('iqac_faculty') || 'null');
 
-  const navItems = user?.role === 'admin' ? adminNav : user?.role === 'vc' ? vcNav : user?.role === 'hod' ? hodNav : facultyNav;
-  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : 'Faculty User');
-  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : 'Faculty User';
+  const navItems =
+    user?.role === 'admin' ? adminNav :
+    user?.role === 'vc' ? vcNav :
+    user?.role === 'hod' ? hodNav :
+    user?.role === 'staff' ? buildStaffNav(user.modulePermissions) :
+    facultyNav;
+  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : 'Faculty User');
+  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : 'Faculty User';
   const initials = displayName.slice(0, 2).toUpperCase();
   const editProfileBase = user?.role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   const isActive = (item: NavItem) => item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
@@ -121,7 +152,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
               <img src={qaiLogo} alt="QAI Logo" style={{ width: '55px', height: 'auto', objectFit: 'contain' }} />
             </div>
           )}
-          {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : user?.role === 'vc' ? 'University Overview' : user?.role === 'hod' ? (facultyProfile?.employmentDetails?.department || 'Department Panel') : 'My Account'}</div>}
+          {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : user?.role === 'vc' ? 'University Overview' : user?.role === 'hod' ? (facultyProfile?.employmentDetails?.department || 'Department Panel') : user?.role === 'staff' ? 'Institutional Panel' : 'My Account'}</div>}
           {navItems.map(item => {
             if (item.label === 'Edit Profile' || item.label === 'Edit Form') {
               return (
@@ -218,7 +249,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <img src={kannurLogoOld} alt="Kannur University" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
-              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Vice Chancellor' : user?.role === 'hod' ? '⭐ HOD' : '👤 Faculty'}
+              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Vice Chancellor' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}
             </span>
           </div>
         </header>
