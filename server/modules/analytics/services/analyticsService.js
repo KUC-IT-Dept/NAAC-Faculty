@@ -2,7 +2,11 @@ const Metric = require("../models/Metric");
 const Faculty = require("../../faculty/models/Faculty");
 const StudentProfile =
 require("../../student/models/StudentProfile");
+const LibraryRecord = require("../../library/models/LibraryRecord");
+const MMTTCRecord = require("../../mmttc/models/MMTTCRecord");
 const { normalizePublicationType } = require("../utils/publicationType");
+
+const { extractExperienceFilter, isInExperienceRange } = require('./filterService');
 
 // Phase 6: calculateMetricFromDoc accepts an already-fetched Metric document,
 // eliminating redundant Metric.findOne in batch callers like /dashboard-v3.
@@ -12,6 +16,9 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     if (!metric) {
         return null;
     }
+
+    const { min, max, cleanFilter } = extractExperienceFilter(filter);
+    filter = cleanFilter;
 
     let value = 0;
 
@@ -29,7 +36,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
                     }
                 }).lean();
 
-                value = countRecords.reduce((total, faculty) => {
+                value = countRecords.filter(f => isInExperienceRange(f, min, max)).reduce((total, faculty) => {
 
                     const data = faculty[metric.fieldPath] || [];
 
@@ -49,7 +56,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
                     }
                 }).lean();
 
-                value = sumRecords.reduce((total, faculty) => {
+                value = sumRecords.filter(f => isInExperienceRange(f, min, max)).reduce((total, faculty) => {
 
                     const items = faculty[metric.fieldPath] || [];
 
@@ -79,7 +86,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
         }
     }).lean();
 
-    value = conditionalRecords.reduce((total, faculty) => {
+    value = conditionalRecords.filter(f => isInExperienceRange(f, min, max)).reduce((total, faculty) => {
 
         const items =
             faculty[metric.fieldPath] || [];
@@ -107,7 +114,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
 
     const records = await Faculty.find({ ...filter }).lean();
 
-    value = records.reduce((total, faculty) => {
+    value = records.filter(f => isInExperienceRange(f, min, max)).reduce((total, faculty) => {
 
         const obj = faculty[metric.fieldPath] || {};
 
@@ -122,27 +129,26 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     break;
     case "percentage":
 
-    const totalFaculty =
-        await Faculty.countDocuments({ ...filter });
+    {
+        const allFacForPct = await Faculty.find({ ...filter }).lean();
+        const filteredForPct = allFacForPct.filter(f => isInExperienceRange(f, min, max));
+        const totalFaculty = filteredForPct.length;
 
-    const matchingFaculty =
-        await Faculty.countDocuments({
-            ...filter,
-            [metric.numeratorField]: {
-                $exists: true,
-                $ne: []
-            }
-        });
+        const matchingFaculty = filteredForPct.filter(f => {
+            const field = f[metric.numeratorField];
+            return field !== undefined && field !== null && !(Array.isArray(field) && field.length === 0);
+        }).length;
 
-    value =
-        totalFaculty === 0
-            ? 0
-            : Number(
-                (
-                    matchingFaculty /
-                    totalFaculty * 100
-                ).toFixed(2)
-            );
+        value =
+            totalFaculty === 0
+                ? 0
+                : Number(
+                    (
+                        matchingFaculty /
+                        totalFaculty * 100
+                    ).toFixed(2)
+                );
+    }
 
     break;
     case "ratio":
@@ -172,8 +178,10 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     break;
     case "facultyCount":
 
-    value =
-        await Faculty.countDocuments({ ...filter });
+    {
+        const allFacForCount = await Faculty.find({ ...filter }).lean();
+        value = allFacForCount.filter(f => isInExperienceRange(f, min, max)).length;
+    }
 
     break;
     case "studentCount":
@@ -236,7 +244,8 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
 
     case "average":
         {
-            const avgRecords = await Faculty.find({ ...filter }).lean();
+            const avgRecords = (await Faculty.find({ ...filter }).lean())
+                .filter(f => isInExperienceRange(f, min, max));
 
             let total = 0, count = 0;
             for (const faculty of avgRecords) {
@@ -261,8 +270,20 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
 
     case "distinctGroupCount":
         {
-            const distinctVals = await Faculty.distinct(metric.fieldPath, { ...filter });
-            value = distinctVals.filter(v => v && String(v).trim() !== '').length;
+            // distinctGroupCount with experience range: fetch records and count distinct values
+            if (min !== null || max !== null) {
+                const allForDistinct = (await Faculty.find({ ...filter }).lean())
+                    .filter(f => isInExperienceRange(f, min, max));
+                const distinctSet = new Set();
+                for (const f of allForDistinct) {
+                    const v = f[metric.fieldPath];
+                    if (v && String(v).trim() !== '') distinctSet.add(String(v).trim());
+                }
+                value = distinctSet.size;
+            } else {
+                const distinctVals = await Faculty.distinct(metric.fieldPath, { ...filter });
+                value = distinctVals.filter(v => v && String(v).trim() !== '').length;
+            }
         }
         break;
 
@@ -282,12 +303,12 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     if (viewMode === 'perFaculty' && !normalizationSkipped) {
         const facultyCount = (options.precomputedCounts && typeof options.precomputedCounts.facultyCount === 'number')
             ? options.precomputedCounts.facultyCount
-            : await Faculty.countDocuments({ ...filter });
+            : (await Faculty.find({ ...filter }).lean()).filter(f => isInExperienceRange(f, min, max)).length;
         value = facultyCount > 0 ? Number((value / facultyCount).toFixed(4)) : 0;
     } else if (viewMode === 'percentage' && !normalizationSkipped) {
         const facultyCount = (options.precomputedCounts && typeof options.precomputedCounts.facultyCount === 'number')
             ? options.precomputedCounts.facultyCount
-            : await Faculty.countDocuments({ ...filter });
+            : (await Faculty.find({ ...filter }).lean()).filter(f => isInExperienceRange(f, min, max)).length;
         value = facultyCount > 0 ? Number((value / facultyCount * 100).toFixed(2)) : 0;
     } else if (viewMode === 'perStudent' && !normalizationSkipped) {
         const studentCount = (options.precomputedCounts && typeof options.precomputedCounts.studentCount === 'number')
@@ -312,10 +333,14 @@ async function calculateMetric(metricId, filter = {}, options = {}) {
     }
     return calculateMetricFromDoc(metric, filter, options);
 }
-async function getStudentProfileCompletion() {
+async function getStudentProfileCompletion(department = null) {
+
+    const filter = department
+        ? { "academic_details.department": department }
+        : {};
 
     const students =
-        await StudentProfile.find().lean();
+        await StudentProfile.find(filter).lean();
 
     const results = [];
 
@@ -377,10 +402,10 @@ async function getStudentProfileCompletion() {
 
     return results;
 }
-async function getStudentProfileSummary() {
+async function getStudentProfileSummary(department = null) {
 
     const profiles =
-        await getStudentProfileCompletion();
+        await getStudentProfileCompletion(department);
 
     const totalStudents =
         profiles.length;
@@ -414,38 +439,46 @@ async function getStudentProfileSummary() {
         incompleteProfiles
     };
 }
-async function getStudentDepartments() {
+async function getStudentDepartments(department = null) {
+
+    const filter = department
+        ? { "academic_details.department": department }
+        : {};
 
     const students =
-        await StudentProfile.find().lean();
+        await StudentProfile.find(filter).lean();
 
     const departments = {};
 
     students.forEach(student => {
 
-        const department =
+        const dept =
             student.academic_details?.department ||
             "Unknown";
 
-        if (!departments[department]) {
+        if (!departments[dept]) {
 
-            departments[department] = {
-                department,
+            departments[dept] = {
+                department: dept,
                 students: 0
             };
 
         }
 
-        departments[department].students++;
+        departments[dept].students++;
 
     });
 
     return Object.values(departments);
 }
-async function getProgramLevels() {
+async function getProgramLevels(department = null) {
+
+    const filter = department
+        ? { "academic_details.department": department }
+        : {};
 
     const students =
-        await StudentProfile.find().lean();
+        await StudentProfile.find(filter).lean();
 
     const levels = {};
 
@@ -470,11 +503,75 @@ async function getProgramLevels() {
 
     return Object.values(levels);
 }
+
+// ── Institutional Summary (Library + MMTTC) ─────────────────────────────────
+// Library and MMTTC records are one-per-academic-year institutional
+// documents (see modules/library/models/LibraryRecord.js and
+// modules/mmttc/models/MMTTCRecord.js) - not per-faculty arrays, so they
+// don't fit the fieldPath-based Faculty metric engine above. This returns
+// a simple year-by-year summary of both instead, for a dedicated dashboard
+// section. Institution-wide by nature (neither record has a department
+// field), so no department filter is applied here.
+async function getInstitutionalSummary() {
+
+    const [libraryRecords, mmttcRecords] = await Promise.all([
+        LibraryRecord.find().lean(),
+        MMTTCRecord.find().lean(),
+    ]);
+
+    const academicYearRegex = /^\d{4}-\d{4}$/;
+
+    const library = libraryRecords
+        .filter(r => {
+            if (!academicYearRegex.test(r.academicYear)) {
+                console.warn(`[getInstitutionalSummary] Invalid library academicYear excluded: "${r.academicYear}"`);
+                return false;
+            }
+            return true;
+        })
+        .map(r => ({
+            academicYear: r.academicYear,
+            totalBooks: r.collections?.totalBooks?.number || 0,
+            journalsAndPeriodicals:
+                (r.collections?.journalsAndPeriodicals?.print || 0) +
+                (r.collections?.journalsAndPeriodicals?.electronic || 0),
+            ebooks: r.collections?.digitalResources?.ebooks || 0,
+            seatingCapacity:
+                (r.infrastructure?.seatingCapacity?.readingRooms || 0) +
+                (r.infrastructure?.seatingCapacity?.studyCarrels || 0) +
+                (r.infrastructure?.seatingCapacity?.digitalLabs || 0),
+            computers: r.infrastructure?.computers || 0,
+        }))
+        .sort((a, b) => String(a.academicYear).localeCompare(String(b.academicYear)));
+
+    const mmttc = mmttcRecords
+        .filter(r => {
+            if (!academicYearRegex.test(r.academicYear)) {
+                console.warn(`[getInstitutionalSummary] Invalid mmttc academicYear excluded: "${r.academicYear}"`);
+                return false;
+            }
+            return true;
+        })
+        .map(r => {
+            const courses = r.courses || [];
+            return {
+                academicYear: r.academicYear,
+                coursesConducted: courses.length,
+                totalParticipants: courses.reduce((sum, c) => sum + (c.participants?.total || 0), 0),
+                facultyParticipants: courses.reduce((sum, c) => sum + (c.facultyParticipants || 0), 0),
+            };
+        })
+        .sort((a, b) => String(a.academicYear).localeCompare(String(b.academicYear)));
+
+    return { library, mmttc };
+}
+
 module.exports = {
     calculateMetric,
     calculateMetricFromDoc,
     getStudentProfileCompletion,
     getStudentProfileSummary,
     getStudentDepartments,
-    getProgramLevels
+    getProgramLevels,
+    getInstitutionalSummary
 };

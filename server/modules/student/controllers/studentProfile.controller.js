@@ -52,7 +52,7 @@ const CreateOrUpdate = async (req, res) => {
       fellowshipLetter: 'academic_details.fellowshipLetter', passportDoc: 'personal_details.passportDoc', visaDoc: 'personal_details.visaDoc',
       birthCertificateDoc: 'personal_details.birthCertificateDoc', disabilityCertificate: 'health_details.disabilityCertificate',
       vaccinationDoc: 'health_details.vaccinationDoc', migrationUrl: 'education_details.migrationUrl',
-      feeWaiveDocument: 'financial_details.feeWaiveUrl.document', hostelDeclarationForm: 'residential_details.hostelDeclarationForm',
+      feeWaiveDocument: 'financial_details.feeWaiveUrl.document', grantWaiveDocument: 'financial_details.grantWaiveUrl.document', hostelDeclarationForm: 'residential_details.hostelDeclarationForm',
       profilePhoto: 'documents.profilePhoto', signature: 'documents.signature', identityProof: 'documents.identityProof.document',
       incomeCertificate: 'documents.legalCertificates.incomeCertificate', casteCertificate: 'documents.legalCertificates.casteCertificate',
       nonCreamyLayerCertificate: 'documents.legalCertificates.nonCreamyLayerCertificate', nativityCertificate: 'documents.legalCertificates.nativityCertificate'
@@ -90,14 +90,36 @@ const CreateOrUpdate = async (req, res) => {
     Object.keys(updateData).forEach((key) => setByDotPath(finalData, key, updateData[key]));
     finalData = sanitizeProfilePayload(finalData);
 
+    // Explicit signal from the frontend that this call is the student's final
+    // submission (see FinalReviewForm), as opposed to an incremental
+    // per-section save made while still filling out the onboarding wizard.
+    const isFinalSubmission = body.isFinalSubmission === true || body.isFinalSubmission === 'true';
+
     let profile = null;
     if (!existingData) {
+      // First save of any kind for this student: create the profile.
+      // While the onboarding wizard is still in progress (isFinalSubmission
+      // is false), leave canEdit alone so subsequent section saves keep
+      // merging directly into this same document instead of being routed
+      // through the (admin-approval) ProfileUpdateRequest workflow.
+      finalData.isComplete = !!isFinalSubmission;
       profile = await StudentProfile.create({ userId, ...finalData });
+      if (isFinalSubmission) await User.findByIdAndUpdate(userId, { canEdit: false });
+    } else if (!existingData.isComplete) {
+      // Onboarding still in progress: keep merging each section directly
+      // into the same profile document rather than queuing an approval
+      // request against a profile the student hasn't finished yet.
+      finalData.isComplete = !!isFinalSubmission;
+      profile = await StudentProfile.findOneAndUpdate({ userId }, { $set: finalData }, { new: true });
+      if (isFinalSubmission) await User.findByIdAndUpdate(userId, { canEdit: false });
     } else {
+      // Profile already completed and submitted: any further self-service
+      // change is a correction that needs staff approval (existing
+      // behavior, unchanged).
       const requestChanges = buildNestedObjectFromDotPaths(updateData);
       await ProfileUpdateRequest.create({ studentId: userId, requestNo: `REQ-${Date.now()}`, changes: requestChanges, status: 'pending' });
+      await User.findByIdAndUpdate(userId, { canEdit: false });
     }
-    await User.findByIdAndUpdate(userId, { canEdit: false });
     return res.status(200).json({ message: 'Profile saved successfully', profile });
   } catch (error) {
     console.log(error);

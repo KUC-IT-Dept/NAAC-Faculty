@@ -1,19 +1,14 @@
 // src/lib/institutionalApi.ts
 //
-// Typed wrappers for the Library and MMTTC endpoints, following the exact
-// same pattern already established in lib/studentRequestApi.ts (a plain
-// object of typed async methods built on an existing axios client).
-//
-// Uses `apiRoot` (from lib/api.ts) rather than the default `api` client:
-// `api`'s baseURL is scoped to /api/faculty, but Library/MMTTC live at
-// /api/library and /api/mmttc on the same merged backend. `apiRoot`'s
-// baseURL is `${VITE_STUDENT_API_URL}/api` - once that env var points at
-// the merged backend (Phase 5 configuration change), apiRoot.get('/library')
-// resolves to exactly <merged-backend>/api/library. This reuses an
-// existing client rather than introducing a third one; `apiRoot` already
-// carries the same auth-token interceptor and 401-handling behavior these
-// calls need.
-import { apiRoot } from './api';
+// Typed wrappers for the Library and MMTTC endpoints. Library/MMTTC are
+// mounted on THIS project's own backend at /api/library and /api/mmttc
+// (see server/index.js), so these calls use `apiCore` - a same-origin
+// client scoped to /api (proxied to the local backend by vite.config.ts,
+// same as /api/faculty/* calls). They previously used `apiRoot`, which
+// points at a *different*, external student-portal backend
+// (VITE_STUDENT_API_URL) used by studentRequestApi.ts - that mismatch is
+// why creating/updating Library and MMTTC records was failing.
+import { apiCore as apiRoot } from './api';
 
 export interface LibraryRecord {
   _id: string;

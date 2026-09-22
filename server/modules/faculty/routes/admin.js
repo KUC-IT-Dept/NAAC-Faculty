@@ -395,6 +395,95 @@ router.patch('/option-requests/:id/undo', async (req, res) => {
   }
 });
 
+// ── Special Faculty Responsibilities (Library / MMTTC) ─────────────────────
+// Reuses the existing auth/models/User.model.js `modulePermissions` field -
+// the SAME field/mechanism already enforced by authorizeModule() on the
+// Library/MMTTC routes (see modules/library/routes/library.routes.js and
+// modules/mmttc/routes/mmttc.routes.js) for 'staff' accounts. No second
+// permission system is introduced; this just gives Admin a UI/API to set
+// that field for 'faculty' accounts too. This whole router is already
+// gated by `router.use(auth, adminOrVc)` above, so only admin/superadmin/vc
+// can reach these two routes - a faculty member can never call them,
+// satisfying "faculty cannot assign responsibilities to themselves/others".
+const SPECIAL_RESPONSIBILITY_KEYS = ['library', 'mmttc'];
+
+// GET /api/faculty/admin/special-responsibilities
+router.get('/special-responsibilities', async (req, res) => {
+  try {
+    const users = await User.find({ role: 'faculty' }).select('-password').sort({ name: 1, username: 1 });
+    const profiles = await Faculty.find({ userId: { $in: users.map(u => u._id) } })
+      .select('userId employmentDetails.designation employmentDetails.department personalInfo.fullName');
+    const profileMap = {};
+    profiles.forEach(p => { profileMap[p.userId.toString()] = p; });
+
+    const list = users.map(u => {
+      const profile = profileMap[u._id.toString()];
+      return {
+        id: u._id,
+        name: (profile?.personalInfo?.fullName || u.name || u.username || '').replace(/^temp--/, ''),
+        email: u.email,
+        department: profile?.employmentDetails?.department || u.department || '',
+        designation: profile?.employmentDetails?.designation || '',
+        modulePermissions: (u.modulePermissions || []).filter(p => SPECIAL_RESPONSIBILITY_KEYS.includes(p)),
+      };
+    });
+    res.json(list);
+  } catch (err) {
+    console.error('[GET /admin/special-responsibilities]', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PUT /api/faculty/admin/special-responsibilities/:userId
+// Body: { library?: boolean, mmttc?: boolean }. Only the keys present in
+// the body are changed; any other modulePermissions entries the account
+// might already have (from a different mechanism) are left untouched.
+//
+// IMPORTANT: this uses an atomic findByIdAndUpdate($set) on ONLY the
+// modulePermissions field, not load->mutate->save(). Document#save()
+// revalidates every required path on the WHOLE document (name, password,
+// email, ...) even when they weren't touched, so a pre-existing account
+// that's missing a required field for any unrelated historical reason
+// (bad legacy data, a doc inserted before a schema constraint was added,
+// etc.) would make this endpoint fail with e.g. "name is required" even
+// though we never read or write `name`. findByIdAndUpdate + $set only
+// validates the path(s) actually being set (with runValidators: true),
+// so it can never be blocked by - or accidentally clobber - any other
+// field on the document.
+router.put('/special-responsibilities/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { library, mmttc } = req.body;
+
+    // Read-only lookup first, to check existence + role. Selecting just
+    // these two fields also means we never need the password hash here.
+    const existing = await User.findById(userId).select('role modulePermissions');
+    if (!existing) return res.status(404).json({ message: 'Faculty member not found' });
+    if (existing.role !== 'faculty') {
+      return res.status(400).json({ message: 'Special responsibilities can only be assigned to faculty accounts.' });
+    }
+
+    const current = new Set(existing.modulePermissions || []);
+    if (typeof library === 'boolean') { library ? current.add('library') : current.delete('library'); }
+    if (typeof mmttc === 'boolean') { mmttc ? current.add('mmttc') : current.delete('mmttc'); }
+    const modulePermissions = Array.from(current);
+
+    // Atomic, scoped update - touches ONLY modulePermissions. Every other
+    // field on the document (name, email, password, department, ...) is
+    // left exactly as it was.
+    const target = await User.findByIdAndUpdate(
+      userId,
+      { $set: { modulePermissions } },
+      { new: true, runValidators: true, context: 'query' }
+    ).select('-password');
+
+    res.json({ message: 'Special responsibilities updated', modulePermissions: target.modulePermissions });
+  } catch (err) {
+    console.error('[PUT /admin/special-responsibilities/:userId]', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
 
 

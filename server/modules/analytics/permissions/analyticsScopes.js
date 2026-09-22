@@ -37,6 +37,8 @@ const ENDPOINT_KEYS = [
   'studentProfileSummary',    // /student-profile-summary
   'studentDepartments',       // /student-departments
   'programLevels',            // /program-levels
+  // Phase: institutional summary (Library + MMTTC year-by-year aggregates)
+  'institutionalSummary',     // /institutional-summary
 
   // ── V2 keys (additive) ──────────────────────────────────────────────────
   'filterOptions',        // /filters/options
@@ -89,6 +91,19 @@ const ANALYTICS_SCOPES = {
     profileSummary:             'department',
     departments:                'department',
     departmentPerformance:      'department',
+    // Previously missing: HOD had no access to the four student-side
+    // analytics endpoints at all (only vc/iqac_director/admin/superadmin
+    // did), so the Student section of the dashboard silently rendered
+    // nothing for HOD. Scoped to 'department' like HOD's other endpoints -
+    // the route handlers now filter StudentProfile by the HOD's own
+    // department for these four.
+    studentProfileCompletion:  'department',
+    studentProfileSummary:     'department',
+    studentDepartments:        'department',
+    programLevels:             'department',
+    // Institution-wide facts (Library/MMTTC have no department field), so
+    // HOD sees the same unfiltered summary as vc/iqac_director/admin.
+    institutionalSummary:      'institution',
     // V2 additions
     filterOptions:              'department',
     drilldown:                  'department',
@@ -123,6 +138,7 @@ const ANALYTICS_SCOPES = {
     studentProfileSummary:      'university',
     studentDepartments:         'university',
     programLevels:              'university',
+    institutionalSummary:       'university',
     // V2 additions
     filterOptions:              'university',
     drilldown:                  'university',
@@ -158,6 +174,7 @@ const ANALYTICS_SCOPES = {
     studentProfileSummary:      'institution',
     studentDepartments:         'institution',
     programLevels:              'institution',
+    institutionalSummary:       'institution',
     // V2 additions
     filterOptions:              'institution',
     drilldown:                  'institution',
@@ -192,6 +209,7 @@ const ANALYTICS_SCOPES = {
     studentProfileSummary:      'full',
     studentDepartments:         'full',
     programLevels:              'full',
+    institutionalSummary:       'full',
     // V2 additions
     filterOptions:              'full',
     drilldown:                  'full',
@@ -226,6 +244,7 @@ const ANALYTICS_SCOPES = {
     studentProfileSummary:      'full',
     studentDepartments:         'full',
     programLevels:              'full',
+    institutionalSummary:       'full',
     // V2 additions
     filterOptions:              'full',
     drilldown:                  'full',

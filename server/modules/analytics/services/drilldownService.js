@@ -23,7 +23,7 @@
 'use strict';
 
 const Faculty        = require('../../faculty/models/Faculty');
-const { buildFacultyFilter, mergeFilters } = require('./filterService');
+const { buildFacultyFilter, mergeFilters, extractExperienceFilter, isInExperienceRange } = require('./filterService');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -129,9 +129,11 @@ async function getDrilldown(kpi, scope, query = {}) {
   const base       = scopeFilter(scope);
   const userFilter = buildFacultyFilter(query);
   const combined   = mergeFilters(base, userFilter);
+  // Strip experience sentinels before any Mongo query; apply in-memory below.
+  const { min, max, cleanFilter } = extractExperienceFilter(combined);
 
   if (kpi === 'faculty') {
-    return getFacultyDrilldown(combined, search, sort, page, pageSize);
+    return getFacultyDrilldown(cleanFilter, search, sort, page, pageSize, min, max);
   }
 
   const config = KPI_CONFIG[kpi];
@@ -139,17 +141,19 @@ async function getDrilldown(kpi, scope, query = {}) {
     throw new Error(`Unknown KPI: "${kpi}". Supported: ${Object.keys(KPI_CONFIG).join(', ')}, faculty`);
   }
 
-  return getSubDocDrilldown(kpi, config, combined, search, sort, page, pageSize);
+  return getSubDocDrilldown(kpi, config, cleanFilter, search, sort, page, pageSize, min, max);
 }
 
 // ── Sub-document drilldown (publications / projects / patents) ───────────────
 
-async function getSubDocDrilldown(kpi, config, facultyFilter, search, sort, page, pageSize) {
+async function getSubDocDrilldown(kpi, config, facultyFilter, search, sort, page, pageSize, expMin = null, expMax = null) {
   // Fetch faculty records matching the scope/user filter.
-  const facultyRecords = await Faculty
+  const rawRecords = await Faculty
     .find(facultyFilter)
     .select(`username personalInfo.fullName employmentDetails.department ${config.arrayField}`)
     .lean();
+  // Apply in-memory experience range filter
+  const facultyRecords = rawRecords.filter(f => isInExperienceRange(f, expMin, expMax));
 
   // Flatten: one row per sub-document entry, with faculty context attached.
   let rows = [];
@@ -199,11 +203,13 @@ async function getSubDocDrilldown(kpi, config, facultyFilter, search, sort, page
 
 // ── Faculty-level drilldown ───────────────────────────────────────────────────
 
-async function getFacultyDrilldown(facultyFilter, search, sort, page, pageSize) {
-  const facultyRecords = await Faculty
+async function getFacultyDrilldown(facultyFilter, search, sort, page, pageSize, expMin = null, expMax = null) {
+  const rawRecords = await Faculty
     .find(facultyFilter)
     .select('username personalInfo.fullName employmentDetails profileComplete completionPercentage')
     .lean();
+
+  const facultyRecords = rawRecords.filter(f => isInExperienceRange(f, expMin, expMax));
 
   let rows = facultyRecords.map(f => ({
     facultyName:          f.personalInfo?.fullName || f.username,

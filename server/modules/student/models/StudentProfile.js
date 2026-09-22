@@ -9,6 +9,13 @@ const studentProfileSchema = new mongoose.Schema(
       unique: true
     },
 
+    // True once the student has completed the full onboarding wizard and
+    // made their final submission. While false, incremental per-section
+    // saves (POST /api/student/profile) merge directly into this document.
+    // Once true, further self-edits go through the ProfileUpdateRequest
+    // approval workflow instead (see CreateOrUpdate controller).
+    isComplete: { type: Boolean, default: false },
+
     academic_details: {
       admissionApplicationNumber: String,
       universityEnrollmentNumber: String,

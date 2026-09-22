@@ -160,7 +160,7 @@ router.get(
       // Phase 6: use calculateMetricFromDoc to skip redundant Metric.findOne
       // per metric — docs are already fetched in batch above.
       const { calculateMetricFromDoc } = require('../services/analyticsService');
-      const { buildFacultyFilter, mergeFilters } = require('../services/filterService');
+      const { buildFacultyFilter, mergeFilters, extractExperienceFilter, isInExperienceRange } = require('../services/filterService');
 
       const scope = req.analyticsScope;
       const deptFilter = scope.level === 'department' && scope.department
@@ -168,6 +168,10 @@ router.get(
         : {};
       const userFilter = buildFacultyFilter(req.query);
       const combinedFilter = mergeFilters(deptFilter, userFilter);
+      // Extract experience sentinels so precomputedCounts are accurate.
+      // calculateMetricFromDoc will call extractExperienceFilter itself, but we
+      // need a clean count here to use as precomputedCounts.facultyCount.
+      const { min: expMin, max: expMax, cleanFilter: cleanCombinedFilter } = extractExperienceFilter(combinedFilter);
 
       const metrics = await Metric.find().lean();
       
@@ -175,7 +179,13 @@ router.get(
       const viewMode = req.query.viewMode;
       const precomputedCounts = {};
       if (viewMode === 'perFaculty' || viewMode === 'percentage') {
-        precomputedCounts.facultyCount = await Faculty.countDocuments(combinedFilter);
+        if (expMin !== null || expMax !== null) {
+          // Must apply in-memory experience filter for accurate count
+          const allFac = await Faculty.find(cleanCombinedFilter).lean();
+          precomputedCounts.facultyCount = allFac.filter(f => isInExperienceRange(f, expMin, expMax)).length;
+        } else {
+          precomputedCounts.facultyCount = await Faculty.countDocuments(cleanCombinedFilter);
+        }
       } else if (viewMode === 'perStudent') {
         const StudentProfile = require('../../student/models/StudentProfile');
         precomputedCounts.studentCount = await StudentProfile.countDocuments();
@@ -183,6 +193,7 @@ router.get(
 
       // Phase 5: parallel execution — Promise.all preserves insertion order.
       // Each metric is individually guarded so one failure does not crash the batch.
+      // Pass combinedFilter (with sentinels) — calculateMetricFromDoc strips them internally.
       const dashboard = (await Promise.all(
         metrics.map(metric =>
           calculateMetricFromDoc(metric, combinedFilter, { viewMode, precomputedCounts })
@@ -208,7 +219,7 @@ router.get(
   async (req, res) => {
     try {
       const { calculateMetric } = require('../services/analyticsService');
-      const { buildFacultyFilter, mergeFilters } = require('../services/filterService');
+      const { buildFacultyFilter, mergeFilters, extractExperienceFilter, isInExperienceRange } = require('../services/filterService');
       
       const scope = req.analyticsScope;
       const deptFilter = scope.level === "department" && scope.department
@@ -216,17 +227,23 @@ router.get(
           : {};
       const userFilter = buildFacultyFilter(req.query);
       const combinedFilter = mergeFilters(deptFilter, userFilter);
+      // Strip experience sentinels before Mongo queries
+      const { min: expMin, max: expMax, cleanFilter: cleanCombinedFilter } = extractExperienceFilter(combinedFilter);
       
-      const departments = await Faculty.distinct('employmentDetails.department', combinedFilter);
+      const departments = await Faculty.distinct('employmentDetails.department', cleanCombinedFilter);
       const cleanDepartments = departments.filter(d => d && String(d).trim() !== '');
       
       const result = await Promise.all(cleanDepartments.map(async (dept) => {
-          const dFilter = mergeFilters(combinedFilter, { 'employmentDetails.department': dept });
+          // Per-department filter also uses cleanFilter (no sentinels);
+          // calculateMetric() internally calls calculateMetricFromDoc which
+          // strips sentinels again — safe to pass through.
+          const dCleanFilter = mergeFilters(cleanCombinedFilter, { 'employmentDetails.department': dept });
+          // For experience filtering: pass the original sentinel-bearing filter
+          // into calculateMetric so its own extractExperienceFilter can apply range.
+          const dFilterWithSentinels = mergeFilters(combinedFilter, { 'employmentDetails.department': dept });
 
-          // Query dedup: facultyCount previously ran as its own countDocuments()
-          // call against the exact same filter as this find() — reuse the
-          // fetched records' length instead of a second round-trip.
-          const facultyRecords = await Faculty.find(dFilter).lean();
+          const allDeptFaculty = await Faculty.find(dCleanFilter).lean();
+          const facultyRecords = allDeptFaculty.filter(f => isInExperienceRange(f, expMin, expMax));
           const facultyCount = facultyRecords.length;
           const totalCompletion = facultyRecords.reduce((sum, f) => sum + (f.completionPercentage || 0), 0);
           const averageCompletion = facultyCount > 0 ? Number((totalCompletion / facultyCount).toFixed(2)) : 0;
@@ -249,10 +266,10 @@ router.get(
           // the global View Mode changes would misrepresent it as something
           // it doesn't claim to be.
           const [pubsResult, projsResult, patsResult, fundResult] = await Promise.all([
-            calculateMetric('3.4.4', dFilter),
-            calculateMetric('3.2.2', dFilter),
-            calculateMetric('3.4.5', dFilter),
-            calculateMetric('3.2.1', dFilter),
+            calculateMetric('3.4.4', dFilterWithSentinels),
+            calculateMetric('3.2.2', dFilterWithSentinels),
+            calculateMetric('3.4.5', dFilterWithSentinels),
+            calculateMetric('3.2.1', dFilterWithSentinels),
           ]);
 
           return {
@@ -470,7 +487,7 @@ router.get(
     try {
       const { calculateMetric } = require('../services/analyticsService');
       const { calculateMetricFromDoc } = require('../services/analyticsService');
-      const { buildFacultyFilter, mergeFilters } = require('../services/filterService');
+      const { buildFacultyFilter, mergeFilters, extractExperienceFilter, isInExperienceRange } = require('../services/filterService');
       const { getMetric } = require('../services/referenceDataCache');
       const Faculty = require('../../faculty/models/Faculty');
       
@@ -487,33 +504,35 @@ router.get(
       
       const direction = metricDoc.direction || 'higherIsBetter';
       
-      // Build combined filter
-      const deptFilter = scope.level === 'department' && scope.department
+      // Build combined filter (may contain experience sentinels)
+      const deptBaseFilter = scope.level === 'department' && scope.department
         ? { 'employmentDetails.department': scope.department }
         : {};
       const userFilter = buildFacultyFilter(req.query);
-      const combinedFilter = mergeFilters(deptFilter, userFilter);
+      const combinedFilter = mergeFilters(deptBaseFilter, userFilter);
+      const { min: expMin, max: expMax, cleanFilter: cleanCombinedFilter } = extractExperienceFilter(combinedFilter);
       
-      // Get all departments from the filter
-      const departments = await Faculty.distinct('employmentDetails.department', combinedFilter);
+      // Get all departments using the clean filter (no sentinels for Mongo)
+      const departments = await Faculty.distinct('employmentDetails.department', cleanCombinedFilter);
       const cleanDepartments = departments.filter(d => d && String(d).trim() !== '');
       
       // Precompute faculty counts for per-faculty normalization if needed
       const facultyCounts = {};
       if (viewMode === 'perFaculty') {
         await Promise.all(cleanDepartments.map(async (dept) => {
-          const deptFilter = mergeFilters(combinedFilter, { 'employmentDetails.department': dept });
-          const facultyCountResult = await calculateMetric('facultycount', deptFilter);
-          facultyCounts[dept] = facultyCountResult ? facultyCountResult.value : 1; // Avoid division by zero
+          const dCleanFilter = mergeFilters(cleanCombinedFilter, { 'employmentDetails.department': dept });
+          const allDeptFaculty = await Faculty.find(dCleanFilter).lean();
+          facultyCounts[dept] = allDeptFaculty.filter(f => isInExperienceRange(f, expMin, expMax)).length || 1; // Avoid division by zero
         }));
       }
       
       // Calculate metric for each department
+      // Pass sentinel-bearing filter so calculateMetricFromDoc applies experience range internally
       const rankings = await Promise.all(cleanDepartments.map(async (dept) => {
-        const deptFilter = mergeFilters(combinedFilter, { 'employmentDetails.department': dept });
+        const dFilterWithSentinels = mergeFilters(combinedFilter, { 'employmentDetails.department': dept });
         
         // Calculate absolute value
-        const result = await calculateMetricFromDoc(metricDoc, deptFilter, { viewMode: 'absolute' });
+        const result = await calculateMetricFromDoc(metricDoc, dFilterWithSentinels, { viewMode: 'absolute' });
         const absoluteValue = result ? result.value : 0;
         
         // Calculate per-faculty value if requested

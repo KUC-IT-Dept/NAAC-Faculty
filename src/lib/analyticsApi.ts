@@ -93,6 +93,27 @@ export interface ProgramLevel {
   students: number;
 }
 
+export interface LibraryYearSummary {
+  academicYear: string;
+  totalBooks: number;
+  journalsAndPeriodicals: number;
+  ebooks: number;
+  seatingCapacity: number;
+  computers: number;
+}
+
+export interface MMTTCYearSummary {
+  academicYear: string;
+  coursesConducted: number;
+  totalParticipants: number;
+  facultyParticipants: number;
+}
+
+export interface InstitutionalSummary {
+  library: LibraryYearSummary[];
+  mmttc: MMTTCYearSummary[];
+}
+
 // ── API calls ─────────────────────────────────────────────────────────────────
 
 /** Discover which analytics views the current user may access. */

@@ -18,7 +18,7 @@
 'use strict';
 
 const { calculateMetric } = require('./analyticsService');
-const { buildFacultyFilter, mergeFilters } = require('./filterService');
+const { buildFacultyFilter, mergeFilters, extractExperienceFilter } = require('./filterService');
 
 function scopeFilter(scope) {
   if (scope && scope.level === 'department' && scope.department) {
@@ -46,8 +46,11 @@ async function getNormalizedMetric(metricId, scope, query = {}) {
   const base       = scopeFilter(scope);
   const userFilter = buildFacultyFilter(query);
   const combined   = mergeFilters(base, userFilter);
+  // Strip sentinels for response display; calculateMetric handles them internally
+  const { cleanFilter } = extractExperienceFilter(combined);
 
   // Get the absolute value of the requested metric (scope-filtered)
+  // Pass combined so calculateMetricFromDoc can apply experience range
   const absoluteResult = await calculateMetric(metricId, combined);
   if (!absoluteResult) {
     return null;
@@ -78,7 +81,8 @@ async function getNormalizedMetric(metricId, scope, query = {}) {
       level:      scope.level,
       department: scope.department || null,
     },
-    filters: Object.keys(combined).length > 0 ? combined : null,
+    // Use cleanFilter (no sentinels) in the API response
+    filters: Object.keys(cleanFilter).length > 0 ? cleanFilter : null,
   };
 }
 

@@ -24,6 +24,7 @@ export interface CatalogueEntry {
   formulaType: string; sourceField: string | null;
   unit: string; viewModes: ViewModes;
   recommendedChart: string; supported: boolean; isNormalized: boolean;
+  isPrimaryActivity?: boolean;
 }
 
 export interface CatalogueResponse { total: number; metrics: CatalogueEntry[]; }
@@ -145,8 +146,8 @@ export const getDepartmentPerformanceV3 = (filters?: AnalyticsFilters) =>
 export const getMyAccessV3 = () =>
   api.get('/analytics/my-access').then(r => r.data);
 
-export const getCoverageV3 = () =>
-  api.get('/analytics/coverage').then(r => r.data);
+export const getCoverageV3 = (filters?: AnalyticsFilters) =>
+  api.get('/analytics/coverage', { params: toParams(filters) }).then(r => r.data);
 
 export const getProfileSummaryV3 = (filters?: AnalyticsFilters) =>
   api.get('/analytics/profile-summary', { params: toParams(filters) }).then(r => r.data);
@@ -162,6 +163,9 @@ export const getStudentDepartmentsV3 = (filters?: AnalyticsFilters) =>
 
 export const getProgramLevelsV3 = (filters?: AnalyticsFilters) =>
   api.get('/analytics/program-levels', { params: toParams(filters) }).then(r => r.data);
+
+export const getInstitutionalSummaryV3 = () =>
+  api.get('/analytics/institutional-summary').then(r => r.data);
 
 export const getReportTypesV3 = () =>
   api.get('/analytics/reports-v3/types').then(r => r.data);

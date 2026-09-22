@@ -8,6 +8,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminGeneral from './pages/admin/AdminGeneral';
 import StudentRequest from './pages/admin/StudentRequest';
 import { EditProfileLayout, AdminProfileSection } from './pages/admin/AdminProfileManagement';
+import SpecialResponsibilities from './pages/admin/SpecialResponsibilities';
 import FacultyDashboard from './pages/faculty/FacultyDashboard';
 import ProfileSetup from './pages/faculty/ProfileSetup';
 import ProfileEdit from './pages/faculty/ProfileEdit';
@@ -101,6 +102,7 @@ function AppRoutes() {
       <Route path="/admin/student-request" element={<ProtectedRoute role="admin"><StudentRequest /></ProtectedRoute>} />
       <Route path="/admin/:tabId" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/general" element={<ProtectedRoute role="admin"><AdminGeneral /></ProtectedRoute>} />
+      <Route path="/admin/special-responsibilities" element={<ProtectedRoute role="admin"><SpecialResponsibilities /></ProtectedRoute>} />
       <Route path="/admin/edit-profile" element={<ProtectedRoute role="admin"><EditProfileLayout /></ProtectedRoute>}>
         <Route index element={
           <div style={{ padding: '48px 24px', color: '#64748B', fontSize: '0.95rem', lineHeight: 1.7 }}>
@@ -115,6 +117,13 @@ function AppRoutes() {
       <Route path="/faculty/dashboard" element={<ProtectedRoute role="faculty"><FacultyDashboard /></ProtectedRoute>} />
       <Route path="/faculty/profile/edit" element={<ProtectedRoute role="faculty"><ProfileEdit /></ProtectedRoute>} />
       <Route path="/faculty/profile/edit/:sectionId" element={<ProtectedRoute role="faculty"><ProfileEdit /></ProtectedRoute>} />
+      {/* Special responsibility pages: reuse the existing LibraryPage/
+          MMTTCPage components as-is (same backend, same forms) - they
+          already self-check user.modulePermissions and render an "Access
+          Denied" card if the specific faculty member wasn't granted the
+          responsibility, on top of the 403 the backend itself returns. */}
+      <Route path="/faculty/library" element={<ProtectedRoute role="faculty"><LibraryPage /></ProtectedRoute>} />
+      <Route path="/faculty/mmttc" element={<ProtectedRoute role="faculty"><MMTTCPage /></ProtectedRoute>} />
 
       {/* VC */}
       <Route path="/vc" element={<Navigate to="/vc/hierarchy" replace />} />

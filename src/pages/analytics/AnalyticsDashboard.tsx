@@ -40,6 +40,7 @@ import {
   getStudentDepartmentsV3,
   getProgramLevelsV3,
   getDepartmentFacultyList,
+  getInstitutionalSummaryV3,
 } from '../../lib/analyticsV3Api';
 import {
   type MyAccessResponse,
@@ -51,6 +52,7 @@ import {
   type StudentProfileSummary,
   type StudentDepartment,
   type ProgramLevel,
+  type InstitutionalSummary,
 } from '../../lib/analyticsApi';
 
 const CRITERION_TITLES: Record<number, string> = {
@@ -232,6 +234,10 @@ export default function AnalyticsDashboard() {
   const [studentSummary, setStudentSummary]   = useState<StudentProfileSummary | null>(null);
   const [studentDepts, setStudentDepts]       = useState<StudentDepartment[] | null>(null);
   const [programLevels, setProgramLevels]     = useState<ProgramLevel[] | null>(null);
+  // Institution-wide, not filter/department-scoped like the rest of this
+  // component's data - fetched once, independent of the filters/viewMode
+  // cache below (see the dedicated effect near getMyAccessV3).
+  const [institutionalSummary, setInstitutionalSummary] = useState<InstitutionalSummary | null>(null);
   const [metricsCatalogue, setMetricsCatalogue] = useState<CatalogueEntry[] | null>(null);
   const [chartDepartmentData, setChartDepartmentData] = useState<DepartmentFacultyChartResult[] | null>(null);
   const [chartDataLoading, setChartDataLoading] = useState(false);
@@ -332,11 +338,25 @@ export default function AnalyticsDashboard() {
         .map(entry => [entry.metricId, entry.criterionNumber as number])
     );
 
+    const catalogueByMetricId = new Map(
+      metricsCatalogue.map(entry => [entry.metricId, entry])
+    );
+
     const totals = new Map<number, number>();
 
     for (const metric of dashboard) {
       const criterionNumber = criterionByMetricId.get(metric.metricId);
       if (!criterionNumber || criterionNumber < 1 || criterionNumber > 7) {
+        continue;
+      }
+
+      const catEntry = catalogueByMetricId.get(metric.metricId);
+      // Primary Activity Count check (Option A):
+      // Only aggregate top-level unique entity/record count metrics.
+      // Excludes breakdown dimensions (e.g. Scopus, journal, online FDP) and non-count metrics
+      // (Currency, Percentage, Ratio) to guarantee zero double-counting of underlying records.
+      const isPrimary = catEntry ? catEntry.isPrimaryActivity : false;
+      if (!isPrimary) {
         continue;
       }
 
@@ -439,6 +459,19 @@ export default function AnalyticsDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Library/MMTTC year-by-year summary: institution-wide and independent
+  // of filters/viewMode, so it's fetched once (not part of the
+  // filters+viewMode-keyed cache below) as soon as we know the role is
+  // permitted.
+  useEffect(() => {
+    if (!access) return;
+    const allowed = new Set(access.accessibleEndpoints.map(e => e.key));
+    if (!allowed.has('institutionalSummary')) return;
+    getInstitutionalSummaryV3()
+      .then(setInstitutionalSummary)
+      .catch(() => setInstitutionalSummary(null));
+  }, [access]);
+
   useEffect(() => {
     // Phase 7: Only fetch when on overview or charts tab
     if (activeTab !== 'overview' && activeTab !== 'charts') {
@@ -490,7 +523,7 @@ export default function AnalyticsDashboard() {
           studentSummaryRes, studentDeptsRes, programLevelsRes,
         ] = await Promise.all([
           allowed.has('dashboard')             ? getDashboardV3(apiParams).catch(() => null)             : Promise.resolve(null),
-          allowed.has('coverage')               ? getCoverageV3().catch(() => null)                        : Promise.resolve(null),
+          allowed.has('coverage')               ? getCoverageV3(apiParams).catch(() => null)                        : Promise.resolve(null),
           allowed.has('profileSummary')         ? getProfileSummaryV3(apiParams).catch(() => null)         : Promise.resolve(null),
           allowed.has('departments')            ? getDepartmentsV3(apiParams).catch(() => null)            : Promise.resolve(null),
           allowed.has('departmentPerformance')  ? getDepartmentPerformanceV3(apiParams).catch(() => null)  : Promise.resolve(null),
@@ -709,6 +742,9 @@ export default function AnalyticsDashboard() {
                   {studentDepts && studentDepts.length > 0 && (
                     <>
                       <SectionHeading title="Students by Department" />
+                      <p style={{ color: '#b91c1c', fontSize: '0.85rem', margin: '-6px 0 12px' }}>
+                        * Data Quality Notice: Many student records lack specific department assignments and are accurately shown as "None" or "Unknown".
+                      </p>
                       <SimpleTable
                         rows={studentDepts as unknown as Record<string, unknown>[]}
                         columns={[
@@ -827,16 +863,14 @@ export default function AnalyticsDashboard() {
                     <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Loading chart insights…</p>
                   )}
 
-                  {/* ══ NAAC Criterion Distribution ══ */}
+                  {/* ══ NAAC Criterion Activity Distribution ══ */}
                   {dashboard && dashboard.length > 0 && (
                     <>
                       <GroupHeading
-                        title="NAAC Criterion Distribution"
-                        subtitle={viewMode !== 'absolute'
-                          ? `Currently showing ${VIEW_MODE_TITLE_SUFFIX[viewMode].replace(' — ', '')} values — this section does respond to the global View Mode.`
-                          : 'Institutional metric totals grouped by NAAC criterion.'}
+                        title="NAAC Primary Activity Distribution by Criterion"
+                        subtitle="Sum of selected primary activity metric values mapped to each NAAC criterion. Breakdown metrics are excluded to avoid double-counting."
                       />
-                      <SectionHeading title={`Criterion Value Distribution${VIEW_MODE_TITLE_SUFFIX[viewMode]}`} />
+                      <SectionHeading title={`Primary Activity Metric Distribution${VIEW_MODE_TITLE_SUFFIX[viewMode]}`} />
                       <div style={{ maxWidth: 480 }}>
                         <CriterionPieChart metrics={criterionPieMetrics} />
                       </div>
@@ -863,11 +897,54 @@ export default function AnalyticsDashboard() {
                         subtitle="Student counts by department — always absolute counts."
                       />
                       <SectionHeading title="Students by Department" />
+                      <p style={{ color: '#b91c1c', fontSize: '0.85rem', margin: '-6px 0 12px', background: '#fef2f2', padding: '8px', borderRadius: '4px', border: '1px solid #fca5a5' }}>
+                        Data Quality Notice: The current database records for students often lack specific department assignments (recorded as "None" or missing). This is an acknowledged data-model limitation, and these records are accurately represented below as "None" or "Unknown".
+                      </p>
                       <div style={{ maxWidth: 480 }}>
                         <CategoryDonutChart
                           data={studentDepts.map(d => ({ name: d.department, value: d.students }))}
                         />
                       </div>
+                    </>
+                  )}
+
+                  {/* ══ Library & MMTTC ══ */}
+                  {institutionalSummary && (institutionalSummary.library.length > 0 || institutionalSummary.mmttc.length > 0) && (
+                    <>
+                      <GroupHeading
+                        title="Library & MMTTC"
+                        subtitle="Year-by-year institutional records from the Library and MMTTC special-responsibility modules — always absolute counts."
+                      />
+                      {institutionalSummary.library.length > 0 && (
+                        <>
+                          <SectionHeading title="Library Collections by Academic Year" />
+                          <StackedBarChart
+                            data={institutionalSummary.library.map(r => ({
+                              name: r.academicYear,
+                              'Books': r.totalBooks,
+                              'Journals & Periodicals': r.journalsAndPeriodicals,
+                              'E-Books': r.ebooks,
+                            }))}
+                            stacks={['Books', 'Journals & Periodicals', 'E-Books']}
+                            height={300}
+                          />
+                        </>
+                      )}
+                      {institutionalSummary.mmttc.length > 0 && (
+                        <>
+                          <SectionHeading title="MMTTC Courses & Participants by Academic Year" />
+                          <StackedBarChart
+                            data={institutionalSummary.mmttc.map(r => ({
+                              name: r.academicYear,
+                              'Courses Conducted': r.coursesConducted,
+                              'Participants': r.totalParticipants,
+                              'Faculty Participants': r.facultyParticipants,
+                            }))}
+                            stacks={['Courses Conducted', 'Participants', 'Faculty Participants']}
+                            height={300}
+                          />
+                        </>
+                      )}
                     </>
                   )}
 

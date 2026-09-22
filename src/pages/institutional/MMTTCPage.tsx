@@ -207,8 +207,8 @@ export default function MMTTCPage() {
               <p className="text-muted text-sm" style={{ margin: '4px 0 0' }}>One record per academic year, with repeatable courses (NAAC criterion 0.11)</p>
             </div>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={openCreate}>
-            <Plus size={14} /> Add Year
+          <button className="btn btn-primary btn-sm" onClick={openCreate} title="Create a new annual MMTTC record">
+            <Plus size={14} /> Add Record
           </button>
         </div>
 

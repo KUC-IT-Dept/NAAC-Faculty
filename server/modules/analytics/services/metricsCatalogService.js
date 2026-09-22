@@ -52,28 +52,103 @@ const FORMULA_CHART = {
   studentCount:     'stat',
 };
 
-// ── Criterion → NAAC criterion number mapping ─────────────────────────────────
+// ── Centralized Criterion Normalization ────────────────────────────────────────
 
-const CRITERION_NUMBER = {
-  'Curricular Aspects':               1,
-  'Teaching-Learning and Evaluation': 2,
-  'Research & Publications':          3,
-  'Research Projects':                3,
-  'Resource Mobilization':            3,
-  'Innovation & Intellectual Property': 3,
-  'Innovation & Awards':              3,
-  'Research Guidance':                3,
-  'Faculty Development':              6,
-  'Professional Engagement':          6,
-  'International Linkage':            3,
-  'Administration & Extension':       5,
-  'Quality Assurance':                6,
-  'Teacher Profile & Quality':        2,
-  'Student Progression':              5,
-  'Infrastructure':                   4,
-  'Governance':                       6,
-  'Institutional Values':             7,
-};
+/**
+ * Normalizes criterion number (1-7) from a Metric object or BenchmarkMetric object.
+ * Returns an integer 1-7 or null if ambiguous/unrecognized.
+ *
+ * Precedence order:
+ * 1. Valid explicit criterionNumber (1-7)
+ * 2. Structured criterion metadata
+ * 3. Unambiguous metricId prefix (e.g. "3.4.4", "2.2.2", "3.2.1_B")
+ * 4. Recognized legacy criterion string
+ * 5. null when ambiguous
+ */
+function normalizeCriterion(metric) {
+  if (!metric) return null;
+
+  // 1. Valid explicit criterionNumber
+  if (typeof metric.criterionNumber === 'number' && metric.criterionNumber >= 1 && metric.criterionNumber <= 7) {
+    return metric.criterionNumber;
+  }
+  if (typeof metric.criterionNumber === 'string') {
+    const parsed = parseInt(metric.criterionNumber, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= 7) return parsed;
+  }
+
+  const CRITERION_STRING_MAP = {
+    'Curricular Aspects': 1,
+    'Criterion 1 – Curricular Aspects': 1,
+    'Criterion 1': 1,
+
+    'Teaching-Learning and Evaluation': 2,
+    'Teacher Profile & Quality': 2,
+    'Criterion 2 – Teaching-Learning and Evaluation': 2,
+    'Criterion 2': 2,
+
+    'Research & Publications': 3,
+    'Research Projects': 3,
+    'Resource Mobilization': 3,
+    'Innovation & Intellectual Property': 3,
+    'Innovation & Awards': 3,
+    'Research Guidance': 3,
+    'International Linkage': 3,
+    'Research, Innovations and Extension': 3,
+    'Criterion 3 – Research, Innovations and Extension': 3,
+    'Criterion 3': 3,
+
+    'Infrastructure': 4,
+    'Infrastructure and Learning Resources': 4,
+    'Criterion 4 – Infrastructure and Learning Resources': 4,
+    'Criterion 4': 4,
+
+    'Administration & Extension': 5,
+    'Student Progression': 5,
+    'Student Support and Progression': 5,
+    'Criterion 5 – Student Support and Progression': 5,
+    'Criterion 5': 5,
+
+    'Faculty Development': 6,
+    'Professional Engagement': 6,
+    'Quality Assurance': 6,
+    'Governance': 6,
+    'Governance, Leadership and Management': 6,
+    'Criterion 6 – Governance, Leadership and Management': 6,
+    'Criterion 6': 6,
+
+    'Institutional Values': 7,
+    'Institutional Values and Best Practices': 7,
+    'Criterion 7 – Institutional Values and Best Practices': 7,
+    'Criterion 7': 7,
+  };
+
+  // 2 & 4. Structured or Recognized legacy criterion string
+  if (metric.criterion && typeof metric.criterion === 'string') {
+    const trimmed = metric.criterion.trim();
+    if (CRITERION_STRING_MAP[trimmed]) {
+      return CRITERION_STRING_MAP[trimmed];
+    }
+    const match = trimmed.match(/^Criterion\s*([1-7])/i) || trimmed.match(/^([1-7])\s*[-–]/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num >= 1 && num <= 7) return num;
+    }
+  }
+
+  // 3. Unambiguous metricId prefix
+  if (metric.metricId && typeof metric.metricId === 'string') {
+    const id = metric.metricId.trim();
+    const prefixMatch = id.match(/^([1-7])\./);
+    if (prefixMatch) {
+      const num = parseInt(prefixMatch[1], 10);
+      if (num >= 1 && num <= 7) return num;
+    }
+  }
+
+  // 5. null when ambiguous
+  return null;
+}
 
 // ── Main function ─────────────────────────────────────────────────────────────
 
@@ -109,6 +184,37 @@ async function getMetricsCatalogue(options = {}) {
     return String(a.metricId).localeCompare(String(b.metricId));
   });
 
+// ── Primary Activity Metric Classification ──────────────────────────────────────
+// Top-level metrics representing distinct underlying records/entities.
+// Excludes breakdown dimensions (e.g., Scopus, journal, online FDP) and normalized ratios/percentages.
+const PRIMARY_ACTIVITY_METRICS = new Set([
+  '3.4.4',             // Research Publications
+  '3.2.2',             // Research Projects
+  '3.4.5',             // Patents
+  'awards.total',      // Total Awards
+  'fdp.total',         // FDP / Workshop Participations
+  'courses.total',     // Online Courses / Certifications
+  'membership.total',  // Professional Memberships
+  'intl.total',        // International Engagements
+  'phd.completed',     // PhD Scholars Guided to Completion
+  'phd.inprogress',    // PhD Scholars In Progress
+  'mphil.completed',   // M.Phil Scholars Completed
+  'mphil.inprogress',  // M.Phil Scholars In Progress
+  'pg.supervised',     // PG Projects Supervised
+  'qual.phdholders',   // Faculty with PhD
+  'qual.netset',       // Faculty with NET/SET/GATE
+  'admin.total',       // Admin Responsibilities
+  'deptcharges.total', // Departmental Charges
+  'specialassign.total', // Special Assignments
+  'extrainst.total',   // Extra-Institutional Activities
+  'adminnonacad.total',// Admin Non-Academic
+  'acadadmin.total',   // Academic Administration
+  'researchinnov.total',// Research & Innovation
+  'examseval.total',   // Exam & Eval
+  'adminsupport.total',// Admin Support
+  'qa.total',          // Quality Assurance
+]);
+
   return sortedMetrics.map(m => {
     const viewModes = FORMULA_VIEW_MODES[m.formulaType] || {
       absolute: true, perFaculty: false, percentage: false, perStudent: false, individual: false,
@@ -119,8 +225,8 @@ async function getMetricsCatalogue(options = {}) {
     return {
       metricId:        m.metricId,
       metricName:      m.metricName,
-      criterion:       m.criterion,
-      criterionNumber: CRITERION_NUMBER[m.criterion] || null,
+      criterion:       m.criterion || null,
+      criterionNumber: normalizeCriterion(m),
       description:     m.description || '',
       formulaType:     m.formulaType,
       sourceField:     m.fieldPath || null,
@@ -129,6 +235,7 @@ async function getMetricsCatalogue(options = {}) {
       recommendedChart: FORMULA_CHART[m.formulaType] || 'bar',
       supported:       m.supported !== false,
       isNormalized:    ['ratio', 'metricPercentage', 'average', 'percentage'].includes(m.formulaType),
+      isPrimaryActivity: PRIMARY_ACTIVITY_METRICS.has(m.metricId),
     };
   });
 }
@@ -159,4 +266,4 @@ async function getMetricCatalogueEntry(metricId) {
   return catalogue.find(m => m.metricId === metricId) || null;
 }
 
-module.exports = { getMetricsCatalogue, getMetricCatalogueEntry };
+module.exports = { getMetricsCatalogue, getMetricCatalogueEntry, normalizeCriterion };

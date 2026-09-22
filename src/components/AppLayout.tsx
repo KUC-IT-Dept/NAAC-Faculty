@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen, ShieldCheck } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
 import kannurLogoOld from '../assets/kannur-university-logo-old.png';
 
@@ -23,14 +23,34 @@ const adminNav: NavItem[] = [
   // ROLE_GROUPS.ADMIN_ONLY bypass roles for these modules.
   { label: 'Library', path: '/institutional/library', icon: <BookOpen size={18} /> },
   { label: 'MMTTC', path: '/institutional/mmttc', icon: <GraduationCap size={18} /> },
+  // Special Faculty Responsibilities: assign the Library/MMTTC
+  // modulePermissions (same field as above) to individual faculty accounts.
+  { label: 'Special Responsibilities', path: '/admin/special-responsibilities', icon: <ShieldCheck size={18} /> },
   { label: 'Edit Form', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
   { label: 'General', path: '/admin/general', icon: <Globe size={18} /> },
 ];
 
-const facultyNav: NavItem[] = [
+const facultyBaseNav: NavItem[] = [
   { label: 'Dashboard', path: '/faculty/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Edit Profile', path: '/faculty/profile/edit', icon: <UserPen size={18} /> },
 ];
+
+// A faculty member only sees a Library/MMTTC nav item when Admin has
+// assigned that special responsibility to them (user.modulePermissions -
+// the same existing field/mechanism buildStaffNav already uses below, not
+// a new permission model). No responsibility assigned -> plain Dashboard +
+// Edit Profile only, exactly as before this feature existed.
+function buildFacultyNav(modulePermissions: string[] | undefined): NavItem[] {
+  const perms = modulePermissions || [];
+  const items: NavItem[] = [...facultyBaseNav];
+  if (perms.includes('library')) {
+    items.push({ label: 'Library', path: '/faculty/library', icon: <BookOpen size={18} /> });
+  }
+  if (perms.includes('mmttc')) {
+    items.push({ label: 'MMTTC', path: '/faculty/mmttc', icon: <GraduationCap size={18} /> });
+  }
+  return items;
+}
 
 const vcNav: NavItem[] = [
   { label: 'Faculty Accounts', path: '/vc/accounts', icon: <Users size={18} /> },
@@ -112,7 +132,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
     user?.role === 'vc' ? vcNav :
     user?.role === 'hod' ? hodNav :
     user?.role === 'staff' ? buildStaffNav(user.modulePermissions) :
-    facultyNav;
+    buildFacultyNav(user?.modulePermissions);
   const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : 'Faculty User');
   const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : 'Faculty User';
   const initials = displayName.slice(0, 2).toUpperCase();

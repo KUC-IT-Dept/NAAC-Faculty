@@ -165,36 +165,51 @@ app.use('/api/student/file',           studentFileRoutes);      // /compress
 app.use('/api/student/search',         studentSearchRoutes);    // /users, /users/:id
 app.use('/api/student/user',           studentUserRoutes);      // /can-edit
 
-// Admin Student Requests Route (Unlock, Profile Updates, Dropdown Requests, Forgot Password)
-app.use('/api', studentRequestsAdmin);
-
-// ── Phase 1: compatibility aliases ───────────────────────────────────────────
-// The Student frontend (kuc-student-frontend-main) calls these flat paths
-// (carried over from kuc-backend-main's mount shape), not the /api/student/*
-// nesting used above. These are additive aliases pointing at the exact same
-// routers - nothing above this line is changed or removed.
-app.use('/api/auth',           studentAuthRoutes);
-app.use('/api/unlock-request', studentUnlockRoutes);
-app.use('/api/user',           studentUserRoutes);
-
-// ── Phase 1: new flat-mounted routes (gap close) ─────────────────────────────
-// Mounted flat (not under /api/student) to match the exact paths the
-// Student frontend already expects.
-app.use('/api/dropdowns',              studentDropdownRoutes);
-app.use('/api/notifications',          studentNotificationRoutes);
-app.use('/api/profile-update-request', studentProfileUpdateRequestRoutes);
-app.use('/api/forgot-password-request', studentForgotPasswordRequestRoutes);
-
-// ── Phase 3: Library institutional module ────────────────────────────────────
-app.use('/api/library', libraryRoutes);
-
-// ── Phase 4: MMTTC institutional module ──────────────────────────────────────
-app.use('/api/mmttc', mmttcRoutes);
-
 // ── Health check ──────────────────────────────────────────────────────────────
+// IMPORTANT: this must be registered BEFORE `app.use('/api', studentRequestsAdmin)`
+// below. That router is mounted at the bare '/api' prefix and does
+// `router.use(auth, adminOnly)` unconditionally for every request that
+// reaches it - including /api/health - before Express ever tries to match
+// a specific sub-route inside it. With no auth token on a plain health
+// check, that middleware was rejecting the request (401/403) and the real
+// handler below was never reached. Defining /api/health earlier in the
+// middleware stack means it's answered directly and never reaches that
+// router at all.
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// ── Phase 3: Library institutional module ────────────────────────────────────
+// ── Phase 4: MMTTC institutional module ──────────────────────────────────────
+// IMPORTANT: these must be registered BEFORE `app.use('/api', studentRequestsAdmin)`
+// below, for the same reason /api/health is above it: that router's
+// `router.use(auth, adminOnly)` runs for every request reaching it - not
+// just its own /unlock-request, /profile-update-request, /dropdown-request,
+// and /forgot-password-request sub-routes - so with library/mmttc mounted
+// AFTER it, a faculty member with a Library/MMTTC responsibility (but not
+// the 'admin' role) would get rejected by that blanket admin-only check
+// before ever reaching authorizeModule()'s own, correct permission check
+// inside these routers. Moving them here is safe: their paths never
+// overlap with studentRequestsAdmin's own routes, so nothing about that
+// router's behavior changes.
+app.use('/api/library', libraryRoutes);
+app.use('/api/mmttc', mmttcRoutes);
+
+// ── Phase 1: compatibility aliases & flat student routes ───────────────────────
+// Mounted flat (not under /api/student) to match the exact paths the
+// Student frontend expects. Must be registered BEFORE `app.use('/api', studentRequestsAdmin)`
+// below so unauthenticated endpoints like /api/auth/login are not blocked by
+// studentRequestsAdmin's blanket `auth + adminOnly` middleware.
+app.use('/api/auth',                    studentAuthRoutes);
+app.use('/api/unlock-request',          studentUnlockRoutes);
+app.use('/api/user',                    studentUserRoutes);
+app.use('/api/dropdowns',               studentDropdownRoutes);
+app.use('/api/notifications',           studentNotificationRoutes);
+app.use('/api/profile-update-request',  studentProfileUpdateRequestRoutes);
+app.use('/api/forgot-password-request', studentForgotPasswordRequestRoutes);
+
+// Admin Student Requests Route (Unlock, Profile Updates, Dropdown Requests, Forgot Password)
+app.use('/api', studentRequestsAdmin);
 
 app.use((req, res) => {
   console.log('[DEBUG 404] Unhandled route:', req.method, req.originalUrl, req.url);

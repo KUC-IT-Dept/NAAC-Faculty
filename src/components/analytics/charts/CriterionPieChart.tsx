@@ -51,7 +51,7 @@ export default function CriterionPieChart({ metrics, height = 280 }: CriterionPi
         </Pie>
         <Tooltip
           contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.85rem' }}
-          formatter={(v: number) => [v, 'Value']}
+          formatter={(v: number) => [v, 'Primary Activity Metric Total']}
         />
         <Legend wrapperStyle={{ fontSize: '0.78rem' }} layout="vertical" align="right" verticalAlign="middle" />
       </PieChart>

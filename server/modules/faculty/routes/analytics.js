@@ -6,11 +6,12 @@ const {
     getStudentProfileCompletion,
     getStudentProfileSummary,
     getStudentDepartments,
-    getProgramLevels
+    getProgramLevels,
+    getInstitutionalSummary
 } = require("../../analytics/services/analyticsService");
 const { auth } = require("../middleware/auth");
 const requireAnalyticsScope = require("../../analytics/middleware/requireAnalyticsScope");
-const { buildFacultyFilter, mergeFilters } = require("../../analytics/services/filterService");
+const { buildFacultyFilter, mergeFilters, extractExperienceFilter, isInExperienceRange } = require("../../analytics/services/filterService");
 const { normalizePublicationType } = require("../../analytics/utils/publicationType");
 
 const router = express.Router();
@@ -41,10 +42,14 @@ router.get("/coverage", auth, requireAnalyticsScope("coverage"), async (req, res
         // V2: merge with optional query-param filters (no-op when absent).
         const userFilter = buildFacultyFilter(req.query);
         const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
         const metrics = await Metric.find().lean();
 
-        const totalFaculty = await Faculty.countDocuments(combinedFilter);
+        // Use find().lean() and apply JS filter for totalFaculty to respect experience range
+        const allFaculty = await Faculty.find(cleanFilter).lean();
+        const validFaculty = allFaculty.filter(f => isInExperienceRange(f, min, max));
+        const totalFaculty = validFaculty.length;
 
         const coverage = [];
 
@@ -57,23 +62,18 @@ router.get("/coverage", auth, requireAnalyticsScope("coverage"), async (req, res
                 if (metric.formulaType === "objectSum") {
 
                     const facultyRecords = await Faculty.find({
-                        ...combinedFilter,
+                        ...cleanFilter,
                         [metric.fieldPath]: {
                             $exists: true
                         }
                     }).lean();
 
-                    recordsFound = facultyRecords.length;
+                    recordsFound = facultyRecords.filter(f => isInExperienceRange(f, min, max)).length;
 
                 } else if (metric.formulaType === "conditionalCount") {
 
-                    // "Non-empty array" is not the same question as "has at
-                    // least one item satisfying conditionField/conditionValue".
-                    // Several metrics share the same fieldPath (e.g. every
-                    // publications-derived metric), so without this check
-                    // they'd all report identical coverage.
                     const candidateRecords = await Faculty.find({
-                        ...combinedFilter,
+                        ...cleanFilter,
                         [metric.fieldPath]: {
                             $exists: true,
                             $ne: []
@@ -83,26 +83,27 @@ router.get("/coverage", auth, requireAnalyticsScope("coverage"), async (req, res
                     const isPublicationType =
                         metric.fieldPath === "publications" && metric.conditionField === "type";
 
-                    recordsFound = candidateRecords.filter(record => {
-                        const items = record[metric.fieldPath] || [];
-                        return items.some(item => {
-                            const actual = isPublicationType
-                                ? normalizePublicationType(item[metric.conditionField])
-                                : item[metric.conditionField];
-                            return actual === metric.conditionValue;
-                        });
-                    }).length;
+                    recordsFound = candidateRecords
+                        .filter(f => isInExperienceRange(f, min, max))
+                        .filter(record => {
+                            const items = record[metric.fieldPath] || [];
+                            return items.some(item => {
+                                const actual = isPublicationType
+                                    ? normalizePublicationType(item[metric.conditionField])
+                                    : item[metric.conditionField];
+                                return actual === metric.conditionValue;
+                            });
+                        }).length;
 
                 } else {
-
-                    recordsFound = await Faculty.countDocuments({
-                        ...combinedFilter,
+                    const docRecords = await Faculty.find({
+                        ...cleanFilter,
                         [metric.fieldPath]: {
                             $exists: true,
                             $ne: []
                         }
-                    });
-
+                    }).lean();
+                    recordsFound = docRecords.filter(f => isInExperienceRange(f, min, max)).length;
                 }
             }
 
@@ -209,8 +210,10 @@ router.get("/profile-completion", auth, requireAnalyticsScope("profileCompletion
 
         const userFilter = buildFacultyFilter(req.query);
         const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
-        const facultyRecords = await Faculty.find(combinedFilter).lean();
+        let facultyRecords = await Faculty.find(cleanFilter).lean();
+        facultyRecords = facultyRecords.filter(f => isInExperienceRange(f, min, max));
 
         const result = facultyRecords.map(faculty => ({
 
@@ -256,8 +259,10 @@ router.get("/profile-summary", auth, requireAnalyticsScope("profileSummary"), as
 
         const userFilter = buildFacultyFilter(req.query);
         const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
-        const facultyRecords = await Faculty.find(combinedFilter).lean();
+        let facultyRecords = await Faculty.find(cleanFilter).lean();
+        facultyRecords = facultyRecords.filter(f => isInExperienceRange(f, min, max));
 
         const totalFaculty = facultyRecords.length;
 
@@ -316,8 +321,10 @@ router.get("/departments", auth, requireAnalyticsScope("departments"), async (re
 
         const userFilter = buildFacultyFilter(req.query);
         const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
-        const facultyRecords = await Faculty.find(combinedFilter).lean();
+        let facultyRecords = await Faculty.find(cleanFilter).lean();
+        facultyRecords = facultyRecords.filter(f => isInExperienceRange(f, min, max));
 
         const departments = {};
 
@@ -384,8 +391,10 @@ router.get("/department-performance", auth, requireAnalyticsScope("departmentPer
 
         const userFilter = buildFacultyFilter(req.query);
         const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
-        const facultyRecords = await Faculty.find(combinedFilter).lean();
+        let facultyRecords = await Faculty.find(cleanFilter).lean();
+        facultyRecords = facultyRecords.filter(f => isInExperienceRange(f, min, max));
 
         const departments = {};
 
@@ -484,8 +493,12 @@ router.get(
 
         try {
 
+            const scope = req.analyticsScope;
+            const department =
+                scope.level === "department" ? scope.department : null;
+
             const result =
-                await getStudentProfileCompletion();
+                await getStudentProfileCompletion(department);
 
             res.json(result);
 
@@ -507,8 +520,12 @@ router.get(
 
         try {
 
+            const scope = req.analyticsScope;
+            const department =
+                scope.level === "department" ? scope.department : null;
+
             const result =
-                await getStudentProfileSummary();
+                await getStudentProfileSummary(department);
 
             res.json(result);
 
@@ -528,8 +545,12 @@ router.get(
 
         try {
 
+            const scope = req.analyticsScope;
+            const department =
+                scope.level === "department" ? scope.department : null;
+
             const result =
-                await getStudentDepartments();
+                await getStudentDepartments(department);
 
             res.json(result);
 
@@ -551,8 +572,34 @@ router.get(
 
         try {
 
+            const scope = req.analyticsScope;
+            const department =
+                scope.level === "department" ? scope.department : null;
+
             const result =
-                await getProgramLevels();
+                await getProgramLevels(department);
+
+            res.json(result);
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message: error.message
+            });
+
+        }
+    }
+);
+router.get(
+    "/institutional-summary",
+    auth, requireAnalyticsScope("institutionalSummary"),
+    async (req, res) => {
+
+        try {
+
+            const result = await getInstitutionalSummary();
 
             res.json(result);
 

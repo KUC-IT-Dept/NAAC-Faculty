@@ -16,6 +16,7 @@ import AppLayout from '../../components/AppLayout';
 import { useAuth } from '../../context/AuthContext';
 import { libraryApi, LibraryRecord } from '../../lib/institutionalApi';
 import { getPath, setPath } from './formUtils';
+import RecordFields from './RecordViewer';
 import toast from 'react-hot-toast';
 import { BookOpen, Plus, Eye, Pencil, Trash2, X } from 'lucide-react';
 import { useConfirmDelete } from '../../components/useConfirmDelete';
@@ -202,8 +203,8 @@ export default function LibraryPage() {
               <p className="text-muted text-sm" style={{ margin: '4px 0 0' }}>One record per academic year (NAAC criterion 0.9)</p>
             </div>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={openCreate}>
-            <Plus size={14} /> Add Year
+          <button className="btn btn-primary btn-sm" onClick={openCreate} title="Create a new annual Library record">
+            <Plus size={14} /> Add Record
           </button>
         </div>
 
@@ -251,9 +252,7 @@ export default function LibraryPage() {
               <button className="btn-icon" onClick={() => setViewing(null)}><X size={18} /></button>
             </div>
             <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-              <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.8rem', background: 'var(--bg)', padding: 12, borderRadius: 8 }}>
-                {JSON.stringify(viewing, null, 2)}
-              </pre>
+              <RecordFields data={viewing} />
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setViewing(null)}>Close</button>

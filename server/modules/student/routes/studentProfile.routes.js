@@ -10,7 +10,7 @@ router.post('/profile', authMiddleware, upload.fields([
   { name: 'visaDoc', maxCount: 1 }, { name: 'birthCertificateDoc', maxCount: 1 },
   { name: 'disabilityCertificate', maxCount: 1 }, { name: 'vaccinationDoc', maxCount: 1 },
   { name: 'educationDocuments', maxCount: 10 }, { name: 'competitiveExamDocs', maxCount: 5 },
-  { name: 'migrationUrl', maxCount: 1 }, { name: 'feeWaiveDocument', maxCount: 1 },
+  { name: 'migrationUrl', maxCount: 1 }, { name: 'feeWaiveDocument', maxCount: 1 }, { name: 'grantWaiveDocument', maxCount: 1 },
   { name: 'publicationDocs', maxCount: 5 }, { name: 'conferenceDocs', maxCount: 5 },
   { name: 'patentDocs', maxCount: 5 }, { name: 'experienceDocs', maxCount: 5 },
   { name: 'membershipDocs', maxCount: 5 }, { name: 'hostelDeclarationForm', maxCount: 1 },
