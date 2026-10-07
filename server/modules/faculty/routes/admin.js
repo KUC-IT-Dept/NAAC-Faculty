@@ -22,11 +22,18 @@ router.get('/faculty', async (req, res) => {
   } catch (err) { console.error('[GET /admin/faculty]', err); res.status(500).json({ message: 'Server error' }); }
 });
 
-// POST /api/admin/faculty â€” create faculty (email + optional fullName, password defaults to password123)
+// POST /api/admin/faculty â€” create faculty (email + department + optional fullName, password defaults to password123)
 router.post('/faculty', async (req, res) => {
   try {
-    const { email, fullName } = req.body;
+    const { email, fullName, department } = req.body;
     if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    // Department is required and must be a non-empty string. Validated before any
+    // DB write so a bad request never leaves a faculty account without a department.
+    if (!department || typeof department !== 'string' || !department.trim()) {
+      return res.status(400).json({ message: 'Department is required' });
+    }
+    const trimmedDept = department.trim();
 
     const existing = await User.findOne({ email: email.trim().toLowerCase() });
     if (existing) return res.status(409).json({ message: 'Email already exists' });
@@ -46,14 +53,20 @@ router.post('/faculty', async (req, res) => {
       email: email.trim().toLowerCase(),
       password: hashedPassword,
       role: 'faculty',
+      department: trimmedDept,
       isFirstLogin: true,
     });
 
+    // Persist department exactly where updateFacultyDepartment effectively does:
+    // User.department and Faculty.employmentDetails.department (the field analytics
+    // uses). Note: personalInfo.department is NOT in the Faculty schema, so Mongoose
+    // strict mode drops it on both create and edit; it is deliberately not written here.
     const adminFullName = fullName ? `temp--${fullName}` : '';
     await Faculty.create({
       userId: user._id,
       username: user.username,
       personalInfo: { fullName: adminFullName, officialEmail: email.trim().toLowerCase() },
+      employmentDetails: { department: trimmedDept },
     });
 
     res.status(201).json({
