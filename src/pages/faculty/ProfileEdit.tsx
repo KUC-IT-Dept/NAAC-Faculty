@@ -147,6 +147,7 @@ export default function ProfileEdit() {
   const [skippedSections, setSkippedSections] = useState<string[]>([]);
   const [skipping, setSkipping] = useState(false);
   const saveTimeoutRef = useRef<any>(null);
+  const { confirmSave, ConfirmDialog } = useConfirmSave();
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -177,7 +178,6 @@ export default function ProfileEdit() {
     );
   }
 
-  const { confirmSave, ConfirmDialog } = useConfirmSave();
   const tab = section?.key;
 
   const save = async (payload?: any, showToast = true) => {
