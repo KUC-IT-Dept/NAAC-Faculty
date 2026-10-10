@@ -202,8 +202,12 @@ const onlineCourseSchema = new mongoose.Schema({
   platform: { type: String, default: '' },
   duration: { type: String, default: '' },
   completionYear: { type: String, default: '' },
+  // Legacy range: kept for existing records, no longer written by the form.
   from: { type: String, default: '' },
   to: { type: String, default: '' },
+  // Current single date (YYYY-MM-DD) and Conducted / Attended / Taught. Empty on legacy records; never derived from from/to.
+  date: { type: String, default: '' },
+  activityType: { type: String, default: '' },
   certificateId: { type: String, default: '' },
   certificateUrl: { type: String, default: '' },
   score: { type: String, default: '' },
@@ -304,9 +308,14 @@ const specialAssignmentSchema = new mongoose.Schema({
 // Section 18: Quality Assurance (Unified schema for all charge types)
 const qualityAssuranceSchema = new mongoose.Schema({
   administrativeCharge: { type: String, default: '' },
+  // Current dates (YYYY-MM-DD, '' when not set), shared by every charge; independent of each other and of the legacy fields.
+  fromDate: { type: String, default: '' },
+  toDate: { type: String, default: '' },
+  dateOfAppointment: { type: String, default: '' },
+  // Legacy: no longer shown or written by the form; kept so existing records are not lost. Never converted into the dates above.
   academicYear: { type: String, default: '' },
-  activityTitle: { type: String, default: '' },
   activityDate: { type: String, default: '' },
+  activityTitle: { type: String, default: '' },
   activityCategory: { type: String, default: '' },
   objective: { type: String, default: '' },
   outcome: { type: String, default: '' },
@@ -464,7 +473,13 @@ const administrativeSupportSchema = new mongoose.Schema({
 const studentDetailSchema = new mongoose.Schema({
   studentName: { type: String, default: '' },
   topic: { type: String, default: '' },
-  year: { type: String, default: '' },
+  year: { type: String, default: '' }, // LEGACY: no longer shown or written by the UI; kept so old records still load and are not wiped
+  // Five independent milestone dates ('YYYY-MM-DD' strings, '' when not applicable)
+  dateOfAdmissionEnrolment: { type: String, default: '' },
+  dateOfRegistration: { type: String, default: '' },
+  dateOfThesisSubmission: { type: String, default: '' },
+  dateOfVivaVoce: { type: String, default: '' },
+  dateOfSyndicateApproval: { type: String, default: '' },
   fellowship: { type: String, default: '' },
   degree: { type: String, default: '' }, // Ph.D. / M.Phil.
   status: { type: String, default: '' }, // Ongoing / Completed

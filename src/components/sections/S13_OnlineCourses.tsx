@@ -4,7 +4,14 @@ import { fg, inp, sel, FileInp, dateInp, DocumentPreviewLink } from './sectionUt
 import { coursePlatformOptions, courseLevelOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 
-const EMPTY = { courseName: '', platform: '', from: '', to: '', certificateId: '', certificateUrl: '', score: '', courseLevel: '' };
+const ACTIVITY_TYPE_OPTIONS = ['Conducted', 'Attended', 'Taught'];
+
+// New records carry a single `date` + `activityType`. Legacy `from`/`to` are never written for new records;
+// on legacy records they are preserved untouched (edits spread the existing item).
+const EMPTY = { courseName: '', activityType: '', platform: '', date: '', certificateId: '', certificateUrl: '', score: '', courseLevel: '' };
+
+const yearOf = (v?: string) => (/^\d{4}/.test(v || '') ? (v as string).slice(0, 4) : '');
+const sortKey = (it: any) => it.date || it.from || '';
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
 const btnEdit: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', color: '#334155', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, border: '1px solid #e2e8f0', cursor: 'pointer' };
@@ -24,7 +31,7 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
 
 function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: () => void; onDelete: () => void; disabled: boolean }) {
   const [expanded, setExpanded] = useState(false);
-  const displayYear = item.from ? new Date(item.from).getFullYear() : (item.completionYear || '—');
+  const displayYear = yearOf(item.date) || yearOf(item.from) || item.completionYear || '—';
 
   return (
     <>
@@ -59,12 +66,15 @@ function PreviewCard({ item, onEdit, onDelete, disabled }: { item: any; onEdit: 
       {expanded && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Course Name" value={item.courseName} />
+          <PreviewRow label="Activity Type" value={item.activityType} />
           <PreviewRow label="Platform" value={item.platform} />
           <PreviewRow label="Course Level" value={item.courseLevel} />
-          {item.from && <PreviewRow label="From Date" value={item.from} />}
-          {item.to && <PreviewRow label="To Date" value={item.to} />}
-          {!item.from && !item.to && <PreviewRow label="Duration" value={item.duration} />}
-          {!item.from && !item.to && <PreviewRow label="Year" value={item.completionYear} />}
+          <PreviewRow label="Date" value={item.date} />
+          {/* Legacy values stay visible (read-only) until the faculty member picks a single Date */}
+          {!item.date && item.from && <PreviewRow label="From Date (legacy)" value={item.from} />}
+          {!item.date && item.to && <PreviewRow label="To Date (legacy)" value={item.to} />}
+          {!item.date && !item.from && !item.to && <PreviewRow label="Duration" value={item.duration} />}
+          {!item.date && !item.from && !item.to && <PreviewRow label="Year" value={item.completionYear} />}
           <PreviewRow label="Certificate ID" value={item.certificateId} />
           <PreviewRow label="Score" value={item.score} />
           {item.certificateUrl && (
@@ -94,7 +104,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
     onChange(a);
   };
 
-  const isItemComplete = (item: any) => item.courseName && item.platform && item.from && item.to;
+  const isItemComplete = (item: any) => item.courseName && item.activityType && item.platform && item.date;
 
   const handleAdd = () => {
     setPendingNewItem({ ...EMPTY });
@@ -104,14 +114,14 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
   const handleSavePending = (item: any) => {
     if (isItemComplete(item)) {
       const updated = [item, ...data];
-      updated.sort((a, b) => (b.from || '').localeCompare(a.from || ''));
       onChange(updated);
       setPendingNewItem(null);
       setIsDirty(false);
     }
   };
 
-  const sortedData = [...data].sort((a, b) => (b.from || '').localeCompare(a.from || ''));
+  // Keep each record's index in `data`: edits/deletes must target the right record even when the list is displayed sorted.
+  const rows = data.map((item, idx) => ({ item, idx })).sort((a, b) => sortKey(b.item).localeCompare(sortKey(a.item)));
 
   return (
     <>
@@ -127,7 +137,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
         </button>
       </div>
 
-      {sortedData.length === 0 && (
+      {rows.length === 0 && (
         <div className="empty-state">No courses added yet. Click Add Course to get started.</div>
       )}
 
@@ -151,14 +161,12 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
               </div>
             </div>
             {fg('Course / Certification Name *', inp(pendingNewItem.courseName, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, courseName: v }); }))}
+            {fg('Course Activity Type *', sel(pendingNewItem.activityType, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, activityType: v }); }, ACTIVITY_TYPE_OPTIONS, "Select..."))}
             <div className="form-row form-row-2">
               {fg('Platform / Provider *', sel(pendingNewItem.platform, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, platform: v }); }, platformOpts, "Select..."))}
               {fg('Course Level', sel(pendingNewItem.courseLevel, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, courseLevel: v }); }, levelOpts, "Select..."))}
             </div>
-            <div className="form-row form-row-2">
-              {fg('From Date *', dateInp(pendingNewItem.from, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, from: v }); }))}
-              {fg('To Date *', dateInp(pendingNewItem.to, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, to: v }); }))}
-            </div>
+            {fg('Date *', dateInp(pendingNewItem.date, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, date: v }); }))}
             <div className="form-row form-row-2">
               {fg('Certificate ID', inp(pendingNewItem.certificateId, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, certificateId: v }); }))}
               {fg('Score / Grade', inp(pendingNewItem.score, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, score: v }); }))}
@@ -182,7 +190,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
           </div>
         )}
 
-        {sortedData.map((item, i) => {
+        {rows.map(({ item, idx: i }) => {
           const itemIsEditing = editingItemIndex === i;
           return (
             <div key={i} className="list-item-card">
@@ -200,14 +208,17 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                     </div>
                   </div>
                   {fg('Course / Certification Name *', inp(item.courseName, v => upd(i, 'courseName', v)))}
+                  {fg('Course Activity Type *', sel(item.activityType, v => upd(i, 'activityType', v), ACTIVITY_TYPE_OPTIONS, "Select..."))}
                   <div className="form-row form-row-2">
                     {fg('Platform / Provider *', sel(item.platform, v => upd(i, 'platform', v), platformOpts, "Select..."))}
                     {fg('Course Level', sel(item.courseLevel, v => upd(i, 'courseLevel', v), levelOpts, "Select..."))}
                   </div>
-                  <div className="form-row form-row-2">
-                    {fg('From Date *', dateInp(item.from, v => upd(i, 'from', v)))}
-                    {fg('To Date *', dateInp(item.to, v => upd(i, 'to', v)))}
-                  </div>
+                  {fg('Date *', dateInp(item.date, v => upd(i, 'date', v)))}
+                  {!item.date && (item.from || item.to) && (
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', margin: '-8px 0 12px' }}>
+                      Earlier record: {item.from || '—'} to {item.to || '—'}. Pick a single Date above (not auto-filled).
+                    </div>
+                  )}
                   <div className="form-row form-row-2">
                     {fg('Certificate ID', inp(item.certificateId, v => upd(i, 'certificateId', v)))}
                     {fg('Score / Grade', inp(item.score, v => upd(i, 'score', v)))}
@@ -228,7 +239,7 @@ export default function OnlineCourses({ data, onChange }: { data: any[]; onChang
                 <PreviewCard
                   item={item}
                   onEdit={() => { setEditingItemIndex(i); setIsDirty(false); }}
-                  onDelete={() => onChange(sortedData.filter((_, j) => j !== i))}
+                  onDelete={() => onChange(data.filter((_, j) => j !== i))}
                   disabled={pendingNewItem !== null}
                 />
               )}

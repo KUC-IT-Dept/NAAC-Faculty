@@ -4,6 +4,7 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import { useParams, Link } from 'react-router-dom';
 import api, { getFileUrl } from '../lib/api';
 import { GraduationCap, Briefcase, BookOpen, FlaskConical, Award, Users, Shield, Mail, Phone, Globe, Link2, ExternalLink } from 'lucide-react';
+import { formatQaDateSpan } from '../components/sections/qualityAssuranceUtils';
 
 export default function PublicProfile() {
   const { username } = useParams<{ username: string }>();
@@ -388,28 +389,29 @@ export default function PublicProfile() {
 
                 if (charge.includes('director iqac')) {
                   if (r.activityTitle) detailParts.push(r.activityTitle);
-                  if (r.academicYear) detailParts.push(r.academicYear);
+                  if (formatQaDateSpan(r)) detailParts.push(formatQaDateSpan(r));
                 } else if (charge.includes('convener naac')) {
                   if (r.criteriaName) detailParts.push(r.criteriaName);
-                  if (r.academicYear) detailParts.push(r.academicYear);
+                  if (formatQaDateSpan(r)) detailParts.push(formatQaDateSpan(r));
                 } else if (charge.includes('reports for accreditation naac')) {
                   if (r.reportName) detailParts.push(r.reportName);
                   if (r.reportingPeriod) detailParts.push(r.reportingPeriod);
                 } else if (charge.includes('naac department')) {
                   if (r.departmentName) detailParts.push(r.departmentName);
-                  if (r.academicYear) detailParts.push(r.academicYear);
+                  if (formatQaDateSpan(r)) detailParts.push(formatQaDateSpan(r));
                 } else if (charge.includes('reports for nirf')) {
                   if (r.reportCycle) detailParts.push(r.reportCycle);
-                  if (r.academicYear) detailParts.push(r.academicYear);
+                  if (formatQaDateSpan(r)) detailParts.push(formatQaDateSpan(r));
                 } else if (charge.includes('nirf department')) {
                   if (r.departmentName) detailParts.push(r.departmentName);
-                  if (r.academicYear) detailParts.push(r.academicYear);
+                  if (formatQaDateSpan(r)) detailParts.push(formatQaDateSpan(r));
                 } else if (charge.includes('feedback')) {
                   if (r.feedbackType) detailParts.push(r.feedbackType);
-                  if (r.academicYear) detailParts.push(r.academicYear);
+                  if (formatQaDateSpan(r)) detailParts.push(formatQaDateSpan(r));
                 } else {
                   if (r.responsibilityTitle) detailParts.push(r.responsibilityTitle);
                   if (r.startDate) detailParts.push(`Started ${r.startDate}`);
+                  if (formatQaDateSpan(r)) detailParts.push(formatQaDateSpan(r));
                 }
 
                 return (

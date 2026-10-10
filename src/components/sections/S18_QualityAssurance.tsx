@@ -3,12 +3,15 @@ import { Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, X } from 'lucide-re
 import { fg, inp, dateInp, sel, ta } from './sectionUtils';
 import { qualityAssuranceOptions, semesterTypeOptions, responsibilityStatusOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
+import { QA_DATE_KEYS, QA_LEGACY_KEYS, QA_OTHER_LEGACY_KEYS, formatQaDate, formatQaDateSpan, hasOtherLegacyDates } from './qualityAssuranceUtils';
+
 
 const EMPTY_RESPONSIBILITY: Record<string, string> = {
   administrativeCharge: '',
-  academicYear: '',
+  fromDate: '',
+  toDate: '',
+  dateOfAppointment: '',
   activityTitle: '',
-  activityDate: '',
   activityCategory: '',
   objective: '',
   outcome: '',
@@ -61,15 +64,29 @@ const btnCancel: React.CSSProperties = { display: 'inline-flex', alignItems: 'ce
 /** Returns a human-readable subtitle for the selected charge */
 function getChargeSubtitle(r: any): string {
   const charge = (r.administrativeCharge || '').toLowerCase();
-  if (charge.includes('director iqac')) return [r.activityTitle, r.academicYear].filter(Boolean).join(' · ');
-  if (charge.includes('convener naac')) return [r.criteriaName, r.academicYear].filter(Boolean).join(' · ');
+  if (charge.includes('director iqac')) return [r.activityTitle, formatQaDateSpan(r)].filter(Boolean).join(' · ');
+  if (charge.includes('convener naac')) return [r.criteriaName, formatQaDateSpan(r)].filter(Boolean).join(' · ');
   if (charge.includes('reports for accreditation naac')) return [r.reportName, r.reportingPeriod].filter(Boolean).join(' · ');
-  if (charge.includes('naac department')) return [r.departmentName, r.academicYear].filter(Boolean).join(' · ');
-  if (charge.includes('reports for nirf')) return [r.reportCycle, r.academicYear].filter(Boolean).join(' · ');
-  if (charge.includes('nirf department')) return [r.departmentName, r.academicYear].filter(Boolean).join(' · ');
-  if (charge.includes('feedback')) return [r.feedbackType, r.academicYear].filter(Boolean).join(' · ');
-  // Other
-  return [r.responsibilityTitle, r.startDate ? `Started ${r.startDate}` : ''].filter(Boolean).join(' · ');
+  if (charge.includes('naac department')) return [r.departmentName, formatQaDateSpan(r)].filter(Boolean).join(' · ');
+  if (charge.includes('reports for nirf')) return [r.reportCycle, formatQaDateSpan(r)].filter(Boolean).join(' · ');
+  if (charge.includes('nirf department')) return [r.departmentName, formatQaDateSpan(r)].filter(Boolean).join(' · ');
+  if (charge.includes('feedback')) return [r.feedbackType, formatQaDateSpan(r)].filter(Boolean).join(' · ');
+  // Other: use the unified From/To dates for the subtitle; fall back to legacy startDate if the
+  // record pre-dates the unified system and from/to are still empty.
+  const otherSpan = formatQaDateSpan(r) || (r.startDate ? `Started ${r.startDate}` : '');
+  return [r.responsibilityTitle, otherSpan].filter(Boolean).join(' · ');
+
+}
+
+/** The three QA dates: identical for every Administrative Charge, independent of each other. */
+function QaDateFields({ item, setVal }: { item: any; setVal: (k: string, v: string) => void }) {
+  return (
+    <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+      {fg('From Date', dateInp(item.fromDate, v => setVal('fromDate', v)))}
+      {fg('To Date', dateInp(item.toDate, v => setVal('toDate', v)))}
+      {fg('Date of Appointment', dateInp(item.dateOfAppointment, v => setVal('dateOfAppointment', v)))}
+    </div>
+  );
 }
 
 /** Renders the charge-specific form fields */
@@ -81,10 +98,6 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
   if (charge.includes('director iqac')) {
     return (
       <>
-        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {fg('Academic Year', inp(item.academicYear, v => setVal('academicYear', v), 'e.g. 2023-2024'))}
-          {fg('Activity Date', dateInp(item.activityDate, v => setVal('activityDate', v)))}
-        </div>
         <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {fg('Activity Title', inp(item.activityTitle, v => setVal('activityTitle', v), 'Enter activity title'))}
           {fg('Activity Category', inp(item.activityCategory, v => setVal('activityCategory', v), 'Enter activity category'))}
@@ -100,9 +113,8 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
   if (charge.includes('convener naac')) {
     return (
       <>
-        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="form-row form-row-1">
           {fg('Criteria Number', inp(item.criteriaNumber, v => setVal('criteriaNumber', v), 'Enter criteria number'))}
-          {fg('Academic Year', inp(item.academicYear, v => setVal('academicYear', v), 'e.g. 2023-2024'))}
         </div>
         <div className="form-row form-row-1">
           {fg('Criteria Name', inp(item.criteriaName, v => setVal('criteriaName', v), 'Enter criteria name'))}
@@ -141,10 +153,9 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
   if (charge.includes('naac department')) {
     return (
       <>
-        <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {fg('Department Name', inp(item.departmentName, v => setVal('departmentName', v), 'Enter department name'))}
           {fg('Coordinator Name', inp(item.coordinatorName, v => setVal('coordinatorName', v), 'Enter coordinator name'))}
-          {fg('Academic Year', inp(item.academicYear, v => setVal('academicYear', v), 'e.g. 2023-2024'))}
         </div>
         <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
           {fg('Faculty Data Submitted', sel(item.facultyDataSubmitted, v => setVal('facultyDataSubmitted', v), ['Yes', 'No', 'In Progress']))}
@@ -161,8 +172,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
   if (charge.includes('reports for nirf')) {
     return (
       <>
-        <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-          {fg('Academic Year', inp(item.academicYear, v => setVal('academicYear', v), 'e.g. 2023-2024'))}
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {fg('Report Cycle', inp(item.reportCycle, v => setVal('reportCycle', v), 'Enter report cycle'))}
           {fg('Data Category', inp(item.dataCategory, v => setVal('dataCategory', v), 'Enter data category'))}
         </div>
@@ -178,10 +188,9 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
   if (charge.includes('nirf department')) {
     return (
       <>
-        <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {fg('Department Name', inp(item.departmentName, v => setVal('departmentName', v), 'Enter department name'))}
           {fg('Coordinator Name', inp(item.coordinatorName, v => setVal('coordinatorName', v), 'Enter coordinator name'))}
-          {fg('Academic Year', inp(item.academicYear, v => setVal('academicYear', v), 'e.g. 2023-2024'))}
         </div>
         <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
           {fg('Student Strength', inp(item.studentStrength, v => setVal('studentStrength', v), 'Enter student strength'))}
@@ -199,8 +208,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
   if (charge.includes('feedback')) {
     return (
       <>
-        <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-          {fg('Academic Year', inp(item.academicYear, v => setVal('academicYear', v), 'e.g. 2023-2024'))}
+        <div className="form-row form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {fg('Semester', sel(item.semester, v => setVal('semester', v), semesterOpts, "Select..."))}
           {fg('Feedback Type', inp(item.feedbackType, v => setVal('feedbackType', v), 'Enter feedback type'))}
         </div>
@@ -216,14 +224,20 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
     );
   }
 
-  // Other
+  // Other — Start Date / End Date inputs removed; replaced by the shared From Date / To Date above.
+  // Legacy records that still carry startDate / endDate values are never silently discarded:
+  // they are preserved in the database and shown as a migration notice here in the edit form.
   return (
     <>
-      <div className="form-row form-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+      <div className="form-row form-row-1">
         {fg('Responsibility Title', inp(item.responsibilityTitle, v => setVal('responsibilityTitle', v), 'Enter responsibility title'))}
-        {fg('Start Date', dateInp(item.startDate, v => setVal('startDate', v)))}
-        {fg('End Date', dateInp(item.endDate, v => setVal('endDate', v)))}
       </div>
+      {hasOtherLegacyDates(item) && (
+        <div data-testid="other-legacy-date-notice" style={{ padding: '10px 14px', marginBottom: 8, borderRadius: 6, background: '#fef9c3', border: '1px solid #fef08a', fontSize: 13, color: '#713f12' }}>
+          <strong>Earlier record:</strong> Start Date {formatQaDate(item.startDate as string) || '—'}, End Date {formatQaDate(item.endDate as string) || '—'}
+          &nbsp;(kept on this record). Use <em>From Date / To Date</em> above to enter the updated dates.
+        </div>
+      )}
       <div className="form-row form-row-1">
         {fg('Description', ta(item.description, v => setVal('description', v), 'Describe the responsibility', 2))}
       </div>
@@ -232,6 +246,7 @@ function ChargeSpecificFields({ item, setVal }: { item: any; setVal: (k: string,
       </div>
     </>
   );
+
 }
 
 /** Renders the common fields (supporting documents & remarks) */
@@ -274,9 +289,7 @@ function ChargePreviewRows({ r }: { r: any }) {
   if (charge.includes('director iqac')) {
     return (
       <>
-        <PreviewRow label="Academic Year" value={r.academicYear} />
         <PreviewRow label="Activity Title" value={r.activityTitle} />
-        <PreviewRow label="Activity Date" value={r.activityDate} />
         <PreviewRow label="Activity Category" value={r.activityCategory} />
         <PreviewRow label="Objective" value={r.objective} />
         <PreviewRow label="Outcome" value={r.outcome} />
@@ -288,7 +301,6 @@ function ChargePreviewRows({ r }: { r: any }) {
       <>
         <PreviewRow label="Criteria Number" value={r.criteriaNumber} />
         <PreviewRow label="Criteria Name" value={r.criteriaName} />
-        <PreviewRow label="Academic Year" value={r.academicYear} />
         <PreviewRow label="Task Description" value={r.taskDescription} />
         <PreviewRow label="Evidence Available" value={r.evidenceAvailable} />
         <PreviewRow label="Status" value={r.status} />
@@ -313,7 +325,6 @@ function ChargePreviewRows({ r }: { r: any }) {
       <>
         <PreviewRow label="Department Name" value={r.departmentName} />
         <PreviewRow label="Coordinator Name" value={r.coordinatorName} />
-        <PreviewRow label="Academic Year" value={r.academicYear} />
         <PreviewRow label="Faculty Data Submitted" value={r.facultyDataSubmitted} />
         <PreviewRow label="Student Data Submitted" value={r.studentDataSubmitted} />
         <PreviewRow label="Research Data Submitted" value={r.researchDataSubmitted} />
@@ -324,7 +335,6 @@ function ChargePreviewRows({ r }: { r: any }) {
   if (charge.includes('reports for nirf')) {
     return (
       <>
-        <PreviewRow label="Academic Year" value={r.academicYear} />
         <PreviewRow label="Report Cycle" value={r.reportCycle} />
         <PreviewRow label="Data Category" value={r.dataCategory} />
         <PreviewRow label="Verified By" value={r.verifiedBy} />
@@ -338,7 +348,6 @@ function ChargePreviewRows({ r }: { r: any }) {
       <>
         <PreviewRow label="Department Name" value={r.departmentName} />
         <PreviewRow label="Coordinator Name" value={r.coordinatorName} />
-        <PreviewRow label="Academic Year" value={r.academicYear} />
         <PreviewRow label="Student Strength" value={r.studentStrength} />
         <PreviewRow label="Faculty Strength" value={r.facultyStrength} />
         <PreviewRow label="Publication Count" value={r.publicationCount} />
@@ -350,7 +359,6 @@ function ChargePreviewRows({ r }: { r: any }) {
   if (charge.includes('feedback')) {
     return (
       <>
-        <PreviewRow label="Academic Year" value={r.academicYear} />
         <PreviewRow label="Semester" value={r.semester} />
         <PreviewRow label="Feedback Type" value={r.feedbackType} />
         <PreviewRow label="Feedback Summary" value={r.feedbackSummary} />
@@ -360,14 +368,17 @@ function ChargePreviewRows({ r }: { r: any }) {
       </>
     );
   }
-  // Other
+  // Other — show Responsibility Title, Description, Status.
+  // If the record still carries legacy startDate/endDate (and fromDate/toDate are not yet set),
+  // display them clearly as read-only legacy values so nothing is silently invisible.
+  const hasNewDates = !!(r.fromDate || r.toDate);
   return (
     <>
       <PreviewRow label="Responsibility Title" value={r.responsibilityTitle} />
-      <PreviewRow label="Start Date" value={r.startDate} />
-      <PreviewRow label="End Date" value={r.endDate} />
-      <PreviewRow label="Description" value={r.description} />
+      {r.description && <PreviewRow label="Description" value={r.description} />}
       <PreviewRow label="Status" value={r.status} />
+      {!hasNewDates && r.startDate && <PreviewRow label="Start Date (legacy)" value={formatQaDate(r.startDate)} />}
+      {!hasNewDates && r.endDate && <PreviewRow label="End Date (legacy)" value={formatQaDate(r.endDate)} />}
     </>
   );
 }
@@ -417,6 +428,9 @@ function RespPreviewCard({ r, onEdit, onDelete, disabled }: { r: any; onEdit: ()
       {expanded && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
           <PreviewRow label="Administrative Charge" value={r.administrativeCharge} />
+          <PreviewRow label="From Date" value={formatQaDate(r.fromDate)} />
+          <PreviewRow label="To Date" value={formatQaDate(r.toDate)} />
+          <PreviewRow label="Date of Appointment" value={formatQaDate(r.dateOfAppointment)} />
           <ChargePreviewRows r={r} />
           {wantsDocs && <PreviewRow label="Supporting Documents" value={r.supportingDocuments} />}
           <PreviewRow label="Remarks" value={r.remarks} />
@@ -452,7 +466,7 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
     if (isComplete(item)) { update([item, ...responsibilities]); setPending(null); setIsDirty(false); }
   };
 
-  /** When charge type changes, reset charge-specific fields but keep common ones */
+  /** When charge type changes, reset charge-specific fields but keep common ones (remarks, documents, the three dates) */
   const handleChargeChange = (currentItem: any, newCharge: string, isPending: boolean, idx?: number) => {
     setIsDirty(true);
     const reset: Record<string, string> = {
@@ -461,6 +475,10 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
       remarks: currentItem.remarks || '',
       supportingDocuments: currentItem.supportingDocuments || '',
     };
+    // The three dates belong to the record, not to a charge: never cleared by changing the charge.
+    QA_DATE_KEYS.forEach(k => { reset[k] = currentItem[k] || ''; });
+    // Legacy values are no longer shown, but are never wiped from an existing record.
+    QA_LEGACY_KEYS.forEach(k => { if (currentItem[k] !== undefined) reset[k] = currentItem[k]; });
     if (isPending) {
       setPending(reset);
     } else if (idx !== undefined) {
@@ -487,6 +505,7 @@ export default function QualityAssurance({ data, onChange }: { data: any; onChan
         </div>
         {item.administrativeCharge && (
           <>
+            <QaDateFields item={item} setVal={setVal} />
             <ChargeSpecificFields item={{...item, _semesterOpts: semesterOpts, _statusOpts: statusOpts}} setVal={setVal} />
             <CommonFields item={item} setVal={setVal} />
           </>
