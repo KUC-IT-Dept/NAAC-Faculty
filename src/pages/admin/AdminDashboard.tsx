@@ -981,6 +981,7 @@ export default function AdminDashboard() {
               </div>
               <div style={{ position: 'relative', width: 180, zIndex: 10 }}>
                 <SearchableSelect
+                allowAddOther={false}
                   value={studentDeptFilter === 'All' ? 'All Departments' : studentDeptFilter}
                   onChange={val => setStudentDeptFilter(val === 'All Departments' ? 'All' : val)}
                   options={['All Departments', ...departmentsList.map(d => d.name)]}
@@ -989,6 +990,7 @@ export default function AdminDashboard() {
               </div>
               <div style={{ position: 'relative', width: 180, zIndex: 9 }}>
                 <SearchableSelect
+                allowAddOther={false}
                   value={studentTutorFilter === 'All' ? 'All Tutors' : studentTutorFilter}
                   onChange={val => setStudentTutorFilter(val === 'All Tutors' ? 'All' : val)}
                   options={['All Tutors', ...uniqueTutors]}
@@ -1119,6 +1121,7 @@ export default function AdminDashboard() {
             <div className="form-group">
               <label className="form-label">Department</label>
               <SearchableSelect
+                allowAddOther={false}
                 value={editStudentForm.department}
                 onChange={val => setEditStudentForm(f => ({ ...f, department: val, tutorName: '', tutorEmail: '' }))}
                 options={departmentsList.map(d => d.name)}
@@ -1129,6 +1132,7 @@ export default function AdminDashboard() {
               <label className="form-label">Tutor Name</label>
               <div style={{ pointerEvents: editStudentForm.department ? 'auto' : 'none', opacity: editStudentForm.department ? 1 : 0.6 }}>
                 <SearchableSelect
+                allowAddOther={false}
                   value={editStudentForm.tutorName}
                   onChange={val => {
                     const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
@@ -1246,6 +1250,7 @@ export default function AdminDashboard() {
               <div className="form-group" style={{ gridColumn: 'span 2' }}>
                 <label className="form-label">Department *</label>
                 <SearchableSelect
+                allowAddOther={false}
                   value={studentForm.department}
                   onChange={val => setStudentForm(f => ({ ...f, department: val, tutorName: '', tutorEmail: '' }))}
                   options={departmentsList.map(d => d.name)}
@@ -1256,6 +1261,7 @@ export default function AdminDashboard() {
                 <label className="form-label">Tutor Name *</label>
                 <div style={{ pointerEvents: studentForm.department ? 'auto' : 'none', opacity: studentForm.department ? 1 : 0.6 }}>
                   <SearchableSelect
+                allowAddOther={false}
                     value={studentForm.tutorName}
                     onChange={val => {
                       const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
@@ -1319,6 +1325,7 @@ export default function AdminDashboard() {
             <div className="form-group">
               <label className="form-label">Department *</label>
               <SearchableSelect
+                allowAddOther={false}
                 value={form.department}
                 onChange={val => setForm(f => ({ ...f, department: val }))}
                 options={departmentsList.map(d => d.name)}

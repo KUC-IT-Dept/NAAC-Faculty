@@ -5,6 +5,39 @@ import { publicationLevelOptions, peerReviewedStatusOptions, indexedInOptions, p
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { useConfirmSave } from '../useConfirmSave';
 import { useConfirmDelete } from '../useConfirmDelete';
+import SearchableSelect from '../SearchableSelect';
+
+// Default "Type of Article" choices. The selected value is stored as-is in the publication's
+// existing `title` field, so custom types need no source change and survive re-editing.
+const ARTICLE_TYPE_OPTIONS = [
+  'Original Research Article',
+  'Short Communication / Letter',
+  'Brief Report',
+  'Data Paper',
+  'Registered Report',
+  'Narrative Review Article',
+  'Systematic Review',
+  'Meta-Analysis',
+  'Scoping Review',
+  'Methodology Article',
+  'Software / Tool Paper',
+  'Case Study / Case Report',
+  'Replication Study',
+  'Perspective / Opinion',
+  'Commentary / Response',
+  'Editorial',
+  'Book Review',
+  'Appeared in News paper',
+  'Corrigendum / Erratum',
+];
+
+// Defaults plus the record's own saved value (if it isn't a default, compared case-insensitively),
+// so existing/custom values keep showing and stay selectable when the publication is reopened.
+const withSavedValue = (saved: string): string[] => {
+  const v = (saved || '').trim();
+  if (!v || ARTICLE_TYPE_OPTIONS.some(o => o.toLowerCase() === v.toLowerCase())) return ARTICLE_TYPE_OPTIONS;
+  return [...ARTICLE_TYPE_OPTIONS, v];
+};
 
 
 
@@ -95,7 +128,13 @@ function PubForm({ item, onChange, levels, yesNo, indexedInOpts, authorRoleOpts,
       {t === 'Journal Articles' && (
         <>
           <div className="form-row form-row-2">
-            {fg('Type of Article *', inp(item.title, v => onChange('title', v)))}
+            {fg('Type of Article *', <SearchableSelect
+              value={item.title || ''}
+              onChange={(v: string) => onChange('title', v)}
+              options={withSavedValue(item.title)}
+              placeholder="Search or Enter Article Type"
+              emptyMessage="No matching article type. Type a name to add it."
+            />)}
             {fg('Journal Name *', inp(item.journal, v => onChange('journal', v)))}
           </div>
           <div className="form-row form-row-3">
