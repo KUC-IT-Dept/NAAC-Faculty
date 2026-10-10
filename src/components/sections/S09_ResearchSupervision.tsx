@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
-import { fg, inp, sel, ta, yearSel } from './sectionUtils';
+import { fg, inp, sel, ta, dateInp } from './sectionUtils';
+import { SUPERVISION_DATE_FIELDS, formatSupervisionDate, emptyStudentDates } from './researchSupervisionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { useConfirmDelete } from '../useConfirmDelete';
 import { researchDegreeOptions, scholarGenderOptions, researchStatusOptions, guidanceTypeOptions, supervisionCategoryOptions } from '../../shared/dropdownOptions';
@@ -130,7 +131,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
     setIsDirty(false);
     const tempId = 'student-' + Math.random().toString(36).substr(2, 9);
     const arr = [
-      { id: tempId, studentName: '', topic: '', year: '', fellowship: '', degree: 'Ph.D', status: 'Ongoing', scholarGender: '', guidanceType: '', supervisionCategory: '', isEditing: true },
+      { id: tempId, studentName: '', topic: '', ...emptyStudentDates(), fellowship: '', degree: 'Ph.D', status: 'Ongoing', scholarGender: '', guidanceType: '', supervisionCategory: '', isEditing: true },
       ...studentDetails
     ];
     setStudentDetails(arr);
@@ -243,7 +244,7 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
       <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>Student Names, Topics, Year</div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>Student Names, Topics and Key Dates</div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>Rows are collapsible with preview. Click a row to view more details.</div>
           </div>
           <button type="button" onClick={addRow} style={{
@@ -297,7 +298,15 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                     {fg('Topic', inp(st.topic, v => updStudent(i, 'topic', v), 'Enter research topic'))}
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Year', yearSel(st.year, v => updStudent(i, 'year', v)))}
+                    {fg(SUPERVISION_DATE_FIELDS[0].label, dateInp(st[SUPERVISION_DATE_FIELDS[0].key], v => updStudent(i, SUPERVISION_DATE_FIELDS[0].key, v)))}
+                    {fg(SUPERVISION_DATE_FIELDS[1].label, dateInp(st[SUPERVISION_DATE_FIELDS[1].key], v => updStudent(i, SUPERVISION_DATE_FIELDS[1].key, v)))}
+                  </div>
+                  <div className="form-row form-row-2">
+                    {fg(SUPERVISION_DATE_FIELDS[2].label, dateInp(st[SUPERVISION_DATE_FIELDS[2].key], v => updStudent(i, SUPERVISION_DATE_FIELDS[2].key, v)))}
+                    {fg(SUPERVISION_DATE_FIELDS[3].label, dateInp(st[SUPERVISION_DATE_FIELDS[3].key], v => updStudent(i, SUPERVISION_DATE_FIELDS[3].key, v)))}
+                  </div>
+                  <div className="form-row form-row-2">
+                    {fg(SUPERVISION_DATE_FIELDS[4].label, dateInp(st[SUPERVISION_DATE_FIELDS[4].key], v => updStudent(i, SUPERVISION_DATE_FIELDS[4].key, v)))}
                     {fg('Fellowship Details', inp(st.fellowship, v => updStudent(i, 'fellowship', v), 'Enter fellowship details (optional)'))}
                   </div>
                   {isDirty && (
@@ -332,12 +341,16 @@ export default function ResearchSupervision({ data, onChange, onPersist }: { dat
                       </h3>
                       <div style={{ fontSize: '13px', color: '#475569', marginTop: '2px' }}>
                         {st.topic ? `Topic: ${st.topic}` : 'No topic'}
-                        {st.year ? ` • Year: ${st.year}` : ''}
                         {st.fellowship ? ` • Fellowship: ${st.fellowship}` : ''}
                         {st.scholarGender ? ` • Gender: ${st.scholarGender}` : ''}
                         {st.guidanceType ? ` • Guidance: ${st.guidanceType}` : ''}
                         {st.supervisionCategory ? ` • Category: ${st.supervisionCategory}` : ''}
                       </div>
+                      {SUPERVISION_DATE_FIELDS.some(f => st[f.key]) && (
+                        <div style={{ fontSize: '13px', color: '#475569', marginTop: '2px' }} data-testid="supervision-dates-summary">
+                          {SUPERVISION_DATE_FIELDS.filter(f => st[f.key]).map(f => `${f.short}: ${formatSupervisionDate(st[f.key])}`).join(' • ')}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div>
