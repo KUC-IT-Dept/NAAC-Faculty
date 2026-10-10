@@ -1,10 +1,52 @@
 
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, ExternalLink, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { fg, inp, sel, ta, FileInp, DocumentPreviewLink } from './sectionUtils';
+import { fg, sel, ta, FileInp, DocumentPreviewLink } from './sectionUtils';
 import { awardLevelOptions, awardCategoryOptions, awardingAgencyTypeOptions, honourTypeOptions, recognitionStatusOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { useConfirmDelete } from '../useConfirmDelete';
+import SearchableSelect from '../SearchableSelect';
+
+// Default "Award / Fellowship / Honour Name" choices. The selected value is stored as-is in the
+// award's existing `name` field, so custom awards need no source change and survive re-editing.
+const AWARD_NAME_OPTIONS = [
+  'Elected Academy Fellowships',
+  'International Research Fellowships',
+  'Senior / Emeritus Research Fellowships',
+  'Visiting Professorships & Fellowships',
+  'Young Scientist Awards',
+  'National & Discipline-Specific Medals',
+  'High-Citation Awards',
+  'Institutional Research Excellence Awards',
+  'Innovation Recognition',
+  'Excellence in Teaching / Best Teacher Awards',
+  'Outstanding Ph.D. / Postdoctoral Mentor Awards',
+  'Pedagogical & Digital Innovation Awards',
+  'Keynote & Plenary Speaker Honor',
+  'Honorary / Lifetime Memberships in Professional Societies',
+  'Professor Emeritus Status',
+  'Distinguished / Endowed Chair Professorship',
+  'Honorary Doctorate',
+  'Institutional Lifetime Achievement Awards',
+];
+
+// Defaults plus the record's own saved value when it isn't a default (case-insensitive), so
+// existing/custom names keep showing and stay selectable when the award is reopened.
+const withSavedName = (saved: string): string[] => {
+  const v = (saved || '').trim();
+  if (!v || AWARD_NAME_OPTIONS.some(o => o.toLowerCase() === v.toLowerCase())) return AWARD_NAME_OPTIONS;
+  return [...AWARD_NAME_OPTIONS, v];
+};
+
+const awardNameField = (value: string, onChange: (v: string) => void) => (
+  <SearchableSelect
+    value={value || ''}
+    onChange={onChange}
+    options={withSavedName(value)}
+    placeholder="Search or Enter Award Name"
+    emptyMessage="No matching award. Type a name to add it."
+  />
+);
 
 
 const EMPTY = { name: '', awardingAgency: '', awardCategory: '', honourType: '', recognitionStatus: '', dateOfAward: '', yearReceived: '', level: '', description: '', documentUrl: '' };
@@ -210,7 +252,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
               </div>
             </div>
             <div className="form-row form-row-2">
-              {fg('Award / Fellowship / Honour Name *', inp(pendingNewItem.name, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, name: v }); }))}
+              {fg('Award / Fellowship / Honour Name *', awardNameField(pendingNewItem.name, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, name: v }); }))}
               {fg('Awarding Body / Agency *', sel(pendingNewItem.awardingAgency, v => { setIsDirty(true); setPendingNewItem({ ...pendingNewItem, awardingAgency: v }); }, dynamicAwardingAgencyTypeOptions, "Select..."))}
             </div>
             <div className="form-row form-row-3">
@@ -268,7 +310,7 @@ export default function Awards({ data, onChange, onPersist }: { data: any[]; onC
                     </div>
                   </div>
                   <div className="form-row form-row-2">
-                    {fg('Award / Fellowship / Honour Name *', inp(a.name, v => upd(originalIndex, 'name', v)))}
+                    {fg('Award / Fellowship / Honour Name *', awardNameField(a.name, v => upd(originalIndex, 'name', v)))}
                     {fg('Awarding Body / Agency *', sel(a.awardingAgency, v => upd(originalIndex, 'awardingAgency', v), dynamicAwardingAgencyTypeOptions, "Select..."))}
                   </div>
                   <div className="form-row form-row-3">

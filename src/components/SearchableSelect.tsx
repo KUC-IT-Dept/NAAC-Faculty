@@ -10,25 +10,48 @@ interface SearchableSelectProps {
   placeholder?: string;
   maxOptions?: number;
   emptyMessage?: string;
+  /**
+   * Show the persistent "+ Add Other" action (and typed "+ Add \"value\"" action).
+   * Defaults to true. Pass false for fields that must only accept values from `options`
+   * (filters, fixed department / tutor pickers).
+   */
+  allowAddOther?: boolean;
 }
 
-export default function SearchableSelect({ 
-  value, 
-  onChange, 
-  options = [], 
+const norm = (s: string) => (s || '').trim().toLowerCase();
+
+export default function SearchableSelect({
+  value,
+  onChange,
+  options = [],
   placeholder = "— Select —",
   maxOptions = 100,
   emptyMessage = "No departments found",
+  allowAddOther = true,
   inputRef
 }: SearchableSelectProps & { inputRef?: React.Ref<HTMLDivElement> }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  
+  const [hint, setHint] = useState('');
+
   const wrapperRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const optionListRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement | null>(null);
+
+  const setTriggerRef = (node: HTMLDivElement | null) => {
+    triggerRef.current = node;
+    if (typeof inputRef === 'function') inputRef(node);
+    else if (inputRef) (inputRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+  };
+
+  // Close the list and hand focus back to the trigger so keyboard users keep their place.
+  const closeAndRefocus = () => {
+    setIsOpen(false);
+    setTimeout(() => triggerRef.current?.focus(), 0);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -42,19 +65,23 @@ export default function SearchableSelect({
 
   const dropdownKey = (options as any)?.dropdownKey;
   const trimmedSearch = searchTerm.trim();
-  const hasExactMatch = options.some(opt => opt.toLowerCase() === trimmedSearch.toLowerCase());
-  const showAddOption = trimmedSearch !== '' && !hasExactMatch;
-  const showAddOtherOption = dropdownKey && trimmedSearch === '';
+  const query = norm(searchTerm);
+  // Duplicate = same text as an existing option (or the currently saved value), ignoring case/whitespace.
+  const hasExactMatch = query !== '' && (options.some(opt => norm(opt) === query) || norm(value) === query);
+  // Specific action only for a non-empty, non-duplicate query; otherwise the generic "+ Add Other" row.
+  const showSpecificAdd = allowAddOther && trimmedSearch !== '' && !hasExactMatch;
 
   const filteredOptions = options
-    .filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(opt => norm(opt).includes(query))
+    .sort((a, b) => Number(norm(b) === query) - Number(norm(a) === query)) // exact match first (stable)
     .slice(0, maxOptions);
 
-  const hasExtraOption = showAddOption || showAddOtherOption;
-  const totalItems = filteredOptions.length + (hasExtraOption ? 1 : 0);
+  const addIndex = filteredOptions.length;
+  const totalItems = filteredOptions.length + (allowAddOther ? 1 : 0);
 
   useEffect(() => {
     if (isOpen) {
+      setSearchTerm('');
       setHighlightedIndex(0);
       setTimeout(() => {
         searchInputRef.current?.focus();
@@ -64,30 +91,45 @@ export default function SearchableSelect({
 
   useEffect(() => {
     setHighlightedIndex(0);
+    setHint('');
   }, [searchTerm]);
 
   useEffect(() => {
     if (isOpen && optionListRef.current) {
       const children = optionListRef.current.children;
-      if (children[highlightedIndex]) {
+      if (highlightedIndex < filteredOptions.length && children[highlightedIndex]) {
         (children[highlightedIndex] as HTMLElement).scrollIntoView({ block: 'nearest' });
       }
     }
-  }, [highlightedIndex, isOpen]);
+  }, [highlightedIndex, isOpen, filteredOptions.length]);
+
+  // Activating the generic "+ Add Other" row: nothing to add yet, so guide the user to the search box.
+  const handleGenericAdd = () => {
+    if (!allowAddOther) return;
+    if (hasExactMatch) {
+      setHint(`"${trimmedSearch}" already exists — select it from the list.`);
+    } else {
+      setHint('Type the new value in the search box, then press Enter to add it.');
+    }
+    searchInputRef.current?.focus();
+  };
 
   const handleRequestAdd = async (newValue: string) => {
-    if (!newValue.trim()) return;
+    if (!allowAddOther || submitting) return;
+    newValue = newValue.trim();
+    if (!newValue) { handleGenericAdd(); return; }
+    if (norm(newValue) && options.some(opt => norm(opt) === norm(newValue))) { handleGenericAdd(); return; }
     if (dropdownKey) {
       setSubmitting(true);
       try {
-        await api.post('/me/requests', { 
-          dropdownKey, 
+        await api.post('/me/requests', {
+          dropdownKey,
           requestedValue: newValue.trim(),
-          previousValue: value || '' 
+          previousValue: value || ''
         });
         toast.success('Request sent for approval. You can continue saving.');
         onChange(newValue.trim());
-        setIsOpen(false);
+        closeAndRefocus();
       } catch (err) {
         toast.error('Failed to submit request');
       } finally {
@@ -95,7 +137,7 @@ export default function SearchableSelect({
       }
     } else {
       onChange(newValue.trim());
-      setIsOpen(false);
+      closeAndRefocus();
     }
   };
 
@@ -117,7 +159,7 @@ export default function SearchableSelect({
 
     if (e.key === 'Escape') {
       e.preventDefault();
-      setIsOpen(false);
+      closeAndRefocus();
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       setHighlightedIndex((prev) => (totalItems > 0 ? (prev + 1) % totalItems : 0));
@@ -128,30 +170,38 @@ export default function SearchableSelect({
       e.preventDefault();
       if (highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
         onChange(filteredOptions[highlightedIndex]);
-        setIsOpen(false);
-      } else if (highlightedIndex === filteredOptions.length && showAddOption) {
-        handleRequestAdd(trimmedSearch);
-      } else if (highlightedIndex === filteredOptions.length && showAddOtherOption) {
-        searchInputRef.current?.focus();
+        closeAndRefocus();
+      } else if (allowAddOther && highlightedIndex === addIndex) {
+        if (showSpecificAdd) handleRequestAdd(trimmedSearch);
+        else handleGenericAdd();
       }
     }
   };
 
   return (
-    <div 
-      ref={wrapperRef} 
+    <div
+      ref={wrapperRef}
       onKeyDown={handleKeyDown}
+      onBlur={(e) => {
+        // Tabbing to another control closes the list. relatedTarget is null when the
+        // pointer clicks a non-focusable option, so that case is left to the click handlers.
+        const next = e.relatedTarget as Node | null;
+        if (next && wrapperRef.current && !wrapperRef.current.contains(next)) setIsOpen(false);
+      }}
       style={{ position: 'relative', width: '100%' }}
     >
-      <div 
-        ref={inputRef}
+      <div
+        ref={setTriggerRef}
         tabIndex={0}
+        role="combobox"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         onClick={handleOpen}
         className="form-input"
-        style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           cursor: 'pointer',
           background: '#ffffff',
           backgroundColor: '#ffffff',
@@ -206,21 +256,23 @@ export default function SearchableSelect({
               }}
             />
           </div>
-          <div ref={optionListRef} style={{ overflowY: 'auto', flex: 1, padding: '4px 0', backgroundColor: '#ffffff' }}>
+          <div ref={optionListRef} role="listbox" style={{ overflowY: 'auto', flex: '1 1 auto', minHeight: 0, padding: '4px 0', backgroundColor: '#ffffff' }}>
             {filteredOptions.length === 0 ? (
               <div style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center' }}>
                 {emptyMessage}
               </div>
             ) : (
               filteredOptions.map((opt, idx) => {
-                const isSelected = value === opt;
+                const isSelected = !!value && value.trim().toLowerCase() === opt.toLowerCase();
                 const isHighlighted = highlightedIndex === idx;
                 return (
                   <div
                     key={idx}
+                    role="option"
+                    aria-selected={isSelected}
                     onClick={() => {
                       onChange(opt);
-                      setIsOpen(false);
+                      closeAndRefocus();
                     }}
                     onMouseEnter={() => setHighlightedIndex(idx)}
                     style={{
@@ -242,49 +294,38 @@ export default function SearchableSelect({
                 Type to see more specific results...
               </div>
             )}
-            {showAddOtherOption && (
-              <div
-                onClick={() => {
-                  searchInputRef.current?.focus();
-                }}
-                onMouseEnter={() => setHighlightedIndex(filteredOptions.length)}
-                style={{
-                  padding: '10px 16px',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  color: '#4f46e5',
-                  fontWeight: 600,
-                  borderTop: '1px solid #e2e8f0',
-                  backgroundColor: highlightedIndex === filteredOptions.length ? '#f1f5f9' : '#f8fafc',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                + Add Other...
-              </div>
-            )}
-            {showAddOption && (
-              <div
-                onClick={() => handleRequestAdd(trimmedSearch)}
-                onMouseEnter={() => setHighlightedIndex(filteredOptions.length)}
-                style={{
-                  padding: '10px 16px',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  color: '#4f46e5',
-                  fontWeight: 600,
-                  borderTop: '1px solid #e2e8f0',
-                  backgroundColor: highlightedIndex === filteredOptions.length ? '#f1f5f9' : '#f8fafc',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                {submitting ? 'Sending Request...' : `+ Add "${trimmedSearch}" ${dropdownKey ? '(Request HOD Approval)' : ''}`}
-              </div>
-            )}
           </div>
+          {allowAddOther && (
+            // Footer is a sibling of the scrolling list (not inside it) so it is always visible and never clipped.
+            <div style={{ flex: '0 0 auto', borderTop: '1px solid #e2e8f0', backgroundColor: '#f8fafc', borderRadius: '0 0 8px 8px' }}>
+              <div
+                role="button"
+                data-testid="add-other-action"
+                tabIndex={-1}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => (showSpecificAdd ? handleRequestAdd(trimmedSearch) : handleGenericAdd())}
+                onMouseEnter={() => setHighlightedIndex(addIndex)}
+                style={{
+                  padding: '10px 16px',
+                  cursor: submitting ? 'wait' : 'pointer',
+                  fontSize: '0.9rem',
+                  color: '#4f46e5',
+                  fontWeight: 600,
+                  backgroundColor: highlightedIndex === addIndex ? '#f1f5f9' : '#f8fafc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {showSpecificAdd
+                  ? (submitting ? 'Sending Request...' : `+ Add "${trimmedSearch}"${dropdownKey ? ' (Request HOD Approval)' : ''}`)
+                  : '+ Add Other...'}
+              </div>
+              <div role="status" aria-live="polite" style={{ padding: hint ? '0 16px 8px' : 0, fontSize: '0.78rem', color: '#64748b' }}>
+                {hint}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

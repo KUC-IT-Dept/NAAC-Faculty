@@ -4,10 +4,13 @@ import { fg, sel, yearSel } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { responsibilityRoleOptions, committeeTypeOptions, teachingCategoryOptions, courseNameOptions, programmeOptions, departmentOptions, semesterTypeOptions } from '../../shared/dropdownOptions';
 import SearchableSelect from '../SearchableSelect';
+import {
+  EMPTY_COURSE, type CourseRecord, buildAcademicYearOptions, courseAcademicYearLabel, courseSemesterLabel, courseProgramme,
+  semesterForEdit, academicYearForEdit, legacyYearNote, legacySemesterNote, legacyYearLabel, courseSortYear,
+} from './academicCourseUtils';
 
 const CLASSES_HANDLED = ['UG', 'PG', 'Ph.D.', 'Other'];
 
-const EMPTY_COURSE = { courseName: '', fromYear: '', toYear: '', programmes: '', subject: '', semester: '', semesterFrom: '', semesterTo: '' };
 const EMPTY_RESP = { classesHandled: '', administrativeRoles: '', committeeMemberships: '', fromYear: '', toYear: '', fromSemester: '', toSemester: '' };
 
 const btnAdd: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#4f46e5', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' };
@@ -28,22 +31,26 @@ function PreviewRow({ label, value }: { label: string; value?: string | null }) 
 
 function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: () => void; onDelete: () => void; disabled: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const yearLabel = courseAcademicYearLabel(c);
+  const semesterLabel = courseSemesterLabel(c);
+  const programme = courseProgramme(c);
+  const legacyYears = c.academicYear ? legacyYearLabel(c) : '';
 
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', gap: 16, flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
-          <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 4px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{c.fromYear && c.toYear ? `${c.fromYear}-${c.toYear}` : c.fromYear || c.toYear || '—'}</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Duration</div>
+          <div style={{ minWidth: 56, textAlign: 'center', padding: '6px 8px', borderRadius: 8, background: 'var(--primary, #2563eb)', flexShrink: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{yearLabel || '—'}</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2, textTransform: 'uppercase' }}>Academic Year</div>
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, color: 'var(--text-primary, #1e293b)', fontSize: 15, marginBottom: 4 }}>
               {c.courseName || 'Untitled Course'}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              {c.programmes && <span className="badge badge-secondary">{c.programmes}</span>}
-              {(c.semesterFrom || c.semesterTo) && <span className="badge badge-secondary">{c.semesterFrom && c.semesterTo ? `${c.semesterFrom} – ${c.semesterTo}` : c.semesterFrom || c.semesterTo}</span>}
+              {programme && <span className="badge badge-secondary">{programme}</span>}
+              {semesterLabel && <span className="badge badge-secondary">{semesterLabel}</span>}
               {c.subject && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Department: {c.subject}</span>}
             </div>
           </div>
@@ -62,13 +69,63 @@ function CoursePreviewCard({ c, onEdit, onDelete, disabled }: { c: any; onEdit: 
       </div>
       {expanded && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border, #e2e8f0)' }}>
-          <PreviewRow label="Course Name" value={c.courseName} />
-          <PreviewRow label="Duration" value={`${c.fromYear || '—'} - ${c.toYear || '—'}`} />
-          <PreviewRow label="Programmes" value={c.programmes} />
-          <PreviewRow label="Semester" value={c.semesterFrom && c.semesterTo ? `${c.semesterFrom} – ${c.semesterTo}` : c.semesterFrom || c.semesterTo} />
+          <PreviewRow label="Courses / Subjects Taught" value={c.courseName} />
+          <PreviewRow label="Programmes" value={programme} />
+          <PreviewRow label="Academic Year" value={yearLabel} />
+          <PreviewRow label="Semester" value={semesterLabel} />
           <PreviewRow label="Department" value={c.subject} />
+          <PreviewRow label="Earlier Duration (legacy)" value={legacyYears} />
         </div>
       )}
+    </>
+  );
+}
+
+/** Shared form body for adding and editing a course, in the required field order. */
+function CourseFields({ c, set, courseNames, programmes, semesters, departments, academicYears }: {
+  c: CourseRecord; set: (k: string, v: string) => void;
+  courseNames: string[]; programmes: string[]; semesters: string[]; departments: string[]; academicYears: string[];
+}) {
+  const year = academicYearForEdit(c);
+  const yearOptions = year && !academicYears.includes(year) ? [year, ...academicYears] : academicYears;
+  const yearNote = legacyYearNote(c);
+  const semesterNote = legacySemesterNote(c);
+  return (
+    <>
+      <div className="form-row form-row-1">
+        {fg('Courses / Subjects Taught', (
+          <SearchableSelect value={c.courseName || ''} onChange={v => set('courseName', v)} options={courseNames} placeholder="Search or Select Course" />
+        ))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Programmes', (
+          <SearchableSelect value={c.programmes || c.programme || ''} onChange={v => set('programmes', v)} options={programmes} placeholder="Search or Select Programme" />
+        ))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Academic Year', (
+          <>
+            <select className="form-select" value={year} onChange={e => set('academicYear', e.target.value)}>
+              <option value="">— Academic Year —</option>
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            {yearNote && <div style={{ marginTop: 4, fontSize: 12, color: 'var(--text-muted)' }}>{yearNote}</div>}
+          </>
+        ))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Semester', (
+          <>
+            {sel(semesterForEdit(c), v => set('semester', v), semesters, 'Select...')}
+            {semesterNote && <div style={{ marginTop: 4, fontSize: 12, color: 'var(--text-muted)' }}>{semesterNote}</div>}
+          </>
+        ))}
+      </div>
+      <div className="form-row form-row-1">
+        {fg('Department', (
+          <SearchableSelect value={c.subject || ''} onChange={v => set('subject', v)} options={departments} placeholder="Search or Select Department" />
+        ))}
+      </div>
     </>
   );
 }
@@ -141,6 +198,8 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
   const [pendingResp, setPendingResp] = useState<any>(null);
   const [isRespDirty, setIsRespDirty] = useState(false);
 
+  const academicYears = buildAcademicYearOptions(1960);
+  // `i` is the index in the stored `courses` array (not the sorted/display order).
   const updCourse = (i: number, k: string, v: string) => { setIsCourseDirty(true); const a = [...courses]; a[i] = { ...a[i], [k]: v }; update('courses', a); };
   const updResp = (i: number, k: string, v: string) => { setIsRespDirty(true); const a = [...otherResponsibilities]; a[i] = { ...a[i], [k]: v }; update('otherResponsibilities', a); };
 
@@ -148,11 +207,9 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
   const isRespComplete = (r: any) => r.classesHandled || r.administrativeRoles || r.committeeMemberships;
 
   const handleSavePendingCourse = (item: any) => {
-    const validYears = !item.fromYear || !item.toYear || (parseInt(item.fromYear) <= parseInt(item.toYear));
-    if (!validYears) return;
     if (isCourseComplete(item)) {
       const updated = [item, ...courses];
-      updated.sort((a, b) => (parseInt(b.fromYear || b.toYear || '0') || 0) - (parseInt(a.fromYear || a.toYear || '0') || 0));
+      updated.sort((a, b) => courseSortYear(b) - courseSortYear(a));
       update('courses', updated);
       setPendingCourse(null);
       setIsCourseDirty(false);
@@ -169,7 +226,10 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
     }
   };
 
-  const sortedCourses = [...courses].sort((a, b) => (parseInt(b.fromYear || b.toYear || '0') || 0) - (parseInt(a.fromYear || a.toYear || '0') || 0));
+  // Keep each course's index in the stored array so edit/delete hit the right record even for unsorted legacy data.
+  const sortedCourses = (courses as CourseRecord[])
+    .map((c, idx) => ({ c, idx }))
+    .sort((a, b) => courseSortYear(b.c) - courseSortYear(a.c));
 
   return (
     <>
@@ -202,74 +262,18 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                   <button
                     type="button"
                     onClick={() => handleSavePendingCourse(pendingCourse)}
-                    disabled={!isCourseComplete(pendingCourse) || (pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear))}
-                    style={!isCourseComplete(pendingCourse) || (pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear)) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                    disabled={!isCourseComplete(pendingCourse)}
+                    style={!isCourseComplete(pendingCourse) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
                   >
                     <Check size={14} /> Save
                   </button>
                 </div>
               </div>
-              <div className="form-row form-row-1">
-                {fg('Courses / Subjects Taught', (
-                  <SearchableSelect
-                    value={pendingCourse.courseName || ''}
-                    onChange={v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, courseName: v }); }}
-                    options={courseNames}
-                    placeholder="Search or Select Course"
-                  />
-                ))}
-              </div>
-              <div className="form-row form-row-1">
-                {fg('', (
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <div style={{ flex: '0 0 48%' }}>
-                      <label className="form-label">From Year</label>
-                      {yearSel(pendingCourse.fromYear, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, fromYear: v }); }, 1960)}
-                    </div>
-                    <div style={{ flex: '0 0 48%' }}>
-                      <label className="form-label">To Year</label>
-                      {yearSel(pendingCourse.toYear, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, toYear: v }); }, 1960)}
-                    </div>
-                  </div>
-                ))}
-                {pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear) && (
-                  <div style={{ marginTop: 8, color: '#b91c1c', fontSize: 13 }}>From Year cannot be greater than To Year.</div>
-                )}
-              </div>
-              <div className="form-row form-row-1">
-                {fg('Programmes', (
-                  <SearchableSelect
-                    value={pendingCourse.programmes || ''}
-                    onChange={v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, programmes: v }); }}
-                    options={programmes}
-                    placeholder="Search or Select Programme"
-                  />
-                ))}
-              </div>
-              <div className="form-row form-row-1">
-                {fg('Semester', (
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <div style={{ flex: '0 0 48%' }}>
-                      <label className="form-label">From Semester</label>
-                      {sel(pendingCourse.semesterFrom, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, semesterFrom: v }); }, semesters, 'Select...')}
-                    </div>
-                    <div style={{ flex: '0 0 48%' }}>
-                      <label className="form-label">To Semester</label>
-                      {sel(pendingCourse.semesterTo, v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, semesterTo: v }); }, semesters, 'Select...')}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="form-row form-row-1">
-                {fg('Department', (
-                  <SearchableSelect
-                    value={pendingCourse.subject || ''}
-                    onChange={v => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, subject: v }); }}
-                    options={departments}
-                    placeholder="Search or Select Department"
-                  />
-                ))}
-              </div>
+              <CourseFields
+                c={pendingCourse}
+                set={(k, v) => { setIsCourseDirty(true); setPendingCourse({ ...pendingCourse, [k]: v }); }}
+                courseNames={courseNames} programmes={programmes} semesters={semesters} departments={departments} academicYears={academicYears}
+              />
               {isCourseDirty && (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
                   <button type="button" onClick={() => { setPendingCourse(null); setIsCourseDirty(false); }} style={btnCancel}>
@@ -278,8 +282,8 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                   <button
                     type="button"
                     onClick={() => handleSavePendingCourse(pendingCourse)}
-                    disabled={!isCourseComplete(pendingCourse) || (pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear))}
-                    style={!isCourseComplete(pendingCourse) || (pendingCourse.fromYear && pendingCourse.toYear && parseInt(pendingCourse.fromYear) > parseInt(pendingCourse.toYear)) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
+                    disabled={!isCourseComplete(pendingCourse)}
+                    style={!isCourseComplete(pendingCourse) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
                   >
                     <Check size={14} /> Save
                   </button>
@@ -288,10 +292,10 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
             </div>
           )}
 
-          {sortedCourses.map((c, i) => {
-            const isEditing = editingCourseIndex === i;
+          {sortedCourses.map(({ c, idx }) => {
+            const isEditing = editingCourseIndex === idx;
             return (
-              <div key={`c-${i}`} className="list-item-card">
+              <div key={`c-${idx}`} className="list-item-card">
                 {isEditing ? (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -300,88 +304,22 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                         <button type="button" onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }} style={btnCancel}>
                           <X size={14} /> Cancel
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }}
-                          disabled={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear)}
-                          style={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
-                        >
+                        <button type="button" onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }} style={btnSave}>
                           <Check size={14} /> Save
                         </button>
                       </div>
                     </div>
-                    <div className="form-row form-row-1">
-                      {fg('Courses / Subjects Taught', (
-                        <SearchableSelect
-                          value={c.courseName || ''}
-                          onChange={v => updCourse(i, 'courseName', v)}
-                          options={courseNames}
-                          placeholder="Search or Select Course"
-                        />
-                      ))}
-                    </div>
-                    <div className="form-row form-row-1">
-                      {fg('', (
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                          <div style={{ flex: '0 0 48%' }}>
-                            <label className="form-label">From Year</label>
-                            {yearSel(c.fromYear, v => updCourse(i, 'fromYear', v), 1960)}
-                          </div>
-                          <div style={{ flex: '0 0 48%' }}>
-                            <label className="form-label">To Year</label>
-                            {yearSel(c.toYear, v => updCourse(i, 'toYear', v), 1960)}
-                          </div>
-                        </div>
-                      ))}
-                      {c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear) && (
-                        <div style={{ marginTop: 8, color: '#b91c1c', fontSize: 13 }}>From Year cannot be greater than To Year.</div>
-                      )}
-                    </div>
-                    <div className="form-row form-row-1">
-                      {fg('Programmes', (
-                        <SearchableSelect
-                          value={c.programmes || ''}
-                          onChange={v => updCourse(i, 'programmes', v)}
-                          options={programmes}
-                          placeholder="Search or Select Programme"
-                        />
-                      ))}
-                    </div>
-                    <div className="form-row form-row-1">
-                      {fg('Semester', (
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                          <div style={{ flex: '0 0 48%' }}>
-                            <label className="form-label">From Semester</label>
-                            {sel(c.semesterFrom, v => updCourse(i, 'semesterFrom', v), semesters, 'Select...')}
-                          </div>
-                          <div style={{ flex: '0 0 48%' }}>
-                            <label className="form-label">To Semester</label>
-                            {sel(c.semesterTo, v => updCourse(i, 'semesterTo', v), semesters, 'Select...')}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="form-row form-row-1">
-                      {fg('Department', (
-                        <SearchableSelect
-                          value={c.subject || ''}
-                          onChange={v => updCourse(i, 'subject', v)}
-                          options={departments}
-                          placeholder="Search or Select Department"
-                        />
-                      ))}
-                    </div>
+                    <CourseFields
+                      c={c}
+                      set={(k, v) => updCourse(idx, k, v)}
+                      courseNames={courseNames} programmes={programmes} semesters={semesters} departments={departments} academicYears={academicYears}
+                    />
                     {isCourseDirty && (
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
                         <button type="button" onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }} style={btnCancel}>
                           <X size={14} /> Cancel
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }}
-                          disabled={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear)}
-                          style={c.fromYear && c.toYear && parseInt(c.fromYear) > parseInt(c.toYear) ? { ...btnSave, backgroundColor: '#d1fae5', color: '#6ee7b7', cursor: 'not-allowed' } : btnSave}
-                        >
+                        <button type="button" onClick={() => { setEditingCourseIndex(null); setIsCourseDirty(false); }} style={btnSave}>
                           <Check size={14} /> Save
                         </button>
                       </div>
@@ -390,8 +328,8 @@ export default function AcademicResponsibilities({ data, onChange, onPersist }: 
                 ) : (
                   <CoursePreviewCard
                     c={c}
-                    onEdit={() => { setEditingCourseIndex(i); setIsCourseDirty(false); }}
-                    onDelete={() => update('courses', sortedCourses.filter((_, j) => j !== i))}
+                    onEdit={() => { setEditingCourseIndex(idx); setIsCourseDirty(false); }}
+                    onDelete={() => update('courses', (courses as CourseRecord[]).filter((_, j) => j !== idx))}
                     disabled={pendingCourse !== null || editingCourseIndex !== null}
                   />
                 )}

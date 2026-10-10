@@ -2038,6 +2038,7 @@ export default function VCDashboard() {
                   <div className="form-group" style={{ gridColumn: 'span 2' }}>
                     <label className="form-label">Department *</label>
                     <SearchableSelect
+                allowAddOther={false}
                       value={studentForm.department}
                       onChange={val => setStudentForm(f => ({ ...f, department: val, tutorName: '', tutorEmail: '' }))}
                       options={departmentsList.map(d => d.name)}
@@ -2048,6 +2049,7 @@ export default function VCDashboard() {
                     <label className="form-label">Tutor Name *</label>
                     <div style={{ pointerEvents: studentForm.department ? 'auto' : 'none', opacity: studentForm.department ? 1 : 0.6 }}>
                       <SearchableSelect
+                allowAddOther={false}
                         value={studentForm.tutorName}
                         onChange={val => {
                           const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
@@ -2230,6 +2232,7 @@ export default function VCDashboard() {
                 <div className="form-group">
                   <label className="form-label">Department *</label>
                   <SearchableSelect
+                allowAddOther={false}
                     value={facultyForm.department}
                     onChange={val => setFacultyForm(f => ({ ...f, department: val }))}
                     options={departmentsList.map(d => d.name)}

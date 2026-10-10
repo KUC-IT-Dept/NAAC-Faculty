@@ -137,7 +137,18 @@ const STATE_OPTIONS_INDIA = [
 const STATE_OPTIONS_OTHER = ['Other'];
 const BOARD_OPTIONS_10TH = ['vhse', 'cbse', 'icse', 'kerala board of higher education', 'other'];
 const BOARD_OPTIONS_12TH = ['vhse', 'cbse', 'icse', 'kerala board of higher secondary education', 'other'];
-const UNIVERSITY_OPTIONS_HIGHER = ['kannur university', 'calicut university', 'kerala university', 'mg university', 'central university', 'open university', 'foreign university', 'other'];
+// Canonical options for the searchable "Board / University" field (UG / PG / M.Phil).
+// Boards and universities share one list because the field is labelled "Board / University".
+// Anything not listed can still be typed in via SearchableSelect's "+ Add" row.
+const BOARD_UNIVERSITY_OPTIONS = [
+  'Kannur University',
+  'University of Calicut',
+  'University of Kerala',
+  'Mahatma Gandhi University',
+  'CBSE',
+  'Kerala Board of Public Examinations',
+];
+const BOARD_UNIVERSITY_EMPTY_MESSAGE = 'No matching board / university. Type the full name to add it.';
 
 const SCHOOL_OPTIONS_10TH = [
   'Government High School',
@@ -205,7 +216,7 @@ const showDegreeName = (level: string) => SPECIALIZATION_LEVELS.includes(level) 
 const getBoardUniversityOptions = (level: string) => {
   if (level === '10th') return BOARD_OPTIONS_10TH;
   if (level === '12th') return BOARD_OPTIONS_12TH;
-  if (['UG', 'PG', 'Ph.D', 'M.Phil'].includes(level)) return UNIVERSITY_OPTIONS_HIGHER;
+  if (['UG', 'PG', 'Ph.D', 'M.Phil'].includes(level)) return BOARD_UNIVERSITY_OPTIONS;
   return [];
 };
 
@@ -491,12 +502,14 @@ export default function Qualifications({ data, onChange }: { data: any[]; onChan
                   onChange={(v: string) => updateEditingData('university', v)}
                   options={level === '10th' ? BOARD_OPTIONS_10TH : BOARD_OPTIONS_12TH}
                   placeholder="Search or Enter Board"
+                  emptyMessage={BOARD_UNIVERSITY_EMPTY_MESSAGE}
                 />
-              : <CustomSelect
-                  value={editingData.university}
+              : <SearchableSelect
+                  value={editingData.university || ''}
                   onChange={(v: string) => updateEditingData('university', v)}
                   options={getBoardUniversityOptions(level)}
-                  placeholder="Select Board / University"
+                  placeholder="Search or Enter Board / University"
+                  emptyMessage={BOARD_UNIVERSITY_EMPTY_MESSAGE}
                 />
           )}
         </div>

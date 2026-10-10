@@ -163,7 +163,9 @@ const academicCourseSchema = new mongoose.Schema({
   courseName: { type: String, default: '' },
   fromYear: { type: String, default: '' },
   toYear: { type: String, default: '' },
-  programme: { type: String, default: '' },
+  academicYear: { type: String, default: '' },   // single "YYYY-YYYY" value (replaces fromYear/toYear in the UI; legacy fields kept)
+  programme: { type: String, default: '' },       // legacy spelling, kept for old records
+  programmes: { type: String, default: '' },      // field name the frontend actually sends
   subject: { type: String, default: '' },
   semester: { type: String, default: '' },
   semesterFrom: { type: String, default: '' },
@@ -176,6 +178,8 @@ const academicResponsibilitySchema = new mongoose.Schema({
   committeeMemberships: { type: String, default: '' },
   fromYear: { type: String, default: '' },
   toYear: { type: String, default: '' },
+  fromSemester: { type: String, default: '' },
+  toSemester: { type: String, default: '' },
 }, { _id: false });
 
 // Section 12: FDP / Workshops

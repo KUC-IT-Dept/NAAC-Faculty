@@ -497,6 +497,7 @@ export default function HODDashboard() {
                     <label className="form-label">Tutor Name *</label>
                     <div style={{ pointerEvents: studentForm.department ? 'auto' : 'none', opacity: studentForm.department ? 1 : 0.6 }}>
                       <SearchableSelect
+                allowAddOther={false}
                         value={studentForm.tutorName}
                         onChange={val => {
                           const validTutors = departmentFaculty.filter(f => f.role !== 'hod');
