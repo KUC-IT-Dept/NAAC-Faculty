@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -20,8 +19,7 @@ import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
 import LibraryPage from './pages/institutional/LibraryPage';
 import MMTTCPage from './pages/institutional/MMTTCPage';
 import InstitutionalRedirect from './pages/institutional/InstitutionalRedirect';
-import { loadDropdownOptionsFromServer } from './shared/dropdownOptions';
-import { useEffect, useState } from 'react';
+import { useAppBootstrap } from './lib/useAppBootstrap';
 import InitialLoadingScreen from './components/InitialLoadingScreen';
 
 type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff';
@@ -53,44 +51,26 @@ function homeForRole(user: { role: Role } | null) {
 
 function AppRoutes() {
   const { user, loading } = useAuth();
-  const [initLoading, setInitLoading] = useState(true);
-  const [backendError, setBackendError] = useState('');
-  
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const baseUrl = import.meta.env.VITE_API_URL || '/api/faculty';
-        const healthUrl = baseUrl.endsWith('/faculty') 
-            ? baseUrl.replace('/faculty', '/health') 
-            : baseUrl.endsWith('/api') ? `${baseUrl}/health` : `${baseUrl}/api/health`;
+  // Real startup work only (session restore, /health, dropdown options).
+  // Bounded by timeouts in the hook so the loader can never hang forever.
+  const { status, error, progress, retry } = useAppBootstrap(!loading);
 
-        const healthPromise = fetch(healthUrl)
-          .then(res => {
-            if (!res.ok) throw new Error('Backend is not responding properly.');
-            return res.json();
-          })
-          .catch(() => {
-            throw new Error('Cannot connect to the backend server. Please check your connection or try again later.');
-          });
-
-        await Promise.all([
-          loadDropdownOptionsFromServer(),
-          healthPromise,
-          new Promise(r => setTimeout(r, 500))
-        ]);
-      } catch (err: any) {
-        setBackendError(err.message || 'Error connecting to server.');
-      } finally {
-        setInitLoading(false);
-      }
-    };
-    init();
-  }, []);
-
-  if (backendError) return <InitialLoadingScreen error={backendError} />;
-  if (loading || initLoading) return <InitialLoadingScreen />;
+  // The loader is an overlay: once ready, the routes mount immediately and
+  // the overlay fades out on top of them (no added wait).
+  const loader = (
+    <InitialLoadingScreen
+      error={status === 'error' ? error : undefined}
+      onRetry={retry}
+      progress={progress}
+      ready={status === 'ready'}
+    />
+  );
 
   return (
+    <>
+    {/* Routes mount only once startup is ready; the loader element keeps the
+        same position in the tree so it fades out instead of remounting. */}
+    {status === 'ready' && (
     <Routes>
       <Route
         path="/login"
@@ -158,6 +138,9 @@ function AppRoutes() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    )}
+    {loader}
+    </>
   );
 }
 
