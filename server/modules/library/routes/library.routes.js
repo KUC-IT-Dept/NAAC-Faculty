@@ -12,6 +12,9 @@
 // role group elsewhere), not a new role or group invented for Library.
 // Anyone else reaches this module only via modulePermissions: ["library"].
 //
+// The dedicated 'librarian' role is also admitted here (and ONLY here - it is
+// not in the MMTTC routes).
+//
 // Same authorization requirement is applied uniformly to every method
 // (GET/POST/PUT/DELETE) - the access model given for this phase
 // (iqac_director / superadmin / permissioned staff / else 403) was
@@ -21,7 +24,7 @@
 const express = require('express');
 const authenticate = require('../../../auth/middleware/authenticate');
 const authorize = require('../../../auth/middleware/authorize');
-const { ROLE_GROUPS } = require('../../../auth/constants/roles');
+const { ROLE_GROUPS, ROLES } = require('../../../auth/constants/roles');
 const {
   listLibraryRecords,
   getLibraryRecordByYear,
@@ -32,7 +35,7 @@ const {
 
 const router = express.Router();
 
-const libraryAccess = authorize.authorizeModule('library', ...ROLE_GROUPS.ADMIN_ONLY);
+const libraryAccess = authorize.authorizeModule('library', ...ROLE_GROUPS.ADMIN_ONLY, ROLES.LIBRARIAN);
 
 router.get('/', authenticate, libraryAccess, listLibraryRecords);
 router.get('/:academicYear', authenticate, libraryAccess, getLibraryRecordByYear);

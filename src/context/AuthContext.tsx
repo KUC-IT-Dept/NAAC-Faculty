@@ -13,7 +13,7 @@ interface AuthUser {
   // here for 'superadmin', not a new one invented for this phase.
   // 'staff' is new: a staff account has no role-based bypass, only
   // whatever modulePermissions it's been granted (e.g. ["library"]).
-  role: 'admin' | 'faculty' | 'vc' | 'hod' | 'staff';
+  role: 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
   isFirstLogin: boolean;
   isActive: boolean;
   // Present for 'staff' users (and harmless/absent for others). Mirrors

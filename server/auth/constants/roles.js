@@ -25,6 +25,13 @@ const ROLES = {
   // "staff" and "office" from naac are consolidated into STAFF.
   STAFF: "staff",
 
+  // ── Institutional module owners ────────────────────────────────────────────
+  // Each owns exactly ONE institutional module and nothing else. They are
+  // deliberately NOT part of ADMIN_ONLY / FACULTY_AND_ABOVE / ALL_STAFF and
+  // never receive superadmin privileges or access to the other module.
+  LIBRARIAN: "librarian",
+  MMTTC_DIRECTOR: "mmttc_director",
+
   // ── Super Administrator ────────────────────────────────────────────────────
   // Previously "SUPERADMIN" in ProfCV. Full system access.
   SUPERADMIN: "superadmin",
@@ -41,4 +48,12 @@ const ROLE_GROUPS = {
   ALL_STAFF:        [ROLES.STAFF, ROLES.HOD, ROLES.VC, ROLES.IQAC_DIRECTOR, ROLES.SUPERADMIN],
 };
 
-module.exports = { ROLES, ALL_ROLES, ROLE_GROUPS };
+// Roles that are scoped to a single institutional module. Maps role -> module key
+// used by authorizeModule() and the Admin "Institutional Accounts" API.
+const INSTITUTIONAL_ROLE_MODULES = {
+  [ROLES.LIBRARIAN]: "library",
+  [ROLES.MMTTC_DIRECTOR]: "mmttc",
+};
+const INSTITUTIONAL_ROLES = Object.keys(INSTITUTIONAL_ROLE_MODULES);
+
+module.exports = { ROLES, ALL_ROLES, ROLE_GROUPS, INSTITUTIONAL_ROLES, INSTITUTIONAL_ROLE_MODULES };

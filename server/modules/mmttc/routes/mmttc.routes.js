@@ -1,7 +1,10 @@
 // modules/mmttc/routes/mmttc.routes.js
 //
+// The dedicated 'mmttc_director' role is also admitted (and ONLY here - it is
+// not in the Library routes).
+//
 // Same authorization shape as modules/library/routes/library.routes.js:
-// authenticate (DB-backed) -> authorizeModule('mmttc', ...ROLE_GROUPS.ADMIN_ONLY)
+// authenticate (DB-backed) -> authorizeModule('mmttc', ...ROLE_GROUPS.ADMIN_ONLY, ROLES.MMTTC_DIRECTOR)
 // on every endpoint, applied uniformly (no read/write tiering), using only
 // the existing trusted auth stack. No permission is ever read from
 // req.body/req.query/headers.
@@ -19,7 +22,7 @@
 const express = require('express');
 const authenticate = require('../../../auth/middleware/authenticate');
 const authorize = require('../../../auth/middleware/authorize');
-const { ROLE_GROUPS } = require('../../../auth/constants/roles');
+const { ROLE_GROUPS, ROLES } = require('../../../auth/constants/roles');
 const {
   listMMTTCRecords,
   getMMTTCRecordByYear,
@@ -33,7 +36,7 @@ const {
 
 const router = express.Router();
 
-const mmttcAccess = authorize.authorizeModule('mmttc', ...ROLE_GROUPS.ADMIN_ONLY);
+const mmttcAccess = authorize.authorizeModule('mmttc', ...ROLE_GROUPS.ADMIN_ONLY, ROLES.MMTTC_DIRECTOR);
 
 router.get('/', authenticate, mmttcAccess, listMMTTCRecords);
 router.get('/:academicYear', authenticate, mmttcAccess, getMMTTCRecordByYear);

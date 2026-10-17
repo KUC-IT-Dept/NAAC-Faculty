@@ -43,6 +43,9 @@ node test.js
   (26 checks).
 - **phase4-mmttc/** — full MMTTC module functional/security suite,
   including course sub-resource CRUD (36 checks).
+- **phase5-institutional-accounts/** — Librarian / MMTTC Director accounts: creation, role assignment, login,
+  cross-module denial, deactivation, regression for existing roles (77 checks). Unlike earlier phases it loads the
+  REAL route/middleware files and fakes only the models. Run: `node test.js`.
 
 ## A note on realism
 

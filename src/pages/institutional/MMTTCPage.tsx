@@ -8,29 +8,11 @@ import { useEffect, useState } from 'react';
 import AppLayout from '../../components/AppLayout';
 import { useAuth } from '../../context/AuthContext';
 import { mmttcApi, MMTTCRecord, MMTTCCourse } from '../../lib/institutionalApi';
-import { getPath, setPath } from './formUtils';
+import { setPath } from './formUtils';
+import MMTTCWizard from './MMTTCWizard';
 import toast from 'react-hot-toast';
 import { GraduationCap, Plus, Eye, Pencil, Trash2, X } from 'lucide-react';
 import { useConfirmDelete } from '../../components/useConfirmDelete';
-
-function emptyRecord(academicYear = ''): Partial<MMTTCRecord> & { academicYear: string } {
-  return {
-    academicYear,
-    centre: {
-      name: '', affiliationDetails: '', parentInstitution: '',
-      recognitionStatus: { status: false }, accreditationStatus: { status: false }, accreditationNumber: ''
-    },
-    director: { name: '', academicQualification: '' },
-    infrastructure: {
-      numberOfClassrooms: 0, totalSeatingCapacity: 0, numberOfLabs: 0,
-      library: { numberOfBooks: 0, spaceSqFt: 0 },
-      digitalResourcesDetails: '', equipment: [], numberOfSupportingStaff: 0,
-      roomsAvailableToStay: 0, stayCapacity: 0, annualBudgetAllocation: 0
-    },
-    courses: [],
-    impact: { collaborations: '', communityOutreach: '' }
-  };
-}
 
 function emptyCourse(): MMTTCCourse {
   return {
@@ -70,14 +52,13 @@ function TextField({ label, value, onChange }: { label: string; value: string | 
 
 export default function MMTTCPage() {
   const { user } = useAuth();
-  const canAccess = user?.role === 'admin' || (user?.modulePermissions || []).includes('mmttc');
+  const canAccess = user?.role === 'admin' || user?.role === 'mmttc_director' || (user?.modulePermissions || []).includes('mmttc');
 
   const [records, setRecords] = useState<MMTTCRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
-  const [editingYear, setEditingYear] = useState<string | null>(null);
-  const [form, setForm] = useState<Partial<MMTTCRecord> & { academicYear: string }>(emptyRecord());
+  const [editingRecord, setEditingRecord] = useState<MMTTCRecord | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [manageYear, setManageYear] = useState<MMTTCRecord | null>(null);
@@ -104,22 +85,19 @@ export default function MMTTCPage() {
     else setLoading(false);
   }, [canAccess]);
 
-  const openCreate = () => { setEditingYear(null); setForm(emptyRecord()); setFormOpen(true); };
-  const openEdit = (r: MMTTCRecord) => { setEditingYear(r.academicYear); setForm(r); setFormOpen(true); };
-  const set = (path: string, value: any) => setForm((prev) => setPath(prev, path, value));
+  const openCreate = () => { setEditingRecord(null); setFormOpen(true); };
+  const openEdit = (r: MMTTCRecord) => { setEditingRecord(r); setFormOpen(true); };
 
-  const handleSave = async () => {
-    if (!form.academicYear.trim()) {
-      toast.error('Academic year is required.');
-      return;
-    }
+  // `payload` never contains `courses` (see MMTTCWizard), so a record save cannot
+  // overwrite course changes made through the dedicated courses endpoints.
+  const handleSave = async (payload: any, editingYear: string | null) => {
     setSaving(true);
     try {
       if (editingYear) {
-        await mmttcApi.update(editingYear, form);
+        await mmttcApi.update(editingYear, payload);
         toast.success('MMTTC record updated.');
       } else {
-        await mmttcApi.create(form);
+        await mmttcApi.create(payload);
         toast.success('MMTTC record created.');
       }
       setFormOpen(false);
@@ -198,7 +176,7 @@ export default function MMTTCPage() {
 
   return (
     <AppLayout title="MMTTC">
-      <div className="card">
+      {!formOpen && <div className="card">
         <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <GraduationCap size={20} color="var(--primary)" />
@@ -246,74 +224,15 @@ export default function MMTTCPage() {
             </table>
           </div>
         </div>
-      </div>
+      </div>}
 
       {formOpen && (
-        <div className="modal-overlay" onClick={() => !saving && setFormOpen(false)}>
-          <div className="modal" style={{ maxWidth: 760 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 style={{ margin: 0 }}>{editingYear ? `Edit ${editingYear}` : 'Add MMTTC Record'}</h3>
-              <button className="btn-icon" onClick={() => setFormOpen(false)}><X size={18} /></button>
-            </div>
-            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-              <div className="form-section">
-                <h4>Centre Details</h4>
-                <div className="form-row-2">
-                  <TextField label="Academic Year (e.g. 2025-2026)" value={form.academicYear} onChange={(v) => set('academicYear', v)} />
-                  <TextField label="Centre Name" value={getPath(form, 'centre.name')} onChange={(v) => set('centre.name', v)} />
-                </div>
-                <div className="form-row-2">
-                  <TextField label="Affiliation Details" value={getPath(form, 'centre.affiliationDetails')} onChange={(v) => set('centre.affiliationDetails', v)} />
-                  <TextField label="Parent Institution" value={getPath(form, 'centre.parentInstitution')} onChange={(v) => set('centre.parentInstitution', v)} />
-                </div>
-                <div className="form-row-2">
-                  <NumField label="Year of Establishment" value={getPath(form, 'centre.yearOfEstablishment')} onChange={(v) => set('centre.yearOfEstablishment', v)} />
-                  <TextField label="Accreditation Number" value={getPath(form, 'centre.accreditationNumber')} onChange={(v) => set('centre.accreditationNumber', v)} />
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h4>Director Details</h4>
-                <div className="form-row-2">
-                  <TextField label="Director Name" value={getPath(form, 'director.name')} onChange={(v) => set('director.name', v)} />
-                  <TextField label="Academic Qualification" value={getPath(form, 'director.academicQualification')} onChange={(v) => set('director.academicQualification', v)} />
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h4>Infrastructure</h4>
-                <div className="form-row-3">
-                  <NumField label="Classrooms" value={getPath(form, 'infrastructure.numberOfClassrooms')} onChange={(v) => set('infrastructure.numberOfClassrooms', v)} />
-                  <NumField label="Total Seating Capacity" value={getPath(form, 'infrastructure.totalSeatingCapacity')} onChange={(v) => set('infrastructure.totalSeatingCapacity', v)} />
-                  <NumField label="Labs" value={getPath(form, 'infrastructure.numberOfLabs')} onChange={(v) => set('infrastructure.numberOfLabs', v)} />
-                </div>
-                <div className="form-row-2">
-                  <NumField label="Library — Books" value={getPath(form, 'infrastructure.library.numberOfBooks')} onChange={(v) => set('infrastructure.library.numberOfBooks', v)} />
-                  <NumField label="Library — Space (sq ft)" value={getPath(form, 'infrastructure.library.spaceSqFt')} onChange={(v) => set('infrastructure.library.spaceSqFt', v)} />
-                </div>
-                <TextField label="Digital Resources Details" value={getPath(form, 'infrastructure.digitalResourcesDetails')} onChange={(v) => set('infrastructure.digitalResourcesDetails', v)} />
-                <div className="form-row-4">
-                  <NumField label="Supporting Staff" value={getPath(form, 'infrastructure.numberOfSupportingStaff')} onChange={(v) => set('infrastructure.numberOfSupportingStaff', v)} />
-                  <NumField label="Rooms Available to Stay" value={getPath(form, 'infrastructure.roomsAvailableToStay')} onChange={(v) => set('infrastructure.roomsAvailableToStay', v)} />
-                  <NumField label="Stay Capacity" value={getPath(form, 'infrastructure.stayCapacity')} onChange={(v) => set('infrastructure.stayCapacity', v)} />
-                  <NumField label="Annual Budget Allocation" value={getPath(form, 'infrastructure.annualBudgetAllocation')} onChange={(v) => set('infrastructure.annualBudgetAllocation', v)} />
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h4>Impact & Outreach</h4>
-                <TextField label="Collaborations with Universities/Institutions" value={getPath(form, 'impact.collaborations')} onChange={(v) => set('impact.collaborations', v)} />
-                <TextField label="Community Outreach/Extension Activities" value={getPath(form, 'impact.communityOutreach')} onChange={(v) => set('impact.communityOutreach', v)} />
-              </div>
-
-              <p className="text-sm text-muted">Courses are managed separately — use the "Courses" button from the list after saving this year's record.</p>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setFormOpen(false)} disabled={saving}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
-            </div>
-          </div>
-        </div>
+        <MMTTCWizard
+          record={editingRecord}
+          saving={saving}
+          onSave={handleSave}
+          onCancel={() => setFormOpen(false)}
+        />
       )}
 
       {manageYear && (

@@ -43,5 +43,14 @@ const adminOrVc = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, adminOnly, facultyOnly, hodOnly, vcOnly, adminOrVc };
+// Institutional-module accounts (librarian, mmttc_director) have no business in
+// faculty/org-directory data. Applied to routers that are otherwise open to any
+// authenticated user.
+const { INSTITUTIONAL_ROLES } = require('../../../auth/constants/roles');
+const denyInstitutionalRoles = (req, res, next) => {
+  if (INSTITUTIONAL_ROLES.includes(req.user?.role)) return res.status(403).json({ message: 'Access denied' });
+  next();
+};
+
+module.exports = { denyInstitutionalRoles, auth, adminOnly, facultyOnly, hodOnly, vcOnly, adminOrVc };
 

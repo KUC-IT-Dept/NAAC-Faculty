@@ -8,6 +8,7 @@ import AdminGeneral from './pages/admin/AdminGeneral';
 import StudentRequest from './pages/admin/StudentRequest';
 import { EditProfileLayout, AdminProfileSection } from './pages/admin/AdminProfileManagement';
 import SpecialResponsibilities from './pages/admin/SpecialResponsibilities';
+import InstitutionalAccounts from './pages/admin/InstitutionalAccounts';
 import FacultyDashboard from './pages/faculty/FacultyDashboard';
 import ProfileSetup from './pages/faculty/ProfileSetup';
 import ProfileEdit from './pages/faculty/ProfileEdit';
@@ -22,7 +23,7 @@ import InstitutionalRedirect from './pages/institutional/InstitutionalRedirect';
 import { useAppBootstrap } from './lib/useAppBootstrap';
 import InitialLoadingScreen from './components/InitialLoadingScreen';
 
-type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff';
+type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
 
 // role now accepts a single role (unchanged existing behavior) OR an array
 // of roles (Phase 5 addition - Library/MMTTC pages are reachable by both
@@ -46,6 +47,8 @@ function homeForRole(user: { role: Role } | null) {
   if (user.role === 'vc') return '/vc/hierarchy';
   if (user.role === 'hod') return '/hod/hierarchy';
   if (user.role === 'staff') return '/institutional';
+  if (user.role === 'librarian') return '/institutional/library';
+  if (user.role === 'mmttc_director') return '/institutional/mmttc';
   return '/faculty/dashboard';
 }
 
@@ -82,6 +85,8 @@ function AppRoutes() {
       <Route path="/admin/student-request" element={<ProtectedRoute role="admin"><StudentRequest /></ProtectedRoute>} />
       <Route path="/admin/:tabId" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/general" element={<ProtectedRoute role="admin"><AdminGeneral /></ProtectedRoute>} />
+      <Route path="/admin/institutional-accounts" element={<ProtectedRoute role="admin"><InstitutionalAccounts /></ProtectedRoute>} />
+      {/* Legacy faculty module grants stay manageable here, but the page is no longer in the sidebar. */}
       <Route path="/admin/special-responsibilities" element={<ProtectedRoute role="admin"><SpecialResponsibilities /></ProtectedRoute>} />
       <Route path="/admin/edit-profile" element={<ProtectedRoute role="admin"><EditProfileLayout /></ProtectedRoute>}>
         <Route index element={
@@ -124,9 +129,9 @@ function AppRoutes() {
           modulePermissions determine which of these two pages actually
           shows usable data - see LibraryPage/MMTTCPage for the client-side
           permission check, backed by the server's own 403 either way). */}
-      <Route path="/institutional" element={<ProtectedRoute role={['admin', 'staff']}><InstitutionalRedirect /></ProtectedRoute>} />
-      <Route path="/institutional/library" element={<ProtectedRoute role={['admin', 'staff']}><LibraryPage /></ProtectedRoute>} />
-      <Route path="/institutional/mmttc" element={<ProtectedRoute role={['admin', 'staff']}><MMTTCPage /></ProtectedRoute>} />
+      <Route path="/institutional" element={<ProtectedRoute role={['admin', 'staff', 'librarian', 'mmttc_director']}><InstitutionalRedirect /></ProtectedRoute>} />
+      <Route path="/institutional/library" element={<ProtectedRoute role={['admin', 'staff', 'librarian']}><LibraryPage /></ProtectedRoute>} />
+      <Route path="/institutional/mmttc" element={<ProtectedRoute role={['admin', 'staff', 'mmttc_director']}><MMTTCPage /></ProtectedRoute>} />
 
       {/* Public — no auth */}
       <Route path="/profile/:username" element={<PublicProfile />} />

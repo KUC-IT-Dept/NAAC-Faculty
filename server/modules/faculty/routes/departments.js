@@ -4,10 +4,10 @@ const Department = require('../models/Department');
 const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
 const StudentProfile = require('../../student/models/StudentProfile');
-const { auth, adminOrVc } = require('../middleware/auth');
+const { auth, adminOrVc, denyInstitutionalRoles } = require('../middleware/auth');
 
 const router = express.Router();
-router.use(auth);
+router.use(auth, denyInstitutionalRoles);
 
 // GET /api/departments
 router.get('/', async (req, res) => {

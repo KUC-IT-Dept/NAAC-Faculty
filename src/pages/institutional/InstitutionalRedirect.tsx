@@ -15,6 +15,10 @@ import AppLayout from '../../components/AppLayout';
 export default function InstitutionalRedirect() {
   const { user } = useAuth();
 
+  // Dedicated institutional roles land directly on their own module.
+  if (user?.role === 'librarian') return <Navigate to="/institutional/library" replace />;
+  if (user?.role === 'mmttc_director') return <Navigate to="/institutional/mmttc" replace />;
+
   if (user?.role === 'admin') {
     return <Navigate to="/institutional/library" replace />;
   }

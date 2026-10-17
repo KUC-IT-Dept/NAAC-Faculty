@@ -1,0 +1,32 @@
+/* Compact full-page wizard shared by the Library and MMTTC record forms. */
+.wz { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; min-height: calc(100vh - 120px); }
+.wz-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.wz-head h2 { margin: 0; font-size: 1.15rem; }
+.wz-head p { margin: 2px 0 0; color: var(--text-muted); font-size: .82rem; }
+.wz-stepper { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.wz-step { flex: 1 1 0; min-width: 104px; display: flex; align-items: center; gap: 8px; background: none; border: 0; border-bottom: 3px solid transparent; padding: 8px 6px; font: inherit; font-size: .82rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+.wz-step:disabled { cursor: not-allowed; opacity: .55; }
+.wz-step .wz-num { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; background: var(--border); color: var(--text); flex: none; }
+.wz-step.active { color: var(--primary); font-weight: 600; border-bottom-color: var(--primary); }
+.wz-step.active .wz-num { background: var(--primary); color: #fff; }
+.wz-step.done .wz-num { background: #16a34a; color: #fff; }
+.wz-panel { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+.wz-panel h3 { margin: 0 0 12px; font-size: 1rem; }
+.wz-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 20px; }
+.wz-grid .wz-full { grid-column: 1 / -1; }
+.wz-sub { grid-column: 1 / -1; margin: 10px 0 2px; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+.wz-grid .form-group { margin-bottom: 8px; }
+.wz-note { grid-column: 1 / -1; font-size: .78rem; color: var(--text-muted); margin: 0 0 6px; }
+.wz-err { color: #dc2626; font-size: .75rem; margin-top: 2px; }
+.wz-repeat { grid-column: 1 / -1; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 12px; align-items: end; }
+.wz-checks { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 8px; }
+.wz-review dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 20px; margin: 0 0 8px; }
+.wz-review dt { font-size: .74rem; color: var(--text-muted); }
+.wz-review dd { margin: 0 0 6px; font-size: .86rem; word-break: break-word; }
+.wz-bar { position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 0; background: var(--bg); border-top: 1px solid var(--border); }
+.wz-bar .wz-spacer { flex: 1; }
+@media (max-width: 760px) {
+  .wz-grid, .wz-review dl { grid-template-columns: 1fr; }
+  .wz-repeat { grid-template-columns: 1fr; }
+  .wz-head { flex-direction: column; align-items: flex-start; }
+}
