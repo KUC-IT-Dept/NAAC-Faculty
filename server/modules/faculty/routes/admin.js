@@ -5,7 +5,9 @@ const Faculty = require('../models/Faculty');
 const DropdownConfig = require('../models/DropdownConfig');
 const OptionRequest = require('../models/OptionRequest');
 const Department = require('../models/Department');
-const { auth, adminOrVc } = require('../middleware/auth');
+const crypto = require('crypto');
+const { auth, adminOrVc, adminOnly } = require('../middleware/auth');
+const { ROLES, INSTITUTIONAL_ROLE_MODULES } = require('../../../auth/constants/roles');
 
 const router = express.Router();
 router.use(auth, adminOrVc);
@@ -497,6 +499,157 @@ router.put('/special-responsibilities/:userId', async (req, res) => {
   }
 });
 
+// ── Institutional Accounts (Librarian / MMTTC Director) ────────────────────
+// One designated account per institutional role. The role is derived ONLY from
+// the :type URL segment (never from the request body), every route is
+// admin/superadmin only (adminOnly - stricter than the router-level adminOrVc,
+// so a VC cannot manage these), and responses never contain password/OTP data.
+//
+//   GET    /institutional-accounts                      both accounts (or null)
+//   POST   /institutional-accounts/:type                create (409 if one exists)
+//   PATCH  /institutional-accounts/:type                edit name / email / phone
+//   PATCH  /institutional-accounts/:type/deactivate     isActive = false
+//   PATCH  /institutional-accounts/:type/reactivate     isActive = true
+//   POST   /institutional-accounts/:type/reset-password new temporary password
+const INSTITUTIONAL_TYPES = { librarian: ROLES.LIBRARIAN, mmttc_director: ROLES.MMTTC_DIRECTOR };
+const EMAIL_RE = /^\S+@\S+\.\S+$/;
+
+const resolveInstitutionalRole = (req, res, next) => {
+  const role = Object.prototype.hasOwnProperty.call(INSTITUTIONAL_TYPES, req.params.type) ? INSTITUTIONAL_TYPES[req.params.type] : null;
+  if (!role) return res.status(404).json({ message: 'Unknown institutional account type' });
+  req.institutionalRole = role;
+  next();
+};
+
+const publicInstitutionalAccount = (u) => (u ? {
+  id: u._id,
+  name: u.name,
+  username: u.username,
+  email: u.email,
+  phone: u.phone || null,
+  role: u.role,
+  module: INSTITUTIONAL_ROLE_MODULES[u.role],
+  isActive: u.isActive,
+  isFirstLogin: u.isFirstLogin,
+  createdAt: u.createdAt,
+  updatedAt: u.updatedAt,
+} : null);
+
+// 12 chars, URL-safe, from a CSPRNG. Shown to the admin exactly once.
+const generateTempPassword = () => crypto.randomBytes(9).toString('base64').replace(/\+/g, 'A').replace(/\//g, 'b');
+
+// Validates the editable fields. Returns { error } or { value } (only fields present).
+const validateInstitutionalFields = (body, { requireAll }) => {
+  const out = {};
+  const b = body && typeof body === 'object' ? body : {};
+  if (requireAll || b.name !== undefined) {
+    if (typeof b.name !== 'string' || b.name.trim().length < 2 || b.name.trim().length > 120) return { error: 'Name is required (2-120 characters)' };
+    out.name = b.name.trim();
+  }
+  if (requireAll || b.email !== undefined) {
+    if (typeof b.email !== 'string' || !EMAIL_RE.test(b.email.trim()) || b.email.trim().length > 254) return { error: 'A valid email is required' };
+    out.email = b.email.trim().toLowerCase();
+  }
+  if (b.phone !== undefined && b.phone !== null && b.phone !== '') {
+    if (typeof b.phone !== 'string' || !/^[0-9]{10}$/.test(b.phone.trim())) return { error: 'Phone must be exactly 10 digits' };
+    out.phone = b.phone.trim();
+  } else if (b.phone === '' || b.phone === null) {
+    out.phone = null;
+  }
+  return { value: out };
+};
+
+router.get('/institutional-accounts', adminOnly, async (req, res) => {
+  try {
+    const result = {};
+    for (const [type, role] of Object.entries(INSTITUTIONAL_TYPES)) {
+      const u = await User.findOne({ role }).select('-password -otp -otpExpiry');
+      result[type] = publicInstitutionalAccount(u);
+    }
+    res.json(result);
+  } catch (err) { console.error('[GET /admin/institutional-accounts]', err); res.status(500).json({ message: 'Server error' }); }
+});
+
+router.post('/institutional-accounts/:type', adminOnly, resolveInstitutionalRole, async (req, res) => {
+  try {
+    const { error, value } = validateInstitutionalFields(req.body, { requireAll: true });
+    if (error) return res.status(400).json({ message: error });
+
+    if (await User.findOne({ role: req.institutionalRole })) {
+      return res.status(409).json({ message: 'An account for this role already exists. Edit or reactivate it instead.' });
+    }
+    if (await User.findOne({ email: value.email })) return res.status(409).json({ message: 'Email already exists' });
+
+    const baseUsername = value.email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '').toLowerCase() || req.params.type;
+    let username = baseUsername;
+    let counter = 1;
+    while (await User.findOne({ username })) username = `${baseUsername}${counter++}`;
+
+    const tempPassword = generateTempPassword();
+    let user;
+    try {
+      user = await User.create({
+        name: value.name,
+        username,
+        email: value.email,
+        phone: value.phone || null,
+        password: await bcrypt.hash(tempPassword, 12),
+        role: req.institutionalRole,       // from URL, never from the body
+        modulePermissions: [],             // no cross-module grants
+        isFirstLogin: true,
+        isActive: true,
+      });
+    } catch (e) {
+      if (e && e.code === 11000) return res.status(409).json({ message: 'An account with these details already exists' });
+      throw e;
+    }
+    res.status(201).json({ message: 'Account created', account: publicInstitutionalAccount(user), temporaryPassword: tempPassword });
+  } catch (err) { console.error('[POST /admin/institutional-accounts]', err); res.status(500).json({ message: 'Server error' }); }
+});
+
+router.patch('/institutional-accounts/:type', adminOnly, resolveInstitutionalRole, async (req, res) => {
+  try {
+    const { error, value } = validateInstitutionalFields(req.body, { requireAll: false });
+    if (error) return res.status(400).json({ message: error });
+    if (Object.keys(value).length === 0) return res.status(400).json({ message: 'No editable fields supplied' });
+
+    const existing = await User.findOne({ role: req.institutionalRole }).select('_id');
+    if (!existing) return res.status(404).json({ message: 'Account not found' });
+    if (value.email) {
+      const clash = await User.findOne({ email: value.email });
+      if (clash && String(clash._id) !== String(existing._id)) return res.status(409).json({ message: 'Email already exists' });
+    }
+    // Only whitelisted fields are $set; role/isActive/password/modulePermissions can never change here.
+    let updated;
+    try {
+      updated = await User.findByIdAndUpdate(existing._id, { $set: value }, { new: true, runValidators: true }).select('-password -otp -otpExpiry');
+    } catch (e) {
+      if (e && e.code === 11000) return res.status(409).json({ message: 'Email already exists' });
+      throw e;
+    }
+    res.json({ message: 'Account updated', account: publicInstitutionalAccount(updated) });
+  } catch (err) { console.error('[PATCH /admin/institutional-accounts]', err); res.status(500).json({ message: 'Server error' }); }
+});
+
+const setInstitutionalActive = (isActive) => async (req, res) => {
+  try {
+    const existing = await User.findOne({ role: req.institutionalRole }).select('_id');
+    if (!existing) return res.status(404).json({ message: 'Account not found' });
+    const updated = await User.findByIdAndUpdate(existing._id, { $set: { isActive } }, { new: true }).select('-password -otp -otpExpiry');
+    res.json({ message: `Account ${isActive ? 'reactivated' : 'deactivated'}`, account: publicInstitutionalAccount(updated) });
+  } catch (err) { console.error('[PATCH /admin/institutional-accounts status]', err); res.status(500).json({ message: 'Server error' }); }
+};
+router.patch('/institutional-accounts/:type/deactivate', adminOnly, resolveInstitutionalRole, setInstitutionalActive(false));
+router.patch('/institutional-accounts/:type/reactivate', adminOnly, resolveInstitutionalRole, setInstitutionalActive(true));
+
+router.post('/institutional-accounts/:type/reset-password', adminOnly, resolveInstitutionalRole, async (req, res) => {
+  try {
+    const existing = await User.findOne({ role: req.institutionalRole }).select('_id');
+    if (!existing) return res.status(404).json({ message: 'Account not found' });
+    const tempPassword = generateTempPassword();
+    await User.findByIdAndUpdate(existing._id, { $set: { password: await bcrypt.hash(tempPassword, 12), isFirstLogin: true } });
+    res.json({ message: 'Temporary password generated. Share it securely; it is not shown again.', temporaryPassword: tempPassword });
+  } catch (err) { console.error('[POST /admin/institutional-accounts reset]', err); res.status(500).json({ message: 'Server error' }); }
+});
+
 module.exports = router;
-
-

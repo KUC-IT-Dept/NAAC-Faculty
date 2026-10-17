@@ -12,6 +12,8 @@
 //   router.get('/admin', authenticate, authorize(ROLES.SUPERADMIN, ROLES.IQAC_DIRECTOR), handler);
 //   router.get('/faculty', authenticate, authorize(...ROLE_GROUPS.FACULTY_AND_ABOVE), handler);
 
+const { INSTITUTIONAL_ROLES } = require("../constants/roles");
+
 const authorize = (...allowedRoles) => {
   return (req, res, next) => {
     // authenticate() must run first — if req.user is missing, something is wired wrong
@@ -72,7 +74,11 @@ const authorizeModule = (moduleKey, ...bypassRoles) => {
     }
 
     const hasBypassRole = bypassRoles.includes(req.user.role);
+    // Institutional-module roles (librarian, mmttc_director) are scoped by
+    // role alone: modulePermissions is ignored for them, so a stray grant can
+    // never open a second module (list their own role in bypassRoles instead).
     const hasModulePermission =
+      !INSTITUTIONAL_ROLES.includes(req.user.role) &&
       Array.isArray(req.user.modulePermissions) && req.user.modulePermissions.includes(moduleKey);
 
     if (!hasBypassRole && !hasModulePermission) {

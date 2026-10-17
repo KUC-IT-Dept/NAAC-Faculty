@@ -5,7 +5,7 @@ import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, G
 import qaiLogo from '../assets/qai-logo-transparent.png';
 import kannurLogoOld from '../assets/kannur-university-logo-old.png';
 
-type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff';
+type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
 
 interface NavItem { label: string; path: string; icon: ReactNode; exact?: boolean; }
 
@@ -23,9 +23,9 @@ const adminNav: NavItem[] = [
   // ROLE_GROUPS.ADMIN_ONLY bypass roles for these modules.
   { label: 'Library', path: '/institutional/library', icon: <BookOpen size={18} /> },
   { label: 'MMTTC', path: '/institutional/mmttc', icon: <GraduationCap size={18} /> },
-  // Special Faculty Responsibilities: assign the Library/MMTTC
-  // modulePermissions (same field as above) to individual faculty accounts.
-  { label: 'Special Responsibilities', path: '/admin/special-responsibilities', icon: <ShieldCheck size={18} /> },
+  // Institutional Accounts: create/manage the dedicated Librarian and MMTTC
+  // Director accounts (replaces the former Special Responsibilities entry).
+  { label: 'Institutional Accounts', path: '/admin/institutional-accounts', icon: <ShieldCheck size={18} /> },
   { label: 'Edit Form', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
   { label: 'General', path: '/admin/general', icon: <Globe size={18} /> },
 ];
@@ -87,6 +87,14 @@ function buildStaffNav(modulePermissions: string[] | undefined): NavItem[] {
   return items;
 }
 
+// Dedicated institutional roles see only their own module.
+const librarianNav: NavItem[] = [
+  { label: 'Library', path: '/institutional/library', icon: <BookOpen size={18} /> },
+];
+const mmttcDirectorNav: NavItem[] = [
+  { label: 'MMTTC', path: '/institutional/mmttc', icon: <GraduationCap size={18} /> },
+];
+
 const profileDropdownItems = (role?: Role) => {
   const base = role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   return [
@@ -132,9 +140,11 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
     user?.role === 'vc' ? vcNav :
     user?.role === 'hod' ? hodNav :
     user?.role === 'staff' ? buildStaffNav(user.modulePermissions) :
+    user?.role === 'librarian' ? librarianNav :
+    user?.role === 'mmttc_director' ? mmttcDirectorNav :
     buildFacultyNav(user?.modulePermissions);
-  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : 'Faculty User');
-  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : 'Faculty User';
+  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User');
+  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User';
   const initials = displayName.slice(0, 2).toUpperCase();
   const editProfileBase = user?.role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   const isActive = (item: NavItem) => item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
@@ -172,7 +182,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
               <img src={qaiLogo} alt="QAI Logo" style={{ width: '55px', height: 'auto', objectFit: 'contain' }} />
             </div>
           )}
-          {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : user?.role === 'vc' ? 'University Overview' : user?.role === 'hod' ? (facultyProfile?.employmentDetails?.department || 'Department Panel') : user?.role === 'staff' ? 'Institutional Panel' : 'My Account'}</div>}
+          {!collapsed && <div className="sidebar-section-label">{user?.role === 'admin' ? 'Admin Panel' : user?.role === 'vc' ? 'University Overview' : user?.role === 'hod' ? (facultyProfile?.employmentDetails?.department || 'Department Panel') : (user?.role === 'staff' || user?.role === 'librarian' || user?.role === 'mmttc_director') ? 'Institutional Panel' : 'My Account'}</div>}
           {navItems.map(item => {
             if (item.label === 'Edit Profile' || item.label === 'Edit Form') {
               return (

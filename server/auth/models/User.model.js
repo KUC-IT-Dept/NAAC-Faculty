@@ -9,7 +9,7 @@
 // Do NOT define separate User models in individual modules.
 
 const mongoose = require("mongoose");
-const { ALL_ROLES, ROLES } = require("../constants/roles");
+const { ALL_ROLES, ROLES, INSTITUTIONAL_ROLES } = require("../constants/roles");
 
 const userSchema = new mongoose.Schema(
   {
@@ -114,6 +114,18 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // createdAt, updatedAt
+  }
+);
+
+// One designated account per institutional role (librarian, mmttc_director).
+// Partial index => no effect on any other role; race-proof backstop to the
+// application-level check in routes admin.js (institutional-accounts).
+userSchema.index(
+  { role: 1 },
+  {
+    unique: true,
+    name: "uniq_institutional_role",
+    partialFilterExpression: { role: { $in: INSTITUTIONAL_ROLES } },
   }
 );
 

@@ -15,103 +15,22 @@ import { useEffect, useState } from 'react';
 import AppLayout from '../../components/AppLayout';
 import { useAuth } from '../../context/AuthContext';
 import { libraryApi, LibraryRecord } from '../../lib/institutionalApi';
-import { getPath, setPath } from './formUtils';
+import LibraryWizard from './LibraryWizard';
 import RecordFields from './RecordViewer';
 import toast from 'react-hot-toast';
 import { BookOpen, Plus, Eye, Pencil, Trash2, X } from 'lucide-react';
 import { useConfirmDelete } from '../../components/useConfirmDelete';
 
-function emptyRecord(academicYear = ''): Partial<LibraryRecord> & { academicYear: string } {
-  return {
-    academicYear,
-    librarian: { name: '', qualifications: '', yearsOfService: 0 },
-    infrastructure: {
-      totalFloorAreaSqFt: 0,
-      seatingCapacity: { readingRooms: 0, studyCarrels: 0, digitalLabs: 0 },
-      accessibility: { ramps: 0, lifts: 0, wheelchairs: 0 },
-      safetyMeasures: { fireAlarms: 0, cctv: 0, emergencyExits: 0 },
-      discussionRooms: 0,
-      computers: 0,
-      timing: { daysPerWeek: 0, fromTime: '', toTime: '', closedOnSaturday: false, closedOnSunday: false }
-    },
-    collections: {
-      totalBooks: { subject: '', number: 0 },
-      journalsAndPeriodicals: { print: 0, electronic: 0, national: 0, international: 0 },
-      digitalResources: { databases: 0, ebooks: 0, institutionalRepository: 0 },
-      specialCollections: { rareBooks: 0, theses: 0, manuscripts: 0 },
-      annualAdditions: { newTitlesPurchased: 0, subscribed: 0 },
-      contributionsByStudents: 0,
-      donations: { byAlumni: 0, byStaff: 0, byOthers: 0 }
-    },
-    technology: {
-      libraryManagementSoftware: '',
-      opacAvailable: false,
-      institutionalRepositoryAccess: false,
-      remoteAccessFacilities: '',
-      digitalLiteracyPrograms: {}
-    },
-    staffing: {
-      supportStaffCount: 0,
-      qualificationsAndTraining: '',
-      userServices: '',
-      orientationPrograms: { photoUploads: [] },
-      workshopsAndSeminars: [],
-      plagiarismChecks: []
-    },
-    usage: {
-      footfall: { daily: 0, annual: 0 },
-      circulation: { booksIssued: 0, booksReturned: 0, source: 'manual' },
-      digitalResourceUsage: { totalDownloadsOrLogins: 0 },
-      feedbackMechanisms: ''
-    },
-    compliance: {
-      copyrightCompliance: false,
-      dataPrivacyCompliance: false,
-      disasterPreparedness: { fireSafety: '', digitalBackup: false },
-      preservationMeasures: []
-    },
-    financial: { annualBudgetAllocation: 0, subscriptionsAndMemberships: '' },
-    bestPractices: { practices: '', innovations: '', details: '' },
-    uploads: []
-  };
-}
-
-function NumField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return (
-    <div className="form-group">
-      <label className="form-label">{label}</label>
-      <input className="form-input" type="number" value={value ?? 0} onChange={(e) => onChange(Number(e.target.value))} />
-    </div>
-  );
-}
-function TextField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div className="form-group">
-      <label className="form-label">{label}</label>
-      <input className="form-input" type="text" value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
-    </div>
-  );
-}
-function CheckField({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 8, flexDirection: 'row' }}>
-      <input type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)} />
-      <label className="form-label" style={{ margin: 0 }}>{label}</label>
-    </div>
-  );
-}
-
 export default function LibraryPage() {
   const { user } = useAuth();
-  const canAccess = user?.role === 'admin' || (user?.modulePermissions || []).includes('library');
+  const canAccess = user?.role === 'admin' || user?.role === 'librarian' || (user?.modulePermissions || []).includes('library');
 
   const [records, setRecords] = useState<LibraryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [viewing, setViewing] = useState<LibraryRecord | null>(null);
-  const [editingYear, setEditingYear] = useState<string | null>(null);
-  const [form, setForm] = useState<Partial<LibraryRecord> & { academicYear: string }>(emptyRecord());
+  const [editingRecord, setEditingRecord] = useState<LibraryRecord | null>(null);
   const [saving, setSaving] = useState(false);
   const { confirmDelete, ConfirmDialog } = useConfirmDelete();
 
@@ -133,30 +52,17 @@ export default function LibraryPage() {
     else setLoading(false);
   }, [canAccess]);
 
-  const openCreate = () => {
-    setEditingYear(null);
-    setForm(emptyRecord());
-    setFormOpen(true);
-  };
-  const openEdit = (r: LibraryRecord) => {
-    setEditingYear(r.academicYear);
-    setForm(r);
-    setFormOpen(true);
-  };
-  const set = (path: string, value: any) => setForm((prev) => setPath(prev, path, value));
+  const openCreate = () => { setEditingRecord(null); setFormOpen(true); };
+  const openEdit = (r: LibraryRecord) => { setEditingRecord(r); setFormOpen(true); };
 
-  const handleSave = async () => {
-    if (!form.academicYear.trim()) {
-      toast.error('Academic year is required.');
-      return;
-    }
+  const handleSave = async (payload: any, editingYear: string | null) => {
     setSaving(true);
     try {
       if (editingYear) {
-        await libraryApi.update(editingYear, form);
+        await libraryApi.update(editingYear, payload);
         toast.success('Library record updated.');
       } else {
-        await libraryApi.create(form);
+        await libraryApi.create(payload);
         toast.success('Library record created.');
       }
       setFormOpen(false);
@@ -194,7 +100,7 @@ export default function LibraryPage() {
 
   return (
     <AppLayout title="Library">
-      <div className="card">
+      {!formOpen && <div className="card">
         <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <BookOpen size={20} color="var(--primary)" />
@@ -242,7 +148,7 @@ export default function LibraryPage() {
             </table>
           </div>
         </div>
-      </div>
+      </div>}
 
       {viewing && (
         <div className="modal-overlay" onClick={() => setViewing(null)}>
@@ -263,167 +169,12 @@ export default function LibraryPage() {
       )}
 
       {formOpen && (
-        <div className="modal-overlay" onClick={() => !saving && setFormOpen(false)}>
-          <div className="modal" style={{ maxWidth: 760 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 style={{ margin: 0 }}>{editingYear ? `Edit ${editingYear}` : 'Add Library Record'}</h3>
-              <button className="btn-icon" onClick={() => setFormOpen(false)}><X size={18} /></button>
-            </div>
-            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-              <div className="form-section">
-                <h4>General</h4>
-                <div className="form-row-2">
-                  <TextField label="Academic Year (e.g. 2025-2026)" value={form.academicYear} onChange={(v) => set('academicYear', v)} />
-                  <TextField label="Librarian Name" value={getPath(form, 'librarian.name')} onChange={(v) => set('librarian.name', v)} />
-                </div>
-                <div className="form-row-2">
-                  <TextField label="Librarian Qualifications" value={getPath(form, 'librarian.qualifications')} onChange={(v) => set('librarian.qualifications', v)} />
-                  <NumField label="Years of Service" value={getPath(form, 'librarian.yearsOfService')} onChange={(v) => set('librarian.yearsOfService', v)} />
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h4>Infrastructure</h4>
-                <div className="form-row-3">
-                  <NumField label="Total Floor Area (sq ft)" value={getPath(form, 'infrastructure.totalFloorAreaSqFt')} onChange={(v) => set('infrastructure.totalFloorAreaSqFt', v)} />
-                  <NumField label="Discussion Rooms" value={getPath(form, 'infrastructure.discussionRooms')} onChange={(v) => set('infrastructure.discussionRooms', v)} />
-                  <NumField label="Computers" value={getPath(form, 'infrastructure.computers')} onChange={(v) => set('infrastructure.computers', v)} />
-                </div>
-                <div className="form-row-3">
-                  <NumField label="Reading Room Seats" value={getPath(form, 'infrastructure.seatingCapacity.readingRooms')} onChange={(v) => set('infrastructure.seatingCapacity.readingRooms', v)} />
-                  <NumField label="Study Carrels" value={getPath(form, 'infrastructure.seatingCapacity.studyCarrels')} onChange={(v) => set('infrastructure.seatingCapacity.studyCarrels', v)} />
-                  <NumField label="Digital Lab Seats" value={getPath(form, 'infrastructure.seatingCapacity.digitalLabs')} onChange={(v) => set('infrastructure.seatingCapacity.digitalLabs', v)} />
-                </div>
-                <div className="form-row-3">
-                  <NumField label="Ramps" value={getPath(form, 'infrastructure.accessibility.ramps')} onChange={(v) => set('infrastructure.accessibility.ramps', v)} />
-                  <NumField label="Lifts" value={getPath(form, 'infrastructure.accessibility.lifts')} onChange={(v) => set('infrastructure.accessibility.lifts', v)} />
-                  <NumField label="Wheelchairs" value={getPath(form, 'infrastructure.accessibility.wheelchairs')} onChange={(v) => set('infrastructure.accessibility.wheelchairs', v)} />
-                </div>
-                <div className="form-row-3">
-                  <NumField label="Fire Alarms" value={getPath(form, 'infrastructure.safetyMeasures.fireAlarms')} onChange={(v) => set('infrastructure.safetyMeasures.fireAlarms', v)} />
-                  <NumField label="CCTV" value={getPath(form, 'infrastructure.safetyMeasures.cctv')} onChange={(v) => set('infrastructure.safetyMeasures.cctv', v)} />
-                  <NumField label="Emergency Exits" value={getPath(form, 'infrastructure.safetyMeasures.emergencyExits')} onChange={(v) => set('infrastructure.safetyMeasures.emergencyExits', v)} />
-                </div>
-                <div className="form-row-4">
-                  <NumField label="Days/Week Open" value={getPath(form, 'infrastructure.timing.daysPerWeek')} onChange={(v) => set('infrastructure.timing.daysPerWeek', v)} />
-                  <TextField label="From (e.g. 09:00)" value={getPath(form, 'infrastructure.timing.fromTime')} onChange={(v) => set('infrastructure.timing.fromTime', v)} />
-                  <TextField label="To (e.g. 18:00)" value={getPath(form, 'infrastructure.timing.toTime')} onChange={(v) => set('infrastructure.timing.toTime', v)} />
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
-                    <CheckField label="Closed Sat" value={getPath(form, 'infrastructure.timing.closedOnSaturday')} onChange={(v) => set('infrastructure.timing.closedOnSaturday', v)} />
-                    <CheckField label="Closed Sun" value={getPath(form, 'infrastructure.timing.closedOnSunday')} onChange={(v) => set('infrastructure.timing.closedOnSunday', v)} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h4>Collections</h4>
-                <div className="form-row-2">
-                  <TextField label="Total Books — Subject" value={getPath(form, 'collections.totalBooks.subject')} onChange={(v) => set('collections.totalBooks.subject', v)} />
-                  <NumField label="Total Books — Number" value={getPath(form, 'collections.totalBooks.number')} onChange={(v) => set('collections.totalBooks.number', v)} />
-                </div>
-                <div className="form-row-4">
-                  <NumField label="Journals: Print" value={getPath(form, 'collections.journalsAndPeriodicals.print')} onChange={(v) => set('collections.journalsAndPeriodicals.print', v)} />
-                  <NumField label="Journals: Electronic" value={getPath(form, 'collections.journalsAndPeriodicals.electronic')} onChange={(v) => set('collections.journalsAndPeriodicals.electronic', v)} />
-                  <NumField label="Journals: National" value={getPath(form, 'collections.journalsAndPeriodicals.national')} onChange={(v) => set('collections.journalsAndPeriodicals.national', v)} />
-                  <NumField label="Journals: International" value={getPath(form, 'collections.journalsAndPeriodicals.international')} onChange={(v) => set('collections.journalsAndPeriodicals.international', v)} />
-                </div>
-                <div className="form-row-3">
-                  <NumField label="Databases" value={getPath(form, 'collections.digitalResources.databases')} onChange={(v) => set('collections.digitalResources.databases', v)} />
-                  <NumField label="E-books" value={getPath(form, 'collections.digitalResources.ebooks')} onChange={(v) => set('collections.digitalResources.ebooks', v)} />
-                  <NumField label="Institutional Repository" value={getPath(form, 'collections.digitalResources.institutionalRepository')} onChange={(v) => set('collections.digitalResources.institutionalRepository', v)} />
-                </div>
-                <div className="form-row-3">
-                  <NumField label="Rare Books" value={getPath(form, 'collections.specialCollections.rareBooks')} onChange={(v) => set('collections.specialCollections.rareBooks', v)} />
-                  <NumField label="Theses" value={getPath(form, 'collections.specialCollections.theses')} onChange={(v) => set('collections.specialCollections.theses', v)} />
-                  <NumField label="Manuscripts" value={getPath(form, 'collections.specialCollections.manuscripts')} onChange={(v) => set('collections.specialCollections.manuscripts', v)} />
-                </div>
-                <div className="form-row-2">
-                  <NumField label="New Titles Purchased" value={getPath(form, 'collections.annualAdditions.newTitlesPurchased')} onChange={(v) => set('collections.annualAdditions.newTitlesPurchased', v)} />
-                  <NumField label="Subscribed" value={getPath(form, 'collections.annualAdditions.subscribed')} onChange={(v) => set('collections.annualAdditions.subscribed', v)} />
-                </div>
-                <div className="form-row-4">
-                  <NumField label="Contributions by Students" value={getPath(form, 'collections.contributionsByStudents')} onChange={(v) => set('collections.contributionsByStudents', v)} />
-                  <NumField label="Donated by Alumni" value={getPath(form, 'collections.donations.byAlumni')} onChange={(v) => set('collections.donations.byAlumni', v)} />
-                  <NumField label="Donated by Staff" value={getPath(form, 'collections.donations.byStaff')} onChange={(v) => set('collections.donations.byStaff', v)} />
-                  <NumField label="Donated by Others" value={getPath(form, 'collections.donations.byOthers')} onChange={(v) => set('collections.donations.byOthers', v)} />
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h4>Technology & Digital Access</h4>
-                <div className="form-row-2">
-                  <TextField label="Library Management Software" value={getPath(form, 'technology.libraryManagementSoftware')} onChange={(v) => set('technology.libraryManagementSoftware', v)} />
-                  <TextField label="Remote Access Facilities" value={getPath(form, 'technology.remoteAccessFacilities')} onChange={(v) => set('technology.remoteAccessFacilities', v)} />
-                </div>
-                <div style={{ display: 'flex', gap: 24 }}>
-                  <CheckField label="OPAC Available" value={getPath(form, 'technology.opacAvailable')} onChange={(v) => set('technology.opacAvailable', v)} />
-                  <CheckField label="Institutional Repository Access" value={getPath(form, 'technology.institutionalRepositoryAccess')} onChange={(v) => set('technology.institutionalRepositoryAccess', v)} />
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h4>Staffing & Services</h4>
-                <div className="form-row-2">
-                  <NumField label="Support Staff Count" value={getPath(form, 'staffing.supportStaffCount')} onChange={(v) => set('staffing.supportStaffCount', v)} />
-                  <TextField label="Qualifications & Training" value={getPath(form, 'staffing.qualificationsAndTraining')} onChange={(v) => set('staffing.qualificationsAndTraining', v)} />
-                </div>
-                <TextField label="User Services (reference desk, ILL, etc.)" value={getPath(form, 'staffing.userServices')} onChange={(v) => set('staffing.userServices', v)} />
-              </div>
-
-              <div className="form-section">
-                <h4>Usage & Engagement</h4>
-                <div className="form-row-2">
-                  <NumField label="Daily Footfall" value={getPath(form, 'usage.footfall.daily')} onChange={(v) => set('usage.footfall.daily', v)} />
-                  <NumField label="Annual Footfall" value={getPath(form, 'usage.footfall.annual')} onChange={(v) => set('usage.footfall.annual', v)} />
-                </div>
-                <div className="form-row-3">
-                  <NumField label="Books Issued" value={getPath(form, 'usage.circulation.booksIssued')} onChange={(v) => set('usage.circulation.booksIssued', v)} />
-                  <NumField label="Books Returned" value={getPath(form, 'usage.circulation.booksReturned')} onChange={(v) => set('usage.circulation.booksReturned', v)} />
-                  <div className="form-group">
-                    <label className="form-label">Circulation Source</label>
-                    <select className="form-select" value={getPath(form, 'usage.circulation.source')} onChange={(e) => set('usage.circulation.source', e.target.value)}>
-                      <option value="manual">Manual</option>
-                      <option value="auto">Auto</option>
-                    </select>
-                  </div>
-                </div>
-                <TextField label="Feedback Mechanisms" value={getPath(form, 'usage.feedbackMechanisms')} onChange={(v) => set('usage.feedbackMechanisms', v)} />
-              </div>
-
-              <div className="form-section">
-                <h4>Compliance & Precautions</h4>
-                <div style={{ display: 'flex', gap: 24 }}>
-                  <CheckField label="Copyright Compliance" value={getPath(form, 'compliance.copyrightCompliance')} onChange={(v) => set('compliance.copyrightCompliance', v)} />
-                  <CheckField label="Data Privacy Compliance" value={getPath(form, 'compliance.dataPrivacyCompliance')} onChange={(v) => set('compliance.dataPrivacyCompliance', v)} />
-                  <CheckField label="Digital Backup" value={getPath(form, 'compliance.disasterPreparedness.digitalBackup')} onChange={(v) => set('compliance.disasterPreparedness.digitalBackup', v)} />
-                </div>
-                <TextField label="Fire Safety Measures" value={getPath(form, 'compliance.disasterPreparedness.fireSafety')} onChange={(v) => set('compliance.disasterPreparedness.fireSafety', v)} />
-              </div>
-
-              <div className="form-section">
-                <h4>Financial Status</h4>
-                <div className="form-row-2">
-                  <NumField label="Annual Budget Allocation" value={getPath(form, 'financial.annualBudgetAllocation')} onChange={(v) => set('financial.annualBudgetAllocation', v)} />
-                  <TextField label="Subscriptions/Memberships (e.g. INFLIBNET, DELNET)" value={getPath(form, 'financial.subscriptionsAndMemberships')} onChange={(v) => set('financial.subscriptionsAndMemberships', v)} />
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h4>Best Practices / Innovations</h4>
-                <TextField label="Best Practices" value={getPath(form, 'bestPractices.practices')} onChange={(v) => set('bestPractices.practices', v)} />
-                <TextField label="Innovations" value={getPath(form, 'bestPractices.innovations')} onChange={(v) => set('bestPractices.innovations', v)} />
-                <div className="form-group">
-                  <label className="form-label">Details</label>
-                  <textarea className="form-textarea" value={getPath(form, 'bestPractices.details') || ''} onChange={(e) => set('bestPractices.details', e.target.value)} />
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setFormOpen(false)} disabled={saving}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
-            </div>
-          </div>
-        </div>
+        <LibraryWizard
+          record={editingRecord}
+          saving={saving}
+          onSave={handleSave}
+          onCancel={() => setFormOpen(false)}
+        />
       )}
 
       <ConfirmDialog />

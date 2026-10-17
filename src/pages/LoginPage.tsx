@@ -38,6 +38,12 @@ export default function LoginPage() {
       } else if (u.role === 'staff') {
         toast.success('Welcome back!');
         navigate('/institutional');
+      } else if (u.role === 'librarian') {
+        toast.success('Welcome back!');
+        navigate('/institutional/library');
+      } else if (u.role === 'mmttc_director') {
+        toast.success('Welcome back!');
+        navigate('/institutional/mmttc');
       } else if (u.isFirstLogin) {
         navigate('/faculty/setup');
       } else {

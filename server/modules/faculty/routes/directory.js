@@ -2,11 +2,11 @@ const express = require('express');
 const User = require('../../../auth/models/User.model');
 const Faculty = require('../models/Faculty');
 const XLSX = require('xlsx');
-const { auth } = require('../middleware/auth');
+const { auth, denyInstitutionalRoles } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.use(auth);
+router.use(auth, denyInstitutionalRoles);
 
 // GET /api/faculty/directory
 router.get('/', async (req, res) => {
