@@ -142,6 +142,8 @@ app.use('/uploads', legacyUploadsRoutes);
 
 // ── Faculty routes  →  /api/faculty/... ──────────────────────────────────────
 app.use('/api/faculty/auth',        facultyAuthRoutes);
+app.use('/api/faculty/admin/benchmark-imports', require('./modules/faculty/routes/benchmarkImport'));
+app.use('/api/faculty/admin/benchmark-catalogue', require('./modules/faculty/routes/benchmarkCatalogue'));
 app.use('/api/faculty/admin',       facultyAdminRoutes);
 app.use('/api/faculty/me',          facultyProfileRoutes);   // faculty profile (GET/PUT /me)
 app.use('/api/faculty/public',      facultyPublicRoutes);    // public directory (was /api/profile)

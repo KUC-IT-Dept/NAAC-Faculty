@@ -26,6 +26,8 @@ const adminNav: NavItem[] = [
   // Institutional Accounts: create/manage the dedicated Librarian and MMTTC
   // Director accounts (replaces the former Special Responsibilities entry).
   { label: 'Institutional Accounts', path: '/admin/institutional-accounts', icon: <ShieldCheck size={18} /> },
+  // Benchmark Management: live catalogue CRUD + administrator-approved PDF import, versioning, audit.
+  { label: 'Benchmark Management', path: '/admin/benchmark-import', icon: <BarChart2 size={18} /> },
   { label: 'Edit Form', path: '/admin/edit-profile', icon: <UserPen size={18} /> },
   { label: 'General', path: '/admin/general', icon: <Globe size={18} /> },
 ];

@@ -62,3 +62,10 @@ Review). Code: `src/pages/institutional/{LibraryWizard,MMTTCWizard,wizardKit}.ts
 - Photo proof for orientation programs is stored as links; file upload is not available for these modules yet.
 - Circulation (Library) and staff data (non-teaching staff link) remain manual entry; see `docs/INSTITUTIONAL_ACCOUNTS.md`.
 - Behavioural test: `JSDOM_PATH=/path/to/node_modules/jsdom node tests/wizards/run.mjs` (jsdom is not a project dependency).
+
+## NAAC benchmark import
+
+Administrators manage benchmark definitions under **Admin → Benchmark Management**: a searchable catalogue (add / edit / deactivate) plus
+import from the NAAC benchmark PDF (review → approve → preview → activate, versioned, audited, with rollback). Analytics → Benchmark then shows the approved definitions with current institutional values, gaps and scores
+("Insufficient data" when a value cannot be calculated reliably). See [`docs/BENCHMARK_IMPORT.md`](docs/BENCHMARK_IMPORT.md) for the
+workflow, API, scoring rules, the production diagnosis and deployment notes.

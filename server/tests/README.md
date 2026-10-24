@@ -46,6 +46,10 @@ node test.js
 - **phase5-institutional-accounts/** — Librarian / MMTTC Director accounts: creation, role assignment, login,
   cross-module denial, deactivation, regression for existing roles (77 checks). Unlike earlier phases it loads the
   REAL route/middleware files and fakes only the models. Run: `node test.js`.
+- **phase6-benchmark-import/** — administrator-controlled benchmark PDF import: parser on the real PDF, scoring, validation,
+  categorical metrics, missing data, API and approve/activate/rollback lifecycle. Real code, faked models. Run: `node test.js`.
+- **phase7-benchmark-management/** — catalogue CRUD/search/filters, activation previews, private source storage, chunked extraction,
+  per-record audit, Analytics integration, deletion of versions/records (authorization, id validation, active/in-use protection, referential integrity, audit), and schema conformance against the REAL Mongoose models. Run: `node test.js`.
 
 ## A note on realism
 

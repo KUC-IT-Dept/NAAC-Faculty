@@ -224,6 +224,21 @@ router.get(
   }
 );
 
+// GET /benchmark/catalogue-status  (must stay above /benchmark/:metricId)
+// Tiny summary used by the UI to say WHY the table is empty (no catalogue
+// imported in this environment vs. nothing matched the filters).
+router.get(
+  '/benchmark/catalogue-status',
+  auth,
+  requireAnalyticsScope('benchmark'),
+  async (req, res) => {
+    const benchmarkService = tryRequire('../services/benchmarkService');
+    if (!benchmarkService) return res.status(503).json({ message: 'Benchmark service not yet available.' });
+    try { res.json(await benchmarkService.getCatalogueStatus()); }
+    catch (err) { console.error('[V2] /benchmark/catalogue-status error:', err); res.status(500).json({ message: 'Server error' }); }
+  }
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 5 — GET /benchmark/:metricId
 // Returns benchmark detail for a single metric.
