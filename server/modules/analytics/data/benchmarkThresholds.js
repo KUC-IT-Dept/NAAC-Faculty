@@ -1,4 +1,13 @@
 /**
+ * !! DEPRECATED / NOT USED AT RUNTIME !!
+ * No module requires this file. The Analytics -> Benchmark page, reports and the
+ * recommendation engine read the benchmark definitions from the MongoDB collection
+ * `benchmarkmetrics`, which administrators manage under Admin -> Benchmark Management
+ * (manual add/edit/deactivate and approved PDF imports). Editing the numbers below has
+ * no effect. The file is kept only as a historical reference.
+ */
+
+/**
  * benchmarkThresholds.js
  *
  * Static lookup table mapping NAAC metric IDs to their benchmark

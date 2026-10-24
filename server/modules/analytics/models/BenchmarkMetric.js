@@ -36,6 +36,10 @@ const thresholdBandSchema = new mongoose.Schema({
     enum: ['above', 'meets', 'below', 'option'],
     default: 'below',
   },
+  // Added by the admin-approved PDF import. Absent on older seeded documents,
+  // in which case both ends are treated as inclusive (legacy behaviour).
+  minInclusive: { type: Boolean },
+  maxInclusive: { type: Boolean },
 }, { _id: false });
 
 const benchmarkMetricSchema = new mongoose.Schema({
@@ -122,6 +126,37 @@ const benchmarkMetricSchema = new mongoose.Schema({
     default: true,
   },
 
+  // ── Admin-approved import metadata (all optional; absent on seeded docs) ──
+  catalogVersionId: { type: mongoose.Schema.Types.ObjectId, default: null },
+  source: {
+    filename:        { type: String, default: null },
+    documentVersion: { type: String, default: null },
+    importedAt:      { type: Date,   default: null },
+    approvedBy:      { type: String, default: null },
+    approvedAt:      { type: Date,   default: null },
+    versionNo:       { type: Number, default: null },
+    // Admin management (manual add/edit). 'seed' | 'import' | 'manual'
+    origin:          { type: String, enum: ['seed', 'import', 'manual'], default: undefined },
+    revision:        { type: Number, default: 0 },
+    editedBy:        { type: String, default: null },
+    editedAt:        { type: Date,   default: null },
+    page:            { type: Number, default: null },
+  },
+  // Display-only text captured from the manual. It is NOT executed: values still
+  // come from the mapped analytics metric (computedField).
+  formula: { type: String, default: '' },
+  notes:   { type: String, default: '' },
+  lifecycle: {
+    deactivatedAt: { type: Date,   default: null },
+    deactivatedBy: { type: String, default: null },
+    reason:        { type: String, default: '' },
+  },
+  scoringType: { type: String, enum: ['numeric', 'categorical'], default: undefined },
+  period:      { type: String, default: null },
+  details:     { type: String, default: '' },
+  // Categorical (A-E) option texts, e.g. [{ label:'A', score:4, text:'All of the above' }]
+  options: [{ _id: false, label: String, score: Number, text: String }],
+
   // Phase 18: direction field for ranking (aligned with Metric model)
   direction: {
     type:    String,
@@ -136,5 +171,6 @@ const benchmarkMetricSchema = new mongoose.Schema({
 benchmarkMetricSchema.index({ criterion: 1 });
 benchmarkMetricSchema.index({ criterionNumber: 1 });
 benchmarkMetricSchema.index({ active: 1 });
+benchmarkMetricSchema.index({ catalogVersionId: 1 });
 
 module.exports = mongoose.model('BenchmarkMetric', benchmarkMetricSchema);

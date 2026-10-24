@@ -105,15 +105,42 @@ export interface DrilldownResult {
   records:    Record<string, unknown>[];
 }
 
+export interface BenchmarkBand { score: number; label: string; min?: number | null; max?: number | null }
+
 export interface BenchmarkEntry {
   metricId:       string;
   metricName:     string;
+  description?:   string;
   criterion:      string;
-  currentValue:   number;
-  benchmarkValue: number;
-  gap:            number;
+  keyIndicator?:  string;
+  /** null = a reliable value could not be calculated (shown as "Insufficient data"). */
+  currentValue:   number | null;
+  benchmarkValue: number | null;
+  gap:            number | null;
+  score?:         number | null;
   status:         'above' | 'meets' | 'below' | 'unknown';
   recommendation: string;
+  // Added with the PDF-import catalogue (all optional for older backends)
+  unit?:               string;
+  bands?:              BenchmarkBand[];
+  insufficientData?:   boolean;
+  insufficientReason?: string | null;
+  statusLabel?:        string;
+  scoringType?:        'numeric' | 'categorical';
+  direction?:          'higherIsBetter' | 'lowerIsBetter' | null;
+  period?:             string | null;
+  bandLabel?:          string | null;
+  analyticsMapped?:    boolean;
+  catalog?: {
+    origin: 'seed' | 'import' | 'manual'; versionNo: number | null; documentVersion: string | null; sourceFilename: string | null;
+    approvedBy: string | null; approvedAt: string | null; importedAt: string | null;
+    editedBy?: string | null; editedAt?: string | null; revision?: number;
+  };
+}
+
+export interface BenchmarkCatalogueStatus {
+  activeMetrics: number; mappedMetrics: number; analyticsMetricDefinitions: number;
+  importedVersions: number[]; hasCatalogue: boolean;
 }
 
 export interface TrendResult {
@@ -170,6 +197,10 @@ export const getDrilldownExportUrl = (
 /** Fetch all metrics vs benchmark thresholds. */
 export const getBenchmarks = (filters?: AnalyticsFilters): Promise<BenchmarkEntry[]> =>
   api.get('/analytics/benchmark', { params: toParams(filters) }).then(r => r.data);
+
+/** Why is the benchmark table empty? (catalogue not imported vs. filters). */
+export const getBenchmarkCatalogueStatus = (): Promise<BenchmarkCatalogueStatus> =>
+  api.get('/analytics/benchmark/catalogue-status').then(r => r.data);
 
 /** Fetch single-metric benchmark detail. */
 export const getMetricBenchmark = (metricId: string, filters?: AnalyticsFilters): Promise<BenchmarkEntry> =>

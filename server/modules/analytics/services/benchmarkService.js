@@ -27,91 +27,131 @@ function scopeFilter(scope) {
   return {};
 }
 
-// ── Band evaluation ───────────────────────────────────────────────────────────
+// ── Scoring ───────────────────────────────────────────────────────────────────
+// Band parsing / direction / numeric & categorical evaluation live in
+// benchmarkScoring.js (pure, unit-tested). Direction is derived from the bands,
+// so lower-is-better metrics (days, grievance %, student ratios) gap correctly.
 
-function evaluateBands(doc, value) {
-  const bands = doc.bands || [];
-  for (const band of bands) {
-    const lo = band.min !== null ? band.min : -Infinity;
-    const hi = band.max !== null ? band.max :  Infinity;
-    if (value >= lo && value <= hi) {
-      return {
-        status:          band.status,
-        score:           band.score,
-        benchmarkValue:  doc.benchmarkValue,
-        unit:            doc.unit,
-        gap:             Number((doc.benchmarkValue - value).toFixed(4)),
-        improvementHint: doc.improvementHint || '',
-      };
-    }
+const scoring = require('./benchmarkScoring');
+
+const STATUS_LABEL = { above: 'Above', meets: 'Meets', below: 'Below', unknown: 'Insufficient data' };
+
+function computeAchievementPercent(currentValue, target, direction) {
+  if (target === null || target === undefined || currentValue === null || currentValue === undefined) return null;
+  if (direction === 'lowerIsBetter') {
+    if (currentValue <= 0) return 100;
+    return Number(Math.min((target / currentValue) * 100, 999).toFixed(2));
   }
-  return {
-    status:          'below',
-    score:           0,
-    benchmarkValue:  doc.benchmarkValue,
-    unit:            doc.unit,
-    gap:             Number((doc.benchmarkValue - value).toFixed(4)),
-    improvementHint: doc.improvementHint || '',
-  };
+  if (target === 0) return null;
+  return Number(Math.min((currentValue / target) * 100, 999).toFixed(2));
 }
 
-// ── Achievement percent ───────────────────────────────────────────────────────
-
-function computeAchievementPercent(currentValue, benchmarkValue) {
-  if (benchmarkValue === null || benchmarkValue === 0 || currentValue === null) return null;
-  return Number(Math.min((currentValue / benchmarkValue) * 100, 999).toFixed(2));
+function catalogInfo(doc) {
+  const src = doc.source || {};
+  const origin = src.origin || (doc.catalogVersionId ? 'import' : 'seed');
+  if (origin === 'manual') {
+    return { origin: 'manual', versionNo: src.versionNo || null, documentVersion: null, sourceFilename: null, importedAt: null, approvedBy: null, approvedAt: null, editedBy: src.editedBy || null, editedAt: src.editedAt || null, revision: src.revision || 0 };
+  }
+  if (origin === 'import') {
+    return {
+      origin: 'import', versionNo: src.versionNo || null, documentVersion: src.documentVersion || null,
+      sourceFilename: src.filename || null, importedAt: src.importedAt || null,
+      approvedBy: src.approvedBy || null, approvedAt: src.approvedAt || null,
+    };
+  }
+  return { origin: 'seed', versionNo: null, documentVersion: null, sourceFilename: null, importedAt: null, approvedBy: null, approvedAt: null };
 }
 
 // ── Build response object ─────────────────────────────────────────────────────
+// All pre-existing keys keep their names and meaning; new keys are additive.
 
-function buildResponse(doc, currentValue, evaluation) {
+function buildResponse(doc, currentValue, ev, reason) {
+  const insufficient = ev.score === null || ev.score === undefined;
+  const status = insufficient ? 'unknown' : ev.status;
   return {
-    metricId:          doc.metricId,
-    metricName:        doc.metricName,
-    description:       doc.description,
-    criterion:         doc.criterion,
-    criterionNumber:   doc.criterionNumber,
-    keyIndicator:      doc.keyIndicator,
-    maxScore:          doc.maxScore,
-    metricType:        doc.metricType,
-    currentValue,
-    benchmarkValue:    evaluation.benchmarkValue,
-    unit:              evaluation.unit,
-    gap:               evaluation.gap,
-    achievementPercent: computeAchievementPercent(currentValue, evaluation.benchmarkValue),
-    status:            evaluation.status,
-    score:             evaluation.score,
-    recommendation:    evaluation.improvementHint,
-    bands:             doc.bands,
+    metricId:           doc.metricId,
+    metricName:         doc.metricName,
+    description:        doc.description,
+    criterion:          doc.criterion,
+    criterionNumber:    doc.criterionNumber,
+    keyIndicator:       doc.keyIndicator,
+    maxScore:           doc.maxScore,
+    metricType:         doc.metricType,
+    currentValue:       insufficient ? null : currentValue,
+    benchmarkValue:     ev.target === null || ev.target === undefined ? (doc.benchmarkValue === undefined ? null : doc.benchmarkValue) : ev.target,
+    unit:               doc.unit,
+    gap:                insufficient ? null : ev.gap,
+    achievementPercent: insufficient ? null : computeAchievementPercent(currentValue, ev.target, ev.direction),
+    status,
+    score:              insufficient ? null : ev.score,
+    recommendation:     doc.improvementHint || '',
+    bands:              doc.bands,
+    // additive (PDF-import era)
+    insufficientData:   insufficient,
+    insufficientReason: insufficient ? reason : null,
+    statusLabel:        STATUS_LABEL[status],
+    scoringType:        ev.categorical ? 'categorical' : 'numeric',
+    direction:          ev.categorical ? null : (ev.direction || doc.direction || null),
+    period:             doc.period || null,
+    bandLabel:          ev.bandLabel || null,
+    options:            doc.options || [],
+    catalog:            catalogInfo(doc),
+    analyticsMapped:    !!doc.computedField,
+    formula:            doc.formula || '',
+    notes:              doc.notes || '',
   };
 }
 
+// ── Reliable current value ────────────────────────────────────────────────────
+// Never fabricates a zero: a value is only returned when the metric is mapped,
+// defined, supported, and there are institutional records to compute it from.
+
+async function resolveCurrentValue(doc, scope, query) {
+  if (!doc.computedField) return { value: null, reason: 'no_analytics_mapping' };
+  const { getMetric } = require('./referenceDataCache');
+  const metric = await getMetric(doc.computedField);
+  if (!metric) return { value: null, reason: 'analytics_metric_not_defined' };
+  if (metric.supported === false) return { value: null, reason: 'analytics_metric_unsupported' };
+  if (Array.isArray(metric.missingFields) && metric.missingFields.length) return { value: null, reason: 'source_fields_missing' };
+
+  const combined = mergeFilters(scopeFilter(scope), buildFacultyFilter(query));
+  try {
+    if (String(metric.formulaType || '').startsWith('student')) {
+      const StudentProfile = require('../../student/models/StudentProfile');
+      if ((await StudentProfile.countDocuments({})) === 0) return { value: null, reason: 'no_institutional_records' };
+    } else if ((await Faculty.countDocuments(combined)) === 0) {
+      return { value: null, reason: 'no_institutional_records' };
+    }
+    const computed = await calculateMetric(doc.computedField, combined, { viewMode: query.viewMode });
+    const v = computed ? computed.value : null;
+    if (typeof v !== 'number' || !Number.isFinite(v)) return { value: null, reason: 'calculation_failed' };
+    return { value: v, reason: 'ok' };
+  } catch {
+    return { value: null, reason: 'calculation_failed' };
+  }
+}
+
 // ── Single metric benchmark (from doc) ────────────────────────────────────────
-// Phase 6: evaluateBenchmarkDoc contains all logic; getMetricBenchmark is a
-// thin wrapper that fetches the doc first.  Batch callers call evaluateBenchmarkDoc
-// directly with already-fetched docs, eliminating redundant BenchmarkMetric.findOne.
+// evaluateBenchmarkDoc contains all logic; getMetricBenchmark is a thin wrapper
+// that fetches the doc first. Batch callers pass already-fetched docs.
 
 async function evaluateBenchmarkDoc(doc, scope, query = {}) {
-  let currentValue = null;
+  const categorical = doc.metricType === 'qualitative' || scoring.isCategorical(doc.bands);
+  const { value, reason } = await resolveCurrentValue(doc, scope, query);
 
-  if (doc.computedField) {
-    const base       = scopeFilter(scope);
-    const userFilter = buildFacultyFilter(query);
-    const combined   = mergeFilters(base, userFilter);
-    try {
-      const computed = await calculateMetric(doc.computedField, combined, { viewMode: query.viewMode });
-      currentValue = computed ? computed.value : null;
-    } catch {
-      currentValue = null;
-    }
+  let ev;
+  let why = reason;
+  if (categorical) {
+    // A letter grade needs an assessment; a number is never coerced into A-E.
+    ev = scoring.evaluateCategorical(doc.bands, typeof value === 'string' ? value : null);
+    if (ev.score === null && reason === 'ok') why = 'qualitative_requires_assessment';
+    if (ev.score === null && reason === 'no_analytics_mapping') why = 'qualitative_requires_assessment';
+    ev.categorical = true;
+  } else {
+    ev = scoring.evaluateNumeric(doc.bands, value, doc.direction);
+    if (ev.score === null && reason === 'ok') why = 'value_outside_all_bands';
   }
-
-  const evaluation = currentValue !== null
-    ? evaluateBands(doc, currentValue)
-    : { status: 'unknown', score: null, benchmarkValue: doc.benchmarkValue,
-        unit: doc.unit, gap: null, improvementHint: doc.improvementHint || '' };
-
-  return buildResponse(doc, currentValue, evaluation);
+  return buildResponse(doc, value, ev, why);
 }
 
 async function getMetricBenchmark(metricId, scope, query = {}) {
@@ -252,6 +292,21 @@ async function getFacultyVsDepartmentAverage(facultyId, metricId, scope, query =
   };
 }
 
+/** Lightweight catalogue summary so the UI can explain an empty table precisely. */
+async function getCatalogueStatus() {
+  const { getBenchmarkMetrics, getMetrics } = require('./referenceDataCache');
+  const docs = (await getBenchmarkMetrics()).filter((d) => d.active);
+  const metrics = await getMetrics();
+  const versions = new Set(docs.filter((d) => d.catalogVersionId).map((d) => (d.source && d.source.versionNo) || null));
+  return {
+    activeMetrics: docs.length,
+    mappedMetrics: docs.filter((d) => d.computedField).length,
+    analyticsMetricDefinitions: metrics.length,
+    importedVersions: [...versions].filter((v) => v !== null).sort((x, y) => x - y),
+    hasCatalogue: docs.length > 0,
+  };
+}
+
 module.exports = {
   getMetricBenchmark,
   getAllBenchmarks,
@@ -260,4 +315,6 @@ module.exports = {
   getAllDepartmentsBenchmark,
   getFacultyVsDepartmentAverage,
   evaluateBenchmarkDoc,
+  resolveCurrentValue,
+  getCatalogueStatus,
 };
