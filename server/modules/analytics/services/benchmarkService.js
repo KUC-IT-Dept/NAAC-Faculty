@@ -16,7 +16,8 @@
 const { calculateMetric }   = require('./analyticsService');
 const BenchmarkMetric       = require('../models/BenchmarkMetric');
 const Faculty               = require('../../faculty/models/Faculty');
-const { buildFacultyFilter, mergeFilters } = require('./filterService');
+const { buildFacultyFilter, mergeFilters, extractExperienceFilter } = require('./filterService');
+const { unitCompatibility } = require('./metricUnits');
 
 // ── Scope filter helper ───────────────────────────────────────────────────────
 
@@ -106,7 +107,7 @@ function buildResponse(doc, currentValue, ev, reason) {
 // Never fabricates a zero: a value is only returned when the metric is mapped,
 // defined, supported, and there are institutional records to compute it from.
 
-async function resolveCurrentValue(doc, scope, query) {
+async function resolveCurrentValue(doc, scope, query = {}) {
   if (!doc.computedField) return { value: null, reason: 'no_analytics_mapping' };
   const { getMetric } = require('./referenceDataCache');
   const metric = await getMetric(doc.computedField);
@@ -114,18 +115,32 @@ async function resolveCurrentValue(doc, scope, query) {
   if (metric.supported === false) return { value: null, reason: 'analytics_metric_unsupported' };
   if (Array.isArray(metric.missingFields) && metric.missingFields.length) return { value: null, reason: 'source_fields_missing' };
 
+  // Numeric benchmarks are scored in the benchmark's own unit. A value in another unit is never
+  // compared against the bands (e.g. a count against percentage bands); rupees convert to lakhs.
+  let factor = 1;
+  const categorical = doc.metricType === 'qualitative' || scoring.isCategorical(doc.bands);
+  if (!categorical) {
+    const compat = unitCompatibility(metric, doc.unit);
+    if (!compat.ok) return { value: null, reason: 'unit_mismatch' };
+    factor = compat.factor;
+  }
+
   const combined = mergeFilters(scopeFilter(scope), buildFacultyFilter(query));
+  // __minExperience/__maxExperience are engine sentinels, not Faculty fields; they would match nothing.
+  const { cleanFilter } = extractExperienceFilter(combined);
   try {
     if (String(metric.formulaType || '').startsWith('student')) {
       const StudentProfile = require('../../student/models/StudentProfile');
       if ((await StudentProfile.countDocuments({})) === 0) return { value: null, reason: 'no_institutional_records' };
-    } else if ((await Faculty.countDocuments(combined)) === 0) {
+    } else if ((await Faculty.countDocuments(cleanFilter)) === 0) {
       return { value: null, reason: 'no_institutional_records' };
     }
-    const computed = await calculateMetric(doc.computedField, combined, { viewMode: query.viewMode });
+    // Benchmarks are institutional totals/ratios: always absolute, never per-faculty normalised.
+    const computed = await calculateMetric(doc.computedField, combined, { viewMode: 'absolute' });
+    if (computed && computed.insufficientReason) return { value: null, reason: computed.insufficientReason };
     const v = computed ? computed.value : null;
     if (typeof v !== 'number' || !Number.isFinite(v)) return { value: null, reason: 'calculation_failed' };
-    return { value: v, reason: 'ok' };
+    return { value: factor === 1 ? v : Number((v * factor).toFixed(4)), reason: 'ok' };
   } catch {
     return { value: null, reason: 'calculation_failed' };
   }

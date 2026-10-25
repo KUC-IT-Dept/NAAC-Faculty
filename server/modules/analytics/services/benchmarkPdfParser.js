@@ -565,11 +565,12 @@ function validateRow(row, ctx = {}) {
     if (ex.unit && ex.unit !== row.unit) diffs.push(`unit (${ex.unit} -> ${row.unit})`);
     if (diffs.length) add('conflicts_with_active', 'warning', `Differs from the current catalogue: ${diffs.join(', ')}.`);
   }
-  if (ctx.metricCatalog && ex && ex.computedField) {
-    const m = ctx.metricCatalog.get(ex.computedField);
+  const mappedId = row.computedField || (ex && ex.computedField) || null;
+  if (ctx.metricCatalog && mappedId && !row.excluded && row.scoringType !== 'categorical' && row.unit !== 'option') {
+    const m = ctx.metricCatalog.get(mappedId);
     if (m && m.formulaType) {
-      const pct = ['percentage', 'metricPercentage'].includes(m.formulaType);
-      if (row.unit === 'percentage' && !pct) add('mapping_unit_mismatch', 'warning', `Mapped analytics metric "${ex.computedField}" is a ${m.formulaType} formula; confirm it yields a percentage.`);
+      const compat = require('./metricUnits').unitCompatibility(m, row.unit);
+      if (!compat.ok) add('mapping_unit_mismatch', 'warning', `Mapped analytics metric "${mappedId}" yields ${compat.metricKind}, but this benchmark is scored in ${row.unit}; its current value will read "Insufficient data" until the mapping is changed.`);
     }
   }
   return flags;

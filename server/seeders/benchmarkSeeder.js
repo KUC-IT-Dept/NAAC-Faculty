@@ -321,7 +321,7 @@ function buildCriterion3Metrics() {
     keyIndicator: '3.2 Resource Mobilization for Research', maxScore: 15,
     metricType: 'quantitative', unit: 'ratio',
     bands: buildBands('>=2', '1.5-2', '1-1.5', '0.5-1', '<0.5'),
-    computedField: '3.2.2',
+    computedField: 'ratio.projectsperfaculty',
     improvementHint: 'Target ≥2 funded projects per teacher over five years. Create a research project mentoring system.',
   });
 
@@ -343,7 +343,7 @@ function buildCriterion3Metrics() {
     keyIndicator: '3.4 Research Publications and Awards', maxScore: 15,
     metricType: 'quantitative', unit: 'count',
     bands: buildBands('>=7', '5-7', '3-5', '1-3', '<1'),
-    computedField: '3.4.5',
+    computedField: 'patent.granted',
     improvementHint: 'File and secure ≥7 patents over five years. Establish an IPR cell and provide patent filing financial support.',
   });
 
@@ -365,7 +365,7 @@ function buildCriterion3Metrics() {
     keyIndicator: '3.4 Research Publications and Awards', maxScore: 20,
     metricType: 'quantitative', unit: 'ratio',
     bands: buildBands('>=10', '7-10', '4-7', '1-4', '<1'),
-    computedField: '3.4.4',
+    computedField: 'ratio.pubsperfaculty',
     improvementHint: 'Target ≥10 publications per teacher in five years. Provide writing workshops and publication incentives.',
   });
 

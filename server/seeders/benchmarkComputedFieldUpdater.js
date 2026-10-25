@@ -101,6 +101,9 @@ const BenchmarkMetric = require('../modules/analytics/models/BenchmarkMetric');
 // value. The UI shows them with status badges so operators understand the
 // caveat (spec §10.1).
 
+// Removed on purpose: 3.4.3, 3.4.5_books, 6.3.2, 6.3.3 only had count proxies for per-guide / per-teacher /
+// percentage benchmarks. A count scored against ratio or percentage bands is wrong, so they stay unmapped
+// (shown as Insufficient data with the reason) until a matching metric exists.
 const COMPUTED_FIELD_MAP = {
   // Criterion 2 — Teacher Profile
   '2.4.2': 'pct.phdholders',         // [C] % teachers with PhD
@@ -111,17 +114,13 @@ const COMPUTED_FIELD_MAP = {
   '3.2.2': 'ratio.projectsperfaculty', // [C] projects per teacher
   '3.3.2': 'awards.total',           // [C] awards for research/innovation
   '3.4.2': 'patent.granted',         // [C] patents awarded (granted = awarded)
-  '3.4.3': 'phd.completed',          // [P] PhDs per guide — proxy: total PhDs completed
   '3.4.4': 'ratio.pubsperfaculty',   // [C] research papers per teacher
   '3.4.5': '3.4.5',                  // [C] total patents
-  '3.4.5_books': '3.4.5_books',      // [C] books/chapters
 
   // Criterion 3 — Extension (proxy)
   '3.6.2': 'extrainst.total',        // [P] extension/outreach programs proxy
 
   // Criterion 6 — Faculty development (proxy)
-  '6.3.2': 'fdp.total',              // [P] teachers with financial support (FDP proxy)
-  '6.3.3': 'fdp.total',              // [P] teachers completing FDP (FDP count proxy)
 };
 
 async function update(dryRun = false) {

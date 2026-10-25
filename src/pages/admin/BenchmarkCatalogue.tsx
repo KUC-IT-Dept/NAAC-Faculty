@@ -10,9 +10,11 @@ import { Plus, Pencil, Eye, Power, Trash2 } from 'lucide-react';
 import DeleteBenchmarkDialog from './DeleteBenchmarkDialog';
 import {
   listCatalogue, getCatalogueItem, getCatalogueHistory, createCatalogueItem, updateCatalogueItem, deactivateCatalogueItem,
-  reactivateCatalogueItem, deleteCatalogueItem, getMetricOptions,
+  reactivateCatalogueItem, deleteCatalogueItem, getMetricOptions, type MetricOption,
   type CatalogueList, type CatalogueItem, type CatalogueDetail, type CatalogueWrite, type AuditEntry, type RowFlag,
 } from '../../lib/benchmarkImportApi';
+
+import MetricMappingSelect from '../../components/admin/MetricMappingSelect';
 
 const UNITS = ['count', 'percentage', 'ratio', 'amount_lakhs', 'days', 'years', 'option'];
 const MAP_LABEL: Record<string, { text: string; color: string }> = {
@@ -52,7 +54,7 @@ function ItemForm({ item, onClose, onSaved }: { item: CatalogueItem | null; onCl
   const [f, setF] = useState<FormState>(item ? fromItem(item) : blank());
   const [busy, setBusy] = useState(false);
   const [problems, setProblems] = useState<RowFlag[]>([]);
-  const [options, setOptions] = useState<{ metricId: string; metricName: string }[]>([]);
+  const [options, setOptions] = useState<MetricOption[]>([]);
   useEffect(() => { getMetricOptions().then(setOptions).catch(() => setOptions([])); }, []);
   const set = (patch: Partial<FormState>) => setF((s) => ({ ...s, ...patch }));
   const submit = async () => {
@@ -101,11 +103,7 @@ function ItemForm({ item, onClose, onSaved }: { item: CatalogueItem | null; onCl
             </div>
           )}
           <div style={{ gridColumn: '1 / -1' }}>{label('Analytics mapping — which institutional metric supplies the current value')}
-            <select aria-label="Analytics mapping" style={inp} value={f.computedField} onChange={(e) => set({ computedField: e.target.value })}>
-              <option value="">— Unmapped (current value will read "Insufficient data") —</option>
-              {f.computedField && !options.some((o) => o.metricId === f.computedField) && <option value={f.computedField}>{f.computedField} (not in analytics catalogue)</option>}
-              {options.map((o) => <option key={o.metricId} value={o.metricId}>{o.metricId} — {o.metricName}</option>)}
-            </select>
+            <MetricMappingSelect ariaLabel="Analytics mapping" style={inp} value={f.computedField} unit={f.scoringType === 'categorical' ? 'option' : f.unit} options={options} onChange={(v) => set({ computedField: v || '' })} />
           </div>
           <div>{label('Formula (display text only)')}<input aria-label="Formula" style={inp} value={f.formula} onChange={(e) => set({ formula: e.target.value })} /></div>
           <div>{label('Notes')}<input aria-label="Notes" style={inp} value={f.notes} onChange={(e) => set({ notes: e.target.value })} /></div>

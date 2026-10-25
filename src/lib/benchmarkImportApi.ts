@@ -100,4 +100,9 @@ export const deactivateCatalogueItem = (id: string, reason: string) => api.post<
 export const reactivateCatalogueItem = (id: string) => api.post<CatalogueDetail>(`${CAT}/${encodeURIComponent(id)}/reactivate`).then((r) => r.data);
 export const deleteCatalogueItem = (id: string) => api.delete<{ deleted: boolean; metricId: string }>(`${CAT}/${encodeURIComponent(id)}`).then((r) => r.data);
 export const getCatalogueHistory = (id: string) => api.get<AuditEntry[]>(`${CAT}/${encodeURIComponent(id)}/history`).then((r) => r.data);
-export const getMetricOptions = () => api.get<{ metricId: string; metricName: string; formulaType: string | null; supported: boolean }[]>(`${CAT}/metric-options`).then((r) => r.data);
+export interface MetricOption {
+  metricId: string; metricName: string; formulaType?: string | null; supported?: boolean; unsupportedReason?: string | null;
+  criterion?: string | null; criterionNumber?: number | null; unitKind?: string | null; description?: string;
+}
+
+export const getMetricOptions = () => api.get<MetricOption[]>(`${CAT}/metric-options`).then((r) => r.data);

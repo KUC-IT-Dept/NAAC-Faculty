@@ -28,6 +28,12 @@ const REASONS: Record<string, string> = {
   no_institutional_records: 'There are no institutional records to calculate this from.',
   calculation_failed: 'The value could not be calculated.',
   qualitative_requires_assessment: 'This is an A–E assessment; no assessment has been recorded.',
+  unit_mismatch: 'The mapped metric is in a different unit from this benchmark, so it was not compared.',
+  zero_denominator: 'A ratio or percentage has no denominator (for example no faculty in scope).',
+  component_insufficient: 'A component metric of this ratio could not be calculated.',
+  component_metric_missing: 'A component metric of this ratio is not defined.',
+  no_source_values: 'No faculty has entered the source value for this metric yet.',
+  unknown_formula_type: 'The mapped metric uses an unknown formula type.',
   value_outside_all_bands: 'The value does not fall inside any score band.',
 };
 

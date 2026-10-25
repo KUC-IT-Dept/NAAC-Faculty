@@ -238,8 +238,11 @@ app.use((err, req, res, next) => {
 
 // ── Connect to MongoDB and start server ───────────────────────────────────────
 mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/iqac")
-  .then(() => {
+  .then(async () => {
     console.log('✅ MongoDB connected');
+    // Keep the analytics metric registry in step with code (definitions only, idempotent).
+    try { await require('./modules/analytics/services/metricRegistry').syncMetricRegistry(); }
+    catch (e) { console.error('[metricRegistry] sync failed - metric list may be incomplete:', e.message); }
     app.listen(PORT, () => {
       console.log(`\n🚀 Unified server on http://localhost:${PORT}`);
       console.log(`\n   FACULTY  →  /api/faculty/auth | /api/faculty/admin | /api/faculty/me`);

@@ -450,7 +450,7 @@ router.post(
       const payload = await reportServiceV3.generateReportV3(reportType, scope, req.query);
 
       if (format === 'excel' && excelExporter) {
-        const buffer = excelExporter.exportToExcel(payload.rows, payload.title);
+        const buffer = excelExporter.exportToExcel(payload.rows, payload.title, payload);
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename="${reportType}-report.xlsx"`);
         return res.send(buffer);
@@ -464,7 +464,7 @@ router.post(
       }
 
       if (pdfExporter) {
-        const buffer = await pdfExporter.exportToPdf(payload.rows, payload.title);
+        const buffer = await pdfExporter.exportToPdf(payload.rows, payload.title, payload);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${reportType}-report.pdf"`);
         return res.send(buffer);
