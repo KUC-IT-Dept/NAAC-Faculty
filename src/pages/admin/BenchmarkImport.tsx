@@ -10,6 +10,7 @@ import { Upload, FilePlus, CheckCircle2, Rocket, RotateCcw, XCircle, Plus, Save,
 import DeleteBenchmarkDialog from './DeleteBenchmarkDialog';
 import AppLayout from '../../components/AppLayout';
 import BenchmarkCatalogue from './BenchmarkCatalogue';
+import MetricMappingSelect from '../../components/admin/MetricMappingSelect';
 import {
   getImportStatus, listImports, getImport, uploadBenchmarkPdf, createManualDraft, updateImportRow, addImportRow,
   approveImport, activateImport, rollbackImport, rejectImport, deleteImport, getAuditLog, previewActivation, fetchSourcePdfUrl,
@@ -69,7 +70,7 @@ function RowEditor({ importId, row, editable, sourceStored, onSaved }: { importI
       <td style={{ ...cell, minWidth: 260 }}>
         <textarea style={{ ...inp, minHeight: 54 }} disabled={!editable} value={draft.description} onChange={(e) => set({ description: e.target.value })} />
         <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{draft.criterion} · {draft.keyIndicator}{row.page ? ` · p.${row.page}` : ''}</div>
-        <input style={{ ...inp, marginTop: 3 }} disabled={!editable} placeholder="Analytics metric (computedField)" value={draft.computedField ?? ''} onChange={(e) => set({ computedField: e.target.value || null })} />
+        <MetricMappingSelect ariaLabel="Analytics metric" style={{ ...inp, marginTop: 3 }} disabled={!editable} value={draft.computedField ?? null} unit={draft.scoringType === 'categorical' ? 'option' : draft.unit} unmappedLabel="Unmapped analytics metric" onChange={(v) => set({ computedField: v })} />
       </td>
       <td style={{ ...cell, width: 110 }}>
         <select style={inp} disabled={!editable} value={draft.unit} onChange={(e) => set({ unit: e.target.value })}>{UNITS.map((u) => <option key={u}>{u}</option>)}</select>

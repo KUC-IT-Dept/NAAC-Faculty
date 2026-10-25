@@ -241,17 +241,20 @@ async function patentsReport(scope, query) {
 }
 
 async function benchmarkReport(scope, query) {
+  const { REASONS } = require('./assessmentReportService');
   const benchmarks = await getAllBenchmarks(scope, query);
 
   const rows = benchmarks.map(b => ({
     'Metric ID':       b.metricId,
     'Metric Name':     b.metricName,
     'Criterion':       b.criterion,
-    'Current Value':   b.currentValue,
+    'Unit':            b.unit,
+    'Current Value':   b.insufficientData ? 'Insufficient data' : b.currentValue,
     'Benchmark Value': b.benchmarkValue,
     'Gap':             b.gap,
-    'Status':          b.status,
+    'Status':          b.statusLabel || b.status,
     'Score':           b.score,
+    'Why no value':    b.insufficientData ? (REASONS[b.insufficientReason] || [b.insufficientReason || ''])[0] : '',
     'Recommendation':  b.recommendation,
   }));
 

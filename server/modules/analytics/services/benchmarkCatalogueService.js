@@ -129,10 +129,21 @@ async function history(metricId) {
   return Array.isArray(rows) ? rows : [];
 }
 
+/**
+ * Every analytics metric defined in the registry (never a hard-coded subset), tagged with its NAAC
+ * criterion and unit so the mapping picker can group by criterion and flag unit-incompatible choices.
+ */
 async function metricOptions() {
   const metrics = await Metric.find().lean();
-  return metrics.map((m) => ({ metricId: m.metricId, metricName: m.metricName, formulaType: m.formulaType || null, supported: m.supported !== false }))
-    .sort((a, b) => (a.metricId < b.metricId ? -1 : 1));
+  const { normalizeCriterion } = require('./metricsCatalogService');
+  const { metricKind } = require('./metricUnits');
+  return metrics.map((m) => ({
+    metricId: m.metricId, metricName: m.metricName, formulaType: m.formulaType || null,
+    supported: m.supported !== false && !(Array.isArray(m.missingFields) && m.missingFields.length),
+    unsupportedReason: Array.isArray(m.missingFields) && m.missingFields.length ? m.missingFields.join('; ') : null,
+    criterion: m.criterion || null, criterionNumber: normalizeCriterion(m),
+    unitKind: metricKind(m), description: m.description || '',
+  })).sort((a, b) => (a.criterionNumber || 99) - (b.criterionNumber || 99) || (a.metricId < b.metricId ? -1 : 1));
 }
 
 // ── Row <-> document helpers ─────────────────────────────────────────────────

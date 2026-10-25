@@ -11,6 +11,7 @@ const {
   patentsReport,
   benchmarkReport,
 } = require('./reportService');
+const { assessmentReport } = require('./assessmentReportService');
 
 function scopeFilter(scope) {
   if (scope && scope.level === 'department' && scope.department) {
@@ -25,6 +26,7 @@ const REPORT_TYPES = [
   { key: 'research-output', label: 'Research Publications Report', formats: ['pdf', 'excel', 'csv'], scopes: ['department', 'university', 'institution', 'full'] },
   { key: 'projects', label: 'Research Projects Report', formats: ['pdf', 'excel', 'csv'], scopes: ['department', 'university', 'institution', 'full'] },
   { key: 'patents', label: 'Patents Report', formats: ['pdf', 'excel', 'csv'], scopes: ['department', 'university', 'institution', 'full'] },
+  { key: 'institutional-assessment', label: 'NAAC Institutional Assessment Report', description: 'Executive summary, criterion-wise results, benchmark gaps, missing-data reasons and recommendations.', formats: ['pdf', 'excel', 'csv'], scopes: ['university', 'institution', 'full'] },
   { key: 'benchmark', label: 'NAAC Benchmark Analysis Report', formats: ['pdf', 'excel', 'csv'], scopes: ['university', 'institution', 'full'] },
   { key: 'awards', label: 'Awards & Recognitions Report', formats: ['pdf', 'excel', 'csv'], scopes: ['department', 'university', 'institution', 'full'] },
   { key: 'books', label: 'Books Authored/Edited Report', formats: ['pdf', 'excel', 'csv'], scopes: ['department', 'university', 'institution', 'full'] },
@@ -68,11 +70,11 @@ async function booksReport(scope, query) {
 }
 
 async function awardsReport(scope, query) {
-  return listReportGenerator(scope, query, 'recognitions', null, rec => ({
-    'Title/Award': rec.title,
+  return listReportGenerator(scope, query, 'awards', null, rec => ({
+    'Title/Award': rec.name,
     'Awarding Agency': rec.awardingAgency,
     'Level': rec.level,
-    'Year': rec.year,
+    'Year': rec.yearReceived,
   }), 'Awards & Recognitions Report');
 }
 
@@ -83,6 +85,7 @@ const GENERATORS = {
   'projects': projectsReport,
   'patents': patentsReport,
   'benchmark': benchmarkReport,
+  'institutional-assessment': assessmentReport,
   'awards': awardsReport,
   'books': booksReport,
 };

@@ -12,6 +12,18 @@ const { extractExperienceFilter, isInExperienceRange } = require('./filterServic
 // eliminating redundant Metric.findOne in batch callers like /dashboard-v3.
 // calculateMetric remains a thin wrapper for standalone/V1/V2 callers.
 
+// Parses a user-typed amount such as "5,00,000", "₹ 2,50,000" or "Rs. 1.5". Returns null when no
+// number can be read, so callers skip the entry instead of poisoning a whole sum with NaN.
+function parseAmount(raw) {
+    if (raw === null || raw === undefined) return null;
+    if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
+    const m = String(raw).replace(/,/g, '').match(/-?\d+(?:\.\d+)?|-?\.\d+/);
+    const cleaned = m ? m[0] : '';
+    if (cleaned === '') return null;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+}
+
 async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     if (!metric) {
         return null;
@@ -21,6 +33,8 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     filter = cleanFilter;
 
     let value = 0;
+    // Set when 0 would be a fabricated answer (no denominator, no data, unknown formula).
+    let insufficientReason = null;
 
      {
 
@@ -62,12 +76,9 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
 
                     const subtotal = items.reduce((sum, item) => {
 
-                        const amount = Number(
-                            String(item[metric.sumField] || 0)
-                                .replace(/,/g, "")
-                        );
+                        const amount = parseAmount(item[metric.sumField]);
 
-                        return sum + amount;
+                        return sum + (amount === null ? 0 : amount);
 
                     }, 0);
 
@@ -139,6 +150,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
             return field !== undefined && field !== null && !(Array.isArray(field) && field.length === 0);
         }).length;
 
+        if (totalFaculty === 0) insufficientReason = 'zero_denominator';
         value =
             totalFaculty === 0
                 ? 0
@@ -165,8 +177,12 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
             filter
         );
 
+    if (!numeratorMetric || !denominatorMetric) insufficientReason = 'component_metric_missing';
+    else if (numeratorMetric.insufficientReason || denominatorMetric.insufficientReason) insufficientReason = 'component_insufficient';
+    else if (!(denominatorMetric.value > 0)) insufficientReason = 'zero_denominator';
+
     value =
-        denominatorMetric?.value > 0
+        denominatorMetric?.value > 0 && numeratorMetric
             ? Number(
                 (
                     numeratorMetric.value /
@@ -225,8 +241,12 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
             filter
         );
 
+    if (!numerator || !denominator) insufficientReason = 'component_metric_missing';
+    else if (numerator.insufficientReason || denominator.insufficientReason) insufficientReason = 'component_insufficient';
+    else if (!(denominator.value > 0)) insufficientReason = 'zero_denominator';
+
     value =
-        denominator?.value > 0
+        denominator?.value > 0 && numerator
             ? Number(
                 (
                     numerator.value /
@@ -264,6 +284,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
                     if (!isNaN(num) && num >= 0) { total += num; count++; }
                 }
             }
+            if (count === 0) insufficientReason = 'no_source_values';
             value = count > 0 ? Number((total / count).toFixed(4)) : 0;
         }
         break;
@@ -288,6 +309,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
         break;
 
             default:
+                insufficientReason = 'unknown_formula_type';
                 value = 0;
         }
     }
@@ -321,6 +343,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
         metricId: metric.metricId,
         metricName: metric.metricName,
         value,
+        ...(insufficientReason ? { insufficientReason } : {}),
         ...(normalizationSkipped ? { normalizationSkipped: true } : {}),
     };
 }
@@ -567,6 +590,7 @@ async function getInstitutionalSummary() {
 }
 
 module.exports = {
+    parseAmount,
     calculateMetric,
     calculateMetricFromDoc,
     getStudentProfileCompletion,
