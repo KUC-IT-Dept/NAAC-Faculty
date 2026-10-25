@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import qaiLogo from '../../assets/qai-logo-transparent.png';
 import AppLayout from '../../components/AppLayout';
+
+// PRESENTATION_MODE: Set to true to restore company logo after demonstration
+const SHOW_COMPANY_LOGO = false;
 import OrgHierarchy from '../../components/admin/OrgHierarchy';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
@@ -1106,7 +1109,11 @@ export default function VCDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>Qualifications</span>
               <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(16,185,129,0.08)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src={qaiLogo} alt="Logo" style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                {SHOW_COMPANY_LOGO ? (
+                  <img src={qaiLogo} alt="Logo" style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                ) : (
+                  <GraduationCap size={16} />
+                )}
               </div>
             </div>
             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', marginTop: '4px' }}>{stats.totalQualifications}</div>

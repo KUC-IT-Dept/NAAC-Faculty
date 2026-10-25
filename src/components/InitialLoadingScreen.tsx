@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
 import './InitialLoadingScreen.css';
 
+// PRESENTATION_MODE: Set to true to restore company logo after demonstration
+const SHOW_COMPANY_LOGO = false;
+
 interface Props {
   /** Fatal startup error. Stops the animation and shows a Retry button. */
   error?: string;
@@ -44,13 +47,15 @@ export default function InitialLoadingScreen({ error, onRetry, progress = 0, rea
           <div className="qai-ring__arc" />
           <span className="qai-ring__head" />
         </div>
-        <div className="qai-logo">
-          <img src={qaiLogo} alt="" draggable={false} decoding="async" />
-        </div>
+        {SHOW_COMPANY_LOGO && (
+          <div className="qai-logo">
+            <img src={qaiLogo} alt="" draggable={false} decoding="async" />
+          </div>
+        )}
       </div>
 
       <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
-        QAI / QARTINT
+        {SHOW_COMPANY_LOGO ? 'QAI / QARTINT' : 'IQAC Faculty Profile Portal'}
       </span>
 
       {error ? (

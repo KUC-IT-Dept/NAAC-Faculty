@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import qaiLogo from '../../assets/qai-logo-transparent.png';
-import kannurLogoOld from '../../assets/kannur-university-logo-old.png';
+// PRESENTATION_MODE: Unused logo imports commented out for presentation
+// import qaiLogo from '../../assets/qai-logo-transparent.png';
+// import kannurLogoOld from '../../assets/kannur-university-logo-old.png';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/AppLayout';
 import { useAuth } from '../../context/AuthContext';
