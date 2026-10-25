@@ -6,6 +6,9 @@ import { GraduationCap, Lock, Mail, ArrowRight, BookOpen, Award, Users } from 'l
 import qaiLogo from '../assets/qai-logo-transparent.png';
 import kannurLogo from '../assets/kannur-university-logo.png';
 
+// PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
+const SHOW_BRAND_LOGOS = false;
+
 const features = [
   { icon: <BookOpen size={18} />, text: 'Comprehensive faculty profile management' },
   { icon: <Award size={18} />, text: 'Research, publications & achievements tracking' },
@@ -60,10 +63,12 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       {/* Left panel */}
-      <div className="login-left">
-        <div className="login-left-header">
-          <img src={qaiLogo} alt="QAI / QARTINT Logo" className="login-left-logo" />
-        </div>
+      <div className="login-left" style={!SHOW_BRAND_LOGOS ? { paddingTop: 48 } : undefined}>
+        {SHOW_BRAND_LOGOS && (
+          <div className="login-left-header">
+            <img src={qaiLogo} alt="QAI / QARTINT Logo" className="login-left-logo" />
+          </div>
+        )}
         <div style={{ maxWidth: 440, width: '100%', position: 'relative', zIndex: 1 }}>
           <div className="login-tagline">IQAC Faculty<br />Profile Portal</div>
           <p className="login-desc">
@@ -85,9 +90,11 @@ export default function LoginPage() {
       {/* Right panel */}
       <div className="login-right">
         <div style={{ marginBottom: 22 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <img src={kannurLogo} alt="Kannur University Logo" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
-          </div>
+          {SHOW_BRAND_LOGOS && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <img src={kannurLogo} alt="Kannur University Logo" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
+            </div>
+          )}
           <h2 style={{ fontSize: '1.65rem', marginBottom: 4, color: 'var(--primary-dark)' }}>Welcome back</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Sign in to access your faculty profile dashboard.</p>
         </div>

@@ -1,9 +1,12 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, PanelLeftOpen, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen, ShieldCheck } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
 import kannurLogoOld from '../assets/kannur-university-logo-old.png';
+
+// PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
+const SHOW_BRAND_LOGOS = false;
 
 type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
 
@@ -173,13 +176,17 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             </button>
           ) : (
             <button type="button" className="sidebar-logo-button" onClick={() => setCollapsed(false)}>
-              <img src={qaiLogo} alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+              {SHOW_BRAND_LOGOS ? (
+                <img src={qaiLogo} alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+              ) : (
+                <PanelLeftOpen size={20} />
+              )}
             </button>
           )}
         </div>
 
         <nav className="sidebar-nav">
-          {!collapsed && (
+          {SHOW_BRAND_LOGOS && !collapsed && (
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', width: '100%', paddingTop: '8px' }}>
               <img src={qaiLogo} alt="QAI Logo" style={{ width: '55px', height: 'auto', objectFit: 'contain' }} />
             </div>
@@ -279,7 +286,9 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         <header className="top-bar">
           <span className="top-bar-title">{title}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src={kannurLogoOld} alt="Kannur University" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+            {SHOW_BRAND_LOGOS && (
+              <img src={kannurLogoOld} alt="Kannur University" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+            )}
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
               {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Vice Chancellor' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}
             </span>
