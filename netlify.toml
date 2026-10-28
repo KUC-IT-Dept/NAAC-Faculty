@@ -5,16 +5,20 @@
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "NODE_ENV,PORT,VITE_API_URL"
 
-# ── Proxy all API calls to the backend server ───────────────────────────────
+# ── Proxy all API calls to the Devagiri College backend ─────────────────────
+# Replace with the actual Render service URL once created (Render auto-generates
+# this; e.g. https://devagiri-college-backend.onrender.com). This is a
+# devagiri-college branch-only file — the Kannur deployment's netlify.toml on
+# its own branch is untouched.
 [[redirects]]
   from = "/api/*"
-  to = "https://naac-faculty-vr72.onrender.com/api/:splat"
+  to = "https://REPLACE-WITH-DEVAGIRI-RENDER-URL.onrender.com/api/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/uploads/*"
-  to = "https://naac-faculty-vr72.onrender.com/uploads/:splat"
+  to = "https://REPLACE-WITH-DEVAGIRI-RENDER-URL.onrender.com/uploads/:splat"
   status = 200
   force = true
 

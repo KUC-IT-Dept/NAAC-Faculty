@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, PanelLeftOpen, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen, ShieldCheck } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
-import kannurLogoOld from '../assets/kannur-university-logo-old.png';
+import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
 const SHOW_BRAND_LOGOS = false;
@@ -148,8 +148,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
     user?.role === 'librarian' ? librarianNav :
     user?.role === 'mmttc_director' ? mmttcDirectorNav :
     buildFacultyNav(user?.modulePermissions);
-  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User');
-  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User';
+  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Principal' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User');
+  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Principal' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User';
   const initials = displayName.slice(0, 2).toUpperCase();
   const editProfileBase = user?.role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   const isActive = (item: NavItem) => item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
@@ -287,10 +287,10 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
           <span className="top-bar-title">{title}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {SHOW_BRAND_LOGOS && (
-              <img src={kannurLogoOld} alt="Kannur University" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+              <img src={devagiriLogo} alt="Devagiri College (placeholder logo)" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
             )}
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
-              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Vice Chancellor' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}
+              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Principal' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}
             </span>
           </div>
         </header>

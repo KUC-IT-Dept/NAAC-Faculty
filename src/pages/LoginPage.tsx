@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { GraduationCap, Lock, Mail, ArrowRight, BookOpen, Award, Users } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
-import kannurLogo from '../assets/kannur-university-logo.png';
+import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
 const SHOW_BRAND_LOGOS = false;
@@ -33,7 +33,7 @@ export default function LoginPage() {
         toast.success('Welcome back, Admin!');
         navigate('/admin');
       } else if (u.role === 'vc') {
-        toast.success('Welcome back, Vice Chancellor!');
+        toast.success('Welcome back, Principal!');
         navigate('/vc');
       } else if (u.role === 'hod') {
         toast.success('Welcome back, HOD!');
@@ -92,7 +92,7 @@ export default function LoginPage() {
         <div style={{ marginBottom: 22 }}>
           {SHOW_BRAND_LOGOS && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <img src={kannurLogo} alt="Kannur University Logo" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
+              <img src={devagiriLogo} alt="Devagiri College Logo (placeholder)" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
             </div>
           )}
           <h2 style={{ fontSize: '1.65rem', marginBottom: 4, color: 'var(--primary-dark)' }}>Welcome back</h2>
@@ -150,7 +150,7 @@ export default function LoginPage() {
           <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Demo Credentials</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {[
-              { label: 'Vice Chancellor', email: 'vc@profcv.edu', pass: 'password123' },
+              { label: 'Principal', email: 'vc@profcv.edu', pass: 'password123' },
               { label: 'Admin', email: 'admin@profcv.edu', pass: 'password123' },
               { label: 'HOD (Computer Science)', email: 'hod_it@profcv.edu', pass: 'password123' },
               { label: 'Faculty (Dr. Priya Sharma)', email: 'dr.priya.sharma@university.edu.in', pass: 'password123' },
