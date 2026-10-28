@@ -12,13 +12,13 @@
 # its own branch is untouched.
 [[redirects]]
   from = "/api/*"
-  to = "https://devagiri-college-backend.onrender.com"
+  to = "https://devagiri-college-backend.onrender.com/api/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/uploads/*"
-  to = "https://devagiri-college-backend.onrender.com"
+  to = "https://devagiri-college-backend.onrender.com/uploads/:splat"
   status = 200
   force = true
 
