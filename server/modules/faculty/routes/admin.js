@@ -15,7 +15,9 @@ router.use(auth, adminOrVc);
 // GET /api/admin/faculty
 router.get('/faculty', async (req, res) => {
   try {
-    const users = await User.find({ role: 'faculty' }).select('-password').sort({ createdAt: -1 });
+    // Include HOD accounts as well: they are User records with their own unique email
+    // and must be manageable from the same account list.
+    const users = await User.find({ role: { $in: ['faculty', 'hod'] } }).select('-password').sort({ createdAt: -1 });
     const profiles = await Faculty.find({ userId: { $in: users.map(u => u._id) } })
       .select('userId personalInfo.fullName personalInfo.designation personalInfo.department personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
     const profileMap = {};
@@ -48,28 +50,36 @@ router.post('/faculty', async (req, res) => {
       username = `${baseUsername}${counter++}`;
     }
 
-    const hashedPassword = await bcrypt.hash('password123', 12);
-    const user = await User.create({
-      name: fullName || username,
-      username,
-      email: email.trim().toLowerCase(),
-      password: hashedPassword,
-      role: 'faculty',
-      department: trimmedDept,
-      isFirstLogin: true,
-    });
+    let user;
+    try {
+      const hashedPassword = await bcrypt.hash('password123', 12);
+      user = await User.create({
+        name: fullName || username,
+        username,
+        email: email.trim().toLowerCase(),
+        password: hashedPassword,
+        role: 'faculty',
+        department: trimmedDept,
+        isFirstLogin: true,
+      });
 
-    // Persist department exactly where updateFacultyDepartment effectively does:
-    // User.department and Faculty.employmentDetails.department (the field analytics
-    // uses). Note: personalInfo.department is NOT in the Faculty schema, so Mongoose
-    // strict mode drops it on both create and edit; it is deliberately not written here.
-    const adminFullName = fullName ? `temp--${fullName}` : '';
-    await Faculty.create({
-      userId: user._id,
-      username: user.username,
-      personalInfo: { fullName: adminFullName, officialEmail: email.trim().toLowerCase() },
-      employmentDetails: { department: trimmedDept },
-    });
+      // Persist department in both canonical user and faculty employment data.
+      const adminFullName = fullName ? `temp--${fullName}` : '';
+      await Faculty.create({
+        userId: user._id,
+        username: user.username,
+        personalInfo: { fullName: adminFullName, officialEmail: email.trim().toLowerCase() },
+        employmentDetails: { department: trimmedDept },
+      });
+    } catch (creationError) {
+      // Prevent an orphaned User (and a permanently reserved email) if profile
+      // creation fails after the account has already been inserted.
+      if (user?._id) {
+        await Faculty.deleteMany({ userId: user._id }).catch(() => {});
+        await User.deleteOne({ _id: user._id }).catch(() => {});
+      }
+      throw creationError;
+    }
 
     res.status(201).json({
       message: 'Faculty account created',
@@ -147,12 +157,20 @@ router.patch('/faculty/:id/make-hod', async (req, res) => {
 // DELETE /api/admin/faculty/:id
 router.delete('/faculty/:id', async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.params.id, role: 'faculty' });
-    if (!user) return res.status(404).json({ message: 'Faculty not found' });
-    await Faculty.deleteOne({ userId: user._id });
+    const user = await User.findOne({ _id: req.params.id, role: { $in: ['faculty', 'hod'] } });
+    if (!user) return res.status(404).json({ message: 'Faculty or HOD account not found' });
+
+    // Remove the HOD reference before deleting the account so departments do not
+    // retain a dangling ObjectId. Keep department and student records intact.
+    await Department.updateMany({ hod: user._id }, { $set: { hod: null } });
+    await Faculty.deleteMany({ userId: user._id });
     await User.deleteOne({ _id: user._id });
-    res.json({ message: 'Faculty account deleted' });
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+
+    res.json({ message: `${user.role === 'hod' ? 'HOD' : 'Faculty'} account and linked faculty profile deleted` });
+  } catch (err) {
+    console.error('[DELETE /admin/faculty/:id]', err);
+    res.status(500).json({ message: 'Server error while deleting account' });
+  }
 });
 
 // PUT & PATCH /api/faculty/admin/faculty/:id/department

@@ -102,32 +102,49 @@ router.post('/', adminOrVc, async (req, res) => {
       username = `${baseUsername}${counter++}`;
     }
 
-    // Create HOD User
-    const hashedPassword = await bcrypt.hash('password123', 12);
-    const hodUser = await User.create({
-      name: hodFullName || username,
-      username,
-      email,
-      password: hashedPassword,
-      role: 'hod',
-      isFirstLogin: true,
-    });
+    // Create the HOD account, profile and department as one logical operation.
+    // Mongo transactions are not assumed because some deployments use standalone
+    // MongoDB. If a later write fails, compensate by removing earlier writes.
+    let hodUser;
+    try {
+      const hashedPassword = await bcrypt.hash('password123', 12);
+      hodUser = await User.create({
+        name: hodFullName || username,
+        username,
+        email,
+        password: hashedPassword,
+        role: 'hod',
+        isFirstLogin: true,
+      });
 
-    // Create Faculty Profile for HOD
-    const adminFullName = hodFullName ? `temp--${hodFullName}` : '';
-    await Faculty.create({
-      userId: hodUser._id,
-      username: hodUser.username,
-      personalInfo: { fullName: adminFullName, officialEmail: email },
-      employmentDetails: { department: name.trim(), designation: 'HOD' },
-    });
+      const adminFullName = hodFullName ? `temp--${hodFullName}` : '';
+      await Faculty.create({
+        userId: hodUser._id,
+        username: hodUser.username,
+        personalInfo: { fullName: adminFullName, officialEmail: email },
+        employmentDetails: { department: name.trim(), designation: 'HOD' },
+      });
 
-    // Create Department
-    const department = await Department.create({
-      name: name.trim(),
-      hod: hodUser._id,
-      createdBy: req.user._id,
-    });
+      const department = await Department.create({
+        name: name.trim(),
+        hod: hodUser._id,
+        createdBy: req.user._id,
+      });
+
+      return res.status(201).json({
+        message: 'Department and HOD account created successfully',
+        department,
+        hodUser: { id: hodUser._id, username: hodUser.username, email: hodUser.email },
+        defaultPassword: 'password123',
+      });
+    } catch (creationError) {
+      if (hodUser?._id) {
+        await Department.deleteMany({ hod: hodUser._id }).catch(() => {});
+        await Faculty.deleteMany({ userId: hodUser._id }).catch(() => {});
+        await User.deleteOne({ _id: hodUser._id }).catch(() => {});
+      }
+      throw creationError;
+    }
 
     res.status(201).json({
       message: 'Department and HOD account created successfully',
@@ -146,7 +163,18 @@ router.delete('/:id', adminOrVc, async (req, res) => {
   try {
     const dept = await Department.findByIdAndDelete(req.params.id);
     if (!dept) return res.status(404).json({ message: 'Department not found' });
-    res.json({ message: 'Department deleted successfully' });
+
+    // Deleting a department does not delete its HOD's login account or profile.
+    // The HOD is demoted to a regular faculty account so their email remains
+    // reusable only after the account itself is explicitly deleted.
+    if (dept.hod) {
+      await User.updateOne({ _id: dept.hod, role: 'hod' }, { $set: { role: 'faculty' } });
+      await Faculty.updateOne(
+        { userId: dept.hod },
+        { $set: { 'employmentDetails.designation': 'Faculty' } }
+      );
+    }
+    res.json({ message: 'Department deleted. The HOD account was retained as a faculty account.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
