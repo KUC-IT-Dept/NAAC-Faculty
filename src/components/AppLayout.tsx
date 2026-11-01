@@ -6,7 +6,7 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
-const SHOW_BRAND_LOGOS = false;
+const SHOW_BRAND_LOGOS = true;
 
 type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
 
@@ -287,7 +287,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
           <span className="top-bar-title">{title}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {SHOW_BRAND_LOGOS && (
-              <img src={devagiriLogo} alt="Devagiri College (placeholder logo)" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+              <img src={devagiriLogo} alt="St. Joseph's College (Autonomous), Devagiri logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
             )}
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
               {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Principal' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}

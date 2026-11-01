@@ -7,7 +7,7 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
-const SHOW_BRAND_LOGOS = false;
+const SHOW_BRAND_LOGOS = true;
 
 const features = [
   { icon: <BookOpen size={18} />, text: 'Comprehensive faculty profile management' },
@@ -92,7 +92,7 @@ export default function LoginPage() {
         <div style={{ marginBottom: 22 }}>
           {SHOW_BRAND_LOGOS && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <img src={devagiriLogo} alt="Devagiri College Logo (placeholder)" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
+              <img src={devagiriLogo} alt="St. Joseph's College (Autonomous), Devagiri logo" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
             </div>
           )}
           <h2 style={{ fontSize: '1.65rem', marginBottom: 4, color: 'var(--primary-dark)' }}>Welcome back</h2>
