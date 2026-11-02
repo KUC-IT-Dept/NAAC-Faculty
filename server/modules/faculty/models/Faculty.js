@@ -573,9 +573,17 @@ const facultySchema = new mongoose.Schema({
 
   // Section 4: Employment Details (current)
   employmentDetails: {
-    employeeId: { type: String, default: '' },
+    employeeId: { type: String, default: '' }, // optional — not every institution assigns one
     designation: { type: String, default: '' },
-    department: { type: String, default: '' },
+    department: { type: String, default: '' }, // display name — kept in sync with departmentId at save time
+    // Stable reference into the institution's Department Management module
+    // (modules/faculty/models/Department.js). `department` above is kept as
+    // a plain string for backward compatibility with legacy profiles and
+    // with existing name-based queries elsewhere in the codebase (faculty
+    // listing/overview, directory grouping), but is resolved from this id
+    // at save time so a department rename is reflected without the faculty
+    // member having to reselect anything.
+    departmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', default: null },
     institution: { type: String, default: '' },
     affiliatedUniversity: { type: String, default: '' },
     dateOfAppointment: { type: String, default: '' },
