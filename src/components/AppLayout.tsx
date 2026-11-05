@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, PanelLeftOpen, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, PanelLeftOpen, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen, ShieldCheck, CalendarDays } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
 import devagiriLogo from '../assets/devagiri-college-logo.png';
 
@@ -37,6 +37,7 @@ const adminNav: NavItem[] = [
 
 const facultyBaseNav: NavItem[] = [
   { label: 'Dashboard', path: '/faculty/dashboard', icon: <LayoutDashboard size={18} /> },
+  { label: 'My Events', path: '/faculty/events', icon: <CalendarDays size={18} /> },
   { label: 'Edit Profile', path: '/faculty/profile/edit', icon: <UserPen size={18} /> },
 ];
 
@@ -70,6 +71,9 @@ const hodNav: NavItem[] = [
   { label: 'Org Hierarchy', path: '/hod/hierarchy', icon: <GitBranch size={18} /> },
   { label: 'Department Faculty', path: '/hod/faculty', icon: <Users size={18} /> },
   { label: 'Department Students', path: '/hod/students', icon: <Users size={18} /> },
+  // Campus Events & Evidence Management (new module — see src/pages/hod/events/)
+  { label: 'Campus Events', path: '/hod/events', icon: <CalendarDays size={18} /> },
+  { label: 'My Assigned Events', path: '/faculty/events', icon: <CalendarDays size={18} /> },
   { label: 'Notifications', path: '/hod/notifications', icon: <Bell size={18} /> },
   { label: 'Analytics', path: '/hod/analytics', icon: <BarChart2 size={18} /> },
 ];

@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     let facultyProfile = null;
-    if (user.role === 'faculty' || user.role === 'hod') {
+    if (user.role === 'faculty') {
       facultyProfile = await Faculty.findOne({ userId: user._id }).select('profileComplete completionPercentage personalInfo.fullName personalInfo.photoUrl employmentDetails.department');
     }
     const token = generateToken(user);
@@ -60,7 +60,7 @@ router.post('/login', async (req, res) => {
       role: user.role,
     });
 
-    res.json({ token, user: { id: user._id, username: user.username, email: user.email, role: user.role, isFirstLogin: user.isFirstLogin, isActive: user.isActive }, faculty: facultyProfile });
+    res.json({ token, user: { id: user._id, username: user.username, email: user.email, role: user.role, department: user.department, isFirstLogin: user.isFirstLogin, isActive: user.isActive }, faculty: facultyProfile });
   } catch (err) { 
     console.error('[auth.login] Error:', err); 
     res.status(500).json({ message: 'Server error' }); 
@@ -102,7 +102,7 @@ router.get('/me', auth, async (req, res) => {
   try {
     const user = req.user;
     let facultyProfile = null;
-    if (user.role === 'faculty' || user.role === 'hod') {
+    if (user.role === 'faculty') {
       facultyProfile = await Faculty.findOne({ userId: user._id }).select('profileComplete completionPercentage personalInfo.fullName personalInfo.photoUrl employmentDetails.department');
     }
     res.json({ user, faculty: facultyProfile });

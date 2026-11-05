@@ -493,6 +493,16 @@ const facultySchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   profileComplete: { type: Boolean, default: false },
   completionPercentage: { type: Number, default: 0 },
+
+  // ── Campus Events & Evidence Management: assignment eligibility ──────────
+  // Additive, backward-compatible. Set to false by the deadline-enforcement
+  // job when this faculty member misses a 48-hour report deadline as lead;
+  // restored to true the moment they submit the overdue report (not on HOD
+  // approval — see Part 6 of the module spec). HOD emergency override can
+  // also restore it, with a mandatory reason recorded in AuditLog.
+  eventAssignmentEligible: { type: Boolean, default: true },
+  eventIneligibleReason: { type: String, default: '' },
+  eventIneligibleSince: { type: Date, default: null },
   visibility: { type: visibilitySchema, default: () => ({}) },
   skippedSections: { type: [String], default: [] },
 

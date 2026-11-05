@@ -392,8 +392,9 @@ export default function OrgHierarchy() {
       if (deptRes && Array.isArray(deptRes.data)) {
         allDeptNames = deptRes.data.map((d: any) => d.name);
       } else {
-        // Fallback for HOD: just extract from their own faculty list
+        // Fallback for HOD: just extract from their own faculty list + HOD's own department
         const depts = new Set<string>();
+        if (user?.department) depts.add(user.department);
         facRes.data.forEach((f: any) => {
           if (f.profile?.employmentDetails?.department) depts.add(f.profile.employmentDetails.department);
         });

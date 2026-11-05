@@ -10,6 +10,7 @@
     "seed:benchmarks": "node seeders/benchmarkSeeder.js",
     "seed:data": "node seeders/analyticsDataSeeder.js",
     "seed:v3metrics": "node seeders/analyticsV3MetricSeeder.js",
+    "seed:event-venues": "node seeders/eventVenueSeeder.js",
     "seed:all": "node seeders/runAllSeeders.js",
     "seed:dry": "node seeders/runAllSeeders.js --dry-run"
   },

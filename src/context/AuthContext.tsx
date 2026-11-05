@@ -16,6 +16,7 @@ interface AuthUser {
   role: 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
   isFirstLogin: boolean;
   isActive: boolean;
+  department?: string;
   // Present for 'staff' users (and harmless/absent for others). Mirrors
   // auth/models/User.model.js's modulePermissions field exactly - this is
   // the existing backend permission model, not a new frontend one.

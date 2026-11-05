@@ -17,6 +17,9 @@ import PublicProfile from './pages/PublicProfile';
 import VCDashboard from './pages/vc/VCDashboard';
 import DepartmentDetails from './pages/vc/DepartmentDetails';
 import HODDashboard from './pages/hod/HODDashboard';
+import EventsHub from './pages/hod/events/EventsHub';
+import FacultyEventsHome from './pages/faculty/events/FacultyEventsHome';
+import EventReportForm from './pages/faculty/events/EventReportForm';
 import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
 import LibraryPage from './pages/institutional/LibraryPage';
 import MMTTCPage from './pages/institutional/MMTTCPage';
@@ -111,6 +114,9 @@ function AppRoutes() {
           responsibility, on top of the 403 the backend itself returns. */}
       <Route path="/faculty/library" element={<ProtectedRoute role="faculty"><LibraryPage /></ProtectedRoute>} />
       <Route path="/faculty/mmttc" element={<ProtectedRoute role="faculty"><MMTTCPage /></ProtectedRoute>} />
+      {/* Campus Events & Evidence Management: HOD can also be lead/support faculty on their own bookings, so allow both roles. */}
+      <Route path="/faculty/events" element={<ProtectedRoute role={['faculty', 'hod']}><FacultyEventsHome /></ProtectedRoute>} />
+      <Route path="/faculty/events/:bookingId" element={<ProtectedRoute role={['faculty', 'hod']}><EventReportForm /></ProtectedRoute>} />
 
       {/* VC */}
       <Route path="/vc" element={<Navigate to="/vc/hierarchy" replace />} />
@@ -119,6 +125,7 @@ function AppRoutes() {
 
       {/* HOD */}
       <Route path="/hod" element={<Navigate to="/hod/hierarchy" replace />} />
+      <Route path="/hod/events" element={<ProtectedRoute role="hod"><EventsHub /></ProtectedRoute>} />
       <Route path="/hod/:tabId" element={<ProtectedRoute role="hod"><HODDashboard /></ProtectedRoute>} />
 
       {/* Analytics — accessible by hod, vc, admin */}

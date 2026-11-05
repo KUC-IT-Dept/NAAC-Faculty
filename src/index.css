@@ -1598,6 +1598,13 @@ tbody tr:last-child td {
   border-top-color: var(--primary);
 }
 
+/* Generic spin utility for icon components (e.g. lucide-react Loader2),
+   reusing the existing @keyframes spin above. */
+.spin {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
 /* ── Utilities ─────────────────────────────────────────────── */
 .flex {
   display: flex;

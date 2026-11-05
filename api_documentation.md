@@ -57,7 +57,7 @@ All API requests must include the `Bearer <token>` in the Authorization header u
 | **Admin** | GET | `/api/faculty/admin/faculty` | List all faculty users with basic profile data |
 | **Admin** | POST | `/api/faculty/admin/faculty` | Create a new faculty account |
 | **Admin** | PATCH | `/api/faculty/admin/faculty/:id/status`| Toggle active/inactive status of a faculty member |
-| **Admin** | PATCH | `/api/faculty/admin/faculty/:id/make-hod`| Promote a faculty member to HOD of their department |
+| **Admin** | PATCH | `/api/faculty/admin/faculty/:id/make-hod`| Create a separate HOD login for a faculty member’s department (requires hodEmail; faculty login remains unchanged) |
 | **Admin** | DELETE | `/api/faculty/admin/faculty/:id` | Delete a faculty account entirely |
 | **Admin** | GET | `/api/faculty/admin/stats` | Get total, active, and complete profile counts |
 | **Admin** | GET | `/api/faculty/admin/dropdowns` | Get all configured dropdown options |

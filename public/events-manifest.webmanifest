@@ -1,0 +1,14 @@
+{
+  "name": "NAAC Faculty Dashboard — Campus Events",
+  "short_name": "Campus Events",
+  "description": "Manage assigned campus events and submit evidence-backed event reports.",
+  "start_url": "/faculty/events",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1d4ed8",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/vite.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
