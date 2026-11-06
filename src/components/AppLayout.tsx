@@ -20,6 +20,7 @@ const adminNav: NavItem[] = [
   { label: 'Student Request', path: '/admin/student-request', icon: <GitPullRequest size={18} /> },
   { label: 'Notifications', path: '/admin/requests', icon: <Bell size={18} /> },
   { label: 'Analytics', path: '/admin/analytics', icon: <BarChart2 size={18} /> },
+  { label: 'Campus Events', path: '/admin/events', icon: <CalendarDays size={18} /> },
   // Phase 5: Institutional / NAAC modules. Visible here because 'admin' in
   // this frontend already represents both 'superadmin' and 'iqac_director'
   // (see AuthContext's coerceRole) - both are the backend's

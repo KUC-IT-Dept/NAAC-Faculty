@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminEventsManagement from './pages/admin/AdminEventsManagement';
 import AdminGeneral from './pages/admin/AdminGeneral';
 import StudentRequest from './pages/admin/StudentRequest';
 import { EditProfileLayout, AdminProfileSection } from './pages/admin/AdminProfileManagement';
@@ -86,6 +87,7 @@ function AppRoutes() {
 
       {/* Admin */}
       <Route path="/admin" element={<Navigate to="/admin/accounts" replace />} />
+      <Route path="/admin/events" element={<ProtectedRoute role="admin"><AdminEventsManagement /></ProtectedRoute>} />
       <Route path="/admin/student-request" element={<ProtectedRoute role="admin"><StudentRequest /></ProtectedRoute>} />
       <Route path="/admin/:tabId" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/general" element={<ProtectedRoute role="admin"><AdminGeneral /></ProtectedRoute>} />

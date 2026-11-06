@@ -183,17 +183,10 @@ router.delete('/faculty/:id', async (req, res) => {
     // Remove the HOD reference before deleting the account so departments do not
     // retain a dangling ObjectId. Keep department and student records intact.
     await Department.updateMany({ hod: user._id }, { $set: { hod: null } });
-    await Department.updateMany({ hod: user._id }, { $set: { hod: null } });
-
-    if (user.role === 'faculty') {
-      await Faculty.deleteMany({ userId: user._id });
-    }
-
+    if (user.role === 'faculty') await Faculty.deleteMany({ userId: user._id });
     await User.deleteOne({ _id: user._id });
 
-    res.json({
-      message: `${user.role === 'hod' ? 'HOD' : 'Faculty'} account deleted`
-    });
+    res.json({ message: `${user.role === 'hod' ? 'HOD' : 'Faculty'} account deleted`  });
   } catch (err) {
     console.error('[DELETE /admin/faculty/:id]', err);
     res.status(500).json({ message: 'Server error while deleting account' });

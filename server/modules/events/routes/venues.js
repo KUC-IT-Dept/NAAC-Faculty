@@ -1,6 +1,7 @@
 // modules/events/routes/venues.js
 const express = require('express');
-const { auth, adminOnly, hodOnly } = require('../../faculty/middleware/auth');
+const { auth, adminOnly } = require('../../faculty/middleware/auth');
+const { Booking } = require('../models/Booking');
 const Venue = require('../models/Venue');
 const SlotConfig = require('../models/SlotConfig');
 const EventAuditLog = require('../models/EventAuditLog');
@@ -9,8 +10,8 @@ const router = express.Router();
 router.use(auth);
 
 const canManageVenues = (req, res, next) => {
-  if (req.user.role !== 'admin' && req.user.role !== 'superadmin' && req.user.role !== 'hod') {
-    return res.status(403).json({ message: 'HOD or admin access required' });
+  if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    return res.status(403).json({ message: 'Only administrators can manage venues' });
   }
   next();
 };
@@ -19,7 +20,7 @@ const canManageVenues = (req, res, next) => {
 router.get('/', async (req, res) => {
   try {
     const { includeInactive } = req.query;
-    const filter = includeInactive === 'true' ? {} : { isActive: true };
+    const filter = includeInactive === 'true' && ['admin', 'superadmin'].includes(req.user.role) ? {} : { isActive: true };
     const venues = await Venue.find(filter).sort({ name: 1 });
     res.json(venues);
   } catch (err) {
@@ -59,6 +60,30 @@ router.patch('/:id', canManageVenues, async (req, res) => {
     if (!venue) return res.status(404).json({ message: 'Venue not found' });
     await EventAuditLog.create({ venue: venue._id, action: 'venue_updated', performedBy: req.user._id, meta: updates });
     res.json(venue);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// DELETE /api/events/venues/:id — safely remove a venue from future booking choices.
+// Existing and historical bookings retain their venue reference.
+router.delete('/:id', canManageVenues, async (req, res) => {
+  try {
+    const venue = await Venue.findById(req.params.id);
+    if (!venue) return res.status(404).json({ message: 'Venue not found' });
+    const futureBookings = await Booking.countDocuments({
+      venue: venue._id,
+      date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+      status: { $in: ['draft', 'confirmed'] },
+    });
+    if (futureBookings > 0) {
+      return res.status(409).json({ message: `This venue has ${futureBookings} upcoming booking(s). Cancel or reschedule them before deleting the venue.` });
+    }
+    venue.isActive = false;
+    await venue.save();
+    await EventAuditLog.create({ venue: venue._id, action: 'venue_deactivated', performedBy: req.user._id, meta: { name: venue.name } });
+    res.json({ message: 'Venue removed from active booking choices', venue });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

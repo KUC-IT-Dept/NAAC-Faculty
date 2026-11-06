@@ -1,18 +1,64 @@
 // modules/events/routes/reviews.js
 const express = require('express');
-const { auth, hodOnly } = require('../../faculty/middleware/auth');
+const { auth } = require('../../faculty/middleware/auth');
 const { Booking } = require('../models/Booking');
+const Department = require('../../faculty/models/Department');
+const User = require('../../../auth/models/User.model');
 const EventReport = require('../models/EventReport');
 const EventAuditLog = require('../models/EventAuditLog');
 const { notify } = require('../services/notificationService');
 
 const router = express.Router();
-router.use(auth, hodOnly);
+router.use(auth);
 
-// GET /api/events/reviews/pending — reports awaiting this HOD's action
+// Report review is an HOD responsibility, and Admin/superadmin can also
+// review institution-wide (Part 4 permission rules: "Admin ... Can review
+// submitted event reports"). Faculty never reach these routes.
+const isAdmin = (req) => ['admin', 'superadmin'].includes(req.user?.role);
+const requireHodOrAdmin = (req, res, next) => {
+  if (isAdmin(req) || req.user?.role === 'hod') return next();
+  return res.status(403).json({ message: 'HOD or admin access required' });
+};
+router.use(requireHodOrAdmin);
+
+const getHodDepartment = async (userId) => {
+  const assignedDepartment = await Department.findOne({ hod: userId }).select('name').lean();
+  if (assignedDepartment?.name) return assignedDepartment.name;
+  const user = await User.findById(userId).select('department').lean();
+  return user?.department?.trim() || null;
+};
+
+// GET /api/events/reviews — ALL current-version reports regardless of status
+// (Admin: institution-wide, for the Reports & Evidence screen's "view
+// submitted reports / identify incomplete submissions" requirement. HOD:
+// scoped to their own department, same visibility rule as bookings.)
+router.get('/', async (req, res) => {
+  try {
+    const filter = { isCurrent: true };
+    if (!isAdmin(req)) {
+      const dept = await getHodDepartment(req.user._id);
+      filter.conductingDepartment = dept || '__none__';
+    }
+    const reports = await EventReport.find(filter)
+      .populate({ path: 'booking', populate: { path: 'venue leadFaculty supportingFaculty' } })
+      .sort({ updatedAt: -1 });
+    res.json(reports);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/events/reviews/pending — reports awaiting review (HOD: own
+// department only; Admin: institution-wide)
 router.get('/pending', async (req, res) => {
   try {
-    const reports = await EventReport.find({ isCurrent: true, reviewStatus: { $in: ['submitted', 'under_review'] } })
+    const filter = { isCurrent: true, reviewStatus: { $in: ['submitted', 'under_review'] } };
+    if (!isAdmin(req)) {
+      const dept = await getHodDepartment(req.user._id);
+      filter.conductingDepartment = dept || '__none__';
+    }
+    const reports = await EventReport.find(filter)
       .populate({ path: 'booking', populate: { path: 'venue leadFaculty supportingFaculty' } })
       .sort({ submittedAt: 1 });
     res.json(reports);

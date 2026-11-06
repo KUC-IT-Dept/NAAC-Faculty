@@ -150,8 +150,9 @@ export default function LoginPage() {
           <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Demo Credentials</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {[
-              { label: 'Principal', email: 'vc@profcv.edu', pass: 'password123' },
-              { label: 'Admin', email: 'admin@profcv.edu', pass: 'password123' },
+              { label: 'Principal', email: 'principal@gmail.com', pass: 'password123' },
+              { label: 'Admin', email: 'admin@gmail.com', pass: 'password123' },
+              { label: 'HOD (Mathematics)', email: 'mathhod@gmail.com', pass: 'password123' },
               { label: 'HOD (Computer Science)', email: 'hod_it@profcv.edu', pass: 'password123' },
               { label: 'Faculty (Vasudev)', email: 'vasudev@gmail.com', pass: 'password123' },
             ].map(c => (

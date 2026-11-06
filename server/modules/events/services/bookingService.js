@@ -12,16 +12,21 @@ function startOfDayUTC(date) {
   return d;
 }
 
-// Combine a calendar date with an "HH:mm" time into an absolute Date.
-// NOTE: dates/times are stored and compared as absolute instants (UTC).
-// The institution's configured timezone offset should be applied by the
-// caller if the deployment ever spans multiple timezones; for a single
-// campus running in one timezone this is a fixed, documented assumption.
+// Interpret campus timetable values in India Standard Time (Asia/Kolkata).
+// MongoDB stores absolute instants in UTC; browser locale formatting then
+// renders the same instant back as the selected IST wall-clock time.
 function combineDateAndTime(date, hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  const d = new Date(date);
-  d.setUTCHours(h, m, 0, 0);
-  return d;
+  const match = String(date).match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+  const time = String(hhmm).match(/^(\\d{2}):(\\d{2})$/);
+  if (!match || !time) {
+    const err = new Error('A valid date and HH:mm time are required');
+    err.status = 400;
+    throw err;
+  }
+  const [, year, month, day] = match;
+  const [, hour, minute] = time;
+  // IST is UTC+05:30, so subtract 330 minutes to obtain the UTC instant.
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute)) - 330 * 60 * 1000);
 }
 
 async function resolveSlotTimes({ date, slotType, standardSlotNumber, startTime, endTime }) {

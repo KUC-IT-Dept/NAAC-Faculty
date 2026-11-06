@@ -1,7 +1,6 @@
 // modules/events/routes/bookings.js
 const express = require('express');
-const mongoose = require('mongoose');
-const { auth, hodOnly } = require('../../faculty/middleware/auth');
+const { auth } = require('../../faculty/middleware/auth');
 const { Booking } = require('../models/Booking');
 const Faculty = require('../../faculty/models/Faculty');
 const Department = require('../../faculty/models/Department');
@@ -14,7 +13,13 @@ const {
 } = require('../services/bookingService');
 
 const router = express.Router();
-router.use(auth, hodOnly);
+router.use(auth);
+const isAdmin = (req) => ['admin', 'superadmin'].includes(req.user?.role);
+const requireHodOrAdmin = (req, res, next) => {
+  if (isAdmin(req) || req.user?.role === 'hod') return next();
+  return res.status(403).json({ message: 'HOD or admin access required' });
+};
+router.use(requireHodOrAdmin);
 
 // Only authorized HODs can create/confirm venue bookings (Part 1, rule 1).
 // `hodOnly` already restricts to role==='hod'; department scoping below
@@ -29,6 +34,19 @@ const getHodDepartment = async (userId) => {
   const user = await User.findById(userId).select('department').lean();
   return user?.department?.trim() || null;
 };
+
+async function assertHodOwnsBooking(req, booking) {
+  if (isAdmin(req)) return true;
+  if (String(booking.createdBy) !== String(req.user._id)) return false;
+  const dept = await getHodDepartment(req.user._id);
+  return !!dept && booking.conductingDepartment === dept;
+}
+
+async function assertHodDepartmentBooking(req, booking) {
+  if (isAdmin(req)) return true;
+  const dept = await getHodDepartment(req.user._id);
+  return !!dept && booking.conductingDepartment === dept;
+}
 
 async function assertFacultyInDepartment(userId, dept) {
   const f = await Faculty.findOne({ userId, 'employmentDetails.department': dept });
@@ -45,6 +63,9 @@ router.get('/', async (req, res) => {
     const { venue, department, from, to } = req.query;
     const filter = {};
     if (venue) filter.venue = venue;
+    // Calendar visibility is institution-wide for HODs: they must see every
+    // department's reservations to check shared venue availability. Department
+    // scoping remains enforced on all write operations below.
     if (department) filter.conductingDepartment = department;
     if (from || to) {
       filter.date = {};
@@ -56,7 +77,16 @@ router.get('/', async (req, res) => {
       .populate('leadFaculty', 'name email')
       .populate('supportingFaculty', 'name email')
       .sort({ date: 1, startTime: 1 });
-    res.json(bookings);
+    const ownDepartment = isAdmin(req) ? null : await getHodDepartment(req.user._id);
+    const visibleBookings = bookings.map((booking) => {
+      const item = booking.toObject();
+      const creatorId = item.createdBy?._id || item.createdBy;
+      item.createdBy = creatorId ? String(creatorId) : '';
+      item.canCancel = item.status !== 'cancelled' && (isAdmin(req) || String(creatorId) === String(req.user._id));
+      item.canManage = isAdmin(req) || (!!ownDepartment && item.conductingDepartment === ownDepartment);
+      return item;
+    });
+    res.json(visibleBookings);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -70,7 +100,13 @@ router.get('/:id', async (req, res) => {
       .populate('leadFaculty', 'name email')
       .populate('supportingFaculty', 'name email');
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
-    res.json(booking);
+    const item = booking.toObject();
+    const creatorId = item.createdBy?._id || item.createdBy;
+    const ownDepartment = isAdmin(req) ? null : await getHodDepartment(req.user._id);
+    item.createdBy = creatorId ? String(creatorId) : '';
+    item.canCancel = item.status !== 'cancelled' && (isAdmin(req) || String(creatorId) === String(req.user._id));
+    item.canManage = isAdmin(req) || (!!ownDepartment && item.conductingDepartment === ownDepartment);
+    res.json(item);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -80,11 +116,12 @@ router.get('/:id', async (req, res) => {
 // POST /api/events/bookings — create (as draft or directly confirmed)
 router.post('/', async (req, res) => {
   try {
+    if (isAdmin(req)) return res.status(403).json({ message: 'Admin accounts manage bookings; HOD accounts create them' });
     const dept = await getHodDepartment(req.user._id);
     if (!dept) return res.status(400).json({ message: 'HOD department not configured' });
 
     const {
-      programName, conductingDepartment, venue, customVenueName, customRoomNumber,
+      programName, venue, customVenueName, customRoomNumber,
       date, slotType, standardSlotNumber, startTime, endTime,
       targetGroups, expectedStrength, objectives, resourcePerson, bookingNotes,
       leadFaculty, supportingFaculty, confirm,
@@ -121,7 +158,7 @@ router.post('/', async (req, res) => {
     }
 
     const booking = await Booking.create({
-      programName, conductingDepartment: conductingDepartment || dept, venue,
+      programName, conductingDepartment: dept, venue,
       customVenueName, customRoomNumber,
       date: startOfDayUTC(date), slotType, standardSlotNumber: slotType === 'standard' ? standardSlotNumber : null,
       startTime: resolvedTimes.startTime, endTime: resolvedTimes.endTime,
@@ -151,6 +188,9 @@ router.post('/', async (req, res) => {
 // POST /api/events/bookings/:id/confirm — explicit draft -> confirmed, conflict-safe
 router.post('/:id/confirm', async (req, res) => {
   try {
+    const existing = await Booking.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: 'Booking not found' });
+    if (!(await assertHodDepartmentBooking(req, existing))) return res.status(403).json({ message: 'You can only manage your department bookings' });
     const booking = await confirmBookingSafely(req.params.id);
     await EventAuditLog.create({ booking: booking._id, action: 'booking_confirmed', performedBy: req.user._id });
     res.json(booking);
@@ -168,6 +208,8 @@ router.post('/:id/cancel', async (req, res) => {
     if (!reason) return res.status(400).json({ message: 'A cancellation reason is required' });
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    if (!(await assertHodOwnsBooking(req, booking))) return res.status(403).json({ message: 'HODs can cancel only events created by their own HOD account. Admins can cancel any booking.' });
+    if (booking.status === 'cancelled') return res.status(409).json({ message: 'Booking is already cancelled' });
 
     booking.status = 'cancelled';
     booking.eventStatus = 'cancelled';
@@ -188,6 +230,7 @@ router.post('/:id/reschedule', async (req, res) => {
     const { date, slotType, standardSlotNumber, startTime, endTime, reason } = req.body;
     const old = await Booking.findById(req.params.id);
     if (!old) return res.status(404).json({ message: 'Booking not found' });
+    if (!(await assertHodOwnsBooking(req, old))) return res.status(403).json({ message: 'HODs can reschedule only events created by their own HOD account' });
 
     const resolvedTimes = await resolveSlotTimes({ date, slotType, standardSlotNumber, startTime, endTime });
     await checkVenueMaintenanceConflict(old.venue, resolvedTimes.startTime, resolvedTimes.endTime);
@@ -230,6 +273,7 @@ router.patch('/:id/assignments', async (req, res) => {
     const dept = await getHodDepartment(req.user._id);
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    if (!(await assertHodDepartmentBooking(req, booking))) return res.status(403).json({ message: 'You can only manage your department bookings' });
 
     const { leadFaculty, addSupporting, removeSupporting, reason } = req.body;
 
@@ -273,6 +317,7 @@ router.post('/:id/emergency-override', async (req, res) => {
     if (!reason) return res.status(400).json({ message: 'A reason is required for an emergency override' });
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    if (!(await assertHodDepartmentBooking(req, booking))) return res.status(403).json({ message: 'You can only manage your department bookings' });
 
     booking.emergencyOverride = { granted: true, reason, grantedBy: req.user._id, grantedAt: new Date() };
     await booking.save();

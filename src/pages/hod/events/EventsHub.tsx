@@ -14,6 +14,7 @@ import {
   searchRegister, exportRegisterUrl,
 } from '../../../lib/eventsApi';
 import api from '../../../lib/api';
+import { useAuth } from '../../../context/AuthContext';
 import { useReasonModal } from '../../../components/ReasonModal';
 
 type Section = 'calendar' | 'create' | 'venues' | 'assignments' | 'pending' | 'register';
@@ -21,7 +22,6 @@ type Section = 'calendar' | 'create' | 'venues' | 'assignments' | 'pending' | 'r
 const SECTIONS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: 'calendar', label: 'Booking Calendar', icon: <CalendarDays size={15} /> },
   { id: 'create', label: 'Create Event Booking', icon: <Plus size={15} /> },
-  { id: 'venues', label: 'Venue Management', icon: <Building2 size={15} /> },
   { id: 'assignments', label: 'Faculty Assignments', icon: <Users size={15} /> },
   { id: 'pending', label: 'Pending Reports', icon: <ClipboardList size={15} /> },
   { id: 'register', label: 'Current Activities Register', icon: <Archive size={15} /> },
@@ -91,7 +91,6 @@ export default function EventsHub() {
 
       {section === 'calendar' && <CalendarSection bookings={bookings} loading={statsLoading} onChanged={refreshAll} />}
       {section === 'create' && <CreateBookingSection onCreated={() => { setSection('calendar'); refreshAll(); }} />}
-      {section === 'venues' && <VenuesSection />}
       {section === 'assignments' && <AssignmentsSection bookings={bookings} loading={statsLoading} onChanged={refreshAll} />}
       {section === 'pending' && <PendingReportsSection reports={pending} onChanged={refreshAll} />}
       {section === 'register' && <RegisterSection />}
@@ -111,6 +110,7 @@ function statusBadge(status: string) {
 
 // ── Booking Calendar (Part: day/week/month views) ───────────────────────────
 function CalendarSection({ bookings, loading, onChanged }: { bookings: Booking[]; loading: boolean; onChanged: () => void }) {
+  const { user } = useAuth();
   const [view, setView] = useState<'day' | 'week' | 'month'>('week');
   const [anchor, setAnchor] = useState(new Date());
   const [venueFilter, setVenueFilter] = useState('');
@@ -267,8 +267,8 @@ function CalendarSection({ bookings, loading, onChanged }: { bookings: Booking[]
               <DetailRow label="Status" value={<><span className={statusBadge(detail.status)}>{detail.status}</span> <span className={statusBadge(detail.eventStatus)}>{detail.eventStatus.replace('_', ' ')}</span></>} />
             </div>
             <div className="modal-footer">
-              {detail.status === 'draft' && <button className="btn btn-primary" onClick={() => handleConfirm(detail._id)}>Confirm Booking</button>}
-              {detail.status !== 'cancelled' && <button className="btn btn-danger" onClick={() => handleCancel(detail)}>Cancel Booking</button>}
+              {detail.status === 'draft' && detail.canManage && <button className="btn btn-primary" onClick={() => handleConfirm(detail._id)}>Confirm Booking</button>}
+              {detail.status !== 'cancelled' && (detail.canCancel === true || (detail.canCancel === undefined && String(detail.createdBy) === String(user?.id))) && <button className="btn btn-danger" onClick={() => handleCancel(detail)}>Cancel Booking</button>}
             </div>
           </div>
         </div>
@@ -580,7 +580,7 @@ function AssignmentsSection({ bookings, loading, onChanged }: { bookings: Bookin
                   <td>{typeof b.leadFaculty === 'string' ? b.leadFaculty : b.leadFaculty.name}</td>
                   <td>{b.supportingFaculty.length === 0 ? '—' : b.supportingFaculty.map((s) => (typeof s === 'string' ? s : s.name)).join(', ')}</td>
                   <td><span className={statusBadge(b.eventStatus)}>{b.eventStatus.replace('_', ' ')}</span></td>
-                  <td><button className="btn btn-outline btn-sm" onClick={() => openEdit(b)}>Edit</button></td>
+                  <td>{b.canManage !== false && <button className="btn btn-outline btn-sm" onClick={() => openEdit(b)}>Edit</button>}</td>
                 </tr>
               ))}
               {bookings.length === 0 && <tr><td colSpan={5} className="text-muted" style={{ textAlign: 'center', padding: 24 }}>No bookings yet.</td></tr>}

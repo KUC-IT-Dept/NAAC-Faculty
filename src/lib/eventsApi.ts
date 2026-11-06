@@ -45,6 +45,10 @@ export interface Booking {
   status: 'draft' | 'confirmed' | 'cancelled' | 'rescheduled';
   eventStatus: string;
   reportDeadline: string;
+  createdBy: string;
+  /** Server-calculated permissions for the signed-in viewer. */
+  canCancel?: boolean;
+  canManage?: boolean;
 }
 
 export interface EvidenceFile {
@@ -91,6 +95,8 @@ export const createVenue = (payload: Partial<Venue>) =>
   apiCore.post<Venue>('/events/venues', payload).then((r) => r.data);
 export const updateVenue = (id: string, payload: Partial<Venue>) =>
   apiCore.patch<Venue>(`/events/venues/${id}`, payload).then((r) => r.data);
+export const deleteVenue = (id: string) =>
+  apiCore.delete<{ message: string; venue: Venue }>(`/events/venues/${id}`).then((r) => r.data);
 export const addMaintenancePeriod = (id: string, from: string, to: string, reason: string) =>
   apiCore.post<Venue>(`/events/venues/${id}/maintenance`, { from, to, reason }).then((r) => r.data);
 export const getSlotConfig = () => apiCore.get<SlotConfig>('/events/venues/slot-config').then((r) => r.data);
@@ -142,7 +148,10 @@ export const deleteEvidence = (bookingId: string, evidenceId: string) =>
 export const submitReport = (bookingId: string) =>
   apiCore.post<EventReport>(`/events/faculty/${bookingId}/submit`).then((r) => r.data);
 
-// ── HOD review ───────────────────────────────────────────────────────────────
+// ── HOD / Admin review ─────────────────────────────────────────────────────
+// All current-version reports regardless of status (Admin: institution-wide;
+// HOD: own department) — used by the Reports & Evidence screens.
+export const listAllReports = () => apiCore.get<EventReport[]>('/events/reviews').then((r) => r.data);
 export const listPendingReports = () => apiCore.get<EventReport[]>('/events/reviews/pending').then((r) => r.data);
 export const getReportDetail = (reportId: string) =>
   apiCore.get<{ report: EventReport; versions: EventReport[] }>(`/events/reviews/${reportId}`).then((r) => r.data);
