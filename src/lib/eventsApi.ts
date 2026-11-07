@@ -60,6 +60,8 @@ export interface EvidenceFile {
   longitude?: number | null;
   gpsMissing?: boolean;
   uploadedAt?: string;
+  locationSource?: string;
+  gpsAccuracyMeters?: number | null;
 }
 
 export interface EventReport {
