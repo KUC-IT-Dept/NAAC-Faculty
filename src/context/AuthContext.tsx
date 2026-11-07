@@ -5,6 +5,7 @@ import api from '../lib/api';
 interface AuthUser {
   id: string;
   username: string;
+  name?: string;
   email: string;
   // 'superadmin' and 'iqac_director' are both coerced to 'admin' below (see
   // coerceRole) - they share the same institutional-bypass access on the
@@ -102,6 +103,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('iqac_faculty');
     setToken(null);
     setUser(null);
+
+    // Tell the Campus Events service worker (if registered) to drop its
+    // cached API responses, so a shared device never shows the next
+    // signed-in faculty member a stale glimpse of this account's events.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.active?.postMessage({ type: 'CLEAR_CACHES' }));
+      }).catch(() => {});
+    }
   };
 
   const refreshUser = async () => {

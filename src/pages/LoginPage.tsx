@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { GraduationCap, Lock, Mail, ArrowRight, BookOpen, Award, Users } from 'lucide-react';
+import { Lock, Mail, ArrowRight, BookOpen, Award, Users } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
 import devagiriLogo from '../assets/devagiri-college-logo.png';
 
@@ -18,6 +18,12 @@ const features = [
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Only honoured for faculty/hod (the only roles the Campus Events PWA
+  // welcome screen links here from) and only when it's a same-app path —
+  // every other login path (admin, vc, library, etc.) keeps its existing
+  // role-based destination below, completely unchanged.
+  const redirectTo = searchParams.get('redirect');
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
@@ -29,7 +35,13 @@ export default function LoginPage() {
     try {
       await login(form.email, form.password);
       const u = JSON.parse(localStorage.getItem('iqac_user') || '{}');
-      if (u.role === 'admin') {
+      if (redirectTo && redirectTo.startsWith('/faculty/events') && ['faculty', 'hod'].includes(u.role) && !u.isFirstLogin) {
+        // Came here from the Campus Events PWA's welcome screen — send them
+        // straight back into it instead of the desktop dashboard, unless
+        // it's a brand-new faculty account that still needs profile setup.
+        toast.success('Welcome back!');
+        navigate(redirectTo);
+      } else if (u.role === 'admin') {
         toast.success('Welcome back, Admin!');
         navigate('/admin');
       } else if (u.role === 'vc') {
@@ -53,8 +65,9 @@ export default function LoginPage() {
         toast.success('Welcome back!');
         navigate('/faculty/dashboard');
       }
-    } catch (e: any) {
-      setErr(e.response?.data?.message || 'Invalid credentials. Please try again.');
+    } catch (e: unknown) {
+      const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setErr(message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
