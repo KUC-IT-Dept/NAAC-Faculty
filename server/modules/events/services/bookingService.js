@@ -16,8 +16,8 @@ function startOfDayUTC(date) {
 // MongoDB stores absolute instants in UTC; browser locale formatting then
 // renders the same instant back as the selected IST wall-clock time.
 function combineDateAndTime(date, hhmm) {
-  const match = String(date).match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
-  const time = String(hhmm).match(/^(\\d{2}):(\\d{2})$/);
+  const match = String(date).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const time = String(hhmm).match(/^(\d{2}):(\d{2})$/);
   if (!match || !time) {
     const err = new Error('A valid date and HH:mm time are required');
     err.status = 400;
