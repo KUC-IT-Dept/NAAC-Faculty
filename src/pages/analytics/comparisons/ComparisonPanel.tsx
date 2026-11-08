@@ -28,7 +28,7 @@ interface ComparisonPanelProps {
 
 export default function ComparisonPanel({ filters }: ComparisonPanelProps) {
   const [metrics, setMetrics] = useState<CatalogueEntry[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState<string>('publications');
+  const [selectedMetric, setSelectedMetric] = useState<string>('3.4.4');
   
   // States for different comparisons
   const [yoyData, setYoyData] = useState<any>(null);
@@ -94,8 +94,8 @@ export default function ComparisonPanel({ filters }: ComparisonPanelProps) {
           onChange={e => setSelectedMetric(e.target.value)}
           style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #cbd5e1', minWidth: 250 }}
         >
-          <option value="publications">Publications (Default)</option>
-          {metrics.map(m => (
+          <option value="3.4.4">Research Publications (Default)</option>
+          {metrics.filter(m => m.metricId !== '3.4.4').map(m => (
             <option key={m.metricId} value={m.metricId}>{m.metricName} ({m.criterion})</option>
           ))}
         </select>

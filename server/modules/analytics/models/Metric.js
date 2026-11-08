@@ -59,6 +59,14 @@ distinctField: {
 numeratorField: {
     type: String
 },
+// Metric IDs used by ratio and metricPercentage formulas.
+// Keep numeratorField separate: it is used by the legacy "percentage" formula.
+numeratorMetric: {
+    type: String
+},
+denominatorMetric: {
+    type: String
+},
     missingFields: [{
         type: String
     }],
