@@ -6,7 +6,7 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
-const SHOW_BRAND_LOGOS = true;
+const SHOW_BRAND_LOGOS = false;
 
 type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
 
@@ -153,8 +153,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
     user?.role === 'librarian' ? librarianNav :
     user?.role === 'mmttc_director' ? mmttcDirectorNav :
     buildFacultyNav(user?.modulePermissions);
-  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Principal' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User');
-  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Principal' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User';
+  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User');
+  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User';
   const initials = displayName.slice(0, 2).toUpperCase();
   const editProfileBase = user?.role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   const isActive = (item: NavItem) => item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
@@ -295,7 +295,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
               <img src={devagiriLogo} alt="St. Joseph's College (Autonomous), Devagiri logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
             )}
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
-              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Principal' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}
+              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Vice Chancellor' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}
             </span>
           </div>
         </header>

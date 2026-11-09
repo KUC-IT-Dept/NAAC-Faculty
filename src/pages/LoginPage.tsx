@@ -7,7 +7,7 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
-const SHOW_BRAND_LOGOS = true;
+const SHOW_BRAND_LOGOS = false;
 
 const features = [
   { icon: <BookOpen size={18} />, text: 'Comprehensive faculty profile management' },
@@ -45,7 +45,7 @@ export default function LoginPage() {
         toast.success('Welcome back, Admin!');
         navigate('/admin');
       } else if (u.role === 'vc') {
-        toast.success('Welcome back, Principal!');
+        toast.success('Welcome back, Vice Chancellor!');
         navigate('/vc');
       } else if (u.role === 'hod') {
         toast.success('Welcome back, HOD!');
@@ -163,7 +163,7 @@ export default function LoginPage() {
           <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Demo Credentials</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {[
-              { label: 'Principal', email: 'principal@gmail.com', pass: 'password123' },
+              { label: 'Vice Chancellor', email: 'principal@gmail.com', pass: 'password123' },
               { label: 'Admin', email: 'admin@gmail.com', pass: 'password123' },
               { label: 'HOD (Mathematics)', email: 'mathhod@gmail.com', pass: 'password123' },
               { label: 'HOD (Computer Science)', email: 'hod_it@profcv.edu', pass: 'password123' },
