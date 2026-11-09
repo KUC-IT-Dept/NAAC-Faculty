@@ -392,8 +392,9 @@ export default function OrgHierarchy() {
       if (deptRes && Array.isArray(deptRes.data)) {
         allDeptNames = deptRes.data.map((d: any) => d.name);
       } else {
-        // Fallback for HOD: just extract from their own faculty list
+        // Fallback for HOD: just extract from their own faculty list + HOD's own department
         const depts = new Set<string>();
+        if (user?.department) depts.add(user.department);
         facRes.data.forEach((f: any) => {
           if (f.profile?.employmentDetails?.department) depts.add(f.profile.employmentDetails.department);
         });
@@ -415,7 +416,7 @@ export default function OrgHierarchy() {
 
     faculties.forEach(f => {
       const designation = f.profile?.employmentDetails?.designation || '';
-      if (designation === 'Vice Chancellor' || designation === 'Super Admin') return;
+      if (designation === 'Principal' || designation === 'Vice Chancellor' || designation === 'Super Admin') return;
 
       const d = f.profile?.employmentDetails?.department;
       if (d && map[d] !== undefined) {
@@ -588,7 +589,7 @@ export default function OrgHierarchy() {
               {/* VC Column */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <VLine height={12} color="#e2e8f0" />
-                <PersonNode icon="👑" role="Vice Chancellor" gradient="linear-gradient(135deg,#f59e0b,#d97706)" />
+                <PersonNode icon="👑" role="Principal" gradient="linear-gradient(135deg,#f59e0b,#d97706)" />
                 <VLine height={20} color="#e2e8f0" />
               </div>
               

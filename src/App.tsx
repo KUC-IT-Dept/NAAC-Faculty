@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminEventsManagement from './pages/admin/AdminEventsManagement';
 import AdminGeneral from './pages/admin/AdminGeneral';
 import StudentRequest from './pages/admin/StudentRequest';
 import { EditProfileLayout, AdminProfileSection } from './pages/admin/AdminProfileManagement';
@@ -17,6 +18,12 @@ import PublicProfile from './pages/PublicProfile';
 import VCDashboard from './pages/vc/VCDashboard';
 import DepartmentDetails from './pages/vc/DepartmentDetails';
 import HODDashboard from './pages/hod/HODDashboard';
+import EventsHub from './pages/hod/events/EventsHub';
+import WelcomeScreen from './pages/faculty/events/WelcomeScreen';
+import FacultyEventsHome from './pages/faculty/events/FacultyEventsHome';
+import EventDetailsScreen from './pages/faculty/events/EventDetailsScreen';
+import EventUpdateWizard from './pages/faculty/events/EventUpdateWizard';
+import EventReportForm from './pages/faculty/events/EventReportForm';
 import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
 import LibraryPage from './pages/institutional/LibraryPage';
 import MMTTCPage from './pages/institutional/MMTTCPage';
@@ -83,6 +90,7 @@ function AppRoutes() {
 
       {/* Admin */}
       <Route path="/admin" element={<Navigate to="/admin/accounts" replace />} />
+      <Route path="/admin/events" element={<ProtectedRoute role="admin"><AdminEventsManagement /></ProtectedRoute>} />
       <Route path="/admin/student-request" element={<ProtectedRoute role="admin"><StudentRequest /></ProtectedRoute>} />
       <Route path="/admin/:tabId" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/general" element={<ProtectedRoute role="admin"><AdminGeneral /></ProtectedRoute>} />
@@ -111,6 +119,32 @@ function AppRoutes() {
           responsibility, on top of the 403 the backend itself returns. */}
       <Route path="/faculty/library" element={<ProtectedRoute role="faculty"><LibraryPage /></ProtectedRoute>} />
       <Route path="/faculty/mmttc" element={<ProtectedRoute role="faculty"><MMTTCPage /></ProtectedRoute>} />
+      {/* Campus Events & Evidence Management: HOD can also be lead/support faculty on their own bookings, so allow both roles. */}
+      {/* Campus Events & Evidence Management */}
+      <Route
+        path="/faculty/events/welcome"
+        element={<WelcomeScreen />}
+      />
+
+      <Route
+        path="/faculty/events"
+        element={<ProtectedRoute role={['faculty', 'hod']}><FacultyEventsHome /></ProtectedRoute>}
+      />
+
+      <Route
+        path="/faculty/events/:bookingId"
+        element={<ProtectedRoute role={['faculty', 'hod']}><EventDetailsScreen /></ProtectedRoute>}
+      />
+
+      <Route
+        path="/faculty/events/:bookingId/update"
+        element={<ProtectedRoute role={['faculty', 'hod']}><EventUpdateWizard /></ProtectedRoute>}
+      />
+
+      <Route
+        path="/faculty/events/:bookingId/report"
+        element={<ProtectedRoute role={['faculty', 'hod']}><EventReportForm /></ProtectedRoute>}
+      />
 
       {/* VC */}
       <Route path="/vc" element={<Navigate to="/vc/hierarchy" replace />} />
@@ -119,6 +153,7 @@ function AppRoutes() {
 
       {/* HOD */}
       <Route path="/hod" element={<Navigate to="/hod/hierarchy" replace />} />
+      <Route path="/hod/events" element={<ProtectedRoute role="hod"><EventsHub /></ProtectedRoute>} />
       <Route path="/hod/:tabId" element={<ProtectedRoute role="hod"><HODDashboard /></ProtectedRoute>} />
 
       {/* Analytics — accessible by hod, vc, admin */}

@@ -434,6 +434,7 @@ async function seedDepartmentsHodsFaculties() {
         email: h.email,
         password: defaultHashedPassword,
         role: 'hod',
+        department: h.dept,
         isFirstLogin: false,
         isActive: true,
       });
@@ -443,18 +444,7 @@ async function seedDepartmentsHodsFaculties() {
         hod: user._id
       });
 
-      // No personal name for HOD, just dept name and email
-      const hodProfileData = getDummyProfile(h.dept, h.email, h.dept, 'HOD');
-      hodProfileData.personalInfo.firstName = h.dept;
-      hodProfileData.personalInfo.lastName = '';
-
-      await Faculty.create({
-        userId: user._id,
-        username: h.username,
-        profileComplete: true,
-        completionPercentage: 100,
-        ...hodProfileData,
-      });
+      // HOD is a separate administrative account; deliberately no Faculty profile.
       console.log(`✅ HOD created for ${h.dept}`);
     }
 

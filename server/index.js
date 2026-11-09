@@ -61,6 +61,14 @@ const libraryRoutes = require('./modules/library/routes/library.routes');
 // ── Phase 4: MMTTC institutional module ──────────────────────────────────────
 const mmttcRoutes = require('./modules/mmttc/routes/mmttc.routes');
 
+// ── Campus Events & Evidence Management ──────────────────────────────────────
+const eventVenueRoutes = require('./modules/events/routes/venues');
+const eventBookingRoutes = require('./modules/events/routes/bookings');
+const eventFacultyRoutes = require('./modules/events/routes/facultyEvents');
+const eventReviewRoutes = require('./modules/events/routes/reviews');
+const eventRegisterRoutes = require('./modules/events/routes/register');
+const { startDeadlineJob } = require('./modules/events/jobs/deadlineJob');
+
 // ── Temp file cleanup (every hour) ───────────────────────────────────────────
 const { cleanupTemp } = require('./modules/student/utils/cleanupTemp');
 setInterval(cleanupTemp, 60 * 60 * 1000);
@@ -197,6 +205,15 @@ app.get('/api/health', (req, res) => {
 app.use('/api/library', libraryRoutes);
 app.use('/api/mmttc', mmttcRoutes);
 
+// ── Campus Events & Evidence Management  →  /api/events/... ──────────────────
+// Also registered before studentRequestsAdmin's blanket auth+adminOnly
+// catch-all for the same reason as library/mmttc above.
+app.use('/api/events/venues', eventVenueRoutes);
+app.use('/api/events/bookings', eventBookingRoutes);
+app.use('/api/events/faculty', eventFacultyRoutes);
+app.use('/api/events/reviews', eventReviewRoutes);
+app.use('/api/events/register', eventRegisterRoutes);
+
 // ── Phase 1: compatibility aliases & flat student routes ───────────────────────
 // Mounted flat (not under /api/student) to match the exact paths the
 // Student frontend expects. Must be registered BEFORE `app.use('/api', studentRequestsAdmin)`
@@ -243,6 +260,7 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/iqac")
     // Keep the analytics metric registry in step with code (definitions only, idempotent).
     try { await require('./modules/analytics/services/metricRegistry').syncMetricRegistry(); }
     catch (e) { console.error('[metricRegistry] sync failed - metric list may be incomplete:', e.message); }
+    startDeadlineJob();
     app.listen(PORT, () => {
       console.log(`\n🚀 Unified server on http://localhost:${PORT}`);
       console.log(`\n   FACULTY  →  /api/faculty/auth | /api/faculty/admin | /api/faculty/me`);

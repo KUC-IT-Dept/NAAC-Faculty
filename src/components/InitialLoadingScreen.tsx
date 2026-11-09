@@ -3,7 +3,7 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import './InitialLoadingScreen.css';
 
 // PRESENTATION_MODE: Set to true to restore company logo after demonstration
-const SHOW_COMPANY_LOGO = false;
+const SHOW_COMPANY_LOGO = true;
 
 interface Props {
   /** Fatal startup error. Stops the animation and shows a Retry button. */

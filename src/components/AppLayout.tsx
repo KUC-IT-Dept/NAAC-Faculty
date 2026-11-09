@@ -1,12 +1,12 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, PanelLeftOpen, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, LogOut, GraduationCap, Eye, PanelLeftClose, PanelLeftOpen, UserPen, Globe, Users, Bell, Building2, UserPlus, BarChart2, GitPullRequest, GitBranch, BookOpen, ShieldCheck, CalendarDays } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
-import kannurLogoOld from '../assets/kannur-university-logo-old.png';
+import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
-const SHOW_BRAND_LOGOS = false;
+const SHOW_BRAND_LOGOS = true;
 
 type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
 
@@ -20,6 +20,7 @@ const adminNav: NavItem[] = [
   { label: 'Student Request', path: '/admin/student-request', icon: <GitPullRequest size={18} /> },
   { label: 'Notifications', path: '/admin/requests', icon: <Bell size={18} /> },
   { label: 'Analytics', path: '/admin/analytics', icon: <BarChart2 size={18} /> },
+  { label: 'Campus Events', path: '/admin/events', icon: <CalendarDays size={18} /> },
   // Phase 5: Institutional / NAAC modules. Visible here because 'admin' in
   // this frontend already represents both 'superadmin' and 'iqac_director'
   // (see AuthContext's coerceRole) - both are the backend's
@@ -37,6 +38,7 @@ const adminNav: NavItem[] = [
 
 const facultyBaseNav: NavItem[] = [
   { label: 'Dashboard', path: '/faculty/dashboard', icon: <LayoutDashboard size={18} /> },
+  { label: 'My Events', path: '/faculty/events', icon: <CalendarDays size={18} /> },
   { label: 'Edit Profile', path: '/faculty/profile/edit', icon: <UserPen size={18} /> },
 ];
 
@@ -70,6 +72,9 @@ const hodNav: NavItem[] = [
   { label: 'Org Hierarchy', path: '/hod/hierarchy', icon: <GitBranch size={18} /> },
   { label: 'Department Faculty', path: '/hod/faculty', icon: <Users size={18} /> },
   { label: 'Department Students', path: '/hod/students', icon: <Users size={18} /> },
+  // Campus Events & Evidence Management (new module — see src/pages/hod/events/)
+  { label: 'Campus Events', path: '/hod/events', icon: <CalendarDays size={18} /> },
+  { label: 'My Assigned Events', path: '/faculty/events', icon: <CalendarDays size={18} /> },
   { label: 'Notifications', path: '/hod/notifications', icon: <Bell size={18} /> },
   { label: 'Analytics', path: '/hod/analytics', icon: <BarChart2 size={18} /> },
 ];
@@ -148,8 +153,8 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
     user?.role === 'librarian' ? librarianNav :
     user?.role === 'mmttc_director' ? mmttcDirectorNav :
     buildFacultyNav(user?.modulePermissions);
-  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User');
-  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Vice Chancellor' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User';
+  const displayName = user?.username || (user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Principal' : user?.role === 'hod' ? 'HOD' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User');
+  const displayRole = user?.role === 'admin' ? 'Administrator' : user?.role === 'vc' ? 'Principal' : user?.role === 'hod' ? 'Head of Department' : user?.role === 'staff' ? 'Institutional Staff' : user?.role === 'librarian' ? 'Librarian' : user?.role === 'mmttc_director' ? 'MMTTC Director' : 'Faculty User';
   const initials = displayName.slice(0, 2).toUpperCase();
   const editProfileBase = user?.role === 'admin' ? '/admin/edit-profile' : '/faculty/profile/edit';
   const isActive = (item: NavItem) => item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
@@ -287,10 +292,10 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
           <span className="top-bar-title">{title}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {SHOW_BRAND_LOGOS && (
-              <img src={kannurLogoOld} alt="Kannur University" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+              <img src={devagiriLogo} alt="St. Joseph's College (Autonomous), Devagiri logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
             )}
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
-              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Vice Chancellor' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}
+              {user?.role === 'admin' ? '⚡ Administrator' : user?.role === 'vc' ? '👑 Principal' : user?.role === 'hod' ? '⭐ HOD' : user?.role === 'staff' ? '🏛️ Institutional Staff' : '👤 Faculty'}
             </span>
           </div>
         </header>

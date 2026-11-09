@@ -53,7 +53,13 @@ export default function HODDashboard() {
 
   const [showStudentModal, setShowStudentModal] = useState(false);
   const getHodDepartment = () => {
+    if (user?.department) return user.department;
     try {
+      const uStr = localStorage.getItem('iqac_user');
+      if (uStr) {
+        const u = JSON.parse(uStr);
+        if (u.department) return u.department;
+      }
       const facStr = localStorage.getItem('iqac_faculty');
       if (facStr) {
         const fac = JSON.parse(facStr);

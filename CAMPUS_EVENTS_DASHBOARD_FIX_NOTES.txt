@@ -1,0 +1,16 @@
+Campus Events dashboard correction
+
+Changed:
+- src/pages/hod/events/EventsHub.tsx
+
+Fixes:
+- Removes the narrow max-width constraint from the HOD page content.
+- Forces the hero heading and description to retain readable white contrast against the gradient despite global heading styles.
+- Prevents the booking CTA from collapsing/overlapping.
+- Gives the section navigation explicit selected/unselected visual styles and tab semantics.
+- Adds live summary counts sourced from existing bookings, venues, pending reports and current-activities APIs.
+
+No backend, database, environment, authentication, or production configuration was changed.
+
+Build verification:
+The local `npm run build` could not complete because this workspace's node_modules is missing type-definition packages (React, React DOM, D3 type entries, etc.). This is a dependency-installation issue in the supplied workspace; the change is not build-verified here.

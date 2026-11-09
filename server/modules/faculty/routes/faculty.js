@@ -1,6 +1,7 @@
 const express = require('express');
 const Faculty = require('../models/Faculty');
 const OptionRequest = require('../models/OptionRequest');
+const Department = require('../models/Department');
 const { auth, facultyOnly } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
@@ -122,6 +123,32 @@ router.put('/', facultyOnly, async (req, res) => {
 
     if (updateData.personalInfo?.fullName && typeof updateData.personalInfo.fullName === 'string') {
       updateData.personalInfo.fullName = updateData.personalInfo.fullName.replace(/^temp--/i, '').trim();
+    }
+
+    // Employee ID / Staff Code is optional — not every institution assigns
+    // one. No required-field check here by design; missing/empty/null is
+    // accepted as-is (the Faculty schema default is '').
+
+    // If employmentDetails carries a departmentId (selected from the live
+    // Department Management list), resolve the department's CURRENT name
+    // from that id and use it as the display string. This is what makes a
+    // department rename show up correctly on faculty profiles that already
+    // picked that department, without the faculty member re-selecting it.
+    // A legacy save with only a department name string (no departmentId) is
+    // left exactly as submitted, for backward compatibility.
+    if (updateData.employmentDetails && Object.prototype.hasOwnProperty.call(updateData.employmentDetails, 'departmentId')) {
+      const deptId = updateData.employmentDetails.departmentId;
+      if (deptId) {
+        const dept = await Department.findById(deptId).select('name');
+        if (dept) {
+          updateData.employmentDetails.department = dept.name;
+        } else {
+          // Stale/invalid id (e.g. department deleted through some other
+          // path) — don't trust a dangling reference, but keep whatever
+          // name string was submitted so the save still succeeds.
+          updateData.employmentDetails.departmentId = null;
+        }
+      }
     }
 
     let faculty = await Faculty.findOne({ userId: req.user._id });

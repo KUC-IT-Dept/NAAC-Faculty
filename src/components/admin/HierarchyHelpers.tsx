@@ -164,7 +164,7 @@ export const buildDepts = (faculties: FacultyUser[], allDeptNames: string[]): De
 
   faculties.forEach(f => {
     const designation = f.profile?.employmentDetails?.designation || '';
-    if (designation === 'Vice Chancellor' || designation === 'Super Admin') return;
+    if (designation === 'Principal' || designation === 'Vice Chancellor' || designation === 'Super Admin') return;
     const d = f.profile?.employmentDetails?.department;
     if (d && map[d] !== undefined) { map[d].push(f); }
     else if (d) { map[d] = [f]; }

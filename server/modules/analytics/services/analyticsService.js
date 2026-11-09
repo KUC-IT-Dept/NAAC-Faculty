@@ -36,19 +36,46 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     // Set when 0 would be a fabricated answer (no denominator, no data, unknown formula).
     let insufficientReason = null;
 
+    // /dashboard-v3 can provide one request-scoped Faculty snapshot shared by
+    // every metric. Other callers omit this option and retain the original
+    // per-metric query behavior.
+    const preloadedFaculty = Array.isArray(options.preloadedFaculty)
+        ? options.preloadedFaculty
+        : null;
+    const canUsePreloadedFaculty = Boolean(
+        preloadedFaculty && (!metric.collection || metric.collection === 'faculties')
+    );
+    const getFacultyRecords = async (queryFilter = filter) => {
+        // The original fieldPath $exists/$ne query clauses only avoid fetching
+        // records that contribute zero to the reducer. With a shared snapshot,
+        // the existing in-memory defaults/filters produce the same metric value.
+        return canUsePreloadedFaculty
+            ? preloadedFaculty
+            : await Faculty.find(queryFilter).lean();
+    };
+    const calculateReferencedMetric = async (metricId) => {
+        if (options.metricsById instanceof Map && canUsePreloadedFaculty) {
+            const referencedMetric = options.metricsById.get(metricId);
+            if (!referencedMetric || !referencedMetric.collection || referencedMetric.collection === 'faculties') {
+                return calculateMetricFromDoc(referencedMetric, filter, options);
+            }
+        }
+        return calculateMetric(metricId, filter);
+    };
+
      {
 
         switch (metric.formulaType) {
 
             case "count":
 
-                const countRecords = await Faculty.find({
+                const countRecords = await getFacultyRecords({
                     ...filter,
                     [metric.fieldPath]: {
                         $exists: true,
                         $ne: []
                     }
-                }).lean();
+                });
 
                 value = countRecords.filter(f => isInExperienceRange(f, min, max)).reduce((total, faculty) => {
 
@@ -62,13 +89,13 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
 
             case "sum":
 
-                const sumRecords = await Faculty.find({
+                const sumRecords = await getFacultyRecords({
                     ...filter,
                     [metric.fieldPath]: {
                         $exists: true,
                         $ne: []
                     }
-                }).lean();
+                });
 
                 value = sumRecords.filter(f => isInExperienceRange(f, min, max)).reduce((total, faculty) => {
 
@@ -89,13 +116,13 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
                 break;
                 case "conditionalCount":
 
-    const conditionalRecords = await Faculty.find({
+    const conditionalRecords = await getFacultyRecords({
         ...filter,
         [metric.fieldPath]: {
             $exists: true,
             $ne: []
         }
-    }).lean();
+    });
 
     value = conditionalRecords.filter(f => isInExperienceRange(f, min, max)).reduce((total, faculty) => {
 
@@ -123,7 +150,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     break;
             case "objectSum":
 
-    const records = await Faculty.find({ ...filter }).lean();
+    const records = await getFacultyRecords({ ...filter });
 
     value = records.filter(f => isInExperienceRange(f, min, max)).reduce((total, faculty) => {
 
@@ -141,7 +168,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     case "percentage":
 
     {
-        const allFacForPct = await Faculty.find({ ...filter }).lean();
+        const allFacForPct = await getFacultyRecords({ ...filter });
         const filteredForPct = allFacForPct.filter(f => isInExperienceRange(f, min, max));
         const totalFaculty = filteredForPct.length;
 
@@ -165,17 +192,9 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     break;
     case "ratio":
 
-    const numeratorMetric =
-        await calculateMetric(
-            metric.numeratorMetric,
-            filter
-        );
+    const numeratorMetric = await calculateReferencedMetric(metric.numeratorMetric);
 
-    const denominatorMetric =
-        await calculateMetric(
-            metric.denominatorMetric,
-            filter
-        );
+    const denominatorMetric = await calculateReferencedMetric(metric.denominatorMetric);
 
     if (!numeratorMetric || !denominatorMetric) insufficientReason = 'component_metric_missing';
     else if (numeratorMetric.insufficientReason || denominatorMetric.insufficientReason) insufficientReason = 'component_insufficient';
@@ -195,7 +214,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     case "facultyCount":
 
     {
-        const allFacForCount = await Faculty.find({ ...filter }).lean();
+        const allFacForCount = await getFacultyRecords({ ...filter });
         value = allFacForCount.filter(f => isInExperienceRange(f, min, max)).length;
     }
 
@@ -229,17 +248,9 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     break;
     case "metricPercentage":
 
-    const numerator =
-        await calculateMetric(
-            metric.numeratorMetric,
-            filter
-        );
+    const numerator = await calculateReferencedMetric(metric.numeratorMetric);
 
-    const denominator =
-        await calculateMetric(
-            metric.denominatorMetric,
-            filter
-        );
+    const denominator = await calculateReferencedMetric(metric.denominatorMetric);
 
     if (!numerator || !denominator) insufficientReason = 'component_metric_missing';
     else if (numerator.insufficientReason || denominator.insufficientReason) insufficientReason = 'component_insufficient';
@@ -264,7 +275,7 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
 
     case "average":
         {
-            const avgRecords = (await Faculty.find({ ...filter }).lean())
+            const avgRecords = (await getFacultyRecords({ ...filter }))
                 .filter(f => isInExperienceRange(f, min, max));
 
             let total = 0, count = 0;
@@ -293,11 +304,18 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
         {
             // distinctGroupCount with experience range: fetch records and count distinct values
             if (min !== null || max !== null) {
-                const allForDistinct = (await Faculty.find({ ...filter }).lean())
+                const allForDistinct = (await getFacultyRecords({ ...filter }))
                     .filter(f => isInExperienceRange(f, min, max));
                 const distinctSet = new Set();
                 for (const f of allForDistinct) {
                     const v = f[metric.fieldPath];
+                    if (v && String(v).trim() !== '') distinctSet.add(String(v).trim());
+                }
+                value = distinctSet.size;
+            } else if (canUsePreloadedFaculty) {
+                const distinctSet = new Set();
+                for (const faculty of preloadedFaculty) {
+                    const v = faculty[metric.fieldPath];
                     if (v && String(v).trim() !== '') distinctSet.add(String(v).trim());
                 }
                 value = distinctSet.size;
@@ -325,12 +343,16 @@ async function calculateMetricFromDoc(metric, filter = {}, options = {}) {
     if (viewMode === 'perFaculty' && !normalizationSkipped) {
         const facultyCount = (options.precomputedCounts && typeof options.precomputedCounts.facultyCount === 'number')
             ? options.precomputedCounts.facultyCount
-            : (await Faculty.find({ ...filter }).lean()).filter(f => isInExperienceRange(f, min, max)).length;
+            : canUsePreloadedFaculty
+                ? preloadedFaculty.filter(f => isInExperienceRange(f, min, max)).length
+                : (await Faculty.find({ ...filter }).lean()).filter(f => isInExperienceRange(f, min, max)).length;
         value = facultyCount > 0 ? Number((value / facultyCount).toFixed(4)) : 0;
     } else if (viewMode === 'percentage' && !normalizationSkipped) {
         const facultyCount = (options.precomputedCounts && typeof options.precomputedCounts.facultyCount === 'number')
             ? options.precomputedCounts.facultyCount
-            : (await Faculty.find({ ...filter }).lean()).filter(f => isInExperienceRange(f, min, max)).length;
+            : canUsePreloadedFaculty
+                ? preloadedFaculty.filter(f => isInExperienceRange(f, min, max)).length
+                : (await Faculty.find({ ...filter }).lean()).filter(f => isInExperienceRange(f, min, max)).length;
         value = facultyCount > 0 ? Number((value / facultyCount * 100).toFixed(2)) : 0;
     } else if (viewMode === 'perStudent' && !normalizationSkipped) {
         const studentCount = (options.precomputedCounts && typeof options.precomputedCounts.studentCount === 'number')

@@ -1,7 +1,7 @@
 import { fg } from './sectionUtils';
 import { useState, useRef, useEffect } from 'react';
 import { Edit2, Briefcase, Plus, Check, X, ExternalLink, FileText, Upload, RefreshCw } from 'lucide-react';
-import { departmentOptions, affiliatedUniversityOptions, payScaleOptions, designationOptions, institutionTypeOptions, approvalStatusOptions, institutionsOptions } from '../../shared/dropdownOptions';
+import { affiliatedUniversityOptions, payScaleOptions, designationOptions, institutionTypeOptions, approvalStatusOptions, institutionsOptions } from '../../shared/dropdownOptions';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import SearchableSelect from '../SearchableSelect';
 import api, { getAuthenticatedFileUrl } from '../../lib/api';
@@ -13,6 +13,7 @@ const EMPTY = {
   employeeId: '',
   designation: '',
   department: '',
+  departmentId: '',
   institution: '',
   affiliatedUniversity: '',
   typeOfInstitution: '',
@@ -31,7 +32,8 @@ const EMPTY = {
 };
 
 const FIELD_DEFINITIONS = [
-  { key: 'employeeId', required: true },
+  // Employee ID / Staff Code is optional — not every institution assigns one.
+  { key: 'employeeId', required: false },
   { key: 'designation', required: true },
   { key: 'department', required: true },
   { key: 'institution', required: true },
@@ -127,7 +129,6 @@ const normalizeInstitutionType = (val: string) => {
 };
 
 export default function EmploymentDetails({ data, personalInfo, onChange, onPersist }: { data: any; personalInfo?: any; onChange: (d: any) => void; onPersist?: (updated: any) => void }) {
-  const dynamicDepartmentOptions = useDropdownOptions(departmentOptions);
   const dynamicAffiliatedUniversityOptions = useDropdownOptions(affiliatedUniversityOptions);
   const dynamicPayScaleOptions = useDropdownOptions(payScaleOptions);
   const dynamicDesignationOptions = useDropdownOptions(designationOptions);
@@ -144,6 +145,13 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Live departments from the institution's Department Management module —
+  // replaces the old hardcoded department list for Current Employment Details.
+  const [departments, setDepartments] = useState<{ _id: string; name: string }[]>([]);
+  const [deptLoading, setDeptLoading] = useState(true);
+  const [deptError, setDeptError] = useState('');
+  const [deptFetchToken, setDeptFetchToken] = useState(0);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -181,6 +189,40 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
     setErrors({});
     setTouchedFields({});
   }, [data, personalInfo]);
+
+  // Fetch departments created by this institution's Department Management
+  // module. Refetches whenever deptFetchToken changes (manual retry after an
+  // error, or the section remounting on tab switch picks up newly-created
+  // departments naturally).
+  useEffect(() => {
+    let cancelled = false;
+    setDeptLoading(true);
+    setDeptError('');
+    api.get('/departments')
+      .then(res => {
+        if (cancelled) return;
+        const list = Array.isArray(res.data) ? res.data.map((d: any) => ({ _id: d._id, name: d.name })) : [];
+        setDepartments(list);
+      })
+      .catch(() => {
+        if (!cancelled) setDeptError('Could not load departments. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) setDeptLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [deptFetchToken]);
+
+  // Once departments are loaded, resolve the display name from departmentId
+  // when possible — this is what makes a department rename show up here
+  // even though the faculty member never reselected anything.
+  useEffect(() => {
+    if (!editingData.departmentId || !departments.length) return;
+    const match = departments.find(d => d._id === editingData.departmentId);
+    if (match && match.name !== editingData.department) {
+      setEditingData((prev: any) => ({ ...prev, department: match.name }));
+    }
+  }, [departments, editingData.departmentId]);
 
   const handleClear = () => {
     setEditingData(getEmpty());
@@ -409,6 +451,60 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
         <option value="">{placeholder}</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
+    );
+  };
+
+  // Department dropdown, sourced live from this institution's Department
+  // Management module (GET /api/faculty/departments) instead of a hardcoded
+  // list. Handles loading/empty/error states and preserves a legacy or
+  // stale selection (e.g. a department renamed/removed since this profile
+  // was last saved) rather than silently blanking it out.
+  const renderDepartmentSelect = () => {
+    const selectedName = editingData.department || '';
+    const selectedKnown = departments.some(d => d.name === selectedName);
+
+    if (deptError) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 13, color: '#dc2626' }}>{deptError}</span>
+          <button
+            type="button"
+            onClick={() => setDeptFetchToken(t => t + 1)}
+            style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <select
+          ref={(el) => { fieldRefs.current.department = el; }}
+          className="form-select"
+          value={selectedName}
+          onChange={e => {
+            const name = e.target.value;
+            const match = departments.find(d => d.name === name);
+            updateEditingData('department', name);
+            updateEditingData('departmentId', match ? match._id : '');
+          }}
+          disabled={!isEditing || deptLoading}
+        >
+          <option value="">{deptLoading ? 'Loading departments…' : '— Select —'}</option>
+          {departments.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
+          {selectedName && !selectedKnown && (
+            <option value={selectedName}>{selectedName} (not in current list)</option>
+          )}
+        </select>
+        {!deptLoading && departments.length === 0 && (
+          <p className="form-hint">No departments have been created for this institution yet. Contact your administrator.</p>
+        )}
+        {!deptLoading && selectedName && !selectedKnown && (
+          <p className="form-hint">This department is no longer in the current list — your existing selection has been kept. Choose a current department if it was renamed or removed.</p>
+        )}
+      </>
     );
   };
 
@@ -664,7 +760,7 @@ export default function EmploymentDetails({ data, personalInfo, onChange, onPers
             {fg('Designation', renderSelect('designation', dynamicDesignationOptions), { required: isFieldRequired('designation'), error: errors.designation })}
           </div>
           <div className="form-row form-row-2">
-            {fg('Department', renderSelect('department', dynamicDepartmentOptions), { required: isFieldRequired('department'), error: errors.department })}
+            {fg('Department', renderDepartmentSelect(), { required: isFieldRequired('department'), error: errors.department || deptError })}
             {fg('College / Institution Name', (
               <SearchableSelect
                 value={editingData.institution || ''}

@@ -1,0 +1,55 @@
+GITHUB PATCH FILE MANIFEST
+
+NEW FILES (31):
+A	CAMPUS_EVENTS_DASHBOARD_FIX_NOTES.txt
+A	CAMPUS_EVENTS_UI_PWA_FIX_NOTES.md
+A	HOD_ACCOUNT_FIX_README.txt
+A	public/events-manifest.webmanifest
+A	public/events-sw.js
+A	public/icons/campus-events-192.png
+A	public/icons/campus-events-512.png
+A	public/icons/campus-events-maskable-512.png
+A	server/modules/events/jobs/deadlineJob.js
+A	server/modules/events/models/Booking.js
+A	server/modules/events/models/EventAuditLog.js
+A	server/modules/events/models/EventNotification.js
+A	server/modules/events/models/EventReport.js
+A	server/modules/events/models/SlotConfig.js
+A	server/modules/events/models/Venue.js
+A	server/modules/events/routes/bookings.js
+A	server/modules/events/routes/facultyEvents.js
+A	server/modules/events/routes/register.js
+A	server/modules/events/routes/reviews.js
+A	server/modules/events/routes/venues.js
+A	server/modules/events/services/bookingService.js
+A	server/modules/events/services/emailService.js
+A	server/modules/events/services/notificationService.js
+A	server/seeders/eventVenueSeeder.js
+A	server/tests/campus-events/test.js
+A	src/components/ReasonModal.tsx
+A	src/lib/eventsApi.ts
+A	src/lib/eventsOfflineDb.ts
+A	src/pages/faculty/events/EventReportForm.tsx
+A	src/pages/faculty/events/FacultyEventsHome.tsx
+A	src/pages/hod/events/EventsHub.tsx
+
+MODIFIED FILES (17):
+M	api_documentation.md
+M	index.html
+M	server/index.js
+M	server/modules/faculty/models/Faculty.js
+M	server/modules/faculty/routes/admin.js
+M	server/modules/faculty/routes/auth.js
+M	server/modules/faculty/routes/hod.js
+M	server/package.json
+M	server/unified_seed.js
+M	src/App.tsx
+M	src/components/AppLayout.tsx
+M	src/components/admin/OrgHierarchy.tsx
+M	src/context/AuthContext.tsx
+M	src/index.css
+M	src/pages/LoginPage.tsx
+M	src/pages/hod/HODDashboard.tsx
+M	vite.config.ts
+
+Excluded: server/.env, generated dist/, malformed server/{

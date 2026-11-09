@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { GraduationCap, Lock, Mail, ArrowRight, BookOpen, Award, Users } from 'lucide-react';
+import { Lock, Mail, ArrowRight, BookOpen, Award, Users } from 'lucide-react';
 import qaiLogo from '../assets/qai-logo-transparent.png';
-import kannurLogo from '../assets/kannur-university-logo.png';
+import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
-const SHOW_BRAND_LOGOS = false;
+const SHOW_BRAND_LOGOS = true;
 
 const features = [
   { icon: <BookOpen size={18} />, text: 'Comprehensive faculty profile management' },
@@ -18,6 +18,12 @@ const features = [
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Only honoured for faculty/hod (the only roles the Campus Events PWA
+  // welcome screen links here from) and only when it's a same-app path —
+  // every other login path (admin, vc, library, etc.) keeps its existing
+  // role-based destination below, completely unchanged.
+  const redirectTo = searchParams.get('redirect');
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
@@ -29,11 +35,17 @@ export default function LoginPage() {
     try {
       await login(form.email, form.password);
       const u = JSON.parse(localStorage.getItem('iqac_user') || '{}');
-      if (u.role === 'admin') {
+      if (redirectTo && redirectTo.startsWith('/faculty/events') && ['faculty', 'hod'].includes(u.role) && !u.isFirstLogin) {
+        // Came here from the Campus Events PWA's welcome screen — send them
+        // straight back into it instead of the desktop dashboard, unless
+        // it's a brand-new faculty account that still needs profile setup.
+        toast.success('Welcome back!');
+        navigate(redirectTo);
+      } else if (u.role === 'admin') {
         toast.success('Welcome back, Admin!');
         navigate('/admin');
       } else if (u.role === 'vc') {
-        toast.success('Welcome back, Vice Chancellor!');
+        toast.success('Welcome back, Principal!');
         navigate('/vc');
       } else if (u.role === 'hod') {
         toast.success('Welcome back, HOD!');
@@ -53,8 +65,9 @@ export default function LoginPage() {
         toast.success('Welcome back!');
         navigate('/faculty/dashboard');
       }
-    } catch (e: any) {
-      setErr(e.response?.data?.message || 'Invalid credentials. Please try again.');
+    } catch (e: unknown) {
+      const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setErr(message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -92,7 +105,7 @@ export default function LoginPage() {
         <div style={{ marginBottom: 22 }}>
           {SHOW_BRAND_LOGOS && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <img src={kannurLogo} alt="Kannur University Logo" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
+              <img src={devagiriLogo} alt="St. Joseph's College (Autonomous), Devagiri logo" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
             </div>
           )}
           <h2 style={{ fontSize: '1.65rem', marginBottom: 4, color: 'var(--primary-dark)' }}>Welcome back</h2>
@@ -150,10 +163,11 @@ export default function LoginPage() {
           <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Demo Credentials</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {[
-              { label: 'Vice Chancellor', email: 'vc@profcv.edu', pass: 'password123' },
-              { label: 'Admin', email: 'admin@profcv.edu', pass: 'password123' },
+              { label: 'Principal', email: 'principal@gmail.com', pass: 'password123' },
+              { label: 'Admin', email: 'admin@gmail.com', pass: 'password123' },
+              { label: 'HOD (Mathematics)', email: 'mathhod@gmail.com', pass: 'password123' },
               { label: 'HOD (Computer Science)', email: 'hod_it@profcv.edu', pass: 'password123' },
-              { label: 'Faculty (Dr. Priya Sharma)', email: 'dr.priya.sharma@university.edu.in', pass: 'password123' },
+              { label: 'Faculty (Vasudev)', email: 'vasudev@gmail.com', pass: 'password123' },
             ].map(c => (
               <button
                 key={c.email}

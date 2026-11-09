@@ -15,7 +15,9 @@ router.use(auth, adminOrVc);
 // GET /api/admin/faculty
 router.get('/faculty', async (req, res) => {
   try {
-    const users = await User.find({ role: 'faculty' }).select('-password').sort({ createdAt: -1 });
+    // Include HOD accounts as well: they are User records with their own unique email
+    // and must be manageable from the same account list.
+    const users = await User.find({ role: { $in: ['faculty', 'hod'] } }).select('-password').sort({ createdAt: -1 });
     const profiles = await Faculty.find({ userId: { $in: users.map(u => u._id) } })
       .select('userId personalInfo.fullName personalInfo.designation personalInfo.department personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
     const profileMap = {};
@@ -48,28 +50,36 @@ router.post('/faculty', async (req, res) => {
       username = `${baseUsername}${counter++}`;
     }
 
-    const hashedPassword = await bcrypt.hash('password123', 12);
-    const user = await User.create({
-      name: fullName || username,
-      username,
-      email: email.trim().toLowerCase(),
-      password: hashedPassword,
-      role: 'faculty',
-      department: trimmedDept,
-      isFirstLogin: true,
-    });
+    let user;
+    try {
+      const hashedPassword = await bcrypt.hash('password123', 12);
+      user = await User.create({
+        name: fullName || username,
+        username,
+        email: email.trim().toLowerCase(),
+        password: hashedPassword,
+        role: 'faculty',
+        department: trimmedDept,
+        isFirstLogin: true,
+      });
 
-    // Persist department exactly where updateFacultyDepartment effectively does:
-    // User.department and Faculty.employmentDetails.department (the field analytics
-    // uses). Note: personalInfo.department is NOT in the Faculty schema, so Mongoose
-    // strict mode drops it on both create and edit; it is deliberately not written here.
-    const adminFullName = fullName ? `temp--${fullName}` : '';
-    await Faculty.create({
-      userId: user._id,
-      username: user.username,
-      personalInfo: { fullName: adminFullName, officialEmail: email.trim().toLowerCase() },
-      employmentDetails: { department: trimmedDept },
-    });
+      // Persist department in both canonical user and faculty employment data.
+      const adminFullName = fullName ? `temp--${fullName}` : '';
+      await Faculty.create({
+        userId: user._id,
+        username: user.username,
+        personalInfo: { fullName: adminFullName, officialEmail: email.trim().toLowerCase() },
+        employmentDetails: { department: trimmedDept },
+      });
+    } catch (creationError) {
+      // Prevent an orphaned User (and a permanently reserved email) if profile
+      // creation fails after the account has already been inserted.
+      if (user?._id) {
+        await Faculty.deleteMany({ userId: user._id }).catch(() => {});
+        await User.deleteOne({ _id: user._id }).catch(() => {});
+      }
+      throw creationError;
+    }
 
     res.status(201).json({
       message: 'Faculty account created',
@@ -91,68 +101,96 @@ router.patch('/faculty/:id/status', async (req, res) => {
 });
 
 // PATCH /api/admin/faculty/:id/make-hod
+// Create a SEPARATE HOD login for the faculty member's department. The
+// faculty account and its profile remain untouched and continue to work.
 router.patch('/faculty/:id/make-hod', async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.params.id, role: 'faculty' });
-    if (!user) return res.status(404).json({ message: 'Faculty not found' });
+    const facultyUser = await User.findOne({ _id: req.params.id, role: 'faculty' });
+    if (!facultyUser) return res.status(404).json({ message: 'Faculty account not found' });
 
-    const faculty = await Faculty.findOne({ userId: user._id });
+    const faculty = await Faculty.findOne({ userId: facultyUser._id });
     if (!faculty) return res.status(404).json({ message: 'Faculty profile not found' });
 
-    const dept = faculty.employmentDetails?.department;
-    if (!dept) {
-      return res.status(400).json({ message: 'Department is not configured in Employment Details. Please edit the profile first.' });
+    const departmentName = faculty.employmentDetails?.department?.trim() || facultyUser.department?.trim();
+    if (!departmentName) {
+      return res.status(400).json({ message: 'The faculty member has no department assigned' });
     }
 
-    // Demote any existing HOD in the same department
-    await Faculty.updateMany(
-      {
-        'employmentDetails.department': dept,
-        'employmentDetails.designation': 'HOD',
-        userId: { $ne: user._id }
-      },
-      {
-        $set: { 'employmentDetails.designation': 'Professor' }
+    const { hodEmail, hodFullName } = req.body || {};
+    if (typeof hodEmail !== 'string' || !hodEmail.trim()) {
+      return res.status(400).json({ message: 'Provide a separate HOD account email. It must be different from the faculty account email.' });
+    }
+    const email = hodEmail.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ message: 'A valid HOD email is required' });
+    }
+    if (email === facultyUser.email.toLowerCase()) {
+      return res.status(409).json({ message: 'HOD account must use separate credentials and a different email address' });
+    }
+    if (await User.findOne({ email })) {
+      return res.status(409).json({ message: 'An account with this HOD email already exists' });
+    }
+
+    const base = email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '').toLowerCase() || 'hod';
+    let username = base;
+    let suffix = 1;
+    while (await User.findOne({ username })) username = `${base}${suffix++}`;
+
+    const tempPassword = `Hod-${crypto.randomBytes(6).toString('hex')}`;
+    const hodUser = await User.create({
+      name: (typeof hodFullName === 'string' && hodFullName.trim()) || faculty.personalInfo?.fullName || facultyUser.name,
+      username,
+      email,
+      password: await bcrypt.hash(tempPassword, 12),
+      role: 'hod',
+      department: departmentName,
+      isFirstLogin: true,
+    });
+
+    try {
+      const department = await Department.findOne({ name: departmentName });
+      if (!department) throw new Error(`Department "${departmentName}" is not configured`);
+      const previousHodId = department.hod;
+      department.hod = hodUser._id;
+      await department.save();
+      if (previousHodId && String(previousHodId) !== String(hodUser._id)) {
+        await User.updateOne({ _id: previousHodId, role: 'hod' }, { $set: { department: null } });
       }
-    );
-
-    // Also demote their role back to faculty if they were HOD
-    const previousHodFaculty = await Faculty.findOne({ 'employmentDetails.department': dept, 'employmentDetails.designation': 'Professor', userId: { $ne: user._id } });
-    if(previousHodFaculty) {
-       await User.updateOne({ _id: previousHodFaculty.userId }, { role: 'faculty' });
+    } catch (assignmentError) {
+      await User.deleteOne({ _id: hodUser._id });
+      throw assignmentError;
     }
 
-    // Promote target to HOD
-    faculty.employmentDetails.designation = 'HOD';
-    await faculty.save();
-    
-    // Update User Role
-    user.role = 'hod';
-    await user.save();
-
-    // Upsert Department model
-    await Department.findOneAndUpdate(
-      { name: dept },
-      { hod: user._id },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-
-    res.json({ message: `Successfully promoted ${faculty.personalInfo?.fullName || user.username} to HOD of ${dept}` });
+    res.status(201).json({
+      message: `Separate HOD account created for ${departmentName}. The faculty account was not changed.`,
+      facultyAccount: { id: facultyUser._id, email: facultyUser.email, role: facultyUser.role },
+      hodAccount: { id: hodUser._id, username: hodUser.username, email: hodUser.email, role: hodUser.role },
+      initialPassword: process.env.NODE_ENV === 'production' ? undefined : tempPassword,
+      credentialsDelivery: process.env.NODE_ENV === 'production' ? 'Deliver the generated initial password securely and require a password change at first login.' : undefined,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('[PATCH /admin/faculty/:id/make-hod]', err);
+    res.status(500).json({ message: 'Failed to create separate HOD account' });
   }
 });
 
 // DELETE /api/admin/faculty/:id
 router.delete('/faculty/:id', async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.params.id, role: 'faculty' });
-    if (!user) return res.status(404).json({ message: 'Faculty not found' });
-    await Faculty.deleteOne({ userId: user._id });
+    const user = await User.findOne({ _id: req.params.id, role: { $in: ['faculty', 'hod'] } });
+    if (!user) return res.status(404).json({ message: 'Faculty or HOD account not found' });
+
+    // Remove the HOD reference before deleting the account so departments do not
+    // retain a dangling ObjectId. Keep department and student records intact.
+    await Department.updateMany({ hod: user._id }, { $set: { hod: null } });
+    if (user.role === 'faculty') await Faculty.deleteMany({ userId: user._id });
     await User.deleteOne({ _id: user._id });
-    res.json({ message: 'Faculty account deleted' });
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+
+    res.json({ message: `${user.role === 'hod' ? 'HOD' : 'Faculty'} account deleted`  });
+  } catch (err) {
+    console.error('[DELETE /admin/faculty/:id]', err);
+    res.status(500).json({ message: 'Server error while deleting account' });
+  }
 });
 
 // PUT & PATCH /api/faculty/admin/faculty/:id/department

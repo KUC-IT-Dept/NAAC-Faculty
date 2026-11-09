@@ -1821,7 +1821,7 @@ export default function VCDashboard() {
   };
 
   return (
-    <AppLayout title={activeTab === 'students' ? 'Student Accounts' : activeTab === 'accounts' ? 'Faculty Accounts' : 'Vice Chancellor Dashboard'}>
+    <AppLayout title={activeTab === 'students' ? 'Student Accounts' : activeTab === 'accounts' ? 'Faculty Accounts' : 'Principal Dashboard'}>
       {activeTab === 'hierarchy' ? (
         <OrgHierarchy />
       ) : activeTab === 'dashboard' ? (
@@ -1832,7 +1832,7 @@ export default function VCDashboard() {
                 {user?.username?.slice(0,2).toUpperCase()}
               </div>
               <div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1 }}>{getGreeting()}, {user?.role === 'vc' ? 'Vice Chancellor' : user?.username}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1 }}>{getGreeting()}, {user?.role === 'vc' ? 'Principal' : user?.username}</div>
                 <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: 2 }}>Welcome back</div>
               </div>
             </div>

@@ -9,11 +9,14 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 router.use(auth, hodOnly);
 
-// Helper function to get HOD's department
+// HOD is a separate administrative account. Resolve its department from the
+// Department.hod relationship first, then the account's department field.
+// A HOD account does not need (and must not depend on) a Faculty profile.
 const getHodDepartment = async (userId) => {
-  const hodFaculty = await Faculty.findOne({ userId });
-  if (!hodFaculty) return null;
-  return hodFaculty.employmentDetails?.department || null;
+  const assignedDepartment = await Department.findOne({ hod: userId }).select('name').lean();
+  if (assignedDepartment?.name) return assignedDepartment.name;
+  const user = await User.findById(userId).select('department').lean();
+  return user?.department?.trim() || null;
 };
 
 // GET /api/hod/faculty
@@ -28,7 +31,7 @@ router.get('/faculty', async (req, res) => {
       .select('userId username personalInfo.fullName personalInfo.designation personalInfo.photoUrl employmentDetails.designation employmentDetails.department profileComplete completionPercentage');
     
     const userIds = profiles.map(p => p.userId);
-    const users = await User.find({ _id: { $in: userIds }, role: { $in: ['faculty', 'hod'] } }).select('-password').sort({ createdAt: -1 });
+    const users = await User.find({ _id: { $in: userIds }, role: 'faculty' }).select('-password').sort({ createdAt: -1 });
 
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.userId.toString()] = p; });

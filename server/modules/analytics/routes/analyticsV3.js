@@ -174,18 +174,21 @@ router.get(
       const { min: expMin, max: expMax, cleanFilter: cleanCombinedFilter } = extractExperienceFilter(combinedFilter);
 
       const metrics = await Metric.find().lean();
-      
-      // Phase 9: Compute facultyCount/studentCount once per request
+      const metricsById = new Map(metrics.map(metric => [metric.metricId, metric]));
+
+      // All currently registered dashboard metrics use the Faculty collection
+      // and the same cleanCombinedFilter. Fetch that dataset once and share the
+      // read-only lean documents across the metric calculations.
+      const preloadedFaculty = await Faculty.find(cleanCombinedFilter).lean();
+
+      // Phase 9: Compute normalization counts from the shared snapshot so the
+      // dashboard does not issue an additional Faculty query.
       const viewMode = req.query.viewMode;
       const precomputedCounts = {};
       if (viewMode === 'perFaculty' || viewMode === 'percentage') {
-        if (expMin !== null || expMax !== null) {
-          // Must apply in-memory experience filter for accurate count
-          const allFac = await Faculty.find(cleanCombinedFilter).lean();
-          precomputedCounts.facultyCount = allFac.filter(f => isInExperienceRange(f, expMin, expMax)).length;
-        } else {
-          precomputedCounts.facultyCount = await Faculty.countDocuments(cleanCombinedFilter);
-        }
+        precomputedCounts.facultyCount = preloadedFaculty.filter(
+          faculty => isInExperienceRange(faculty, expMin, expMax)
+        ).length;
       } else if (viewMode === 'perStudent') {
         const StudentProfile = require('../../student/models/StudentProfile');
         precomputedCounts.studentCount = await StudentProfile.countDocuments();
@@ -196,7 +199,12 @@ router.get(
       // Pass combinedFilter (with sentinels) — calculateMetricFromDoc strips them internally.
       const dashboard = (await Promise.all(
         metrics.map(metric =>
-          calculateMetricFromDoc(metric, combinedFilter, { viewMode, precomputedCounts })
+          calculateMetricFromDoc(metric, combinedFilter, {
+            viewMode,
+            precomputedCounts,
+            preloadedFaculty,
+            metricsById,
+          })
             .catch(err => {
               console.error(`[V3] /dashboard-v3 metric ${metric.metricId} failed:`, err.message);
               return null;
