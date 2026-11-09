@@ -45,7 +45,7 @@ function scopeFilter(scope) {
 async function getNormalizedMetric(metricId, scope, query = {}) {
   const base       = scopeFilter(scope);
   const userFilter = buildFacultyFilter(query);
-  const combined   = mergeFilters(base, userFilter);
+  const combined   = mergeFilters(userFilter, base);
   // Strip sentinels for response display; calculateMetric handles them internally
   const { cleanFilter } = extractExperienceFilter(combined);
 

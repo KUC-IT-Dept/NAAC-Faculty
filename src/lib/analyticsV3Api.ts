@@ -193,3 +193,99 @@ export interface RankingsResponse {
 export const getDepartmentRanking = (metricId: string, filters?: AnalyticsFilters): Promise<RankingsResponse> =>
   api.get(`/analytics/rankings/${metricId}`, { params: toParams(filters) }).then(r => r.data);
 
+// ── IQAC Institutional Report (Admin → Analytics → Reports) ─────────────────
+
+export interface ReportCategoryEntry {
+  key: string; label: string; source: string; dateField: string; note: string | null;
+}
+export interface UnsupportedCategoryEntry {
+  key: string; label: string; reason: string;
+}
+export interface ReportCategoryCatalogue {
+  supported: ReportCategoryEntry[];
+  unsupported: UnsupportedCategoryEntry[];
+}
+
+/** The category catalogue — the ONLY source of truth for selectable categories. */
+export const getReportCategories = (): Promise<ReportCategoryCatalogue> =>
+  api.get('/analytics/report-categories').then(r => r.data);
+
+export type ReportPeriodType = 'last3' | 'last5' | 'specific' | 'range';
+export type ReportConvention = 'calendar' | 'academic';
+
+export interface InstitutionalReportQuery {
+  categories: string[];
+  periodType: ReportPeriodType;
+  year?: string;
+  fromYear?: string;
+  toYear?: string;
+  convention: ReportConvention;
+  department?: string[]; // omit/empty = All Departments
+}
+
+export interface InstitutionalReportCategorySection {
+  key: string; title: string;
+  summary: Record<string, number>;
+  yearWise: Record<string, number>;
+  facultyWise?: Record<string, number>;
+  departmentWise: Record<string, number>;
+  register: Array<Record<string, unknown>>;
+  note?: string;
+}
+
+export interface InstitutionalReportPayload {
+  title: string;
+  generatedAt: string;
+  scope: string;
+  period: { label: string; convention: ReportConvention | null };
+  categories: string[];
+  executiveSummary: {
+    totalOutputs: number;
+    contributingFaculty: number;
+    departmentsCovered: number;
+  };
+  totalsByFaculty: Record<string, number>;
+  totalsByDepartment: Record<string, number>;
+  sections: Record<string, InstitutionalReportCategorySection>;
+}
+
+function toReportParams(q: InstitutionalReportQuery, extra?: Record<string, string>): Record<string, string> {
+  const params: Record<string, string> = {
+    categories: q.categories.join(','),
+    periodType: q.periodType,
+    convention: q.convention,
+    ...extra,
+  };
+  if (q.periodType === 'specific' && q.year) params.year = q.year;
+  if (q.periodType === 'range') {
+    if (q.fromYear) params.fromYear = q.fromYear;
+    if (q.toYear) params.toYear = q.toYear;
+  }
+  if (q.department && q.department.length > 0) params.department = q.department.join(',');
+  return params;
+}
+
+/** JSON preview — same filters/payload the PDF/Excel/CSV exports are built from. */
+export const previewInstitutionalReport = (q: InstitutionalReportQuery): Promise<InstitutionalReportPayload> =>
+  api.post('/analytics/institutional-report/generate', {}, { params: toReportParams(q, { format: 'json' }) })
+    .then(r => r.data);
+
+/** Triggers a PDF/Excel/CSV download using the exact same filters as the preview. */
+export const downloadInstitutionalReport = async (
+  q: InstitutionalReportQuery, format: 'pdf' | 'excel' | 'csv'
+): Promise<void> => {
+  const response = await api.post('/analytics/institutional-report/generate', {}, {
+    params: toReportParams(q, { format }),
+    responseType: 'blob',
+  });
+  const ext = format === 'excel' ? 'xlsx' : format;
+  const url = URL.createObjectURL(new Blob([response.data]));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `iqac-institutional-report.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+

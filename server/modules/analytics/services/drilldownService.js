@@ -128,7 +128,7 @@ async function getDrilldown(kpi, scope, query = {}) {
   // Build combined scope + user filter for Faculty.find().
   const base       = scopeFilter(scope);
   const userFilter = buildFacultyFilter(query);
-  const combined   = mergeFilters(base, userFilter);
+  const combined   = mergeFilters(userFilter, base);
   // Strip experience sentinels before any Mongo query; apply in-memory below.
   const { min, max, cleanFilter } = extractExperienceFilter(combined);
 

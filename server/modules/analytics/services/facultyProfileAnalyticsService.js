@@ -160,8 +160,8 @@ async function getDepartmentFacultyList(deptName, scope, query = {}) {
   const userFilter = buildFacultyFilter(query);
   const { min, max, cleanFilter } = extractExperienceFilter(userFilter);
   const filter = mergeFilters(
-    { 'employmentDetails.department': deptName },
-    cleanFilter
+    cleanFilter,
+    { 'employmentDetails.department': deptName }
   );
 
   const facultyRecords = await Faculty

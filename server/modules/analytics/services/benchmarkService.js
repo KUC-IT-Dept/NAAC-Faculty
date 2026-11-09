@@ -125,7 +125,7 @@ async function resolveCurrentValue(doc, scope, query = {}) {
     factor = compat.factor;
   }
 
-  const combined = mergeFilters(scopeFilter(scope), buildFacultyFilter(query));
+  const combined = mergeFilters(buildFacultyFilter(query), scopeFilter(scope));
   // __minExperience/__maxExperience are engine sentinels, not Faculty fields; they would match nothing.
   const { cleanFilter } = extractExperienceFilter(combined);
   try {

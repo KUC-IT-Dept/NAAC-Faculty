@@ -41,7 +41,7 @@ router.get("/coverage", auth, requireAnalyticsScope("coverage"), async (req, res
 
         // V2: merge with optional query-param filters (no-op when absent).
         const userFilter = buildFacultyFilter(req.query);
-        const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const combinedFilter = mergeFilters(userFilter, deptFilter);
         const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
         const metrics = await Metric.find().lean();
@@ -209,7 +209,7 @@ router.get("/profile-completion", auth, requireAnalyticsScope("profileCompletion
                 : {};
 
         const userFilter = buildFacultyFilter(req.query);
-        const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const combinedFilter = mergeFilters(userFilter, deptFilter);
         const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
         let facultyRecords = await Faculty.find(cleanFilter).lean();
@@ -258,7 +258,7 @@ router.get("/profile-summary", auth, requireAnalyticsScope("profileSummary"), as
                 : {};
 
         const userFilter = buildFacultyFilter(req.query);
-        const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const combinedFilter = mergeFilters(userFilter, deptFilter);
         const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
         let facultyRecords = await Faculty.find(cleanFilter).lean();
@@ -320,7 +320,7 @@ router.get("/departments", auth, requireAnalyticsScope("departments"), async (re
                 : {};
 
         const userFilter = buildFacultyFilter(req.query);
-        const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const combinedFilter = mergeFilters(userFilter, deptFilter);
         const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
         let facultyRecords = await Faculty.find(cleanFilter).lean();
@@ -390,7 +390,7 @@ router.get("/department-performance", auth, requireAnalyticsScope("departmentPer
                 : {};
 
         const userFilter = buildFacultyFilter(req.query);
-        const combinedFilter = mergeFilters(deptFilter, userFilter);
+        const combinedFilter = mergeFilters(userFilter, deptFilter);
         const { min, max, cleanFilter } = extractExperienceFilter(combinedFilter);
 
         let facultyRecords = await Faculty.find(cleanFilter).lean();

@@ -60,7 +60,7 @@ function scopeLabel(scope, query) {
 
 async function headlineFigures(scope, query) {
   const scoped = scope && scope.level === 'department' && scope.department ? { 'employmentDetails.department': scope.department } : {};
-  const filter = mergeFilters(scoped, buildFacultyFilter(query || {}));
+  const filter = mergeFilters(buildFacultyFilter(query || {}), scoped);
   const facultyN = await Faculty.countDocuments(extractExperienceFilter(filter).cleanFilter);
   const out = [{ label: 'Faculty records in scope', value: facultyN, unit: 'count' }];
   if (facultyN === 0) return out;
