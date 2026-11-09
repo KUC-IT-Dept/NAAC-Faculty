@@ -96,7 +96,7 @@ function getAvailableReportTypes(scope) {
 async function facultyProfileReport(scope, query) {
   const base     = scopeFilter(scope);
   const user     = buildFacultyFilter(query);
-  const combined = mergeFilters(base, user);
+  const combined = mergeFilters(user, base);
 
   const faculty = await Faculty
     .find(combined)
@@ -117,7 +117,7 @@ async function facultyProfileReport(scope, query) {
 async function departmentSummaryReport(scope, query) {
   const base     = scopeFilter(scope);
   const user     = buildFacultyFilter(query);
-  const combined = mergeFilters(base, user);
+  const combined = mergeFilters(user, base);
 
   const faculty = await Faculty
     .find(combined)
@@ -152,7 +152,7 @@ async function departmentSummaryReport(scope, query) {
 async function researchOutputReport(scope, query) {
   const base     = scopeFilter(scope);
   const user     = buildFacultyFilter(query);
-  const combined = mergeFilters(base, user);
+  const combined = mergeFilters(user, base);
 
   const faculty = await Faculty
     .find(combined)
@@ -184,7 +184,7 @@ async function researchOutputReport(scope, query) {
 async function projectsReport(scope, query) {
   const base     = scopeFilter(scope);
   const user     = buildFacultyFilter(query);
-  const combined = mergeFilters(base, user);
+  const combined = mergeFilters(user, base);
 
   const faculty = await Faculty
     .find(combined)
@@ -215,7 +215,7 @@ async function projectsReport(scope, query) {
 async function patentsReport(scope, query) {
   const base     = scopeFilter(scope);
   const user     = buildFacultyFilter(query);
-  const combined = mergeFilters(base, user);
+  const combined = mergeFilters(user, base);
 
   const faculty = await Faculty
     .find(combined)

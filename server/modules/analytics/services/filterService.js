@@ -293,6 +293,186 @@ function hasActiveFilters(query = {}) {
   return V2_PARAMS.some(p => query[p] && String(query[p]).trim() !== '');
 }
 
+// ── IQAC Report period resolution (Admin → Analytics → Reports) ──────────────
+//
+// Academic-year convention mirrors the one already in
+// server/modules/events/routes/register.js: Jun(Y)–May(Y+1), so the whole
+// platform agrees on a single definition instead of each module inventing
+// its own.
+//
+// IMPORTANT LIMITATION (documented, not silently papered over): Publications
+// (publications.year), Awards (awards.yearReceived) and FDP/Workshops
+// (fdpWorkshops.year) store only a bare calendar-year string — no month.
+// Under the academic convention these cannot be split at the June boundary,
+// so this module widens the match to every calendar year the academic-year
+// span touches (e.g. AY 2024-25 touches calendar years 2024 and 2025)
+// rather than guess which half a bare "2024" belongs to. Callers must show
+// this limitation in the report UI for those three categories. Date-bearing
+// categories (Patents' dateOfFiling/grantDate, Projects' startDate/endDate,
+// the Events/Booking register's date) get exact boundaries.
+
+function currentAcademicYearStart(now = new Date()) {
+  const y = now.getUTCFullYear();
+  return now.getUTCMonth() >= 5 ? y : y - 1; // getUTCMonth() 5 === June
+}
+
+function academicYearBounds(startYear) {
+  return {
+    start: new Date(Date.UTC(startYear, 5, 1)),
+    end:   new Date(Date.UTC(startYear + 1, 4, 31, 23, 59, 59, 999)),
+  };
+}
+
+function calendarYearBounds(year) {
+  return {
+    start: new Date(Date.UTC(year, 0, 1)),
+    end:   new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)),
+  };
+}
+
+function toISODateString(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Validates a From Year / To Year pair.
+ * @returns {{valid:true, from:number, to:number}|{valid:false, message:string}}
+ */
+function validateYearRange(fromYear, toYear) {
+  const from = parseInt(fromYear, 10);
+  const to   = parseInt(toYear, 10);
+  if (isNaN(from) || isNaN(to)) {
+    return { valid: false, message: 'From Year and To Year must both be valid years.' };
+  }
+  if (from > to) {
+    return { valid: false, message: 'From Year cannot be later than To Year.' };
+  }
+  return { valid: true, from, to };
+}
+
+function reportPeriodError(message) {
+  const err = new Error(message);
+  err.status = 400;
+  return err;
+}
+
+/**
+ * Resolves a reporting-period request (periodType/year/fromYear/toYear/
+ * convention) into a concrete year list, exact Date bounds (for Date-typed
+ * fields) and ISO date-string bounds (for the string-typed date fields this
+ * codebase already uses, e.g. patents.dateOfFiling, projects.startDate).
+ *
+ * @param {object} query - { periodType, year, fromYear, toYear, convention }
+ * @param {Date}   now    - injectable for tests
+ * @returns {object|null} - null when periodType is absent (caller should
+ *                           skip period filtering entirely — no behavior
+ *                           change for existing no-filter call paths)
+ * @throws {Error} with .status = 400 on an invalid specific/custom period
+ */
+function resolveReportPeriod(query = {}, now = new Date()) {
+  const periodType  = String(query.periodType || '').trim();
+  if (!periodType) return null;
+
+  const convention = query.convention === 'academic' ? 'academic' : 'calendar';
+  const boundsFor   = convention === 'academic' ? academicYearBounds : calendarYearBounds;
+  const currentStartYear = convention === 'academic'
+    ? currentAcademicYearStart(now)
+    : now.getUTCFullYear();
+
+  let startYear, endYear;
+
+  if (periodType === 'last3') {
+    endYear = currentStartYear; startYear = currentStartYear - 2;
+  } else if (periodType === 'last5') {
+    endYear = currentStartYear; startYear = currentStartYear - 4;
+  } else if (periodType === 'specific') {
+    const y = parseInt(query.year, 10);
+    if (isNaN(y)) throw reportPeriodError('A valid year is required for "Specific Year".');
+    startYear = endYear = y;
+  } else if (periodType === 'range') {
+    const r = validateYearRange(query.fromYear, query.toYear);
+    if (!r.valid) throw reportPeriodError(r.message);
+    startYear = r.from; endYear = r.to;
+  } else {
+    throw reportPeriodError(`Unknown reporting period type: "${periodType}".`);
+  }
+
+  const years = [];
+  for (let y = startYear; y <= endYear; y++) years.push(y);
+
+  const first = boundsFor(startYear);
+  const last  = boundsFor(endYear);
+
+  // See file-level note: academic convention widens bare-year-string
+  // matching to every calendar year the span touches.
+  const yearStringsSet = new Set();
+  if (convention === 'academic') {
+    for (let y = startYear; y <= endYear + 1; y++) yearStringsSet.add(String(y));
+  } else {
+    for (const y of years) yearStringsSet.add(String(y));
+  }
+
+  return {
+    convention,
+    periodType,
+    startYear,
+    endYear,
+    years,
+    yearStrings: Array.from(yearStringsSet),
+    dateRange: { start: first.start, end: last.end },
+    dateStringRange: { start: toISODateString(first.start), end: toISODateString(last.end) },
+    label: convention === 'academic'
+      ? (startYear === endYear
+          ? `AY ${startYear}-${String(startYear + 1).slice(-2)}`
+          : `AY ${startYear}-${String(startYear + 1).slice(-2)} to AY ${endYear}-${String(endYear + 1).slice(-2)}`)
+      : (startYear === endYear ? String(startYear) : `${startYear}\u2013${endYear}`),
+  };
+}
+
+/**
+ * Builds a Mongo $elemMatch fragment restricting a Faculty array sub-document
+ * field to a resolved report period, for fields that store only a bare
+ * year string (publications.year, awards.yearReceived, fdpWorkshops.year).
+ *
+ * @param {string} yearField - e.g. 'year' or 'yearReceived'
+ * @param {object|null} period - result of resolveReportPeriod(), or null
+ * @returns {object} - {} when period is null (no filtering)
+ */
+function yearStringElemMatch(yearField, period) {
+  if (!period) return {};
+  return { [yearField]: { $in: period.yearStrings } };
+}
+
+/**
+ * Builds a Mongo $elemMatch fragment restricting a Faculty array sub-document
+ * field to a resolved report period, for fields that store an ISO
+ * 'YYYY-MM-DD' date string (patents.dateOfFiling/grantDate,
+ * projects.startDate/endDate). Lexicographic string comparison is valid for
+ * same-length ISO dates, matching the convention already used elsewhere in
+ * this file (projectMatch.startDate.$gte/$lte above).
+ *
+ * @param {string} dateField
+ * @param {object|null} period
+ * @returns {object}
+ */
+function dateStringElemMatch(dateField, period) {
+  if (!period) return {};
+  return { [dateField]: { $gte: period.dateStringRange.start, $lte: period.dateStringRange.end } };
+}
+
+/**
+ * Builds a Mongo filter fragment for a real Date-typed field (e.g.
+ * Booking.date in the events module) restricted to a resolved report period.
+ *
+ * @param {string} dateField
+ * @param {object|null} period
+ * @returns {object}
+ */
+function dateElemMatch(dateField, period) {
+  if (!period) return {};
+  return { [dateField]: { $gte: period.dateRange.start, $lte: period.dateRange.end } };
+}
+
 module.exports = {
   buildFacultyFilter,
   buildStudentFilter,
@@ -301,4 +481,13 @@ module.exports = {
   extractExperienceFilter,
   isInExperienceRange,
   toArray,
+  // Report-period resolution (new)
+  resolveReportPeriod,
+  validateYearRange,
+  currentAcademicYearStart,
+  academicYearBounds,
+  calendarYearBounds,
+  yearStringElemMatch,
+  dateStringElemMatch,
+  dateElemMatch,
 };

@@ -19,6 +19,7 @@ const XLSX = require('xlsx');
  */
 function exportToExcel(rows, title = 'Report', payload = null) {
   if (payload && payload.assessment) return exportAssessmentWorkbook(payload);
+  if (payload && payload.institutionalReport) return exportInstitutionalReportWorkbook(payload);
   if (!rows || rows.length === 0) {
     rows = [{ '(No Data)': 'No records matched the selected filters.' }];
   }
@@ -68,6 +69,63 @@ function exportAssessmentWorkbook(payload) {
   const rec = [['Priority', 'Type', 'Criterion', 'Metric ID', 'Metric', 'Recommendation']]
     .concat(a.recommendations.map((r) => [r.priority, r.type === 'data' ? 'Data' : 'Improvement', r.criterion, r.metricId, r.metric, r.text]));
   XLSX.utils.book_append_sheet(wb, sheet(rec, [10, 12, 14, 11, 40, 90]), 'Recommendations');
+
+  return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+}
+
+/**
+ * Multi-sheet workbook for the IQAC Institutional Report: one "Executive
+ * Summary" sheet, one "Year-wise Comparison" + "Faculty Contribution" +
+ * "Department Comparison" sheet when more than one category is selected,
+ * and one sheet per selected category (name truncated to Excel's 31-char
+ * sheet-name limit, de-duplicated if a truncation collides).
+ */
+function exportInstitutionalReportWorkbook(payload) {
+  const wb = XLSX.utils.book_new();
+
+  const summary = [
+    [payload.title], ['Scope', payload.scope],
+    ['Period', `${payload.period.label}${payload.period.convention ? ` (${payload.period.convention} year)` : ''}`],
+    ['Generated', payload.generatedAt], ['Categories', payload.categories.join(', ')], [],
+    ['Executive summary'],
+    ['Total research outputs', payload.executiveSummary.totalOutputs],
+    ['Contributing faculty', payload.executiveSummary.contributingFaculty],
+    ['Departments covered', payload.executiveSummary.departmentsCovered],
+  ];
+  XLSX.utils.book_append_sheet(wb, sheet(summary, [36, 50]), 'Executive Summary');
+
+  if (payload.categories.length > 1) {
+    const yearSheet = [['Category', 'Year', 'Count']];
+    for (const key of payload.categories) {
+      const s = payload.sections[key];
+      for (const [year, count] of Object.entries(s.yearWise)) yearSheet.push([s.title, year, count]);
+    }
+    XLSX.utils.book_append_sheet(wb, sheet(yearSheet, [28, 10, 10]), 'Year-wise Comparison');
+
+    const facSheet = [['Faculty', 'Total Outputs']].concat(
+      Object.entries(payload.totalsByFaculty).sort((a, b) => b[1] - a[1])
+    );
+    XLSX.utils.book_append_sheet(wb, sheet(facSheet, [36, 14]), 'Faculty Contribution');
+
+    const deptSheet = [['Department', 'Total Outputs']].concat(
+      Object.entries(payload.totalsByDepartment).sort((a, b) => b[1] - a[1])
+    );
+    XLSX.utils.book_append_sheet(wb, sheet(deptSheet, [28, 14]), 'Department Comparison');
+  }
+
+  const usedNames = new Set(wb.SheetNames);
+  for (const key of payload.categories) {
+    const s = payload.sections[key];
+    let name = String(s.title).slice(0, 31);
+    let n = 2;
+    while (usedNames.has(name)) { name = `${s.title.slice(0, 28)} ${n}`.slice(0, 31); n++; }
+    usedNames.add(name);
+
+    const rows = s.register.length ? s.register : [{ '(No Data)': 'No records for this selection.' }];
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = Object.keys(rows[0]).map((k) => ({ wch: Math.min(40, Math.max(12, k.length + 2)) }));
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  }
 
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 }

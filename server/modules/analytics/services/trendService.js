@@ -41,7 +41,7 @@ function getRecentYears(n = 5) {
 async function yearOverYearTrend(scope, query) {
   const base     = scopeFilter(scope);
   const user     = buildFacultyFilter(query);
-  const combined = mergeFilters(base, user);
+  const combined = mergeFilters(user, base);
 
   const years   = query.years ? query.years.split(',') : getRecentYears(5);
   const faculty = await Faculty.find(combined).lean();
@@ -148,7 +148,7 @@ async function deptVsDeptTrend(scope, query) {
 async function facultyVsFacultyTrend(scope, query) {
   const base     = scopeFilter(scope);
   const user     = buildFacultyFilter(query);
-  const combined = mergeFilters(base, user);
+  const combined = mergeFilters(user, base);
 
   const limit   = Math.min(20, parseInt(query.topN || '10', 10));
   const faculty = await Faculty.find(combined).lean();

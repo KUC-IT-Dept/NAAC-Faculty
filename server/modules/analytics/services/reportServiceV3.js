@@ -40,7 +40,7 @@ function getAvailableReportTypesV3(scope) {
 async function listReportGenerator(scope, query, listName, filterFn, mapFn, title) {
   const base = scopeFilter(scope);
   const user = buildFacultyFilter(query);
-  const combined = mergeFilters(base, user);
+  const combined = mergeFilters(user, base);
 
   const faculty = await Faculty.find(combined).select(`username personalInfo.fullName employmentDetails.department ${listName}`).lean();
 

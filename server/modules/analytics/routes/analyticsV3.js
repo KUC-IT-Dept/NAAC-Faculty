@@ -167,7 +167,7 @@ router.get(
         ? { 'employmentDetails.department': scope.department }
         : {};
       const userFilter = buildFacultyFilter(req.query);
-      const combinedFilter = mergeFilters(deptFilter, userFilter);
+      const combinedFilter = mergeFilters(userFilter, deptFilter);
       // Extract experience sentinels so precomputedCounts are accurate.
       // calculateMetricFromDoc will call extractExperienceFilter itself, but we
       // need a clean count here to use as precomputedCounts.facultyCount.
@@ -234,7 +234,7 @@ router.get(
           ? { "employmentDetails.department": scope.department }
           : {};
       const userFilter = buildFacultyFilter(req.query);
-      const combinedFilter = mergeFilters(deptFilter, userFilter);
+      const combinedFilter = mergeFilters(userFilter, deptFilter);
       // Strip experience sentinels before Mongo queries
       const { min: expMin, max: expMax, cleanFilter: cleanCombinedFilter } = extractExperienceFilter(combinedFilter);
       
@@ -486,6 +486,78 @@ router.post(
   }
 );
 
+// ── GET /report-categories — IQAC Institutional Report category catalogue ───
+// Single source of truth for which report categories are selectable, so the
+// frontend never shows a category the data doesn't actually support.
+router.get(
+  '/report-categories',
+  auth,
+  requireAnalyticsScope('reportTypes'),
+  async (req, res) => {
+    const svc = tryRequire('../services/institutionalReportService');
+    if (!svc) return res.status(503).json({ message: 'Institutional report service not available.' });
+    try {
+      res.json(svc.getCategoryCatalogue());
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
+
+// ── POST /institutional-report/generate — IQAC Institutional Report ─────────
+// Accepts: categories (comma-separated or array), periodType
+// (last3|last5|specific|range), year, fromYear, toYear, convention
+// (calendar|academic), department (comma-separated or array, omit for All
+// Departments), format (pdf|excel|csv, default pdf).
+router.post(
+  '/institutional-report/generate',
+  auth,
+  requireAnalyticsScope('reportGenerate'),
+  async (req, res) => {
+    const svc          = tryRequire('../services/institutionalReportService');
+    const csvExporter   = tryRequire('../exporters/csvExporter');
+    const excelExporter = tryRequire('../exporters/excelExporter');
+    const pdfExporter   = tryRequire('../exporters/pdfExporter');
+    if (!svc) return res.status(503).json({ message: 'Institutional report service not available.' });
+
+    try {
+      const scope   = req.analyticsScope;
+      const format  = (req.query.format || 'pdf').toLowerCase();
+      const payload = await svc.generateInstitutionalReport(scope, req.query);
+      payload.institutionalReport = true;
+
+      // Preview mode: same filters, same payload the exports are built from —
+      // returned as JSON instead of a file so the UI can render a preview
+      // before the person commits to a download.
+      if (format === 'json' || format === 'preview') {
+        return res.json(payload);
+      }
+      if (format === 'excel' && excelExporter) {
+        const buffer = excelExporter.exportToExcel(payload.rows, payload.title, payload);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename="iqac-institutional-report.xlsx"');
+        return res.send(buffer);
+      }
+      if (format === 'csv' && csvExporter) {
+        const csv = csvExporter.exportToCsv(payload.rows, payload);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="iqac-institutional-report.csv"');
+        return res.send(csv);
+      }
+      if (pdfExporter) {
+        const buffer = await pdfExporter.exportToPdf(payload.rows, payload.title, payload);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename="iqac-institutional-report.pdf"');
+        return res.send(buffer);
+      }
+      res.status(503).json({ message: 'Exporters not available.' });
+    } catch (err) {
+      console.error('[V3] /institutional-report/generate error:', err);
+      res.status(err.status || 500).json({ message: err.message });
+    }
+  }
+);
+
 // ── Phase 18: Department Ranking Endpoint ────────────────────────────────────
 router.get(
   '/rankings/:metricId',
@@ -517,7 +589,7 @@ router.get(
         ? { 'employmentDetails.department': scope.department }
         : {};
       const userFilter = buildFacultyFilter(req.query);
-      const combinedFilter = mergeFilters(deptBaseFilter, userFilter);
+      const combinedFilter = mergeFilters(userFilter, deptBaseFilter);
       const { min: expMin, max: expMax, cleanFilter: cleanCombinedFilter } = extractExperienceFilter(combinedFilter);
       
       // Get all departments using the clean filter (no sentinels for Mongo)

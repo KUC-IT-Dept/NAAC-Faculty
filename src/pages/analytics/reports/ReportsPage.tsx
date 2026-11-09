@@ -19,6 +19,7 @@ import {
 } from '../../../lib/analyticsV2Api';
 import { getReportTypesV3 } from '../../../lib/analyticsV3Api';
 import api from '../../../lib/api';
+import InstitutionalReportPanel from './InstitutionalReportPanel';
 
 interface ReportsPageProps {
   filters?: AnalyticsFilters;
@@ -83,28 +84,40 @@ export default function ReportsPage({ filters }: ReportsPageProps) {
     }
   };
 
-  if (loading) {
-    return <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Loading available reports…</p>;
-  }
+  const legacySection = () => {
+    if (loading) {
+      return <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Loading available reports…</p>;
+    }
+    if (error) {
+      return (
+        <div style={{
+          background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 10,
+          padding: '14px 18px', color: '#854d0e', fontSize: '0.875rem',
+        }}>
+          {error}
+        </div>
+      );
+    }
+    if (reportTypes.length === 0) {
+      return <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>No report types available for your role.</p>;
+    }
+    return null;
+  };
 
-  if (error) {
-    return (
-      <div style={{
-        background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 10,
-        padding: '14px 18px', color: '#854d0e', fontSize: '0.875rem',
-      }}>
-        {error}
-      </div>
-    );
-  }
-
-  if (reportTypes.length === 0) {
-    return <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>No report types available for your role.</p>;
-  }
+  const legacyFallback = legacySection();
 
   return (
     <div>
-      {genError && (
+      <InstitutionalReportPanel />
+
+      <div style={{ fontWeight: 800, color: 'var(--navy, #1e3a5f)', fontSize: '1.05rem', margin: '4px 0 12px' }}>
+        Standard Reports
+      </div>
+
+      {legacyFallback}
+      {legacyFallback && <div style={{ marginBottom: 20 }} />}
+
+      {!legacyFallback && genError && (
         <div style={{
           background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 10,
           padding: '12px 16px', color: '#b91c1c', fontSize: '0.875rem', marginBottom: 16,
@@ -113,6 +126,7 @@ export default function ReportsPage({ filters }: ReportsPageProps) {
         </div>
       )}
 
+      {!legacyFallback && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {reportTypes.map(report => (
           <div
@@ -166,10 +180,13 @@ export default function ReportsPage({ filters }: ReportsPageProps) {
           </div>
         ))}
       </div>
+      )}
 
-      <p style={{ color: '#94a3b8', fontSize: '0.78rem', marginTop: 20 }}>
-        Reports are generated from live data and reflect any active filters applied above.
-      </p>
+      {!legacyFallback && (
+        <p style={{ color: '#94a3b8', fontSize: '0.78rem', marginTop: 20 }}>
+          Reports are generated from live data and reflect any active filters applied above.
+        </p>
+      )}
     </div>
   );
 }
