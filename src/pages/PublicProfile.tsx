@@ -4,7 +4,7 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import { useParams, Link } from 'react-router-dom';
 
 // PRESENTATION_MODE: Set to true to restore company logo after demonstration
-const SHOW_COMPANY_LOGO = false;
+const SHOW_COMPANY_LOGO = true;
 import api, { getFileUrl } from '../lib/api';
 import { GraduationCap, Briefcase, BookOpen, FlaskConical, Award, Users, Shield, Mail, Phone, Globe, Link2, ExternalLink } from 'lucide-react';
 import { formatQaDateSpan } from '../components/sections/qualityAssuranceUtils';

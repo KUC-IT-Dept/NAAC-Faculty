@@ -4,7 +4,7 @@ import qaiLogo from '../../assets/qai-logo-transparent.png';
 import { useState } from 'react';
 
 // PRESENTATION_MODE: Set to true to restore company logo after demonstration
-const SHOW_COMPANY_LOGO = false;
+const SHOW_COMPANY_LOGO = true;
 import { fg, inp, FileInp, sel, DocumentPreviewLink } from './sectionUtils';
 import { useDropdownOptions } from '../../shared/useDropdownOptions';
 import { useConfirmSave } from '../useConfirmSave';

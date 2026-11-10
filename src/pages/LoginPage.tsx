@@ -7,7 +7,8 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
-const SHOW_BRAND_LOGOS = false;
+const SHOW_COMPANY_LOGO = true;
+const SHOW_UNIVERSITY_LOGO = false;
 
 const features = [
   { icon: <BookOpen size={18} />, text: 'Comprehensive faculty profile management' },
@@ -76,8 +77,8 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       {/* Left panel */}
-      <div className="login-left" style={!SHOW_BRAND_LOGOS ? { paddingTop: 48 } : undefined}>
-        {SHOW_BRAND_LOGOS && (
+      <div className="login-left" style={!SHOW_COMPANY_LOGO ? { paddingTop: 48 } : undefined}>
+        {SHOW_COMPANY_LOGO && (
           <div className="login-left-header">
             <img src={qaiLogo} alt="QAI / QARTINT Logo" className="login-left-logo" />
           </div>
@@ -103,7 +104,7 @@ export default function LoginPage() {
       {/* Right panel */}
       <div className="login-right">
         <div style={{ marginBottom: 22 }}>
-          {SHOW_BRAND_LOGOS && (
+          {SHOW_UNIVERSITY_LOGO && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
               <img src={devagiriLogo} alt="St. Joseph's College (Autonomous), Devagiri logo" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
             </div>

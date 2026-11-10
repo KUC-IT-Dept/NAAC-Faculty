@@ -6,7 +6,8 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import devagiriLogo from '../assets/devagiri-college-logo.png';
 
 // PRESENTATION_MODE: Set to true to restore company & university logos after demonstration
-const SHOW_BRAND_LOGOS = false;
+const SHOW_COMPANY_LOGO = true;
+const SHOW_UNIVERSITY_LOGO = false;
 
 type Role = 'admin' | 'faculty' | 'vc' | 'hod' | 'staff' | 'librarian' | 'mmttc_director';
 
@@ -181,7 +182,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
             </button>
           ) : (
             <button type="button" className="sidebar-logo-button" onClick={() => setCollapsed(false)}>
-              {SHOW_BRAND_LOGOS ? (
+              {SHOW_COMPANY_LOGO ? (
                 <img src={qaiLogo} alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} />
               ) : (
                 <PanelLeftOpen size={20} />
@@ -191,7 +192,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         </div>
 
         <nav className="sidebar-nav">
-          {SHOW_BRAND_LOGOS && !collapsed && (
+          {SHOW_COMPANY_LOGO && !collapsed && (
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', width: '100%', paddingTop: '8px' }}>
               <img src={qaiLogo} alt="QAI Logo" style={{ width: '55px', height: 'auto', objectFit: 'contain' }} />
             </div>
@@ -291,7 +292,7 @@ export default function AppLayout({ children, title }: { children: ReactNode; ti
         <header className="top-bar">
           <span className="top-bar-title">{title}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {SHOW_BRAND_LOGOS && (
+            {SHOW_UNIVERSITY_LOGO && (
               <img src={devagiriLogo} alt="St. Joseph's College (Autonomous), Devagiri logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
             )}
             <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'var(--accent-pale)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>

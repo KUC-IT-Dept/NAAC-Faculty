@@ -3,7 +3,7 @@ import qaiLogo from '../../assets/qai-logo-transparent.png';
 import { useNavigate } from 'react-router-dom';
 
 // PRESENTATION_MODE: Set to true to restore company logo after demonstration
-const SHOW_COMPANY_LOGO = false;
+const SHOW_COMPANY_LOGO = true;
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';

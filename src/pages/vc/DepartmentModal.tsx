@@ -3,7 +3,7 @@ import qaiLogo from '../../assets/qai-logo-transparent.png';
 import api from '../../lib/api';
 
 // PRESENTATION_MODE: Set to true to restore company logo after demonstration
-const SHOW_COMPANY_LOGO = false;
+const SHOW_COMPANY_LOGO = true;
 import { Users, BookOpen, Briefcase, GraduationCap, TrendingUp, X } from 'lucide-react';
 
 export default function DepartmentModal({ name, onClose }: { name: string; onClose: () => void }) {

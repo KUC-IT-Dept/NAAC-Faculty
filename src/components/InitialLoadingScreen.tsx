@@ -3,7 +3,7 @@ import qaiLogo from '../assets/qai-logo-transparent.png';
 import './InitialLoadingScreen.css';
 
 // PRESENTATION_MODE: Set to true to restore company logo after demonstration
-const SHOW_COMPANY_LOGO = false;
+const SHOW_COMPANY_LOGO = true;
 
 interface Props {
   /** Fatal startup error. Stops the animation and shows a Retry button. */
@@ -55,7 +55,7 @@ export default function InitialLoadingScreen({ error, onRetry, progress = 0, rea
       </div>
 
       <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
-        {SHOW_COMPANY_LOGO ? 'QAI / QARTINT' : 'IQAC Faculty Profile Portal'}
+        'IQAC Faculty Profile Portal'
       </span>
 
       {error ? (
